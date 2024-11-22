@@ -1,13 +1,16 @@
-import {createApp} from "vue";
+import { createApp } from "vue";
 import "./style.css";
 import "./assets/css/common.scss"
 import App from "./App.vue"
 import router from "./router/router.ts";
 import PrimeVue from "primevue/config";
 import Aura from '@primevue/themes/aura';
-import {Tooltip} from "primevue";
+import { Tooltip } from "primevue";
+import { createPinia } from "pinia";
 
-createApp(App).use(router).use(PrimeVue, {
+const pinia = createPinia();
+
+createApp(App).use(router).use(pinia).use(PrimeVue, {
     theme: {
         preset: Aura
     }
