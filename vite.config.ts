@@ -7,11 +7,11 @@ export default defineConfig({
 	plugins: [vue()],
 	server: {
 		port: 8080,
-		proxy: {
-			"/api": {
-				target: "https://faas-ams3-2a2df116.doserverless.co",
-				changeOrigin: true,
-				rewrite: (path) => path.replace(/^\/api/, ""),
+	},
+	css: {
+		preprocessorOptions: {
+			scss: {
+				api: "modern-compiler",
 			},
 		},
 	},

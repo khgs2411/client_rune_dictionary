@@ -43,7 +43,6 @@ function closeSettings() {
 }
 </script>
 <style lang="scss" scoped>
-@use "../../../assets/css/variables.scss" as *;
 
 .settings-sidebar {
 	padding: 1rem;

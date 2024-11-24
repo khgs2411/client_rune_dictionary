@@ -5,19 +5,27 @@ import { COLOR_PRESETS } from "../common/consts/app.consts";
 import { useLocalStorage } from "@vueuse/core";
 export type Theme = keyof typeof COLOR_PRESETS;
 export type ThemeData = { name: string; variable: string; value: any };
+export type CurrentThemeData = ThemeData & { group: string | undefined };
 export const useSettingsStore = defineStore(
 	"settingsStore",
 	() => {
 		const _visible = ref(false);
-		const _darkMode = ref(true);
+		const _darkMode = useLocalStorage("darkMode", true);
 
-		const currentTheme = useLocalStorage("current-theme", { name: <string | undefined>undefined, variable: <string | undefined>undefined, value: <string | undefined>undefined }) as Ref<ThemeData>;
+		const _currentTheme = useLocalStorage("current-theme", {
+			group: <string | undefined>undefined,
+			name: <string | undefined>undefined,
+			variable: <string | undefined>undefined,
+			value: <string | undefined>undefined,
+		}) as Ref<CurrentThemeData>;
+
 		const darkMode = computed(() => _darkMode.value);
 		const visible = computed(() => _visible.value);
+		const currentTheme = computed(() => _currentTheme.value);
 
 		function setTheme(themeData: ThemeData) {
-			currentTheme.value = themeData;
-			const theme = currentTheme.value.name.split("-")[3];
+			const theme = themeData.name.split("-")[3];
+			_currentTheme.value = { name: themeData.name, value: themeData.value, variable: themeData.variable, group: theme };
 			updatePrimaryPalette({
 				50: `{${theme}.50}`,
 				100: `{${theme}.100}`,
@@ -37,11 +45,11 @@ export const useSettingsStore = defineStore(
 			_darkMode.value = value;
 		}
 
-        function setVisible(value: boolean) {
-            _visible.value = value;
-        }
+		function setVisible(value: boolean) {
+			_visible.value = value;
+		}
 
-		if (currentTheme.value.name) setTheme(currentTheme.value);
+		if (_currentTheme.value.name) setTheme(_currentTheme.value);
 
 		watch(
 			() => _darkMode.value,
@@ -56,8 +64,9 @@ export const useSettingsStore = defineStore(
 		return {
 			darkMode,
 			visible,
+			currentTheme,
 
-            setVisible,     
+			setVisible,
 			setTheme,
 			setDarkMode,
 		};

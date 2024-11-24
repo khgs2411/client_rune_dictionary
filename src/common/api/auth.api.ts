@@ -1,5 +1,10 @@
 import BaseApi from "./api.base";
 
+export interface ILoginResponse {
+	status: boolean;
+	authorized: boolean;
+	msg: string;
+}
 export default class AuthAPI extends BaseApi {
 	public async login(username: string, password?: string) {
 		const action = "index";
@@ -11,6 +16,7 @@ export default class AuthAPI extends BaseApi {
 				username,
 			},
 		};
-		return this.post(action, payload).then((res) => res.data);
+		const response = await this.post<ILoginResponse>(action, payload);
+		return response.data;
 	}
 }

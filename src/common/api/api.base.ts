@@ -58,8 +58,8 @@ class BaseApi {
 		let action = endpoint ? endpoint : controllerOrEndpoint;
 
 		return this.api.get<T>(`${this.base_url}/${controller}/${action}`).catch((err) => {
-			if (isAxiosError(err)) throw new Error(err.response?.data);
-			throw new Error(err);
+			if (isAxiosError(err)) throw err.response;
+			throw err;
 		});
 	}
 
@@ -94,10 +94,12 @@ class BaseApi {
 			action = controllerOrEndpoint;
 			data = endpointOrPayload;
 		}
-		return this.api.post<T>(`${this.base_url}/${controller}/${action}`, data).catch((err) => {
-			if (isAxiosError(err)) throw new Error(err.response?.data);
-			throw new Error(err);
+		const response = await this.api.post<T>(`${this.base_url}/${controller}/${action}`, data).catch((err) => {
+			if (isAxiosError(err)) throw err.response;
+			throw err;
 		});
+		if (!response.data.status) throw new Error("Something went wrong");
+		return response;
 	}
 }
 

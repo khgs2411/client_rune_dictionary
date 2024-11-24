@@ -25,13 +25,19 @@ interface MenuItem {
 	[key: string]: any;
 }
 import { Menubar } from "primevue";
-import { computed, reactive } from "vue";
 import Button from "primevue/button";
+import { computed, ComputedRef } from "vue";
+import { useRouter } from "vue-router";
 import { useSettingsStore } from "../../../stores/settings.store";
-
+import useAuth from "../../composables/useAuth";
 
 const store = useSettingsStore();
-const items: MenuItem[] = reactive([]);
+const auth = useAuth();
+const router = useRouter();
+const items: ComputedRef<MenuItem[]> = computed(() => [
+	{ label: "Match", icon: "pi pi-fw pi-users", command: () => router.push("/match") },
+	{ label: "Dictionary", icon: "pi pi-fw pi-book", command: () => router.push("/app"), visible: auth.authorized.value },
+]);
 
 const darkMode = computed(() => store.darkMode);
 
