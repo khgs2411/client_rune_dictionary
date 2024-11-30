@@ -25,9 +25,9 @@ export const useAuthStore = defineStore(
 			setAuthorized,
 		};
 	},
-	{
+	/* {
 		persist: true,
-	},
+	}, */
 );
 
 if (import.meta.hot) {

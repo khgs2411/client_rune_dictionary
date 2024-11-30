@@ -20,6 +20,7 @@ const store = useAuthStore();
 const misc = useMiscStore();
 const router = useRouter();
 const { username, password, loading } = storeToRefs(store);
+
 async function login() {
 	try {
 		loading.value = true;
