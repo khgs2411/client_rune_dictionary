@@ -13,8 +13,8 @@
 <script lang="ts" setup>
 import PrimeToast from "primevue/toast";
 import { computed, ref, watch } from "vue";
-import { ToastMessage, ToastPosition, useMiscStore } from "../../../stores/misc.store";
 import { useToast } from "primevue/usetoast";
+import { ToastMessage, ToastPosition, useMiscStore } from "../../stores/misc.store";
 
 const store = useMiscStore();
 const toasts = computed(() => store.toasts);

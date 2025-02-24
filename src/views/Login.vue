@@ -11,9 +11,9 @@ import { storeToRefs } from "pinia";
 import { InputText } from "primevue";
 import Button from "primevue/button";
 import { useRouter } from "vue-router";
-import AuthAPI from "../common/api/auth.api";
 import { useAuthStore } from "../stores/auth.store";
 import { useMiscStore } from "../stores/misc.store";
+import AuthAPI from "../api/auth.api";
 
 const api = new AuthAPI("main");
 const store = useAuthStore();

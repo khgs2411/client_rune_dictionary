@@ -11,6 +11,7 @@ import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import Ripple from "primevue/ripple";
 import ToastService from "primevue/toastservice";
+import DebugDirective from "./directives/debug.directive.ts";
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
@@ -31,4 +32,5 @@ createApp(App)
 	.use(ToastService)
 	.directive("tooltip", Tooltip)
 	.directive("ripple", Ripple)
+	.directive("debug", DebugDirective)
 	.mount("#app");

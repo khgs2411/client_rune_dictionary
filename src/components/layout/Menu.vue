@@ -1,5 +1,5 @@
 <template>
-	<Menubar :model="items">
+	<Menubar class="run-dict-menu" :model="items">
 		<template #end>
 			<Button @click="setDarkMode(false)" icon="pi pi-moon" v-if="darkMode" text></Button>
 			<Button @click="setDarkMode(true)" icon="pi pi-sun" v-else text></Button>
@@ -28,8 +28,8 @@ import { Menubar } from "primevue";
 import Button from "primevue/button";
 import { computed, ComputedRef } from "vue";
 import { useRouter } from "vue-router";
-import { useSettingsStore } from "../../../stores/settings.store";
-import useAuth from "../../composables/useAuth";
+import useAuth from "../../common/composables/useAuth";
+import { useSettingsStore } from "../../stores/settings.store";
 
 const store = useSettingsStore();
 const auth = useAuth();
@@ -50,4 +50,13 @@ function onSettingsBtn() {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.run-dict-menu {
+	&:deep() {
+		.p-menubar-item-content,
+		.p-menubar-item-icon {
+			color: var(--p-primary-color);
+		}
+	}
+}
+</style>

@@ -22,8 +22,8 @@ import { Icon } from "@iconify/vue";
 import { $dt } from "@primevue/themes";
 import { Drawer } from "primevue";
 import { computed } from "vue";
-import { useSettingsStore } from "../../../stores/settings.store";
-import { COLOR_PRESETS } from "../../consts/app.consts";
+import { useSettingsStore } from "../../stores/settings.store";
+import { COLOR_PRESETS } from "../../common/consts/app.consts";
 
 const store = useSettingsStore();
 const visible = computed(() => store.visible);

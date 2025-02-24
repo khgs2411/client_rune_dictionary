@@ -6,7 +6,7 @@
 
 <script lang="ts" setup>
 import { defineComponent, ref, reactive, computed, onMounted } from "vue";
-import { useSettingsStore } from "../../../stores/settings.store";
+import { useSettingsStore } from "../../stores/settings.store";
 defineProps({
 	loading: { type: Boolean, required: true },
 });
