@@ -11,7 +11,7 @@ defineProps({
 	loading: { type: Boolean, required: true },
 });
 const store = useSettingsStore();
-const loadingStyleObject = computed(()=>({ 'background-color': `var(--p-${store.currentTheme.group}-950)` }))
+const loadingStyleObject = computed(() => ({ "background-color": `var(--p-${store.currentTheme.group}-950)` }));
 </script>
 
 <style lang="scss" scoped>

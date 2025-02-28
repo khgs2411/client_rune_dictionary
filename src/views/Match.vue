@@ -9,7 +9,7 @@
 <script lang="ts" setup>
 import { defineComponent, ref, reactive, computed, onMounted } from "vue";
 import { Panel } from "primevue";
-import Chat from "../components/application/Chat.vue"
+import Chat from "../components/application/Chat.vue";
 </script>
 
 <style lang="scss" scoped>
@@ -24,8 +24,6 @@ import Chat from "../components/application/Chat.vue"
 	padding: 0;
 	margin: 0;
 	position: relative;
-
-	
 
 	.viewport {
 		background: var(--p-content-background);

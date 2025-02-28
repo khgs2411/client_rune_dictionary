@@ -3,7 +3,7 @@
 		<div class="status" :class="status">
 			{{ status }}
 		</div>
-
+		API Response: {{ responseFromApi }}
 		<div ref="messagesContainer" class="messages">
 			<div v-for="(message, index) in messages" :key="index" class="message">
 				{{ message }}
@@ -11,7 +11,6 @@
 		</div>
 
 		<div class="input-area">
-			{{ status !== "OPEN" }}
 			<InputText v-model="inputMessage" @keyup.enter="sendMessage" placeholder="Type a message..." :disabled="status !== 'OPEN'" />
 			<Button @click="sendMessage" :disabled="status !== 'OPEN'"> Send </Button>
 		</div>
@@ -19,67 +18,67 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from "vue";
 import { useWebSocket } from "@vueuse/core";
-import { InputText, Button } from "primevue";
-
+import { Button, InputText } from "primevue";
+import { WebsocketStructuredMessage } from "topsyde-utils";
+import { nextTick, onMounted, onUnmounted, ref, toRefs, watch } from "vue";
+import AppAPI from "../../api/app.api";
+import useWebSocketInterface, { WEBSOCKET_URL } from "../../common/composables/useWebsocketInterface";
 const messages = ref<string[]>([]);
 const inputMessage = ref("");
 const messagesContainer = ref<HTMLElement | null>(null);
+const responseFromApi = ref<string>("");
+
+// Use the WebSocket interface composable
+const wsOptions = useWebSocketInterface(messages);
+const ws = useWebSocket<WebsocketStructuredMessage>(WEBSOCKET_URL, wsOptions);
+const { status } = toRefs(ws);
+
+function sendMessage() {
+	if (!inputMessage.value.trim()) return;
+	const message: WebsocketStructuredMessage = {
+		type: "message",
+		content: inputMessage.value,
+	};
+	ws.send(JSON.stringify(message));
+	inputMessage.value = "";
+}
 
 // Function to scroll to bottom
-const scrollToBottom = () => {
+function scrollToBottom() {
 	if (messagesContainer.value) {
 		messagesContainer.value.scrollTo({
 			top: messagesContainer.value.scrollHeight,
-			behavior: 'smooth'
+			behavior: "smooth",
 		});
 	}
-};
+}
 
-// Watch messages array for changes and scroll to bottom
-watch(messages, () => {
-	// Use nextTick to ensure DOM is updated
-	nextTick(() => {
-		scrollToBottom();
-	});
-}, { deep: true });
+watch(
+	messages,
+	() => {
+		// Use nextTick to ensure DOM is updated
+		nextTick(() => {
+			scrollToBottom();
+		});
+	},
+	{ deep: true },
+);
 
-const { status, data, send } = useWebSocket(`ws://${import.meta.env.VITE_WS_HOST}:3000`, {
-	autoReconnect: {
-		retries: 3,
-		delay: 1000,
-		onFailed() {
-			console.error("Failed to connect WebSocket after 3 retries");
-		},
-	},
-	heartbeat: {
-		message: "ping",
-		interval: 1000,
-		pongTimeout: 1000,
-	},
-	onConnected: () => {
-		console.log("Connected!");
-	},
-	onDisconnected: () => {
-		console.log("Disconnected!");
-	},
-	onMessage: () => {
-		// When we receive a message, add it to our messages array
-		console.log(data.value);
-		if (data.value) {
-			messages.value.push(data.value);
-		}
-	},
+onMounted(() => {
+	const api = new AppAPI();
+	api.ping()
+		.then((res) => {
+			responseFromApi.value = (res as any).data;
+		})
+		.catch((err) => {
+			console.error(err);
+		});
 });
 
-const sendMessage = () => {
-	console.log(inputMessage.value)
-	if (inputMessage.value.trim()) {
-		send(inputMessage.value);
-		inputMessage.value = "";
-	}
-};
+onUnmounted(() => {
+	ws.close();
+});
 </script>
 
 <style scoped>

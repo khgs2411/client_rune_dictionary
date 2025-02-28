@@ -114,7 +114,9 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 		overflow: hidden;
 		position: relative;
 		cursor: pointer;
-		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.1);
+		box-shadow:
+			0 4px 8px rgba(0, 0, 0, 0.1),
+			0 6px 20px rgba(0, 0, 0, 0.1);
 		.card-image {
 			width: 400px;
 			height: 200px;

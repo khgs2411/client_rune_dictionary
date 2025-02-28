@@ -26,16 +26,15 @@ async function login() {
 		loading.value = true;
 		const res = await api.login(username.value, password.value);
 		store.setAuthorized(res.authorized);
-		misc.toast({ msg: "Logged in succesfully! Redirecting", position: "center", severity: "info", duration:1000 });
+		misc.toast({ msg: "Logged in succesfully! Redirecting", position: "center", severity: "info", duration: 1000 });
 		router.push("/app");
-		setTimeout(()=>{
-			loading.value = false
-		}, 1001)
+		setTimeout(() => {
+			loading.value = false;
+		}, 1001);
 	} catch (e) {
 		misc.toast({ msg: "Failed to login", position: "center", severity: "error" });
 	}
 }
-
 </script>
 
 <style scoped lang="scss"></style>

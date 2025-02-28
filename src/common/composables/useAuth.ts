@@ -7,7 +7,6 @@ const useAuth = () => {
 	const { loading } = storeToRefs(store);
 	const authorized = computedEager(() => store.authorized);
 
-	
 	return {
 		authorized,
 		loading,

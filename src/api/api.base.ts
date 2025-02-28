@@ -3,9 +3,9 @@ class BaseApi {
 	private api: AxiosInstance;
 	public controller: string;
 	protected base_url: string;
-	constructor(action: string) {
+	constructor(action: string, base_url?: string) {
 		this.controller = action;
-		this.base_url = "https://faas-ams3-2a2df116.doserverless.co/api/v1/web/fn-8b5106d1-8570-4f63-a2af-01748ac110f3";
+		this.base_url = base_url || "https://faas-ams3-2a2df116.doserverless.co/api/v1/web/fn-8b5106d1-8570-4f63-a2af-01748ac110f3";
 		this.api = this.initAxios();
 	}
 

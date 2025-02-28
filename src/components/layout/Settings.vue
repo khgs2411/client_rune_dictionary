@@ -43,7 +43,6 @@ function closeSettings() {
 }
 </script>
 <style lang="scss" scoped>
-
 .settings-sidebar {
 	padding: 1rem;
 	height: 100%;

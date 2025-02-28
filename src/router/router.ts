@@ -9,7 +9,8 @@ const router = createRouter({
 
 function checkIsAuthorized(to: RouteLocationNormalizedGeneric, next: NavigationGuardNext) {
 	const authStore = useAuthStore();
-	const isAuthorized = authStore.authorized; if (to.path === "/login" && isAuthorized) {
+	const isAuthorized = authStore.authorized;
+	if (to.path === "/login" && isAuthorized) {
 		//? If the user is authorized and tries to access the login page, redirect to the Dictionary component
 		next("/app");
 	} else if (to.path !== "/login" && !isAuthorized) {
@@ -30,4 +31,3 @@ function checkIsAuthorized(to: RouteLocationNormalizedGeneric, next: NavigationG
 router.beforeEach((to, _from, next) => checkIsAuthorized(to, next));
 
 export default router;
-

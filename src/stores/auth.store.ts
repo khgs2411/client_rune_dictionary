@@ -11,7 +11,7 @@ export const useAuthStore = defineStore(
 		// const _currentTheme = useLocalStorage("current-theme", { name: <string | undefined>undefined, variable: <string | undefined>undefined, value: <string | undefined>undefined }) as Ref<ThemeData>;
 		const _authorized = useLocalStorage("authorized", false);
 		const authorized = computed(() => _authorized.value);
-		
+
 		function setAuthorized(value: boolean) {
 			_authorized.value = value;
 		}
