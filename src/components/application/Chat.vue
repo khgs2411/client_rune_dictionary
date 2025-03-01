@@ -1,50 +1,66 @@
 <template>
-	<div class="chat">
-		<div class="status" :class="status">
-			{{ status }}
-		</div>
-		API Response: {{ responseFromApi }}
-		<div ref="messagesContainer" class="messages">
-			<div v-for="(message, index) in messages" :key="index" class="message">
-				{{ message }}
+	<ChatWindow storageKey="chat" :minWidth="300" :minHeight="200" :initialSize="{ width: 600, height: 500 }">
+		<template #title>Chat {{ client ? `(${client.name})` : '' }}</template>
+		<template #controls>
+			<div class="status-indicator" :class="status"></div>
+		</template>
+
+		<div class="chat-content">
+			<div ref="messagesContainer" class="messages">
+				<ChatMessage v-for="(message, index) in messages" :key="index" :message="message" />
+			</div>
+
+			<div class="input-area">
+				<div class="input-wrapper">
+					<InputText v-model="inputMessage" @keyup.enter="sendMessage" placeholder="Enter message..." :disabled="status !== 'OPEN'" />
+					<Button @click="sendMessage" :disabled="status !== 'OPEN' || !inputMessage.trim()"> Send </Button>
+				</div>
 			</div>
 		</div>
-
-		<div class="input-area">
-			<InputText v-model="inputMessage" @keyup.enter="sendMessage" placeholder="Type a message..." :disabled="status !== 'OPEN'" />
-			<Button @click="sendMessage" :disabled="status !== 'OPEN'"> Send </Button>
-		</div>
-	</div>
+	</ChatWindow>
 </template>
 
 <script setup lang="ts">
 import { useWebSocket } from "@vueuse/core";
 import { Button, InputText } from "primevue";
-import { WebsocketStructuredMessage } from "topsyde-utils";
-import { nextTick, onMounted, onUnmounted, ref, toRefs, watch } from "vue";
-import AppAPI from "../../api/app.api";
+import { WebsocketEntityData, WebsocketStructuredMessage } from "topsyde-utils";
+import { nextTick, onMounted, onUnmounted, Ref, ref, toRefs, watch } from "vue";
+import API from "../../api/app.api";
+import useUtils from "../../common/composables/useUtils";
 import useWebSocketInterface, { WEBSOCKET_URL } from "../../common/composables/useWebsocketInterface";
-const messages = ref<string[]>([]);
+import ChatMessage from "../chat/ChatMessage.vue";
+import ChatWindow from "../chat/ChatWindow.vue";
+
+const props = defineProps<{
+	client: WebsocketEntityData;
+}>();
+
+const api = new API();
+const utils = useUtils();
+const messages = ref<WebsocketStructuredMessage[]>([]);
 const inputMessage = ref("");
 const messagesContainer = ref<HTMLElement | null>(null);
-const responseFromApi = ref<string>("");
-
-// Use the WebSocket interface composable
-const wsOptions = useWebSocketInterface(messages);
+const wsOptions = useWebSocketInterface(ref(props.client), messages);
 const ws = useWebSocket<WebsocketStructuredMessage>(WEBSOCKET_URL, wsOptions);
 const { status } = toRefs(ws);
 
 function sendMessage() {
 	if (!inputMessage.value.trim()) return;
+
+	// Format message according to WebsocketStructuredMessage interface
 	const message: WebsocketStructuredMessage = {
 		type: "message",
 		content: inputMessage.value,
+		channel: "global",
+		timestamp: new Date().toISOString(),
+		client: props.client
 	};
+
+	// Send message to server
 	ws.send(JSON.stringify(message));
 	inputMessage.value = "";
 }
 
-// Function to scroll to bottom
 function scrollToBottom() {
 	if (messagesContainer.value) {
 		messagesContainer.value.scrollTo({
@@ -54,83 +70,131 @@ function scrollToBottom() {
 	}
 }
 
+async function ping() {
+	try {
+		await api.ping();
+	} catch (error) {
+		utils.lib.Warn("Error pinging API", error);
+	}
+}
+
 watch(
 	messages,
-	() => {
-		// Use nextTick to ensure DOM is updated
+	() =>
 		nextTick(() => {
 			scrollToBottom();
-		});
-	},
+		}),
 	{ deep: true },
 );
 
 onMounted(() => {
-	const api = new AppAPI();
-	api.ping()
-		.then((res) => {
-			responseFromApi.value = (res as any).data;
-		})
-		.catch((err) => {
-			console.error(err);
-		});
+	ping();
+	utils.lib.Log("Chat mounted with client:", props.client);
 });
 
-onUnmounted(() => {
-	ws.close();
-});
+onUnmounted(() => ws.close());
 </script>
 
 <style scoped>
-.chat {
-	max-width: 600px;
-	margin: 0 auto;
-	padding: 1rem;
-}
-
-.status {
-	padding: 0.5rem;
-	text-align: center;
-	color: white;
-	margin-bottom: 1rem;
-}
-
-.status.OPEN {
-	background-color: #00c851;
-}
-.status.CONNECTING {
-	background-color: #ffbb33;
-}
-.status.CLOSED {
-	background-color: #ff4444;
+.chat-content {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
 }
 
 .messages {
-	height: 400px;
+	flex: 1;
 	overflow-y: auto;
-	border: 1px solid #ccc;
-	padding: 1rem;
-	margin-bottom: 1rem;
+	padding: 0.5rem;
+	margin-bottom: 0.5rem;
+	color: #fff;
+	font-size: 0.9rem;
 	scroll-behavior: smooth;
 }
 
-.message {
-	margin-bottom: 0.5rem;
-	padding: 0.5rem;
+.messages::-webkit-scrollbar {
+	width: 8px;
+}
+
+.messages::-webkit-scrollbar-track {
+	background: rgba(0, 0, 0, 0.3);
+}
+
+.messages::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.2);
 	border-radius: 4px;
 }
 
+.status-indicator {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin-right: 4px;
+}
+
+.status-indicator.OPEN {
+	background-color: #4caf50;
+	box-shadow: 0 0 4px #4caf50;
+}
+
+.status-indicator.CONNECTING {
+	background-color: #ffc107;
+	box-shadow: 0 0 4px #ffc107;
+}
+
+.status-indicator.CLOSED {
+	background-color: #f44336;
+	box-shadow: 0 0 4px #f44336;
+}
+
 .input-area {
+	padding: 0.5rem;
+	background: rgba(0, 0, 0, 0.6);
+	border-top: 1px solid #444;
+}
+
+.input-wrapper {
 	display: flex;
 	gap: 0.5rem;
 }
 
-input {
+.input-wrapper :deep(input) {
 	flex: 1;
-	padding: 0.5rem;
+	background: rgba(0, 0, 0, 0.6);
+	border: 1px solid #555;
+	color: #fff;
+	padding: 0.4rem 0.8rem;
+	border-radius: 4px;
+	font-size: 0.9rem;
 }
 
-button {
-	padding: 0.5rem 1rem;
+.input-wrapper :deep(input:focus) {
+	outline: none;
+	border-color: #666;
+}
+
+.input-wrapper :deep(input::placeholder) {
+	color: #666;
+}
+
+.input-wrapper :deep(button) {
+	background: rgba(60, 60, 60, 0.9);
+	border: 1px solid #555;
+	color: #fff;
+	padding: 0.4rem 1rem;
+	cursor: pointer;
+	border-radius: 4px;
+	font-size: 0.9rem;
+	transition: background 0.2s;
+}
+
+.input-wrapper :deep(button:hover) {
+	background: rgba(80, 80, 80, 0.9);
+}
+
+.input-wrapper :deep(button:disabled) {
+	background: rgba(40, 40, 40, 0.9);
+	color: #666;
+	cursor: not-allowed;
 }
 </style>
