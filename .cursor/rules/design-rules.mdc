@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+use Tailwind as a css framework - https://v2.tailwindcss.com/docs/responsive-design
+use PrimeVue as a UI library component - https://primevue.org/inputgroup/

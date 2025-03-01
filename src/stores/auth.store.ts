@@ -5,8 +5,8 @@ import { computed, ref } from "vue";
 export const useAuthStore = defineStore(
 	"authStore",
 	() => {
-		const username = ref("");
-		const password = ref("");
+		const username = useLocalStorage("username", "");
+		const password = ref(import.meta.env.VITE_API_KEY);
 		const loading = ref(true);
 		// const _currentTheme = useLocalStorage("current-theme", { name: <string | undefined>undefined, variable: <string | undefined>undefined, value: <string | undefined>undefined }) as Ref<ThemeData>;
 		const _authorized = useLocalStorage("authorized", false);

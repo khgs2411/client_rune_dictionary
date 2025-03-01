@@ -22,7 +22,6 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 	function handleMessage(ws: WebSocket, event: MessageEvent) {
 		Lib.Log(`[${ws.url}] - Received message:`, event.data);
 		const data: WebsocketStructuredMessage = JSON.parse(event.data);
-		Lib.Log(`[${ws.url}] - Parsed message:`, data);
 		if (handleHeartbeat(data)) return;
 		messages.value.push(data);
 	}
@@ -60,7 +59,9 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 		Lib.Warn(`[${ws.url}] - WebSocket error:`, event);
 		messages.value.push({
 			type: "error",
-			content: "Error with chat connection",
+			content: {
+				message: "Error with chat connection",
+			},
 			timestamp: new Date().toISOString(),
 		});
 	}
@@ -69,14 +70,16 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 		Lib.Warn("Failed to connect WebSocket after multiple retries");
 		messages.value.push({
 			type: "error",
-			content: "Failed to reconnect to the server after multiple attempts",
+			content: {
+				message: "Failed to reconnect to the server after multiple attempts",
+			},
 			timestamp: new Date().toISOString(),
 		});
 	}
 
 	function handleHeartbeat(wsm: WebsocketStructuredMessage) {
 		if (wsm.type === "pong") {
-			Lib.Log(`[${wsm.timestamp}] - Heartbeat received`);
+			Lib.Log(`[${wsm.url}] - Heartbeat received`);
 			return true;
 		}
 		return false;

@@ -1,37 +1,57 @@
 <template>
-	<div class="message">
-		<span class="timestamp">[{{ formattedTime }}]</span>
-		<span class="sender" :class="{ 'system-indicator': isSystemMessage }">{{ sender }}:</span>
-		<span class="message-content">{{ props.message.content.message }}</span>
+	<div class="message" @contextmenu="onRightClick">
+		<span class="timestamp">[{{ formattedTime }} - {{ room }}]</span>
+		<span class="sender" :class="{ 'system-indicator': isSystemMessage, 'error-indicator': isErrorMessage, 'generic-indicator': isGenericMessage }">{{ sender }}:</span>
+		<span class="message-content">{{ content.message }}</span>
+
+		<ContextMenu ref="menu" :model="items">
+			<template #item="{ item, props }">
+				<a v-ripple class="" v-bind="props.action">
+					<span v-if="item.icon" :class="item.icon" />
+					<span v-if="item.label" class="ml-2">{{ item.label }}</span>
+					<Badge v-if="item.badge" class="ml-auto" :value="item.badge" />
+					<span v-if="item.shortcut" class="ml-auto border border-surface rounded bg-emphasis text-muted-color text-xs p-1">{{ item.shortcut }}</span>
+					<i v-if="item.items" class="pi pi-angle-right ml-auto"></i>
+				</a>
+			</template>
+		</ContextMenu>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { E_WebsocketMessageType, WebsocketStructuredMessage } from "topsyde-utils";
-import { computed } from "vue";
+import { WebsocketEntityData, WebsocketStructuredMessage } from "topsyde-utils";
+import useWebsocketStructuredMessage from "../../common/composables/useWebsocketStructuredMessage";
+import { ref } from "vue";
+import ContextMenu from "primevue/contextmenu";
+import Badge from "primevue/badge";
 
 const props = defineProps<{
 	message: WebsocketStructuredMessage;
 }>();
 
-const isSystemMessage = computed(() => {
-	return props.message.type !== E_WebsocketMessageType.MESSAGE;
-});
+const emit = defineEmits<{
+	(e: "whisper", entity: WebsocketEntityData): void;
+}>();
 
-const sender = computed(() => {
-	if (props.message.type === E_WebsocketMessageType.MESSAGE) {
-		return props.message.content.client?.name || props.message.content.client?.id || "System";
-	}
-	return "System";
-});
+const { room, content, isSystemMessage, isErrorMessage, isGenericMessage, sender, formattedTime, client } = useWebsocketStructuredMessage(props.message);
 
-// Format the timestamp
-const formattedTime = computed(() => {
-	if (props.message.timestamp) {
-		return new Date(props.message.timestamp).toLocaleTimeString();
-	}
-	return new Date().toLocaleTimeString();
-});
+const menu = ref();
+const items = ref([
+	{
+		label: "Whisper",
+		icon: "pi pi-comment",
+		// shortcut: "⌘+W",
+		command: () => handleWhisper(),
+	},
+]);
+
+function handleWhisper() {
+	emit("whisper", client.value);
+}
+
+const onRightClick = (event: MouseEvent) => {
+	menu.value.show(event);
+};
 </script>
 
 <style scoped>
@@ -59,7 +79,13 @@ const formattedTime = computed(() => {
 }
 
 .error-indicator {
-	color: var(--p-error-color);
+	color: var(--p-red-500);
+	font-weight: 500;
+	margin-right: 0.5rem;
+}
+
+.generic-indicator {
+	color: var(--p-gray-500);
 	font-weight: 500;
 	margin-right: 0.5rem;
 }
