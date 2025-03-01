@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="game-window"
+		class="chat-window"
 		:style="{
 			position: 'fixed',
 			left: `${position.x}px`,
@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import { useLocalStorage } from "@vueuse/core";
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, watch, computed } from "vue";
 import Button from "primevue/button";
 
 type ResizeHandle = 'bottom-right' | 'top-right';
@@ -101,8 +101,19 @@ function ensureWithinBounds() {
 	};
 }
 
+// Mobile detection
+const isMobile = computed(() => window.innerWidth <= 1024);
+
+// Computed values for mobile positioning
+const containerBottom = computed(() => {
+	if (!containerBounds.value) return 0;
+	return window.innerHeight - containerBounds.value.bottom;
+});
+
 // Dragging functionality
 function startDragging(e: MouseEvent) {
+	if (isMobile.value) return;
+	
 	isDragging.value = true;
 	dragOffset.value = {
 		x: e.clientX - position.value.x,
@@ -147,6 +158,8 @@ function stopDragging() {
 
 // Resizing functionality
 function startResizing(handle: ResizeHandle) {
+	if (isMobile.value) return;
+	
 	isResizing.value = true;
 	resizeHandle.value = handle;
 	
@@ -246,7 +259,25 @@ function handleWindowResize() {
 onMounted(() => {
 	ensureWithinBounds();
 	window.addEventListener('resize', handleWindowResize);
+	
+	// Update position for mobile on mount
+	if (isMobile.value && containerBounds.value) {
+		position.value = {
+			x: containerBounds.value.left,
+			y: containerBounds.value.bottom - size.value.height
+		};
+	}
 });
+
+// Update position when container bounds change
+watch(containerBounds, (newBounds) => {
+	if (isMobile.value && newBounds) {
+		position.value = {
+			x: newBounds.left,
+			y: newBounds.bottom - size.value.height
+		};
+	}
+}, { deep: true });
 
 onUnmounted(() => {
 	removeEventListeners('drag');
@@ -256,7 +287,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.game-window {
+.chat-window {
 	font-family: "Arial", sans-serif;
 	min-width: v-bind("`${minWidth()}px`");
 	min-height: v-bind("`${minHeight()}px`");
@@ -266,6 +297,28 @@ onUnmounted(() => {
 	background: rgba(0, 0, 0, 0.8);
 	border: 1px solid var(--p-gray-500);
 	border-radius: 6px;
+}
+
+/* Mobile styles */
+@media (max-width: 1024px) {
+	.chat-window {
+		position: fixed !important;
+		left: v-bind("containerBounds ? `${containerBounds.left}px` : '0'") !important;
+		bottom: v-bind("containerBounds ? `${containerBottom}px` : '0'") !important;
+		top: auto !important;
+		width: v-bind("containerBounds ? `${containerBounds.width}px` : '100%'") !important;
+		height: 25% !important;
+		min-width: v-bind("containerBounds ? `${containerBounds.width}px` : '100%'") !important;
+		border-radius: 6px 6px 0 0;
+	}
+	
+	.resize-handle {
+		display: none !important;
+	}
+	
+	.window-header {
+		cursor: default;
+	}
 }
 
 .window-header {
