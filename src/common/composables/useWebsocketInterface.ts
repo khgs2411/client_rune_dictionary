@@ -36,10 +36,6 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 			type: "system",
 			content: {
 				message: `Connected to chat server as ${clientName}`,
-				client: {
-					id: client.value?.id || "Guest",
-					name: clientName,
-				},
 			},
 			timestamp: new Date().toISOString(),
 		});

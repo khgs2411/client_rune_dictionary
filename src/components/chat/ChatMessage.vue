@@ -1,7 +1,7 @@
 <template>
 	<div class="message">
 		<span class="timestamp">[{{ formattedTime }}]</span>
-		<span class="sender">{{ props.message.content.client?.name || props.message.content.client?.id || "System" }}:</span>
+		<span class="sender" :class="{ 'system-indicator': isSystemMessage }">{{ sender }}:</span>
 		<span class="message-content">{{ props.message.content.message }}</span>
 	</div>
 </template>
@@ -13,6 +13,17 @@ import { computed } from "vue";
 const props = defineProps<{
 	message: WebsocketStructuredMessage;
 }>();
+
+const isSystemMessage = computed(() => {
+	return props.message.type !== "message";
+});
+
+const sender = computed(() => {
+	if (props.message.type === "message") {
+		return props.message.content.client?.name || props.message.content.client?.id || "System";
+	}
+	return "System";
+});
 
 // Format the timestamp
 const formattedTime = computed(() => {
@@ -30,45 +41,45 @@ const formattedTime = computed(() => {
 }
 
 .timestamp {
-	color: #888;
+	color: var(--p-text-color);
 	font-size: 0.8rem;
 	margin-right: 0.5rem;
 }
 
 .sender {
-	color: #4caf50;
+	color: var(--p-primary-color);
 	font-weight: 500;
 	margin-right: 0.5rem;
 }
 
 .system-indicator {
-	color: #2196f3;
+	color: var(--p-blue-500);
 	font-weight: 500;
 	margin-right: 0.5rem;
 }
 
 .error-indicator {
-	color: #f44336;
+	color: var(--p-error-color);
 	font-weight: 500;
 	margin-right: 0.5rem;
 }
 
 .message-content {
-	color: #fff;
+	color: var(--p-text-color);
 }
 
 .message.system .message-content {
-	color: #90caf9;
+	color: var(--p-blue-500);
 	font-style: italic;
 }
 
 .message.error .message-content {
-	color: #ef9a9a;
+	color: var(--p-error-color);
 }
 
 .message.client\.connected .message-content,
 .message.client\.join\.channel .message-content {
-	color: #81c784;
+	color: var(--p-success-color);
 	font-style: italic;
 }
 </style>
