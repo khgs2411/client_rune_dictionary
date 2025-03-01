@@ -4,6 +4,9 @@
 			<div class="prompt-header">
 				<div class="prompt-timer">{{ formatTime(timeRemaining) }}</div>
 			</div>
+			<div class="timer-bar-container">
+				<div class="timer-bar" :style="{ width: `${(timeRemaining / initialTime) * 100}%` }"></div>
+			</div>
 			<div class="prompt-content">
 				<p>{{ activePrompt.message }}</p>
 			</div>
@@ -33,6 +36,7 @@ const rxjs = useRxjs("prompt", {
 	prompt: (payload: I_PromptPayload) => {
 		console.log("here", payload);
 		activePrompt.value = payload;
+		initialTime = payload.time;
 		startTimer(payload.time);
 	},
 });
@@ -40,6 +44,7 @@ const rxjs = useRxjs("prompt", {
 const activePrompt = ref<I_PromptPayload | null>(null);
 const timeRemaining = ref(0);
 let timerInterval: number | null = null;
+let initialTime = 0;
 
 // Format time as MM:SS
 const formatTime = (seconds: number) => {
@@ -87,7 +92,7 @@ onMounted(() => {
 	utils.lib.Log("Prompt component mounted");
 	//call self
 	rxjs.$next("prompt", {
-		time: 10,
+		time: 600,
 		message: "Test prompt",
 		callback: (choice: PromptChoice, data: any) => {
 			utils.lib.Log("Prompt choice", choice, data);
@@ -118,30 +123,43 @@ onUnmounted(() => {
 }
 
 .prompt-window {
-	background-color: #1e1e1e;
-	border-radius: 8px;
+	background-color: var(--p-content-background);
+	border-radius: var(--p-content-border-radius);
 	width: 400px;
 	max-width: 90%;
-	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+	box-shadow: var(--p-overlay-navigation-shadow);
 	overflow: hidden;
 }
 
 .prompt-header {
 	padding: 12px 16px;
-	background-color: #2a2a2a;
+	background-color: var(--p-navigation-item-active-background);
 	display: flex;
 	justify-content: flex-end;
+}
+
+.timer-bar-container {
+	height: 4px;
+	width: 100%;
+	background-color: var(--p-content-border-color);
+	overflow: hidden;
+}
+
+.timer-bar {
+	height: 100%;
+	background-color: var(--p-primary-color);
+	transition: width 1s linear;
 }
 
 .prompt-timer {
 	font-family: monospace;
 	font-size: 1.2rem;
-	color: #f0f0f0;
+	color: var(--p-content-color);
 }
 
 .prompt-content {
 	padding: 20px 16px;
-	color: #f0f0f0;
+	color: var(--p-content-color);
 }
 
 .prompt-actions {
@@ -149,34 +167,7 @@ onUnmounted(() => {
 	padding: 16px;
 	gap: 12px;
 	justify-content: flex-end;
-	border-top: 1px solid #3a3a3a;
-}
-
-.prompt-button {
-	padding: 8px 16px;
-	border-radius: 4px;
-	border: none;
-	font-weight: 500;
-	cursor: pointer;
-	transition: background-color 0.2s;
-}
-
-.prompt-button.confirm {
-	background-color: #4caf50;
-	color: white;
-}
-
-.prompt-button.confirm:hover {
-	background-color: #3d8b40;
-}
-
-.prompt-button.decline {
-	background-color: #f44336;
-	color: white;
-}
-
-.prompt-button.decline:hover {
-	background-color: #d32f2f;
+	border-top: 1px solid var(--p-content-border-color);
 }
 
 @media (max-width: 430px) {

@@ -5,3 +5,4 @@ alwaysApply: false
 ---
 use Tailwind as a css framework - https://v2.tailwindcss.com/docs/responsive-design
 use PrimeVue as a UI library component - https://primevue.org/inputgroup/
+use [prime.css](mdc:src/assets/prime.css) as an example of which css variables are available for usage
