@@ -1,6 +1,6 @@
-import BaseApi from "./api.base";
+import BaseAPI from "./api.base";
 
-export default class API extends BaseApi {
+export default class API extends BaseAPI {
 	constructor() {
 		super("api", "http://localhost:3000");
 	}

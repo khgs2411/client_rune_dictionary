@@ -1,29 +1,39 @@
 import { E_WebsocketMessageType, WebsocketStructuredMessage } from "topsyde-utils";
-import { MessagesClient } from "../types/types";
+import { MessagesEntity } from "../types/types";
+import useUtils from "./useUtils";
+
+export interface I_SendMessageOptions {
+	type?: E_WebsocketMessageType;
+	channel?: string;
+	target?: MessagesEntity;
+	metadata?: Record<string, string>;
+}
 
 const useMessanger = (send: (data: string | ArrayBuffer | Blob, useBuffer?: boolean) => boolean) => {
-	function sendMessage(client: MessagesClient, inputMessage: string, options?: { type: E_WebsocketMessageType; channel?: string; target?: MessagesClient }) {
-		if (!inputMessage.trim() || !client) return;
+	const utils = useUtils();
+	function sendMessage(client: MessagesEntity, input: string, options?: I_SendMessageOptions) {
+		if (!input.trim() || !client) return;
 
 		if (options?.type === E_WebsocketMessageType.WHISPER) {
-			sendWhisper(client, inputMessage, options.target);
+			sendWhisper(client, input, options.target);
 			return;
 		}
 
 		// Format message according to WebsocketStructuredMessage interface
 		const message: WebsocketStructuredMessage = {
 			type: options?.type || E_WebsocketMessageType.MESSAGE,
-			content: { message: inputMessage },
+			content: { message: input},
 			channel: options?.channel || "global",
 			timestamp: new Date().toISOString(),
 			client: client,
+			metadata: options?.metadata,
 		};
 
 		// Send message to server
 		send(JSON.stringify(message));
 	}
 
-	function sendWhisper(client: MessagesClient, inputMessage: string, target?: MessagesClient) {
+	function sendWhisper(client: MessagesEntity, inputMessage: string, target?: MessagesEntity) {
 		if (!inputMessage.trim() || !client || !target) return;
 
 		// Format message according to WebsocketStructuredMessage interface

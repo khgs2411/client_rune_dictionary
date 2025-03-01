@@ -4,6 +4,7 @@
 		<Menu></Menu>
 		<Toast></Toast>
 		<Settings></Settings>
+		<Prompt></Prompt>
 	</div>
 </template>
 
@@ -13,6 +14,8 @@ import Loading from "../utilities/Loading.vue";
 import Toast from "../utilities/Toast.vue";
 import Menu from "./Menu.vue";
 import Settings from "./Settings.vue";
+import Prompt from "../utilities/Prompt.vue";
+
 const auth = useAuth();
 </script>
 

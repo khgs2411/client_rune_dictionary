@@ -1,3 +1,3 @@
 import { WebsocketEntityData } from "topsyde-utils";
-
-export type MessagesClient = WebsocketEntityData | null;
+export type Entity = WebsocketEntityData | null;
+export type MessagesEntity = Entity;

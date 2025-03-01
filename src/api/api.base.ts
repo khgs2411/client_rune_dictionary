@@ -1,5 +1,5 @@
 import Axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, isAxiosError } from "axios";
-class BaseApi {
+class BaseAPI {
 	private api: AxiosInstance;
 	public controller: string;
 	protected base_url: string;
@@ -103,4 +103,4 @@ class BaseApi {
 	}
 }
 
-export default BaseApi;
+export default BaseAPI;

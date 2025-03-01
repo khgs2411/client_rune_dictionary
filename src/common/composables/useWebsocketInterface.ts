@@ -2,6 +2,7 @@ import { UseWebSocketOptions } from "@vueuse/core";
 import { Lib, WebsocketEntityData, WebsocketStructuredMessage } from "topsyde-utils";
 import { ref, Ref } from "vue";
 import { AutoReconnect, Heartbeat } from "../types/websocket.types";
+import useWebsocketStructuredMessage from "./useWebsocketStructuredMessage";
 
 const PING_PONG_INTERVAL = 20;
 export const WEBSOCKET_URL = `ws://${import.meta.env.VITE_WS_HOST || "localhost"}:3000`;
@@ -22,8 +23,8 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 	function handleMessage(ws: WebSocket, event: MessageEvent) {
 		Lib.Log(`[${ws.url}] - Received message:`, event.data);
 		const data: WebsocketStructuredMessage = JSON.parse(event.data);
-		if (handleHeartbeat(data)) return;
-		messages.value.push(data);
+		const wsm = useWebsocketStructuredMessage(data);
+		if (wsm.isMessage.value) messages.value.push(wsm.data);
 	}
 
 	function handleConnected(ws: WebSocket) {
@@ -75,14 +76,6 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 			},
 			timestamp: new Date().toISOString(),
 		});
-	}
-
-	function handleHeartbeat(wsm: WebsocketStructuredMessage) {
-		if (wsm.type === "pong") {
-			Lib.Log(`[${wsm.url}] - Heartbeat received`);
-			return true;
-		}
-		return false;
 	}
 
 	return {

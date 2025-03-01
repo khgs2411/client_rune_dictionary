@@ -7,7 +7,7 @@
 
 		<div class="chat-content">
 			<div ref="messagesContainer" class="messages">
-				<ChatMessage @whisper="handleWhisper" v-for="(message, index) in messages" :key="index" :message="message" />
+				<ChatMessage @whisper="handleWhisper" @match="handleMatch" v-for="(message, index) in messages" :key="index" :message="message" />
 			</div>
 
 			<div class="input-area">
@@ -16,10 +16,10 @@
 						<InputGroupAddon v-if="whisperMode">
 							<div class="flex align-items-center gap-2 whisper-indicator">
 								<i class="pi pi-user"></i>
-								<span>Whisper: {{ whisperTarget?.name }}</span>
+								<span>Whisper: {{ targetEntity?.name }}</span>
 							</div>
 						</InputGroupAddon>
-						<InputText v-model="inputMessage" @keyup.enter="sendMessage" :class="{ 'whisper-indicator': whisperMode }" placeholder="Enter message..." :disabled="status !== 'OPEN'" />
+						<InputText v-model="inputMessage as string" @keyup.enter="sendMessage" :class="{ 'whisper-indicator': whisperMode }" placeholder="Enter message..." :disabled="status !== 'OPEN'" />
 					</InputGroup>
 					<Button @click="sendMessage" :disabled="status !== 'OPEN' || !inputMessage.trim()"> Send </Button>
 				</div>
@@ -38,7 +38,8 @@ import useUtils from "../../common/composables/useUtils";
 import useWebSocketInterface, { WEBSOCKET_URL } from "../../common/composables/useWebsocketInterface";
 import ChatMessage from "../chat/ChatMessage.vue";
 import ChatWindow from "../chat/ChatWindow.vue";
-import useMessanger from "../../common/composables/useMessanger";
+import useMessanger, { I_SendMessageOptions } from "../../common/composables/useMessanger";
+import useMatch from "../../common/composables/useMatch";
 
 const props = defineProps<{
 	client: WebsocketEntityData;
@@ -51,21 +52,21 @@ const emit = defineEmits<{
 const api = new API();
 const utils = useUtils();
 const messages = ref<WebsocketStructuredMessage[]>([]);
-const inputMessage = ref("");
+const inputMessage: Ref<string> = ref(<string>"");
 const messagesContainer = ref<HTMLElement | null>(null);
 const wsOptions = useWebSocketInterface(ref(props.client), messages);
 const { status, send, close } = useWebSocket<WebsocketStructuredMessage>(WEBSOCKET_URL, wsOptions);
 const messanger = useMessanger(send);
 const mode: Ref<"broadcast" | "whisper"> = ref("broadcast");
-const whisperTarget = ref<WebsocketEntityData | null>(null);
+const targetEntity = ref<WebsocketEntityData | null>(null);
 
 const whisperMode = computed(() => mode.value === "whisper");
 
 function sendMessage() {
-	messanger.sendMessage(props.client, inputMessage.value, { type: whisperMode.value ? E_WebsocketMessageType.WHISPER : E_WebsocketMessageType.BROADCAST, target: whisperTarget.value });
+	messanger.sendMessage(props.client, inputMessage.value, { type: whisperMode.value ? E_WebsocketMessageType.WHISPER : E_WebsocketMessageType.BROADCAST, target: targetEntity.value });
 	inputMessage.value = "";
 	mode.value = "broadcast";
-	whisperTarget.value = null;
+	setTargetEntity(null);
 }
 
 function handleLogout() {
@@ -86,7 +87,18 @@ function scrollToBottom() {
 function handleWhisper(entity: WebsocketEntityData) {
 	utils.lib.Log("Whispering to:", entity);
 	mode.value = "whisper";
-	whisperTarget.value = entity;
+	setTargetEntity(entity);
+}
+
+function setTargetEntity(entity: WebsocketEntityData | null) {
+	targetEntity.value = entity;
+}
+
+function handleMatch(entity: WebsocketEntityData) {
+	utils.lib.Log("Matching with:", entity);
+	const match = useMatch();
+	match.createMatch(props.client, entity);
+	// messanger.sendMessage(props.client, inputMessage.value, { type: E_WebsocketMessageType.PROMPT, target: targetEntity.value, metadata: { type: "match" } });
 }
 
 async function ping() {

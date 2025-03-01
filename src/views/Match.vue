@@ -44,7 +44,6 @@ async function performHandshake() {
 		loading.value = true;
 		const response = await api.handshake(username.value, password.value, api_key.value);
 		if (!response.status) throw new Error("Invalid handshake response");
-		utils.lib.Log("Handshake successful - client data:", response.data);
 
 		client.value = {
 			id: response.data.id,

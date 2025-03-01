@@ -1,11 +1,11 @@
-import BaseApi from "./api.base";
+import BaseAPI from "./api.base";
 
 export interface ILoginResponse {
 	status: boolean;
 	authorized: boolean;
 	msg: string;
 }
-export default class AuthAPI extends BaseApi {
+export default class AuthAPI extends BaseAPI {
 	public async login(username: string, password?: string) {
 		const action = "index";
 		const payload = {

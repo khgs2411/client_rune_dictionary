@@ -31,6 +31,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	(e: "whisper", entity: WebsocketEntityData): void;
+	(e: "match", entity: WebsocketEntityData): void;
 }>();
 
 const { room, content, isSystemMessage, isErrorMessage, isGenericMessage, sender, formattedTime, client } = useWebsocketStructuredMessage(props.message);
@@ -41,13 +42,15 @@ const items = ref([
 		label: "Whisper",
 		icon: "pi pi-comment",
 		// shortcut: "⌘+W",
-		command: () => handleWhisper(),
+
+		command: () => emit("whisper", client.value),
+	},
+	{
+		label: "Match",
+		icon: "pi pi-bolt",
+		command: () => emit("match", client.value),
 	},
 ]);
-
-function handleWhisper() {
-	emit("whisper", client.value);
-}
 
 const onRightClick = (event: MouseEvent) => {
 	menu.value.show(event);
