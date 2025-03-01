@@ -8,8 +8,8 @@
 				<p>{{ activePrompt.message }}</p>
 			</div>
 			<div class="prompt-actions">
-				<button class="prompt-button confirm" @click="handleChoice(true)">Confirm</button>
-				<button class="prompt-button decline" @click="handleChoice(false)">Decline</button>
+				<Button primary @click="handleChoice(true)">Confirm</Button>
+				<Button text @click="handleChoice(false)">Decline</Button>
 			</div>
 		</div>
 	</div>
@@ -19,6 +19,7 @@
 import { onMounted, onUnmounted, ref } from "vue";
 import useUtils from "../../common/composables/useUtils";
 import { useRxjs } from "topsyde-utils";
+import { Button } from "primevue";
 export type PromptChoice = boolean | number;
 export interface I_PromptPayload {
 	time: number;
@@ -29,7 +30,7 @@ export interface I_PromptPayload {
 const utils = useUtils();
 
 const rxjs = useRxjs("prompt", {
-	prompt: (payload:I_PromptPayload) => {
+	prompt: (payload: I_PromptPayload) => {
 		console.log("here", payload);
 		activePrompt.value = payload;
 		startTimer(payload.time);
