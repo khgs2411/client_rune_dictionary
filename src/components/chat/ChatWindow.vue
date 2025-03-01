@@ -23,11 +23,13 @@
 			<slot></slot>
 		</div>
 		
-		<!-- Bottom-right resize handle -->
-		<div class="resize-handle bottom-right" @mousedown.prevent="startResizing('bottom-right')"></div>
-		
-		<!-- Top-right resize handle -->
-		<div class="resize-handle top-right" @mousedown.prevent="startResizing('top-right')"></div>
+		<!-- Resize handles -->
+		<div 
+			v-for="handle in ['bottom-right', 'top-right']" 
+			:key="handle"
+			:class="['resize-handle', handle]" 
+			@mousedown.prevent="startResizing(handle as ResizeHandle)" 
+		></div>
 	</div>
 </template>
 
@@ -36,10 +38,14 @@ import { useLocalStorage } from "@vueuse/core";
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import Button from "primevue/button";
 
+type ResizeHandle = 'bottom-right' | 'top-right';
+type Position = { x: number; y: number };
+type Size = { width: number; height: number };
+
 const props = defineProps<{
 	storageKey: string;
-	initialPosition?: { x: number; y: number };
-	initialSize?: { width: number; height: number };
+	initialPosition?: Position;
+	initialSize?: Size;
 	minWidth?: number;
 	minHeight?: number;
 	containerRef?: HTMLElement | null;
@@ -49,56 +55,50 @@ defineEmits<{
 	(e: "logout"): void;
 }>();
 
+// Refs
 const windowRef = ref<HTMLElement | null>(null);
-const position = useLocalStorage(`${props.storageKey}-position`, props.initialPosition ?? { x: 20, y: 20 });
-const size = useLocalStorage(`${props.storageKey}-size`, props.initialSize ?? { width: 600, height: 500 });
+const position = useLocalStorage<Position>(`${props.storageKey}-position`, props.initialPosition ?? { x: 20, y: 20 });
+const size = useLocalStorage<Size>(`${props.storageKey}-size`, props.initialSize ?? { width: 600, height: 500 });
 const containerBounds = ref<DOMRect | null>(null);
 
+// State
 const isDragging = ref(false);
 const isResizing = ref(false);
-const resizeHandle = ref<'bottom-right' | 'top-right' | null>(null);
+const resizeHandle = ref<ResizeHandle | null>(null);
 const dragOffset = ref({ x: 0, y: 0 });
 
-// Update container bounds when containerRef changes
+// Minimum dimensions
+const minWidth = () => props.minWidth ?? 300;
+const minHeight = () => props.minHeight ?? 200;
+
+// Container bounds management
 watch(() => props.containerRef, updateContainerBounds, { immediate: true });
 
 function updateContainerBounds() {
-	if (props.containerRef) {
-		containerBounds.value = props.containerRef.getBoundingClientRect();
-	} else {
-		containerBounds.value = null;
-	}
+	containerBounds.value = props.containerRef?.getBoundingClientRect() ?? null;
 }
 
-// Ensure window is within container bounds
+// Boundary enforcement
 function ensureWithinBounds() {
 	if (!windowRef.value) return;
 	
 	const windowRect = windowRef.value.getBoundingClientRect();
+	const bounds = containerBounds.value ?? {
+		left: 0,
+		top: 0,
+		width: window.innerWidth,
+		height: window.innerHeight
+	};
 	
-	if (containerBounds.value) {
-		// If we have a container, constrain within its bounds
-		const container = containerBounds.value;
-		
-		// Calculate max positions
-		const maxX = container.left + container.width - windowRect.width;
-		const maxY = container.top + container.height - windowRect.height;
-		
-		// Ensure window is within container bounds
-		position.value = {
-			x: Math.max(container.left, Math.min(maxX, position.value.x)),
-			y: Math.max(container.top, Math.min(maxY, position.value.y)),
-		};
-	} else {
-		// If no container, constrain within viewport
-		const maxX = window.innerWidth - windowRect.width;
-		const maxY = window.innerHeight - windowRect.height;
-		
-		position.value = {
-			x: Math.max(0, Math.min(maxX, position.value.x)),
-			y: Math.max(0, Math.min(maxY, position.value.y)),
-		};
-	}
+	// Calculate max positions
+	const maxX = bounds.left + bounds.width - windowRect.width;
+	const maxY = bounds.top + bounds.height - windowRect.height;
+	
+	// Ensure window is within bounds
+	position.value = {
+		x: Math.max(bounds.left, Math.min(maxX, position.value.x)),
+		y: Math.max(bounds.top, Math.min(maxY, position.value.y))
+	};
 }
 
 // Dragging functionality
@@ -106,162 +106,151 @@ function startDragging(e: MouseEvent) {
 	isDragging.value = true;
 	dragOffset.value = {
 		x: e.clientX - position.value.x,
-		y: e.clientY - position.value.y,
+		y: e.clientY - position.value.y
 	};
 	
-	// Update container bounds before starting drag
 	updateContainerBounds();
-	
-	document.addEventListener("mousemove", onDrag);
-	document.addEventListener("mouseup", stopDragging);
+	addEventListeners('drag');
 }
 
 function onDrag(e: MouseEvent) {
 	if (!isDragging.value) return;
 	
-	// Calculate new position
 	const newX = e.clientX - dragOffset.value.x;
 	const newY = e.clientY - dragOffset.value.y;
 	
-	if (containerBounds.value) {
-		// If we have a container, constrain within its bounds
-		const container = containerBounds.value;
-		const windowRect = windowRef.value?.getBoundingClientRect();
+	const bounds = containerBounds.value;
+	const windowRect = windowRef.value?.getBoundingClientRect();
+	
+	if (bounds && windowRect) {
+		// Constrain within container bounds
+		const maxX = bounds.left + bounds.width - windowRect.width;
+		const maxY = bounds.top + bounds.height - windowRect.height;
 		
-		if (windowRect) {
-			// Calculate max positions
-			const maxX = container.left + container.width - windowRect.width;
-			const maxY = container.top + container.height - windowRect.height;
-			
-			// Constrain position within container
-			position.value = {
-				x: Math.max(container.left, Math.min(maxX, newX)),
-				y: Math.max(container.top, Math.min(maxY, newY)),
-			};
-		}
+		position.value = {
+			x: Math.max(bounds.left, Math.min(maxX, newX)),
+			y: Math.max(bounds.top, Math.min(maxY, newY))
+		};
 	} else {
-		// If no container, constrain within viewport
+		// Constrain within viewport
 		position.value = {
 			x: Math.max(0, Math.min(window.innerWidth - size.value.width, newX)),
-			y: Math.max(0, Math.min(window.innerHeight - size.value.height, newY)),
+			y: Math.max(0, Math.min(window.innerHeight - size.value.height, newY))
 		};
 	}
 }
 
 function stopDragging() {
 	isDragging.value = false;
-	document.removeEventListener("mousemove", onDrag);
-	document.removeEventListener("mouseup", stopDragging);
+	removeEventListeners('drag');
 }
 
 // Resizing functionality
-function startResizing(handle: 'bottom-right' | 'top-right') {
+function startResizing(handle: ResizeHandle) {
 	isResizing.value = true;
 	resizeHandle.value = handle;
 	
-	// Update container bounds before starting resize
 	updateContainerBounds();
-	
-	document.addEventListener("mousemove", onResize);
-	document.addEventListener("mouseup", stopResizing);
+	addEventListeners('resize');
 }
 
 function onResize(e: MouseEvent) {
 	if (!isResizing.value || !windowRef.value) return;
+	
 	const rect = windowRef.value.getBoundingClientRect();
+	const bounds = containerBounds.value;
 	
 	// Default values
 	let newWidth = size.value.width;
 	let newHeight = size.value.height;
-	let newX = position.value.x;
 	let newY = position.value.y;
 	
+	// Handle-specific resize logic
 	if (resizeHandle.value === 'bottom-right') {
-		// Bottom-right resize: change width and height
-		newWidth = Math.max(props.minWidth ?? 300, e.clientX - rect.left);
-		newHeight = Math.max(props.minHeight ?? 200, e.clientY - rect.top);
+		newWidth = Math.max(minWidth(), e.clientX - rect.left);
+		newHeight = Math.max(minHeight(), e.clientY - rect.top);
 	} else if (resizeHandle.value === 'top-right') {
-		// Top-right resize: change width and y-position
-		newWidth = Math.max(props.minWidth ?? 300, e.clientX - rect.left);
+		newWidth = Math.max(minWidth(), e.clientX - rect.left);
 		
-		// Calculate new height based on the difference in mouse Y position
 		const heightDiff = rect.top - e.clientY;
-		newHeight = Math.max(props.minHeight ?? 200, rect.height + heightDiff);
+		newHeight = Math.max(minHeight(), rect.height + heightDiff);
 		
-		// Only update Y position if the new height is valid
-		if (newHeight > (props.minHeight ?? 200)) {
+		if (newHeight > minHeight()) {
 			newY = e.clientY;
 		}
 	}
 	
-	// If we have a container, constrain resize within its bounds
-	if (containerBounds.value) {
-		const container = containerBounds.value;
-		
-		// Ensure the window doesn't resize beyond container bounds
+	// Apply container constraints if available
+	if (bounds) {
 		if (resizeHandle.value === 'bottom-right') {
-			newWidth = Math.min(newWidth, container.left + container.width - rect.left);
-			newHeight = Math.min(newHeight, container.top + container.height - rect.top);
+			newWidth = Math.min(newWidth, bounds.left + bounds.width - rect.left);
+			newHeight = Math.min(newHeight, bounds.top + bounds.height - rect.top);
 		} else if (resizeHandle.value === 'top-right') {
-			newWidth = Math.min(newWidth, container.left + container.width - rect.left);
+			newWidth = Math.min(newWidth, bounds.left + bounds.width - rect.left);
 			
-			// For top-right, ensure we don't resize beyond the top of the container
-			const maxHeight = rect.bottom - container.top;
+			const maxHeight = rect.bottom - bounds.top;
 			if (newHeight > maxHeight) {
 				newHeight = maxHeight;
-				newY = container.top;
+				newY = bounds.top;
 			}
 			
-			// Ensure Y position is not above container top
-			newY = Math.max(newY, container.top);
+			newY = Math.max(newY, bounds.top);
 		}
 	}
 	
 	// Update size
-	size.value = {
-		width: newWidth,
-		height: newHeight,
-	};
+	size.value = { width: newWidth, height: newHeight };
 	
 	// Update position for top-right resize
 	if (resizeHandle.value === 'top-right') {
-		position.value = {
-			x: newX,
-			y: newY,
-		};
+		position.value = { ...position.value, y: newY };
 	}
 	
-	// After resizing, ensure the window is still within bounds
 	ensureWithinBounds();
 }
 
 function stopResizing() {
 	isResizing.value = false;
 	resizeHandle.value = null;
-	document.removeEventListener("mousemove", onResize);
-	document.removeEventListener("mouseup", stopResizing);
+	removeEventListeners('resize');
 }
 
-// Handle window resize to ensure window stays within bounds
+// Event listener management
+function addEventListeners(type: 'drag' | 'resize') {
+	if (type === 'drag') {
+		document.addEventListener("mousemove", onDrag);
+		document.addEventListener("mouseup", stopDragging);
+	} else {
+		document.addEventListener("mousemove", onResize);
+		document.addEventListener("mouseup", stopResizing);
+	}
+}
+
+function removeEventListeners(type: 'drag' | 'resize') {
+	if (type === 'drag') {
+		document.removeEventListener("mousemove", onDrag);
+		document.removeEventListener("mouseup", stopDragging);
+	} else {
+		document.removeEventListener("mousemove", onResize);
+		document.removeEventListener("mouseup", stopResizing);
+	}
+}
+
+// Window resize handling
 function handleWindowResize() {
 	updateContainerBounds();
 	ensureWithinBounds();
 }
 
+// Lifecycle hooks
 onMounted(() => {
-	// Initial check to ensure window is within bounds
 	ensureWithinBounds();
-	
-	// Add window resize listener
 	window.addEventListener('resize', handleWindowResize);
 });
 
-// Cleanup
 onUnmounted(() => {
-	document.removeEventListener("mousemove", onDrag);
-	document.removeEventListener("mouseup", stopDragging);
-	document.removeEventListener("mousemove", onResize);
-	document.removeEventListener("mouseup", stopResizing);
+	removeEventListeners('drag');
+	removeEventListeners('resize');
 	window.removeEventListener('resize', handleWindowResize);
 });
 </script>
@@ -269,13 +258,13 @@ onUnmounted(() => {
 <style scoped>
 .game-window {
 	font-family: "Arial", sans-serif;
-	min-width: v-bind("`${props.minWidth ?? 300}px`");
-	min-height: v-bind("`${props.minHeight ?? 200}px`");
+	min-width: v-bind("`${minWidth()}px`");
+	min-height: v-bind("`${minHeight()}px`");
 	z-index: 1000;
 	display: flex;
 	flex-direction: column;
 	background: rgba(0, 0, 0, 0.8);
-	border: 1px solid #444;
+	border: 1px solid var(--p-gray-500);
 	border-radius: 6px;
 }
 
@@ -287,13 +276,13 @@ onUnmounted(() => {
 	align-items: center;
 	padding: 0.5rem;
 	background: rgba(0, 0, 0, 0.8);
-	border-bottom: 1px solid #444;
+	border-bottom: 1px solid var(--p-gray-500);
 	border-top-left-radius: 6px;
 	border-top-right-radius: 6px;
 }
 
 .window-title {
-	color: #fff;
+	color: var(--p-text-color);
 	font-size: 0.9rem;
 	font-weight: 500;
 	letter-spacing: 0.5px;
@@ -310,12 +299,12 @@ onUnmounted(() => {
 	position: absolute;
 	width: 15px;
 	height: 15px;
-	cursor: se-resize;
 }
 
 .resize-handle.bottom-right {
 	right: 0;
 	bottom: 0;
+	cursor: se-resize;
 	background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, 0.3) 50%);
 	border-bottom-right-radius: 4px;
 }
@@ -323,9 +312,9 @@ onUnmounted(() => {
 .resize-handle.top-right {
 	right: 0;
 	top: 0;
+	cursor: ne-resize;
 	background: linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.3) 50%);
 	border-top-right-radius: 4px;
-	cursor: ne-resize;
 }
 
 .window-controls {
@@ -335,11 +324,11 @@ onUnmounted(() => {
 }
 
 .logout-button {
-	color: #ccc;
+	color: var(--p-text-color);
 	transition: color 0.2s;
 }
 
 .logout-button:hover {
-	color: #fff;
+	color: var(--p-text-color);
 }
 </style>
