@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { WebsocketStructuredMessage } from "topsyde-utils";
+import { E_WebsocketMessageType, WebsocketStructuredMessage } from "topsyde-utils";
 import { computed } from "vue";
 
 const props = defineProps<{
@@ -15,11 +15,11 @@ const props = defineProps<{
 }>();
 
 const isSystemMessage = computed(() => {
-	return props.message.type !== "message";
+	return props.message.type !== E_WebsocketMessageType.MESSAGE;
 });
 
 const sender = computed(() => {
-	if (props.message.type === "message") {
+	if (props.message.type === E_WebsocketMessageType.MESSAGE) {
 		return props.message.content.client?.name || props.message.content.client?.id || "System";
 	}
 	return "System";
