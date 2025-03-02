@@ -97,7 +97,7 @@ onMounted(() => {
 	//call self
 	rxjs.$next("prompt", {
 		time: 60,
-		message: "Test prompt",
+		message: "Admin would love to battle you",
 		callback: (choice: PromptChoice, data: any) => {
 			utils.lib.Log("Prompt choice", choice, data);
 		},
