@@ -4,9 +4,11 @@
 			<div class="prompt-header">
 				<div class="prompt-timer">{{ formatTime(timeRemaining) }}</div>
 			</div>
-			<div class="timer-bar-container">
-				<div class="timer-bar" :style="{ width: `${(timeRemaining / initialTime) * 100}%` }"></div>
-			</div>
+			<ProgressBar 
+				:value="(timeRemaining / initialTime) * 100" 
+				:showValue="false"
+				class="prompt-progress"
+			/>
 			<div class="prompt-content">
 				<p>{{ activePrompt.message }}</p>
 			</div>
@@ -23,6 +25,8 @@ import { onMounted, onUnmounted, ref } from "vue";
 import useUtils from "../../common/composables/useUtils";
 import { useRxjs } from "topsyde-utils";
 import { Button } from "primevue";
+import ProgressBar from 'primevue/progressbar';
+
 export type PromptChoice = boolean | number;
 export interface I_PromptPayload {
 	time: number;
@@ -92,7 +96,7 @@ onMounted(() => {
 	utils.lib.Log("Prompt component mounted");
 	//call self
 	rxjs.$next("prompt", {
-		time: 600,
+		time: 60,
 		message: "Test prompt",
 		callback: (choice: PromptChoice, data: any) => {
 			utils.lib.Log("Prompt choice", choice, data);
@@ -138,17 +142,9 @@ onUnmounted(() => {
 	justify-content: flex-end;
 }
 
-.timer-bar-container {
+.prompt-progress {
+	border-radius: 0;
 	height: 4px;
-	width: 100%;
-	background-color: var(--p-content-border-color);
-	overflow: hidden;
-}
-
-.timer-bar {
-	height: 100%;
-	background-color: var(--p-primary-color);
-	transition: width 1s linear;
 }
 
 .prompt-timer {
