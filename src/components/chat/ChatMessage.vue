@@ -35,7 +35,7 @@ const emit = defineEmits<{
 }>();
 
 const { room, content, isSystemMessage, isErrorMessage, isGenericMessage, sender, formattedTime, client } = useWebsocketStructuredMessage(props.message);
-
+const wsm = useWebsocketStructuredMessage(props.message);
 const menu = ref();
 const items = ref([
 	{
@@ -53,6 +53,9 @@ const items = ref([
 ]);
 
 const onRightClick = (event: MouseEvent) => {
+	event.stopPropagation();
+	event.preventDefault();
+	if (wsm.isSystemMessage.value) return;
 	menu.value.show(event);
 };
 </script>

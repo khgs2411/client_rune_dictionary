@@ -3,12 +3,9 @@
 		<div class="prompt-window">
 			<div class="prompt-header">
 				<div class="prompt-timer">{{ formatTime(timeRemaining) }}</div>
+				<div v-if="promptQueue.length > 0" class="prompt-queue-indicator">+{{ promptQueue.length }} more</div>
 			</div>
-			<ProgressBar 
-				:value="(timeRemaining / initialTime) * 100" 
-				:showValue="false"
-				class="prompt-progress"
-			/>
+			<ProgressBar :value="(timeRemaining / initialTime) * 100" :showValue="false" class="prompt-progress" />
 			<div class="prompt-content">
 				<p>{{ activePrompt.message }}</p>
 			</div>
@@ -21,34 +18,66 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref, defineProps } from "vue";
 import useUtils from "../../common/composables/useUtils";
 import { useRxjs } from "topsyde-utils";
 import { Button } from "primevue";
-import ProgressBar from 'primevue/progressbar';
+import ProgressBar from "primevue/progressbar";
+import usePrompt, { I_PromptPayload } from "../../common/composables/usePrompt";
 
 export type PromptChoice = boolean | number;
-export interface I_PromptPayload {
-	time: number;
-	message: string;
-	callback: (choice: PromptChoice, data: any) => void;
-}
 
-const utils = useUtils();
-
-const rxjs = useRxjs("prompt", {
-	prompt: (payload: I_PromptPayload) => {
-		console.log("here", payload);
-		activePrompt.value = payload;
-		initialTime = payload.time;
-		startTimer(payload.time);
+const props = defineProps({
+	maxQueueSize: {
+		type: Number,
+		default: 2,
 	},
 });
 
+const utils = useUtils();
+
+// Queue system
+const promptQueue = ref<I_PromptPayload[]>([]);
 const activePrompt = ref<I_PromptPayload | null>(null);
 const timeRemaining = ref(0);
 let timerInterval: number | null = null;
 let initialTime = 0;
+
+useRxjs("prompt", {
+	prompt: (payload: I_PromptPayload) => {
+		addToQueue(payload);
+	},
+});
+
+// Add prompt to queue and process if needed
+const addToQueue = (payload: I_PromptPayload) => {
+	// If queue is full, ignore new prompts
+	if (promptQueue.value.length >= props.maxQueueSize) {
+		utils.lib.Log("Prompt queue is full, ignoring new prompt");
+		//TODO: Send websocket/event back to sender
+		return;
+	}
+
+	// Add to queue
+	promptQueue.value.push(payload);
+
+	// If no active prompt, process next
+	if (!activePrompt.value) {
+		processNextPrompt();
+	}
+};
+
+// Process next prompt in queue
+const processNextPrompt = () => {
+	if (promptQueue.value.length === 0) return;
+
+	const nextPrompt = promptQueue.value.shift();
+	if (nextPrompt) {
+		activePrompt.value = nextPrompt;
+		initialTime = nextPrompt.time;
+		startTimer(nextPrompt.time);
+	}
+};
 
 // Format time as MM:SS
 const formatTime = (seconds: number) => {
@@ -67,9 +96,15 @@ const handleChoice = (choice: PromptChoice) => {
 		timerInterval = null;
 	}
 
+	const { callback, ...rest } = activePrompt.value;
 	// Call callback with choice
-	activePrompt.value.callback(choice, activePrompt.value);
+	callback(choice, rest);
+
+	// Clear active prompt
 	activePrompt.value = null;
+
+	// Process next prompt if available
+	processNextPrompt();
 };
 
 // Start timer
@@ -90,21 +125,30 @@ const startTimer = (seconds: number) => {
 	}, 1000);
 };
 
-// Handle prompt request
-
-onMounted(() => {
+function test() {
 	utils.lib.Log("Prompt component mounted");
-	//call self
-	rxjs.$next("prompt", {
-		time: 60,
+	const prompt$ = usePrompt();
+	prompt$.next({
+		time: 5,
 		message: "Admin would love to battle you",
+		from: {
+			id: "1",
+			name: "admin",
+		},
+		metadata: {
+			type: "battle",
+		},
 		callback: (choice: PromptChoice, data: any) => {
-			utils.lib.Log("Prompt choice", choice, data);
+			utils.lib.Log("Prompt choice 1", choice, data);
 		},
 	});
+}
+
+onMounted(() => {
+	test();
 });
 
-// Clean up on unmount
+
 onUnmounted(() => {
 	if (timerInterval) {
 		clearInterval(timerInterval);
@@ -139,7 +183,17 @@ onUnmounted(() => {
 	padding: 12px 16px;
 	background-color: var(--p-navigation-item-active-background);
 	display: flex;
-	justify-content: flex-end;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.prompt-queue-indicator {
+	font-size: 0.8rem;
+	background-color: var(--p-primary-color);
+	color: var(--p-primary-contrast-color);
+	padding: 2px 8px;
+	border-radius: 12px;
+	font-weight: bold;
 }
 
 .prompt-progress {

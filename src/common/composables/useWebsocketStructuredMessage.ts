@@ -2,6 +2,7 @@ import { E_WebsocketMessageType, Lib, WebsocketStructuredMessage } from "topsyde
 import { computed } from "vue";
 
 const useWebsocketStructuredMessage = (wsm: WebsocketStructuredMessage) => {
+	
 	const room = computed(() => {
 		return Lib.ToPascalCase(wsm.channel ?? "server");
 	});
