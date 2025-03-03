@@ -125,11 +125,11 @@ const startTimer = (seconds: number) => {
 	}, 1000);
 };
 
-function test() {
+function test(time:number) {
 	utils.lib.Log("Prompt component mounted");
 	const prompt$ = usePrompt();
 	prompt$.next({
-		time: 5,
+		time: time,
 		message: "Admin would love to battle you",
 		from: {
 			id: "1",
@@ -145,7 +145,7 @@ function test() {
 }
 
 onMounted(() => {
-	test();
+	// test(30);
 });
 
 
@@ -228,6 +228,25 @@ onUnmounted(() => {
 		position: fixed;
 		bottom: 0;
 		top: auto;
+		height: auto;
+		max-height: 80vh;
+		overflow-y: auto;
+	}
+	
+	.prompt-content {
+		padding: 16px;
+		max-height: 50vh;
+		overflow-y: auto;
+	}
+	
+	.prompt-actions {
+		padding: 12px;
+		flex-direction: column;
+	}
+	
+	.prompt-actions button {
+		width: 100%;
+		margin: 4px 0;
 	}
 }
 </style>

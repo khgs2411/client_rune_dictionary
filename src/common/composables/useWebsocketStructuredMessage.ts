@@ -63,7 +63,7 @@ const useWebsocketStructuredMessage = (wsm: WebsocketStructuredMessage) => {
 		if (wsm.timestamp) {
 			return new Date(wsm.timestamp).toLocaleTimeString();
 		}
-		return new Date().toLocaleTimeString();
+		return "???";
 	});
 
 	return { data: wsm, room, client, type, content, isSystemMessage, isErrorMessage, isGenericMessage, sender, formattedTime, isMessage, isWhisper, isBroadcast, isPrompt, isHeartbeat };

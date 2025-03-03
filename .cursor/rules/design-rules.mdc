@@ -1,8 +1,9 @@
 ---
-description: 
+description: This ruleset is great for when we need to apply some design choices/css to our code
 globs: 
 alwaysApply: false
 ---
+use [prime.css](mdc:src/assets/prime.css) as an example of which css variables are available for usage
+always design for mobile first
 use Tailwind as a css framework - https://v2.tailwindcss.com/docs/responsive-design
 use PrimeVue as a UI library component - https://primevue.org/inputgroup/
-use [prime.css](mdc:src/assets/prime.css) as an example of which css variables are available for usage

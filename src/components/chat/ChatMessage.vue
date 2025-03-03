@@ -1,7 +1,13 @@
 <template>
-	<div class="message" @contextmenu="onRightClick">
+	<template v-if="utils.guards.IsArray(content.message)">
+		<div v-for="(item, index) in content.message" :key="index">
+			<ChatMessage :message="item as WebsocketStructuredMessage" />
+		</div>
+	</template>
+	<div v-else class="message" @contextmenu="onRightClick">
 		<span class="timestamp">[{{ formattedTime }} - {{ room }}]</span>
 		<span class="sender" :class="{ 'system-indicator': isSystemMessage, 'error-indicator': isErrorMessage, 'generic-indicator': isGenericMessage }">{{ sender }}:</span>
+
 		<span class="message-content">{{ content.message }}</span>
 
 		<ContextMenu ref="menu" :model="items">
@@ -24,6 +30,7 @@ import useWebsocketStructuredMessage from "../../common/composables/useWebsocket
 import { ref } from "vue";
 import ContextMenu from "primevue/contextmenu";
 import Badge from "primevue/badge";
+import useUtils from "../../common/composables/useUtils";
 
 const props = defineProps<{
 	message: WebsocketStructuredMessage;
@@ -35,6 +42,7 @@ const emit = defineEmits<{
 }>();
 
 const { room, content, isSystemMessage, isErrorMessage, isGenericMessage, sender, formattedTime, client } = useWebsocketStructuredMessage(props.message);
+const utils = useUtils();
 const wsm = useWebsocketStructuredMessage(props.message);
 const menu = ref();
 const items = ref([

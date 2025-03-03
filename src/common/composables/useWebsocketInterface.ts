@@ -20,15 +20,22 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 		onFailed: handleReconnectFailed,
 	});
 
+	function logMessage(title: string, ws: WebSocket, event?: MessageEvent) {
+		const dataString = event ? event.data : "";
+		Lib.Log(`[${ws.url}] - ${title}:`, dataString);
+	}
+
 	function handleMessage(ws: WebSocket, event: MessageEvent) {
-		Lib.Log(`[${ws.url}] - Received message:`, event.data);
 		const data: WebsocketStructuredMessage = JSON.parse(event.data);
 		const wsm = useWebsocketStructuredMessage(data);
-		if (wsm.isMessage.value) messages.value.push(wsm.data);
+		if (wsm.isMessage.value) {
+			logMessage("Received message", ws, event);
+			messages.value.push(wsm.data);
+		}
 	}
 
 	function handleConnected(ws: WebSocket) {
-		Lib.Log(`[${ws.url}] - Connected!`, ws.readyState);
+		logMessage("Connected", ws);
 
 		const clientName = client.value?.name || "Guest";
 

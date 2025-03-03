@@ -1,12 +1,15 @@
 <template>
 	<ChatWindow :container-ref="containerRef" storageKey="chat" :minWidth="300" :minHeight="200" :initialSize="{ width: 600, height: 500 }" @logout="handleLogout">
-		<template #title>Connected as: {{ client ? `(${client.name})` : "" }}</template>
+		<template #title
+			>Connected as: <span class="client-name">{{ client ? `(${client.name})` : "" }}</span></template
+		>
 		<template #controls>
 			<div class="status-indicator" :class="status"></div>
 		</template>
 
 		<div class="chat-content">
 			<div ref="messagesContainer" class="messages">
+				{{ sortedMessagesByTimestamp }}
 				<ChatMessage @whisper="handleWhisper" @match="handleMatch" v-for="(message, index) in messages" :key="index" :message="message" />
 			</div>
 
@@ -19,9 +22,9 @@
 								<span>Whisper: {{ targetEntity?.name }}</span>
 							</div>
 						</InputGroupAddon>
-						<InputText v-model="inputMessage as string" @keyup.enter="sendMessage" :class="{ 'whisper-indicator': whisperMode }" placeholder="Enter message..." :disabled="status !== 'OPEN'" />
+						<InputText v-model="inputMessage as string" @keyup.enter="() => sendMessage()" :class="{ 'whisper-indicator': whisperMode }" placeholder="Enter message..." :disabled="status !== 'OPEN'" />
 					</InputGroup>
-					<Button @click="sendMessage" :disabled="status !== 'OPEN' || !inputMessage.trim()"> Send </Button>
+					<Button @click="() => sendMessage()" :disabled="status !== 'OPEN' || !inputMessage.trim()"> Send </Button>
 				</div>
 			</div>
 		</div>
@@ -62,8 +65,20 @@ const targetEntity = ref<WebsocketEntityData | null>(null);
 
 const whisperMode = computed(() => mode.value === "whisper");
 
-function sendMessage() {
-	messanger.sendMessage(props.client, inputMessage.value, { type: whisperMode.value ? E_WebsocketMessageType.WHISPER : E_WebsocketMessageType.BROADCAST, target: targetEntity.value });
+const sortedMessagesByTimestamp = computed(() => {
+	const clone = [...messages.value];
+	const sorted=  clone.sort((a, b) => {
+		const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+		const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+		return timeA - timeB;
+	});
+	console.log("messages.value", messages.value);
+	console.log("sorted", sorted);
+	return sorted;
+});
+
+function sendMessage(msg?: string) {
+	messanger.sendMessage(props.client, msg || inputMessage.value, { type: whisperMode.value ? E_WebsocketMessageType.WHISPER : E_WebsocketMessageType.BROADCAST, target: targetEntity.value });
 	inputMessage.value = "";
 	mode.value = "broadcast";
 	setTargetEntity(null);
@@ -98,13 +113,17 @@ function handleMatch(entity: WebsocketEntityData) {
 	utils.lib.Log("Matching with:", entity);
 	const match = useMatch();
 	match.createMatch(props.client, entity);
-	// messanger.sendMessage(props.client, inputMessage.value, { type: E_WebsocketMessageType.PROMPT, target: targetEntity.value, metadata: { type: "match" } });
 }
 
 async function ping() {
-	await api.ping().catch((error) => {
-		utils.toast.error("Error pinging API: " + error);
-	});
+	await api
+		.ping()
+		.then(() => {
+			sendMessage("Hello, world!");
+		})
+		.catch((error) => {
+			utils.toast.error("Error pinging API: " + error);
+		});
 }
 
 watch(
@@ -129,6 +148,10 @@ onUnmounted(() => close());
 	display: flex;
 	flex-direction: column;
 	height: 100%;
+}
+
+.client-name {
+	color: var(--p-primary-color);
 }
 
 .messages {
