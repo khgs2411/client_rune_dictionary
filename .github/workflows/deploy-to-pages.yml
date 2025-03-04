@@ -9,7 +9,7 @@ on:
       - '.gitignore'
 
 env:
-  VITE_WS_HOST: 'wss://your-default-websocket-host.com'  # Default value, can be overridden
+  VITE_WS_HOST: 'localhost'  # Default value, can be overridden
 
 jobs:
   check-commit-message:
