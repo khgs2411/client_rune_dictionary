@@ -3,7 +3,7 @@ import routes from "./routes.ts";
 import { useAuthStore } from "../stores/auth.store";
 
 const router = createRouter({
-	history: createWebHistory(),
+	history: createWebHistory(import.meta.env.BASE_URL),
 	routes,
 });
 
