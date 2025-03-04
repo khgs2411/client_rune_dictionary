@@ -23,13 +23,13 @@ echo -e "${YELLOW}Build output will be stored in ${TEMP_DIR}${NC}"
 
 # Run the build with output redirected to a log file
 LOG_FILE="${TEMP_DIR}/build.log"
-echo -e "${YELLOW}Running: bun run build${NC}"
+echo -e "${YELLOW}Running: vite build${NC}"
 
 # Set environment variables for the build
 export VITE_WS_HOST="localhost"
 
 # Run the build and capture the exit code
-(bun run build --outDir $TEMP_DIR) > $LOG_FILE 2>&1
+(vite build --outDir $TEMP_DIR) > $LOG_FILE 2>&1
 BUILD_EXIT_CODE=$?
 
 # Check if build was successful

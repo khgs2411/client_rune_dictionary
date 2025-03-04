@@ -21,4 +21,12 @@ export default defineConfig({
 			"@": path.resolve(__dirname, "./src"),
 		},
 	},
+	optimizeDeps: {
+		exclude: ['topsyde-utils'],
+	},
+	build: {
+		rollupOptions: {
+			external: ['path', 'fs'],
+		},
+	},
 });
