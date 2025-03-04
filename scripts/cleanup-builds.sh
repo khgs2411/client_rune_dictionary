@@ -32,6 +32,8 @@ read -r CONFIRM
 if [[ $CONFIRM =~ ^[Yy]$ ]]; then
     echo -e "${YELLOW}Removing temporary build directories...${NC}"
     echo "$TEMP_DIRS" | xargs rm -rf
+    echo -e "${YELLOW}Removing timestamp files...${NC}"
+    find . -name "*.timestamp-*" -type f -delete
     echo -e "${GREEN}Successfully removed $COUNT temporary build directories.${NC}"
 else
     echo -e "${YELLOW}Operation cancelled.${NC}"
