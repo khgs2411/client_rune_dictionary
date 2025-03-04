@@ -1,3 +1,31 @@
+# GitHub Pages Deployment Workflow
+# 
+# This workflow automatically deploys the application to GitHub Pages when:
+# 1. A commit with "[deploy]" in the message is pushed to the master branch
+# 2. The workflow is manually triggered from the GitHub Actions tab
+#
+# HOW TO USE:
+# - For automatic deployment: Include "[deploy]" in your commit message
+#   Example: git commit -m "Updated chat component [deploy]"
+#
+# - For manual deployment: 
+#   1. Go to Actions tab in GitHub repository
+#   2. Select "Deploy to GitHub Pages" workflow
+#   3. Click "Run workflow"
+#   4. Optionally provide a custom WebSocket host URL
+#   5. Click the green "Run workflow" button
+#
+# ENVIRONMENT VARIABLES:
+# - VITE_WS_HOST: WebSocket host URL used during build
+#   Default: 'localhost'
+#   Can be overridden when manually triggering the workflow
+#
+# WORKFLOW DETAILS:
+# - Uses Node.js 20.x for building
+# - Deploys the 'dist' directory to the 'gh-pages' branch
+# - Only runs on commits to the master branch
+# - Ignores changes to markdown files and .gitignore
+
 name: Deploy to GitHub Pages
 
 on:
@@ -19,6 +47,7 @@ env:
   VITE_WS_HOST: ${{ github.event.inputs.ws_host || 'localhost' }}
 
 jobs:
+  # First job: Check if commit message contains [deploy]
   check-commit-message:
     runs-on: ubuntu-latest
     if: github.event_name != 'workflow_dispatch'
@@ -42,6 +71,7 @@ jobs:
           echo "Commit message: $COMMIT_MSG"
           echo "Should deploy: ${{ steps.check.outputs.should_deploy }}"
 
+  # Second job: Build and deploy if triggered manually or commit contains [deploy]
   build-and-deploy:
     needs: [check-commit-message]
     if: github.event_name == 'workflow_dispatch' || needs.check-commit-message.outputs.should_deploy == 'true'
