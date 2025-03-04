@@ -18,12 +18,12 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from "vue";
-import useUtils from "../../common/composables/useUtils";
-import { useRxjs } from "topsyde-utils";
 import { Button } from "primevue";
 import ProgressBar from "primevue/progressbar";
-import usePrompt, { I_PromptPayload } from "../../common/composables/usePrompt";
+import { useRxjs } from "topsyde-utils";
+import { onUnmounted, ref } from "vue";
+import { I_PromptPayload } from "../../common/composables/usePrompt";
+import useUtils from "../../common/composables/useUtils";
 
 export type PromptChoice = boolean | number;
 
@@ -125,28 +125,6 @@ const startTimer = (seconds: number) => {
 	}, 1000);
 };
 
-function test(time:number) {
-	utils.lib.Log("Prompt component mounted");
-	const prompt$ = usePrompt();
-	prompt$.next({
-		time: time,
-		message: "Admin would love to battle you",
-		from: {
-			id: "1",
-			name: "admin",
-		},
-		metadata: {
-			type: "battle",
-		},
-		callback: (choice: PromptChoice, data: any) => {
-			utils.lib.Log("Prompt choice 1", choice, data);
-		},
-	});
-}
-
-onMounted(() => {
-	// test(30);
-});
 
 
 onUnmounted(() => {

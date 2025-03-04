@@ -1,5 +1,5 @@
-import { defineStore, acceptHMRUpdate } from "pinia";
-import { ref, watch } from "vue";
+import { acceptHMRUpdate, defineStore } from "pinia";
+import { ref } from "vue";
 
 export type ToastPosition = "center" | "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
 export type ToastMessage = {

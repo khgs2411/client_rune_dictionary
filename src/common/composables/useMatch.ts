@@ -14,24 +14,27 @@ const useMatch = () => {
 	async function challenge(whoami: Entity, target: Entity) {
 		try {
 			const response = await api.createMatch(whoami, target);
+			return response;
 		} catch (e) {
-			utils.toast.error("Something went wrong", 'top-left');
+			utils.toast.error("Something went wrong", "top-left");
 		}
 	}
 
 	async function accept(matchId: string) {
 		try {
 			const response = await api.acceptMatch(matchId);
+			return response;
 		} catch (e) {
-			utils.toast.error("Something went wrong", 'top-left');
+			utils.toast.error("Something went wrong", "top-left");
 		}
 	}
 
 	async function decline(matchId: string) {
 		try {
 			const response = await api.decline(matchId);
+			return response;
 		} catch (e) {
-			utils.toast.error("Something went wrong", 'top-left');
+			utils.toast.error("Something went wrong", "top-left");
 		}
 	}
 

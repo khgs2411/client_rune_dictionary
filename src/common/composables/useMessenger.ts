@@ -1,6 +1,5 @@
 import { E_WebsocketMessageType, WebsocketStructuredMessage } from "topsyde-utils";
 import { MessagesEntity } from "../types/types";
-import useUtils from "./useUtils";
 
 export interface I_SendMessageOptions {
 	type?: E_WebsocketMessageType;
@@ -10,7 +9,7 @@ export interface I_SendMessageOptions {
 }
 
 const useMessenger = (send: (data: string | ArrayBuffer | Blob, useBuffer?: boolean) => boolean) => {
-	const utils = useUtils();
+	// const utils = useUtils();
 	function sendMessage(client: MessagesEntity, input: string, options?: I_SendMessageOptions) {
 		if (!input.trim() || !client) return;
 
