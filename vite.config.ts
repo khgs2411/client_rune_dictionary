@@ -16,6 +16,11 @@ export default defineConfig({
 			},
 		},
 	},
+	build: {
+		sourcemap: false,
+		minify: true,
+		assetsDir: "chunks",
+	},
 	resolve: {
 		alias: {
 			"@": path.resolve(__dirname, "./src"),
