@@ -13,7 +13,6 @@ export default defineConfig(({ command }) => {
 			port: 8080,
 			...(command === "serve" && {
 				fs: {
-					// Allow serving files from one level up from the package root
 					allow: [".."],
 				},
 			}),
