@@ -14,6 +14,15 @@ echo "║           TEST BUILD SCRIPT            ║"
 echo "╚════════════════════════════════════════╝"
 echo -e "${NC}"
 
+# Clean up any leftover build directories
+LEFTOVER_DIRS=$(find . -maxdepth 1 -type d -name "temp_build_*" | wc -l | tr -d ' ')
+if [ "$LEFTOVER_DIRS" -gt 0 ]; then
+    echo -e "${YELLOW}Found $LEFTOVER_DIRS leftover build directories.${NC}"
+    echo -e "${YELLOW}Cleaning up...${NC}"
+    find . -maxdepth 1 -type d -name "temp_build_*" -exec rm -rf {} \;
+    echo -e "${GREEN}Cleanup completed.${NC}"
+fi
+
 # Create a temporary directory for the build
 TEMP_DIR="temp_build_$(date +%s)"
 mkdir -p $TEMP_DIR
