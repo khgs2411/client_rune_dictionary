@@ -99,8 +99,8 @@ function setTargetEntity(entity: WebsocketEntityData | null) {
 
 function handleMatch(entity: WebsocketEntityData) {
 	utils.lib.Log("Matching with:", entity);
-	const match = useMatch();
-	match.challenge(props.client, entity);
+	const match$ = useMatch();
+	match$.challenge(props.client, entity);
 }
 
 async function ping() {
