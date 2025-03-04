@@ -5,7 +5,10 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
-	plugins: [vue(), tailwindcss()],
+	plugins: [
+		vue(), 
+		tailwindcss()
+	],
 	server: {
 		port: 8080,
 	},
@@ -27,6 +30,33 @@ export default defineConfig({
 	build: {
 		rollupOptions: {
 			external: ['path', 'fs'],
+			output: {
+				manualChunks: {
+					'vendor': [
+						'vue',
+						'vue-router',
+						'pinia',
+						'pinia-plugin-persistedstate',
+						'@vueuse/core'
+					],
+					'primevue': [
+						'primevue',
+						'@primevue/themes'
+					],
+				},
+				chunkFileNames: 'assets/[name]-[hash].js',
+				entryFileNames: 'assets/[name]-[hash].js',
+				assetFileNames: 'assets/[name]-[hash].[ext]'
+			}
 		},
+		minify: 'terser',
+		terserOptions: {
+			compress: {
+				drop_console: false,
+				drop_debugger: true
+			}
+		},
+		chunkSizeWarningLimit: 600,
+		sourcemap: false
 	},
 });

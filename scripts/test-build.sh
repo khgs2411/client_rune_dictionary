@@ -29,7 +29,7 @@ echo -e "${YELLOW}Running: vite build${NC}"
 export VITE_WS_HOST="localhost"
 
 # Run the build and capture the exit code
-(vite build --outDir $TEMP_DIR) > $LOG_FILE 2>&1
+(vite build --outDir $TEMP_DIR)
 BUILD_EXIT_CODE=$?
 
 # Check if build was successful
@@ -82,10 +82,6 @@ else
     echo -e "${RED}│              BUILD FAILED              │${NC}"
     echo -e "${RED}└────────────────────────────────────────┘${NC}"
     echo -e "${RED}Build failed with exit code: $BUILD_EXIT_CODE${NC}"
-    
-    # Display the last 20 lines of the log
-    echo -e "${YELLOW}Last 20 lines of build log:${NC}"
-    echo -e "${RED}$(tail -n 20 $LOG_FILE)${NC}"
     
     # Clean up
     echo -e "${YELLOW}Cleaning up temporary build directory...${NC}"
