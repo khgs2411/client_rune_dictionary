@@ -9,6 +9,8 @@ export default defineConfig(({ command }) => {
 	
 	return {
 		plugins: [vue(), tailwindcss(), topsydeUtilsPlugin()],
+		// Set base path for GitHub Pages deployment
+		base: '/client_rune_dictionary/',
 		server: {
 			port: 8080,
 			...(command === "serve" && {
