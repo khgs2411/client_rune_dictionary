@@ -7,13 +7,21 @@ on:
     paths-ignore:
       - '**.md'
       - '.gitignore'
+  workflow_dispatch:
+    inputs:
+      ws_host:
+        description: 'WebSocket Host URL'
+        required: false
+        default: 'localhost'
+        type: string
 
 env:
-  VITE_WS_HOST: 'localhost'  # Default value, can be overridden
+  VITE_WS_HOST: ${{ github.event.inputs.ws_host || 'localhost' }}
 
 jobs:
   check-commit-message:
     runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch'
     outputs:
       should_deploy: ${{ steps.check.outputs.should_deploy }}
     steps:
@@ -35,8 +43,8 @@ jobs:
           echo "Should deploy: ${{ steps.check.outputs.should_deploy }}"
 
   build-and-deploy:
-    needs: check-commit-message
-    if: needs.check-commit-message.outputs.should_deploy == 'true'
+    needs: [check-commit-message]
+    if: github.event_name == 'workflow_dispatch' || needs.check-commit-message.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
