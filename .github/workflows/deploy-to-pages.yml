@@ -8,6 +8,9 @@ on:
       - '**.md'
       - '.gitignore'
 
+env:
+  VITE_WS_HOST: 'wss://your-default-websocket-host.com'  # Default value, can be overridden
+
 jobs:
   check-commit-message:
     runs-on: ubuntu-latest
@@ -50,6 +53,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          VITE_WS_HOST: ${{ env.VITE_WS_HOST }}
         
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
