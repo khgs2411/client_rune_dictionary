@@ -2,7 +2,8 @@ import { UseWebSocketOptions } from "@vueuse/core";
 import { Lib, WebsocketEntityData, WebsocketStructuredMessage } from "topsyde-utils";
 import { ref, Ref } from "vue";
 import { AutoReconnect, Heartbeat } from "../types/websocket.types";
-import useWebsocketStructuredMessage from "./useWebsocketStructuredMessage";
+import useWSM from "./useWSM";
+import useWebsocketLogic from "./useWebsocketLogic";
 
 const PING_PONG_INTERVAL = 20;
 export const WEBSOCKET_URL = `ws://${import.meta.env.VITE_WS_HOST || "localhost"}:3000`;
@@ -26,11 +27,18 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 	}
 
 	function handleMessage(ws: WebSocket, event: MessageEvent) {
-		const data: WebsocketStructuredMessage = JSON.parse(event.data);
-		const wsm = useWebsocketStructuredMessage(data);
-		if (wsm.isMessage.value) {
-			logMessage("Received message", ws, event);
-			messages.value.push(wsm.data);
+		try {
+			const data: WebsocketStructuredMessage = JSON.parse(event.data);
+			const wsm$ = useWSM(data);
+			
+			if (wsm$.isMessage.value) {
+				logMessage("Received message", ws, event);
+				messages.value.push(wsm$.data);
+			} else useWebsocketLogic(wsm$);
+		
+		} catch (err) {
+			console.log(JSON.stringify(event.data));
+			console.log(err);
 		}
 	}
 

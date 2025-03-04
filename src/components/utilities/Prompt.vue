@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref, defineProps } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import useUtils from "../../common/composables/useUtils";
 import { useRxjs } from "topsyde-utils";
 import { Button } from "primevue";
@@ -37,20 +37,20 @@ const props = defineProps({
 const utils = useUtils();
 
 // Queue system
-const promptQueue = ref<I_PromptPayload[]>([]);
-const activePrompt = ref<I_PromptPayload | null>(null);
+const promptQueue = ref<I_PromptPayload<any>[]>([]);
+const activePrompt = ref<I_PromptPayload<any> | null>(null);
 const timeRemaining = ref(0);
 let timerInterval: number | null = null;
 let initialTime = 0;
 
 useRxjs("prompt", {
-	prompt: (payload: I_PromptPayload) => {
+	prompt: (payload: I_PromptPayload<any>) => {
 		addToQueue(payload);
 	},
 });
 
 // Add prompt to queue and process if needed
-const addToQueue = (payload: I_PromptPayload) => {
+const addToQueue = (payload: I_PromptPayload<any>) => {
 	// If queue is full, ignore new prompts
 	if (promptQueue.value.length >= props.maxQueueSize) {
 		utils.lib.Log("Prompt queue is full, ignoring new prompt");

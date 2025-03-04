@@ -26,7 +26,7 @@
 
 <script setup lang="ts">
 import { WebsocketEntityData, WebsocketStructuredMessage } from "topsyde-utils";
-import useWebsocketStructuredMessage from "../../common/composables/useWebsocketStructuredMessage";
+import useWSM from "../../common/composables/useWSM";
 import { ref } from "vue";
 import ContextMenu from "primevue/contextmenu";
 import Badge from "primevue/badge";
@@ -41,9 +41,9 @@ const emit = defineEmits<{
 	(e: "match", entity: WebsocketEntityData): void;
 }>();
 
-const { room, content, isSystemMessage, isErrorMessage, isGenericMessage, sender, formattedTime, client } = useWebsocketStructuredMessage(props.message);
+const { room, content, isSystemMessage, isErrorMessage, isGenericMessage, sender, formattedTime, client } = useWSM(props.message);
 const utils = useUtils();
-const wsm = useWebsocketStructuredMessage(props.message);
+const wsm = useWSM(props.message);
 const menu = ref();
 const items = ref([
 	{

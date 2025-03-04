@@ -1,8 +1,9 @@
 import { E_WebsocketMessageType, Lib, WebsocketStructuredMessage } from "topsyde-utils";
 import { computed } from "vue";
 
-const useWebsocketStructuredMessage = (wsm: WebsocketStructuredMessage) => {
-	
+export interface I_UseWSM extends ReturnType<typeof useWSM> {}
+
+const useWSM = (wsm: WebsocketStructuredMessage) => {
 	const room = computed(() => {
 		return Lib.ToPascalCase(wsm.channel ?? "server");
 	});
@@ -66,7 +67,12 @@ const useWebsocketStructuredMessage = (wsm: WebsocketStructuredMessage) => {
 		return "???";
 	});
 
-	return { data: wsm, room, client, type, content, isSystemMessage, isErrorMessage, isGenericMessage, sender, formattedTime, isMessage, isWhisper, isBroadcast, isPrompt, isHeartbeat };
+	function is(type: E_WebsocketMessageType | string): boolean;
+	function is(_type: E_WebsocketMessageType | string): boolean {
+		return type.value === _type;
+	}
+
+	return { data: wsm, room, client, type, content, isSystemMessage, isErrorMessage, isGenericMessage, sender, formattedTime, isMessage, isWhisper, isBroadcast, isPrompt, isHeartbeat, is };
 };
 
-export default useWebsocketStructuredMessage;
+export default useWSM;

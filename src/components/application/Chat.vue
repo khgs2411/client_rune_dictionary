@@ -9,7 +9,6 @@
 
 		<div class="chat-content">
 			<div ref="messagesContainer" class="messages">
-				{{ sortedMessagesByTimestamp }}
 				<ChatMessage @whisper="handleWhisper" @match="handleMatch" v-for="(message, index) in messages" :key="index" :message="message" />
 			</div>
 
@@ -33,16 +32,16 @@
 
 <script setup lang="ts">
 import { useWebSocket } from "@vueuse/core";
-import { Button, InputText, InputGroup, InputGroupAddon } from "primevue";
+import { Button, InputGroup, InputGroupAddon, InputText } from "primevue";
 import { E_WebsocketMessageType, WebsocketEntityData, WebsocketStructuredMessage } from "topsyde-utils";
 import { computed, nextTick, onMounted, onUnmounted, Ref, ref, watch } from "vue";
 import API from "../../api/app.api";
+import useMatch from "../../common/composables/useMatch";
+import useMessenger from "../../common/composables/useMessenger";
 import useUtils from "../../common/composables/useUtils";
 import useWebSocketInterface, { WEBSOCKET_URL } from "../../common/composables/useWebsocketInterface";
 import ChatMessage from "../chat/ChatMessage.vue";
 import ChatWindow from "../chat/ChatWindow.vue";
-import useMessanger, { I_SendMessageOptions } from "../../common/composables/useMessanger";
-import useMatch from "../../common/composables/useMatch";
 
 const props = defineProps<{
 	client: WebsocketEntityData;
@@ -59,26 +58,15 @@ const inputMessage: Ref<string> = ref(<string>"");
 const messagesContainer = ref<HTMLElement | null>(null);
 const wsOptions = useWebSocketInterface(ref(props.client), messages);
 const { status, send, close } = useWebSocket<WebsocketStructuredMessage>(WEBSOCKET_URL, wsOptions);
-const messanger = useMessanger(send);
+const messenger = useMessenger(send);
 const mode: Ref<"broadcast" | "whisper"> = ref("broadcast");
 const targetEntity = ref<WebsocketEntityData | null>(null);
 
 const whisperMode = computed(() => mode.value === "whisper");
 
-const sortedMessagesByTimestamp = computed(() => {
-	const clone = [...messages.value];
-	const sorted=  clone.sort((a, b) => {
-		const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
-		const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-		return timeA - timeB;
-	});
-	console.log("messages.value", messages.value);
-	console.log("sorted", sorted);
-	return sorted;
-});
 
 function sendMessage(msg?: string) {
-	messanger.sendMessage(props.client, msg || inputMessage.value, { type: whisperMode.value ? E_WebsocketMessageType.WHISPER : E_WebsocketMessageType.BROADCAST, target: targetEntity.value });
+	messenger.sendMessage(props.client, msg || inputMessage.value, { type: whisperMode.value ? E_WebsocketMessageType.WHISPER : E_WebsocketMessageType.BROADCAST, target: targetEntity.value });
 	inputMessage.value = "";
 	mode.value = "broadcast";
 	setTargetEntity(null);
@@ -112,7 +100,7 @@ function setTargetEntity(entity: WebsocketEntityData | null) {
 function handleMatch(entity: WebsocketEntityData) {
 	utils.lib.Log("Matching with:", entity);
 	const match = useMatch();
-	match.createMatch(props.client, entity);
+	match.challenge(props.client, entity);
 }
 
 async function ping() {

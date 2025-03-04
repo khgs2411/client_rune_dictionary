@@ -9,7 +9,7 @@ export interface I_SendMessageOptions {
 	metadata?: Record<string, string>;
 }
 
-const useMessanger = (send: (data: string | ArrayBuffer | Blob, useBuffer?: boolean) => boolean) => {
+const useMessenger = (send: (data: string | ArrayBuffer | Blob, useBuffer?: boolean) => boolean) => {
 	const utils = useUtils();
 	function sendMessage(client: MessagesEntity, input: string, options?: I_SendMessageOptions) {
 		if (!input.trim() || !client) return;
@@ -52,4 +52,4 @@ const useMessanger = (send: (data: string | ArrayBuffer | Blob, useBuffer?: bool
 	return { sendMessage, sendWhisper };
 };
 
-export default useMessanger;
+export default useMessenger;
