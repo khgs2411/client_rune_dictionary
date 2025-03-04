@@ -32,6 +32,10 @@ const username = computed(() => store.username);
 const password = computed(() => store.password);
 const api_key = computed(() => import.meta.env.VITE_API_KEY);
 const tryWebsocketConnection = ref(!utils.lib.IsEmpty(username.value));
+const baseUrl = import.meta.env.BASE_URL;
+
+// Set CSS variable for background image
+document.documentElement.style.setProperty('--match-bg-url', `url(${baseUrl}match.webp)`);
 
 function handleSubmit(credentials: { username: string; password: string }) {
 	store.username = credentials.username;
@@ -77,7 +81,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .match {
-	background-image: url("/match.webp");
+	background-image: var(--match-bg-url);
 	background-size: cover;
 	background-position: center;
 	background-repeat: no-repeat;
