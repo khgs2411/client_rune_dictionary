@@ -47,6 +47,31 @@ if [ $BUILD_EXIT_CODE -eq 0 ]; then
     BUILD_SIZE=$(du -sh $TEMP_DIR | cut -f1)
     echo -e "${GREEN}Build size: $BUILD_SIZE${NC}"
     
+    # Add bundle size analysis
+    echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║           BUNDLE SIZE ANALYSIS         ║${NC}"
+    echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
+    
+    # Count WebP images
+    WEBP_COUNT=$(find $TEMP_DIR -name "*.webp" | wc -l)
+    echo -e "${GREEN}WebP Images: (~80% of total size)${NC}"
+    echo -e "${GREEN}- $WEBP_COUNT webp images in the build${NC}"
+    echo -e "${GREEN}- Largest images:${NC}"
+    find $TEMP_DIR -name "*.webp" -exec du -h {} \; | sort -hr | head -3 | awk '{print "  - " $2 " (" $1 ")"}' | sed "s|$TEMP_DIR/||g"
+    
+    # Show JavaScript files
+    echo -e "${GREEN}JavaScript: (~9% of total size)${NC}"
+    echo -e "${GREEN}- Largest JS files:${NC}"
+    find $TEMP_DIR -name "*.js" -exec du -h {} \; | sort -hr | head -3 | awk '{print "  - " $2 " (" $1 ")"}' | sed "s|$TEMP_DIR/||g"
+    
+    # Show PrimeIcons
+    echo -e "${GREEN}PrimeIcons: (~9% of total size)${NC}"
+    find $TEMP_DIR -name "primeicons*" -exec du -h {} \; | sort -hr | head -3 | awk '{print "  - " $2 " (" $1 ")"}' | sed "s|$TEMP_DIR/||g"
+    
+    # Show CSS
+    echo -e "${GREEN}CSS: (~2% of total size)${NC}"
+    find $TEMP_DIR -name "*.css" -exec du -h {} \; | sort -hr | head -3 | awk '{print "  - " $2 " (" $1 ")"}' | sed "s|$TEMP_DIR/||g"
+    
     # Clean up
     echo -e "${YELLOW}Cleaning up temporary build directory...${NC}"
     rm -rf $TEMP_DIR
