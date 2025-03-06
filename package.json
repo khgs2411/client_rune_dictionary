@@ -9,6 +9,7 @@
 		"build": "vue-tsc -b && vite build",
 		"build:test": "./scripts/test-build.sh",
 		"build:cleanup": "./scripts/cleanup-builds.sh",
+		"deploy": "./scripts/deploy.sh",
 		"preview": "vite preview",
 		"format": "prettier --write --cache .",
 		"prettier": "prettier --write --cache .",
