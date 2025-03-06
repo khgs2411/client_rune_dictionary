@@ -1,0 +1,70 @@
+# GitHub Pages Auto-Deploy Workflow
+#
+# This workflow automatically deploys the application to GitHub Pages on every push to master
+#
+# ENVIRONMENT VARIABLES:
+# - VITE_WS_HOST: WebSocket host URL used during build
+#   Default: '129.159.159.241'
+
+name: GitHub Pages Auto-Deploy
+
+on:
+  # Runs on pushes targeting the master branch
+  push:
+    branches: ["master"]
+  
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      ws_host:
+        description: "WebSocket Host URL"
+        required: false
+        default: "129.159.159.241"
+        type: string
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Environment variables available to all jobs and steps
+env:
+  VITE_WS_HOST: ${{ github.event.inputs.ws_host || '129.159.159.241' }}
+  NODE_ENV: "production"
+
+jobs:
+  # Single job that deploys to GitHub Pages
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Debug Environment Variables
+        run: |
+          echo "NODE_ENV: $NODE_ENV"
+          echo "VITE_WS_HOST: $VITE_WS_HOST"
+          echo "GitHub Ref: ${{ github.ref }}"
+          echo "GitHub Event Name: ${{ github.event_name }}"
+
+      - name: Build
+        run: bun run build --mode production
+        env:
+          VITE_WS_HOST: ${{ env.VITE_WS_HOST }}
+          NODE_ENV: ${{ env.NODE_ENV }}
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          branch: gh-pages
+          clean: true
