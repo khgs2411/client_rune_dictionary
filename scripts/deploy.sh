@@ -54,10 +54,10 @@ esac
 NEW_VERSION=$(node -p "require('./package.json').version")
 echo -e "${BLUE}New version: ${GREEN}$NEW_VERSION${NC}"
 
-# Update version in main.ts
-echo -e "${BLUE}Updating version in main.ts...${NC}"
-sed -i '' "s/const version = \"[0-9]*\.[0-9]*\.[0-9]*\"/const version = \"$NEW_VERSION\"/" src/main.ts
-echo -e "${GREEN}Version in main.ts updated to $NEW_VERSION${NC}"
+# Update version comment in main.ts
+echo -e "${BLUE}Updating version comment in main.ts...${NC}"
+sed -i '' "s|// @version: [0-9]*\.[0-9]*\.[0-9]* - This comment is auto-updated by deploy script|// @version: $NEW_VERSION - This comment is auto-updated by deploy script|" src/main.ts
+echo -e "${GREEN}Version comment in main.ts updated to $NEW_VERSION${NC}"
 
 # Prompt for commit message
 read -p "Enter commit message (optional): " COMMIT_MSG
