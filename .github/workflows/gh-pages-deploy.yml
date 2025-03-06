@@ -1,44 +1,90 @@
-# GitHub Pages Auto-Deploy Workflow
+# GitHub Pages Deployment Workflow
+# 
+# This workflow automatically deploys the application to GitHub Pages when:
+# 1. A commit with "[deploy]" in the message is pushed to the master branch
+# 2. The workflow is manually triggered from the GitHub Actions tab
 #
-# This workflow automatically deploys the application to GitHub Pages on every push to master
+# HOW TO USE:
+# - For automatic deployment: Include "[deploy]" in your commit message
+#   Example: git commit -m "Updated chat component [deploy]"
+#
+# - For manual deployment: 
+#   1. Go to Actions tab in GitHub repository
+#   2. Select "Deploy to GitHub Pages" workflow
+#   3. Click "Run workflow"
+#   4. Optionally provide a custom WebSocket host URL
+#   5. Click the green "Run workflow" button
 #
 # ENVIRONMENT VARIABLES:
 # - VITE_WS_HOST: WebSocket host URL used during build
-#   Default: '129.159.159.241'
+#   Default: 'localhost'
+#   Can be overridden when manually triggering the workflow
+#
+# WORKFLOW DETAILS:
+# - Uses Bun for installing dependencies and building
+# - Deploys the 'dist' directory to the 'gh-pages' branch
+# - Only runs on commits to the master branch
+# - Ignores changes to markdown files and .gitignore
 
-name: GitHub Pages Auto-Deploy
+name: Deploy to GitHub Pages
 
 on:
-  # Runs on pushes targeting the master branch
   push:
-    branches: ["master"]
-  
-  # Allows you to run this workflow manually from the Actions tab
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
   workflow_dispatch:
     inputs:
       ws_host:
-        description: "WebSocket Host URL"
+        description: 'WebSocket Host URL'
         required: false
-        default: "129.159.159.241"
+        default: '129.159.159.241'
         type: string
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+# Add permissions needed for GitHub Pages deployment
 permissions:
   contents: write
   pages: write
   id-token: write
 
-# Environment variables available to all jobs and steps
 env:
   VITE_WS_HOST: ${{ github.event.inputs.ws_host || '129.159.159.241' }}
-  NODE_ENV: "production"
+  NODE_ENV: 'production'
 
 jobs:
-  # Single job that deploys to GitHub Pages
-  deploy:
+  # First job: Check if commit message contains [deploy]
+  check-commit-message:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch'
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      
+      - name: Check commit message for deploy keyword
+        id: check
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+          if [[ "$COMMIT_MSG" == *"[deploy]"* ]]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+          fi
+          echo "Commit message: $COMMIT_MSG"
+          echo "Should deploy: ${{ steps.check.outputs.should_deploy }}"
+
+  # Second job: Build and deploy if triggered manually or commit contains [deploy]
+  build-and-deploy:
+    needs: [check-commit-message]
+    if: github.event_name == 'workflow_dispatch' || needs.check-commit-message.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Setup Bun
@@ -49,22 +95,15 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Debug Environment Variables
-        run: |
-          echo "NODE_ENV: $NODE_ENV"
-          echo "VITE_WS_HOST: $VITE_WS_HOST"
-          echo "GitHub Ref: ${{ github.ref }}"
-          echo "GitHub Event Name: ${{ github.event_name }}"
-
       - name: Build
-        run: bun run build --mode production
+        run: bun run build
         env:
           VITE_WS_HOST: ${{ env.VITE_WS_HOST }}
           NODE_ENV: ${{ env.NODE_ENV }}
-
+        
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: dist
           branch: gh-pages
-          clean: true
+          clean: true 
