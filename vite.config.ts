@@ -30,8 +30,9 @@ export default defineConfig(({ command, mode }) => {
 			},
 		},
 		define: {
-			'process.env.NODE_ENV': JSON.stringify(isProduction ? 'production' : 'development'),
-			'import.meta.env.NODE_ENV': JSON.stringify(isProduction ? 'production' : 'development'),
-		}
+			"process.env.NODE_ENV": JSON.stringify(isProduction ? "production" : "development"),
+			"import.meta.env.NODE_ENV": JSON.stringify(isProduction ? "production" : "development"),
+			"import.meta.env.VITE_WS_HOST": JSON.stringify(isProduction ? "129.159.159.241" : "localhost"),
+		},
 	};
 });

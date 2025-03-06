@@ -95,17 +95,11 @@ jobs:
             - name: Install dependencies
               run: bun install
 
-            - name: Create build timestamp
-              run: |
-                  echo "Build timestamp: $(date)" > dist/build-info.txt
-                  echo "Commit: ${{ github.sha }}" >> dist/build-info.txt
-                  echo "Build number: ${{ github.run_number }}" >> dist/build-info.txt
-
             - name: Verify production environment
               run: |
                   echo "Building in NODE_ENV: $NODE_ENV"
                   echo "Using VITE_WS_HOST: $VITE_WS_HOST"
-                  
+
             - name: Build
               run: bun run build
               env:
