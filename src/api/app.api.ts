@@ -2,7 +2,7 @@ import BaseAPI from "./api.base";
 
 export default class API extends BaseAPI {
 	constructor() {
-		super("api", "http://localhost:3000");
+		super("api", `${import.meta.env.VITE_WS_HOST || "localhost"}`);
 	}
 
 	public async ping() {
