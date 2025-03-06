@@ -13,7 +13,7 @@ import Ripple from "primevue/ripple";
 import ToastService from "primevue/toastservice";
 import DebugDirective from "./directives/debug.directive.ts";
 
-const version = "0.0.1";
+const version = "0.1.7";
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
