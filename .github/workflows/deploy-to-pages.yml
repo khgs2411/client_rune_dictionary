@@ -95,6 +95,13 @@ jobs:
             - name: Install dependencies
               run: bun install
 
+            - name: Debug Environment Variables
+              run: |
+                  echo "NODE_ENV: $NODE_ENV"
+                  echo "VITE_WS_HOST: $VITE_WS_HOST"
+                  echo "All environment variables:"
+                  env | sort
+
             - name: Build
               run: bun run build --mode production
               env:
