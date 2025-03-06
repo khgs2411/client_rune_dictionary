@@ -51,6 +51,7 @@ permissions:
 
 env:
   VITE_WS_HOST: ${{ github.event.inputs.ws_host || '129.159.159.241' }}
+  NODE_ENV: 'production'
 
 jobs:
   # First job: Check if commit message contains [deploy]
@@ -98,6 +99,7 @@ jobs:
         run: bun run build
         env:
           VITE_WS_HOST: ${{ env.VITE_WS_HOST }}
+          NODE_ENV: ${{ env.NODE_ENV }}
         
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
