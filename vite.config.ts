@@ -6,7 +6,6 @@ import topsydeUtilsPlugin from "./plugins/topsyde-utils-vite-plugin";
 // https://vite.dev/config/
 export default defineConfig(({ command, mode }) => {
 	const isProduction = mode === 'production';
-	
 	return {
 		plugins: [vue(), tailwindcss(), topsydeUtilsPlugin()],
 		base: command === "serve" ? "/" : "/client_rune_dictionary/",

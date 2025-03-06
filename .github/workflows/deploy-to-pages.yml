@@ -17,7 +17,7 @@
 #
 # ENVIRONMENT VARIABLES:
 # - VITE_WS_HOST: WebSocket host URL used during build
-#   Default: 'localhost'
+#   Default: '129.159.159.241'
 #   Can be overridden when manually triggering the workflow
 #
 # WORKFLOW DETAILS:
@@ -52,7 +52,6 @@ permissions:
 env:
   VITE_WS_HOST: ${{ github.event.inputs.ws_host || '129.159.159.241' }}
   NODE_ENV: 'production'
-  MODE: 'production'
 
 jobs:
   # First job: Check if commit message contains [deploy]
@@ -96,15 +95,36 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Debug pre-build environment
+        run: |
+          echo "Current NODE_ENV: $NODE_ENV"
+          echo "Current MODE: $MODE"
+          echo "Current VITE_WS_HOST: $VITE_WS_HOST"
+
       - name: Build
-        run: bun run build --mode production
+        run: |
+          echo "=== Build Environment ==="
+          echo "NODE_ENV: $NODE_ENV"
+          echo "MODE: production"
+          echo "VITE_WS_HOST: $VITE_WS_HOST"
+          echo "======================="
+          bun run build --mode production
         env:
           VITE_WS_HOST: ${{ env.VITE_WS_HOST }}
           NODE_ENV: ${{ env.NODE_ENV }}
         
+      - name: Debug build output
+        run: |
+          echo "=== Checking dist/index.html for environment values ==="
+          grep -A 5 "import.meta.env" dist/index.html || true
+          echo "=== Checking dist/assets for main JS file ==="
+          ls -la dist/assets/
+          echo "=== Content of first JS file ==="
+          head -n 20 dist/assets/*.js
+
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: dist
           branch: gh-pages
-          clean: true 
+          clean: true
