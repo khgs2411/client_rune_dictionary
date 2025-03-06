@@ -54,6 +54,11 @@ esac
 NEW_VERSION=$(node -p "require('./package.json').version")
 echo -e "${BLUE}New version: ${GREEN}$NEW_VERSION${NC}"
 
+# Update version in main.ts
+echo -e "${BLUE}Updating version in main.ts...${NC}"
+sed -i '' "s/const version = \"[0-9]*\.[0-9]*\.[0-9]*\"/const version = \"$NEW_VERSION\"/" src/main.ts
+echo -e "${GREEN}Version in main.ts updated to $NEW_VERSION${NC}"
+
 # Prompt for commit message
 read -p "Enter commit message (optional): " COMMIT_MSG
 
@@ -67,7 +72,7 @@ COMMIT_MSG="$COMMIT_MSG [deploy]"
 
 # Commit and push changes
 echo -e "${BLUE}Committing changes...${NC}"
-git add package.json
+git add package.json src/main.ts
 git commit -m "$COMMIT_MSG"
 
 echo -e "${BLUE}Pushing to remote...${NC}"
