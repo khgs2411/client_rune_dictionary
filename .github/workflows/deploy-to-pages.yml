@@ -1,12 +1,11 @@
 # GitHub Pages Deployment Workflow
 #
 # This workflow automatically deploys the application to GitHub Pages when:
-# 1. A commit with "[deploy]" in the message is pushed to the master branch
+# 1. Any commit is pushed to the master branch
 # 2. The workflow is manually triggered from the GitHub Actions tab
 #
 # HOW TO USE:
-# - For automatic deployment: Include "[deploy]" in your commit message
-#   Example: git commit -m "Updated chat component [deploy]"
+# - For automatic deployment: Just push to the master branch
 #
 # - For manual deployment:
 #   1. Go to Actions tab in GitHub repository
@@ -17,7 +16,7 @@
 #
 # ENVIRONMENT VARIABLES:
 # - VITE_WS_HOST: WebSocket host URL used during build
-#   Default: 'localhost'
+#   Default: '129.159.159.241'
 #   Can be overridden when manually triggering the workflow
 #
 # WORKFLOW DETAILS:
@@ -54,34 +53,8 @@ env:
     NODE_ENV: "production"
 
 jobs:
-    # First job: Check if commit message contains [deploy]
-    check-commit-message:
-        runs-on: ubuntu-latest
-        if: github.event_name != 'workflow_dispatch'
-        outputs:
-            should_deploy: ${{ steps.check.outputs.should_deploy }}
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v3
-              with:
-                  fetch-depth: 2
-
-            - name: Check commit message for deploy keyword
-              id: check
-              run: |
-                  COMMIT_MSG=$(git log -1 --pretty=format:"%s")
-                  if [[ "$COMMIT_MSG" == *"[deploy]"* ]]; then
-                    echo "should_deploy=true" >> $GITHUB_OUTPUT
-                  else
-                    echo "should_deploy=false" >> $GITHUB_OUTPUT
-                  fi
-                  echo "Commit message: $COMMIT_MSG"
-                  echo "Should deploy: ${{ steps.check.outputs.should_deploy }}"
-
-    # Second job: Build and deploy if triggered manually or commit contains [deploy]
+    # Build and deploy on every push to master
     build-and-deploy:
-        needs: [check-commit-message]
-        if: github.event_name == 'workflow_dispatch' || needs.check-commit-message.outputs.should_deploy == 'true'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
