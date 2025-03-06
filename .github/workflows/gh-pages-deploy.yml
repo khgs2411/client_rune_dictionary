@@ -40,9 +40,8 @@ on:
             ws_host:
                 description: "WebSocket Host URL"
                 required: false
-                default: "129.159.159.241"
+                default: "topsyde-gaming.duckdns.org"
                 type: string
-
 # Add permissions needed for GitHub Pages deployment
 permissions:
     contents: write
@@ -50,7 +49,7 @@ permissions:
     id-token: write
 
 env:
-    VITE_WS_HOST: ${{ github.event.inputs.ws_host || '129.159.159.241' }}
+    VITE_WS_HOST: ${{ github.event.inputs.ws_host || 'topsyde-gaming.duckdns.org' }}
     NODE_ENV: "production"
 
 jobs:
