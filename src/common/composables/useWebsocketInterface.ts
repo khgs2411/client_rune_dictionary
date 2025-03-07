@@ -16,7 +16,7 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 	});
 
 	const autoReconnectOptions: Ref<AutoReconnect> = ref({
-		retries: 20,
+		retries: 3,
 		delay: 1000,
 		onFailed: handleReconnectFailed,
 	});
