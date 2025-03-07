@@ -3,7 +3,7 @@ import BaseAPI from "./api.base";
 
 export default class MatchAPI extends BaseAPI {
 	constructor() {
-		super("match", `${import.meta.env.NODE_ENV === "production" ? "https" : "http"}://${import.meta.env.VITE_WS_HOST || "localhost"}:3000`);
+		super("match", `${import.meta.env.VITE_HOST}`);
 	}
 
 	async createMatch(entity: Entity, target: Entity) {

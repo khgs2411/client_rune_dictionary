@@ -35,7 +35,8 @@ LOG_FILE="${TEMP_DIR}/build.log"
 echo -e "${YELLOW}Running: vite build${NC}"
 
 # Set environment variables for the build
-export VITE_WS_HOST="localhost"
+export VITE_HOST="http://localhost:3000"
+export VITE_WS_HOST="ws://localhost:3000"
 
 # Run the build and capture the exit code
 (vite build --outDir $TEMP_DIR)

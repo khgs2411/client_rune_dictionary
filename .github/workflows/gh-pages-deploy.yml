@@ -16,7 +16,7 @@
 #   5. Click the green "Run workflow" button
 #
 # ENVIRONMENT VARIABLES:
-# - VITE_WS_HOST: WebSocket host URL used during build
+# - VITE_HOST: WebSocket host URL used during build
 #   Default: 'localhost'
 #   Can be overridden when manually triggering the workflow
 #
@@ -40,7 +40,7 @@ on:
             ws_host:
                 description: "WebSocket Host URL"
                 required: false
-                default: "topsyde-gaming.duckdns.org"
+                default: "https://topsyde-gaming.duckdns.org:3000"
                 type: string
 # Add permissions needed for GitHub Pages deployment
 permissions:
@@ -49,8 +49,8 @@ permissions:
     id-token: write
 
 env:
-    VITE_WS_HOST: ${{ github.event.inputs.ws_host || 'topsyde-gaming.duckdns.org' }}
-    NODE_ENV: "production"
+    VITE_HOST: ${{ github.event.inputs.ws_host || 'https://topsyde-gaming.duckdns.org:3000' }}
+    VITE_WS_HOST: ${{ github.event.inputs.ws_host || 'wss://topsyde-gaming.duckdns.org:3000' }}
 
 jobs:
     # First job: Check if commit message contains [deploy]
@@ -96,15 +96,13 @@ jobs:
 
             - name: Verify production environment
               run: |
-                  echo "Building in NODE_ENV: $NODE_ENV"
+                  echo "Using VITE_HOST: $VITE_HOST"
                   echo "Using VITE_WS_HOST: $VITE_WS_HOST"
-
             - name: Build
               run: bun run build
               env:
+                  VITE_HOST: ${{ env.VITE_HOST }}
                   VITE_WS_HOST: ${{ env.VITE_WS_HOST }}
-                  NODE_ENV: ${{ env.NODE_ENV }}
-
             - name: Deploy to GitHub Pages
               uses: JamesIves/github-pages-deploy-action@v4
               with:
