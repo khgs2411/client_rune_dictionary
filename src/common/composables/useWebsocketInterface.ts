@@ -7,7 +7,8 @@ import useWebsocketLogic from "./useWebsocketLogic";
 
 const PING_PONG_INTERVAL = 20;
 export const WEBSOCKET_URL = `${import.meta.env.NODE_ENV === "production" ? "wss" : "ws"}://${import.meta.env.VITE_WS_HOST || "localhost"}:3000`;
-
+console.log("ENV:", import.meta.env);
+console.log("WEBSOCKET_URL", WEBSOCKET_URL);
 const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages: Ref<WebsocketStructuredMessage[]>): UseWebSocketOptions => {
 	const heartbeatOptions: Ref<Heartbeat> = ref({
 		interval: PING_PONG_INTERVAL * 1000,
