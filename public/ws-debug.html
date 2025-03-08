@@ -370,6 +370,100 @@
             connectWebSocket(wsUrlInput.value, protocolInput.value, true);
         });
         
+        // Add a button to test SSL certificate
+        const testSslBtn = document.createElement('button');
+        testSslBtn.textContent = 'Test SSL Certificate';
+        testSslBtn.title = 'Check if the SSL certificate is valid';
+        document.querySelector('.quick-connect').appendChild(testSslBtn);
+        
+        // Add a button to test WebSocket with a public echo server
+        const testEchoBtn = document.createElement('button');
+        testEchoBtn.textContent = 'Test Echo Server';
+        testEchoBtn.title = 'Test connection to a public WebSocket echo server';
+        document.querySelector('.quick-connect').appendChild(testEchoBtn);
+        
+        // Add a button to test insecure WebSocket connection
+        const testInsecureBtn = document.createElement('button');
+        testInsecureBtn.textContent = 'Test Insecure WS';
+        testInsecureBtn.title = 'Test insecure WebSocket connection (ws:// instead of wss://)';
+        document.querySelector('.quick-connect').appendChild(testInsecureBtn);
+        
+        testInsecureBtn.addEventListener('click', () => {
+            // Warning about mixed content
+            if (window.location.protocol === 'https:') {
+                log('WARNING: Browsers block insecure WebSocket connections from secure pages (mixed content).', 'error');
+                log('This test will likely fail if you\'re viewing this page over HTTPS.', 'error');
+            }
+            
+            // Try insecure WebSocket connection
+            wsUrlInput.value = 'ws://topsyde-gaming.duckdns.org:3000';
+            protocolInput.value = '';
+            log('Testing insecure WebSocket connection...');
+            connectWebSocket(wsUrlInput.value, '', false);
+        });
+        
+        testEchoBtn.addEventListener('click', () => {
+            // Use a public WebSocket echo server
+            wsUrlInput.value = 'wss://echo.websocket.org';
+            protocolInput.value = '';
+            log('Testing connection to public WebSocket echo server...');
+            connectWebSocket(wsUrlInput.value, '', false);
+        });
+        
+        testSslBtn.addEventListener('click', async () => {
+            const domain = 'topsyde-gaming.duckdns.org';
+            log(`Testing SSL certificate for ${domain}...`);
+            
+            try {
+                // Try to fetch the HTTPS site to check certificate
+                const response = await fetch(`https://${domain}:3000`, {
+                    method: 'GET',
+                    mode: 'no-cors' // This allows us to at least attempt the connection
+                });
+                
+                log(`SSL certificate appears valid! Server responded.`, 'success');
+                
+                // Add to test results
+                const resultItem = document.createElement('div');
+                resultItem.className = 'success';
+                resultItem.textContent = `✅ SSL certificate for ${domain}:3000 appears valid`;
+                testResultsEl.appendChild(resultItem);
+            } catch (error) {
+                log(`SSL certificate test failed: ${error.message}`, 'error');
+                
+                // Add to test results
+                const resultItem = document.createElement('div');
+                resultItem.className = 'error';
+                resultItem.textContent = `❌ SSL certificate test failed: ${error.message}`;
+                testResultsEl.appendChild(resultItem);
+                
+                // Try port 443 as fallback
+                try {
+                    log(`Trying alternative port 443...`);
+                    const response = await fetch(`https://${domain}:443`, {
+                        method: 'GET',
+                        mode: 'no-cors'
+                    });
+                    
+                    log(`SSL certificate appears valid on port 443!`, 'success');
+                    
+                    // Add to test results
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'success';
+                    resultItem.textContent = `✅ SSL certificate for ${domain}:443 appears valid`;
+                    testResultsEl.appendChild(resultItem);
+                } catch (error) {
+                    log(`SSL certificate test on port 443 failed: ${error.message}`, 'error');
+                    
+                    // Add to test results
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'error';
+                    resultItem.textContent = `❌ SSL certificate test on port 443 failed: ${error.message}`;
+                    testResultsEl.appendChild(resultItem);
+                }
+            }
+        });
+        
         // Disconnect
         disconnectBtn.addEventListener('click', () => {
             if (ws) {
