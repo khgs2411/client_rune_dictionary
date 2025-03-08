@@ -39,7 +39,7 @@ import API from "../../api/app.api";
 import useMatch from "../../common/composables/useMatch";
 import useMessenger from "../../common/composables/useMessenger";
 import useUtils from "../../common/composables/useUtils";
-import useWebSocketInterface, { WEBSOCKET_URL } from "../../common/composables/useWebsocketInterface";
+import useWebSocketInterface, { WEBSOCKET_HOST } from "../../common/composables/useWebsocketInterface";
 import ChatMessage from "../chat/ChatMessage.vue";
 import ChatWindow from "../chat/ChatWindow.vue";
 
@@ -61,9 +61,8 @@ const mode: Ref<"broadcast" | "whisper"> = ref("broadcast");
 const targetEntity = ref<WebsocketEntityData | null>(null);
 
 const wsOptions = useWebSocketInterface(ref(props.client), messages);
-const { status, send, close } = useWebSocket<WebsocketStructuredMessage>(WEBSOCKET_URL, wsOptions);
+const { status, send, close } = useWebSocket<WebsocketStructuredMessage>(WEBSOCKET_HOST, wsOptions);
 const messenger = useMessenger(send);
-
 
 const whisperMode = computed(() => mode.value === "whisper");
 
