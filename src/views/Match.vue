@@ -75,23 +75,23 @@ function handleLogout() {
 }
 
 onMounted(() => {
-	// if (tryWebsocketConnection.value) performHandshake();
-	const socket2 = new WebSocket(`wss://topsyde-gaming.duckdns.org:3000`, "9992-YourUsername");
-	const socket = new WebSocket(`ws://localhost:8080/ws`, "9991-YourUsername");
-	socket2.onopen = () => {
-		console.log("Connected to WebSocket 2");
-	};
-	socket2.onerror = (error) => {
-		console.error("WebSocket error:", error);
-	};
-	// Add event listeners
-	socket.onopen = () => {
-		console.log("Connected to WebSocket 1");
-	};
+	if (tryWebsocketConnection.value) performHandshake();
+	// const socket2 = new WebSocket(`wss://topsyde-gaming.duckdns.org:3000`, "9992-YourUsername");
+	// const socket = new WebSocket(`ws://localhost:8080/ws`, "9991-YourUsername");
+	// socket2.onopen = () => {
+	// 	console.log("Connected to WebSocket 2");
+	// };
+	// socket2.onerror = (error) => {
+	// 	console.error("WebSocket error:", error);
+	// };
+	// // Add event listeners
+	// socket.onopen = () => {
+	// 	console.log("Connected to WebSocket 1");
+	// };
 
-	socket.onerror = (error) => {
-		console.error("WebSocket error:", error);
-	};
+	// socket.onerror = (error) => {
+	// 	console.error("WebSocket error:", error);
+	// };
 });
 </script>
 
