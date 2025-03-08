@@ -49,6 +49,7 @@ permissions:
     id-token: write
 
 env:
+    VITE_API_KEY: ${{ github.event.inputs.api_key || 'r_d_25c9dd62-ba12-44de-b303-67ef659ba7bd' }}
     VITE_HOST: ${{ github.event.inputs.ws_host || 'https://topsyde-gaming.duckdns.org:3000' }}
     VITE_WS_HOST: ${{ github.event.inputs.ws_host || 'wss://topsyde-gaming.duckdns.org:3000' }}
 
@@ -96,11 +97,13 @@ jobs:
 
             - name: Verify production environment
               run: |
+                  echo "Using VITE_API_KEY: $VITE_API_KEY"
                   echo "Using VITE_HOST: $VITE_HOST"
                   echo "Using VITE_WS_HOST: $VITE_WS_HOST"
             - name: Build
               run: bun run build
               env:
+                  VITE_API_KEY: ${{ env.VITE_API_KEY }}
                   VITE_HOST: ${{ env.VITE_HOST }}
                   VITE_WS_HOST: ${{ env.VITE_WS_HOST }}
             - name: Deploy to GitHub Pages
