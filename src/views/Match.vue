@@ -44,6 +44,7 @@ function handleSubmit(credentials: { username: string; password: string }) {
 
 async function performHandshake() {
 	try {
+		console.log(import.meta.env);
 		tryWebsocketConnection.value = true;
 		loading.value = true;
 		if (utils.lib.IsEmpty(username.value) || utils.lib.IsEmpty(password.value) || utils.lib.IsEmpty(api_key.value)) throw new Error("Invalid credentials");
