@@ -35,7 +35,7 @@ const tryWebsocketConnection = ref(!utils.lib.IsEmpty(username.value));
 const baseUrl = import.meta.env.BASE_URL;
 
 // Set CSS variable for background image
-document.documentElement.style.setProperty('--match-bg-url', `url(${baseUrl}match.webp)`);
+document.documentElement.style.setProperty("--match-bg-url", `url(${baseUrl}match.webp)`);
 
 function handleSubmit(credentials: { username: string; password: string }) {
 	store.username = credentials.username;
@@ -76,20 +76,15 @@ function handleLogout() {
 
 onMounted(() => {
 	// if (tryWebsocketConnection.value) performHandshake();
-	const wsUrl = import.meta.env.DEV 
-  ? `ws://${window.location.hostname}:8080/ws` 
-  : 'wss://topsyde-gaming.duckdns.org:3000';
+	const socket = new WebSocket(`ws://${window.location.hostname}:8080/ws`, "999-YourUsername");
+	// Add event listeners
+	socket.onopen = () => {
+		console.log("Connected to WebSocket");
+	};
 
-  console.log(wsUrl);
-const socket = new WebSocket(wsUrl, '1-YourUsername');
-// Add event listeners
-socket.onopen = () => {
-  console.log('Connected to WebSocket');
-};
-
-socket.onerror = (error) => {
-  console.error('WebSocket error:', error);
-};
+	socket.onerror = (error) => {
+		console.error("WebSocket error:", error);
+	};
 });
 </script>
 
