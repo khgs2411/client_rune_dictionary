@@ -59,6 +59,7 @@ async function performHandshake() {
 		loading.value = false;
 	} catch (error) {
 		tryWebsocketConnection.value = false;
+		utils.toast.error("Handshake failed:");
 		utils.lib.Warn("Handshake failed:", error);
 	}
 }
