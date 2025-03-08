@@ -37,7 +37,6 @@ watch(
 	toasts,
 	(value) => {
 		if (value && value.length > 0) {
-			console.log("watch");
 			value.forEach((t) => {
 				console.log("toast", t);
 				show(t);

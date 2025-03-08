@@ -87,11 +87,6 @@ onMounted(() => {
 	// Try multiple WebSocket connection methods
 	const connectionMethods = [
 		{
-			name: "Relative path",
-			url: `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws`,
-			protocol: "9991-YourUsername",
-		},
-		{
 			name: "Direct connection",
 			url: "wss://topsyde-gaming.duckdns.org:3000",
 			protocol: "9991-YourUsername",
@@ -105,6 +100,11 @@ onMounted(() => {
 			name: "No protocol",
 			url: "wss://topsyde-gaming.duckdns.org:3000",
 			protocol: null,
+		},
+		{
+			name: "Relative path",
+			url: `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws`,
+			protocol: "9991-YourUsername",
 		},
 	];
 
@@ -131,12 +131,13 @@ async function tryConnections(methods: ConnectionMethod[], index = 0) {
 		const socket = method.protocol ? new WebSocket(method.url, method.protocol) : new WebSocket(method.url);
 
 		// Set up event handlers
-		socket.onopen = () => {
+		socket.onopen = (ws) => {
 			console.log(`Successfully connected using method: ${method.name}`);
 			utils.toast.success(`Connected to chat server`);
 
 			// Store the successful connection method for future use
 			localStorage.setItem("successful_ws_method", JSON.stringify(method));
+			socket.close(1000, "Success");
 		};
 
 		socket.onclose = (event) => {
