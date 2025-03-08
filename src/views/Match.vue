@@ -101,11 +101,6 @@ onMounted(() => {
 			url: "wss://topsyde-gaming.duckdns.org:3000",
 			protocol: null,
 		},
-		{
-			name: "Relative path",
-			url: `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws`,
-			protocol: "9991-YourUsername",
-		},
 	];
 
 	// Try each connection method
