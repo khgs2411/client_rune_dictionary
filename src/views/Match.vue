@@ -76,7 +76,7 @@ function handleLogout() {
 
 onMounted(() => {
 	// if (tryWebsocketConnection.value) performHandshake();
-	const socket = new WebSocket(`ws://${window.location.hostname}:8080/ws`, "999-YourUsername");
+	const socket = new WebSocket(`ws://localhost:8080/ws`, "999-YourUsername");
 	// Add event listeners
 	socket.onopen = () => {
 		console.log("Connected to WebSocket");
