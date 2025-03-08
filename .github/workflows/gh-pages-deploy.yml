@@ -100,6 +100,14 @@ jobs:
                   echo "Using VITE_API_KEY: $VITE_API_KEY"
                   echo "Using VITE_HOST: $VITE_HOST"
                   echo "Using VITE_WS_HOST: $VITE_WS_HOST"
+                  
+                  # Create a .env.production file to ensure variables are available
+                  echo "VITE_API_KEY=$VITE_API_KEY" > .env.production
+                  echo "VITE_HOST=$VITE_HOST" >> .env.production
+                  echo "VITE_WS_HOST=$VITE_WS_HOST" >> .env.production
+                  
+                  cat .env.production
+                  
             - name: Build
               run: bun run build
               env:

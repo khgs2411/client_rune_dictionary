@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Debug Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        input, button {
+            padding: 8px;
+            font-size: 16px;
+        }
+        button {
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        #log {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Debug Tool</h1>
+    
+    <div class="container">
+        <div class="form-group">
+            <label for="wsUrl">WebSocket URL:</label>
+            <input type="text" id="wsUrl" value="wss://topsyde-gaming.duckdns.org:3000" />
+        </div>
+        
+        <div class="form-group">
+            <label for="protocol">Protocol (optional):</label>
+            <input type="text" id="protocol" placeholder="e.g. 9991-YourUsername" />
+        </div>
+        
+        <button id="connect">Connect</button>
+        <button id="disconnect" disabled>Disconnect</button>
+        <button id="clear">Clear Log</button>
+    </div>
+    
+    <div id="log"></div>
+    
+    <script>
+        // DOM Elements
+        const wsUrlInput = document.getElementById('wsUrl');
+        const protocolInput = document.getElementById('protocol');
+        const connectBtn = document.getElementById('connect');
+        const disconnectBtn = document.getElementById('disconnect');
+        const clearBtn = document.getElementById('clear');
+        const logEl = document.getElementById('log');
+        
+        // WebSocket instance
+        let ws = null;
+        
+        // Log function
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = type;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+        
+        // Connect to WebSocket
+        connectBtn.addEventListener('click', () => {
+            if (ws) {
+                log('Closing existing connection first...', 'info');
+                ws.close();
+            }
+            
+            const url = wsUrlInput.value.trim();
+            const protocol = protocolInput.value.trim();
+            
+            log(`Attempting to connect to: ${url}${protocol ? ' with protocol: ' + protocol : ''}`, 'info');
+            
+            try {
+                // Create WebSocket with or without protocol
+                ws = protocol ? new WebSocket(url, protocol) : new WebSocket(url);
+                
+                // Event handlers
+                ws.onopen = () => {
+                    log('Connection established successfully!', 'success');
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                };
+                
+                ws.onclose = (event) => {
+                    log(`Connection closed: Code ${event.code}, Reason: ${event.reason || 'No reason provided'}`, 'info');
+                    connectBtn.disabled = false;
+                    disconnectBtn.disabled = true;
+                    ws = null;
+                };
+                
+                ws.onerror = (error) => {
+                    log(`Error: ${error}`, 'error');
+                    console.error('WebSocket error:', error);
+                };
+                
+                ws.onmessage = (event) => {
+                    log(`Message received: ${event.data}`, 'info');
+                };
+            } catch (error) {
+                log(`Failed to create WebSocket: ${error.message}`, 'error');
+                console.error('WebSocket creation error:', error);
+            }
+        });
+        
+        // Disconnect
+        disconnectBtn.addEventListener('click', () => {
+            if (ws) {
+                log('Closing connection...', 'info');
+                ws.close();
+            }
+        });
+        
+        // Clear log
+        clearBtn.addEventListener('click', () => {
+            logEl.innerHTML = '';
+        });
+        
+        // Page load
+        log('WebSocket Debug Tool loaded. Enter a WebSocket URL and click Connect.', 'info');
+    </script>
+</body>
+</html> 
