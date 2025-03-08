@@ -46,6 +46,7 @@ async function performHandshake() {
 	try {
 		tryWebsocketConnection.value = true;
 		loading.value = true;
+		if (utils.lib.IsEmpty(username.value) || utils.lib.IsEmpty(password.value) || utils.lib.IsEmpty(api_key.value)) throw new Error("Invalid credentials");
 		const response = await api.handshake(username.value, password.value, api_key.value);
 		if (!response.status) throw new Error("Invalid handshake response");
 
