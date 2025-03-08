@@ -102,20 +102,15 @@ onMounted(() => {
 		console.error("WebSocket error:", error);
 	};
 
-	const socket_test_1 = new WebSocket('ws://localhost:3000/ws', "9991-YourUsername");
 	const socket_test_2 = new WebSocket('ws://localhost:8080/ws', "9991-YourUsername");
-	const socket_test_3 = new WebSocket('wss://topsyde-gaming.duckdns.org:3000/ws', "9991-YourUsername");
 
-	socket_test_1.onopen = () => {
-		console.log("Connected to WebSocket 1");
-	};
 
 	socket_test_2.onopen = () => {
 		console.log("Connected to WebSocket 2");
 	};
 
-	socket_test_3.onopen = () => {
-		console.log("Connected to WebSocket 3");
+	socket_test_2.onerror = (error) => {
+		console.error("WebSocket error:", error);
 	};
 });
 </script>
