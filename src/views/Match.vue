@@ -44,7 +44,6 @@ function handleSubmit(credentials: { username: string; password: string }) {
 
 async function performHandshake() {
 	try {
-		console.log(import.meta.env);
 		tryWebsocketConnection.value = true;
 		loading.value = true;
 		if (utils.lib.IsEmpty(username.value) || utils.lib.IsEmpty(password.value) || utils.lib.IsEmpty(api_key.value)) throw new Error("Invalid credentials");
@@ -78,7 +77,6 @@ function handleLogout() {
 }
 
 onMounted(() => {
-	// if (tryWebsocketConnection.value) performHandshake();
 	
 	// Determine if we're in development or production
 	const isDevMode = import.meta.env.DEV;
@@ -112,6 +110,9 @@ onMounted(() => {
 	socket_test_2.onerror = (error) => {
 		console.error("WebSocket error:", error);
 	};
+
+	if (tryWebsocketConnection.value) performHandshake();
+
 });
 </script>
 
