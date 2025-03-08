@@ -77,59 +77,19 @@ function handleLogout() {
 }
 
 onMounted(() => {
-	// Determine if we're in development or production
-	const isDevMode = import.meta.env.DEV;
-	
-	// Get the WebSocket URL based on environment
-	const wsUrl = isDevMode 
-		? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`
-		: import.meta.env.VITE_WS_HOST;
-	
-	console.log(`Environment: ${isDevMode ? 'Development' : 'Production'}`);
-	console.log(`Attempting to connect to WebSocket at: ${wsUrl}`);
-	
-	// Debug info
-	if (!isDevMode) {
-		console.log(`VITE_WS_HOST from env: ${import.meta.env.VITE_WS_HOST}`);
-	}
-	
-	// Create WebSocket connection
-	try {
-		// Create a protocol string if we have client data
-		const protocol = client.value ? `${client.value.id}-${client.value.name}` : undefined;
-		
-		// Log the protocol being used
-		if (protocol) {
-			console.log(`Using WebSocket protocol: ${protocol}`);
-		} else {
-			console.log('No WebSocket protocol specified');
-		}
-		
-		// Create the WebSocket connection with or without protocol
-		const socket = protocol ? new WebSocket(wsUrl, protocol) : new WebSocket(wsUrl);
-		
-		socket.onopen = () => {
-			console.log(`Successfully connected to WebSocket at ${wsUrl}`);
-			if (tryWebsocketConnection.value) performHandshake();
-		};
-		
-		socket.onclose = (event) => {
-			console.error(`WebSocket connection closed: Code ${event.code}, Reason: ${event.reason || 'No reason provided'}`);
-			utils.toast.error(`Connection to chat server lost (${event.code})`);
-		};
-		
-		socket.onerror = (error) => {
-			console.error("WebSocket connection error:", error);
-			utils.toast.error("Error connecting to chat server");
-		};
-		
-		socket.onmessage = (event) => {
-			console.log("WebSocket message received:", event.data);
-		};
-	} catch (error) {
-		console.error("Failed to create WebSocket connection:", error);
-		utils.toast.error("Failed to connect to chat server");
-	}
+	// In your Vue component
+	const wsUrl = "wss://topsyde-gaming.duckdns.org:3000";
+	const socket = new WebSocket(wsUrl, "9991-YourUsername");
+
+	// Add detailed error handling
+	socket.onerror = (error) => {
+		console.error("WebSocket error:", error);
+	};
+
+	socket.onclose = (event) => {
+		console.log("WebSocket closed:", event.code, event.reason);
+	};
+	// if (tryWebsocketConnection.value) performHandshake();
 });
 </script>
 
