@@ -37,12 +37,6 @@ const baseUrl = import.meta.env.BASE_URL;
 // Set CSS variable for background image
 document.documentElement.style.setProperty("--match-bg-url", `url(${baseUrl}match.webp)`);
 
-// Define WebSocket connection method type
-interface ConnectionMethod {
-	name: string;
-	url: string;
-	protocol: string | null;
-}
 
 function handleSubmit(credentials: { username: string; password: string }) {
 	store.username = credentials.username;
