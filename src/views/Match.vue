@@ -37,6 +37,13 @@ const baseUrl = import.meta.env.BASE_URL;
 // Set CSS variable for background image
 document.documentElement.style.setProperty("--match-bg-url", `url(${baseUrl}match.webp)`);
 
+// Define WebSocket connection method type
+interface ConnectionMethod {
+	name: string;
+	url: string;
+	protocol: string | null;
+}
+
 function handleSubmit(credentials: { username: string; password: string }) {
 	store.username = credentials.username;
 	performHandshake();
@@ -77,20 +84,85 @@ function handleLogout() {
 }
 
 onMounted(() => {
-	// In your Vue component
-	const wsUrl = "wss://topsyde-gaming.duckdns.org:3000";
-	const socket = new WebSocket(wsUrl, "9991-YourUsername");
+	// Try multiple WebSocket connection methods
+	const connectionMethods = [
+		{
+			name: "Relative path",
+			url: `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws`,
+			protocol: "9991-YourUsername",
+		},
+		{
+			name: "Direct connection",
+			url: "wss://topsyde-gaming.duckdns.org:3000",
+			protocol: "9991-YourUsername",
+		},
+		{
+			name: "Alternative port",
+			url: "wss://topsyde-gaming.duckdns.org:443",
+			protocol: "9991-YourUsername",
+		},
+		{
+			name: "No protocol",
+			url: "wss://topsyde-gaming.duckdns.org:3000",
+			protocol: null,
+		},
+	];
 
-	// Add detailed error handling
-	socket.onerror = (error) => {
-		console.error("WebSocket error:", error);
-	};
+	// Try each connection method
+	tryConnections(connectionMethods);
 
-	socket.onclose = (event) => {
-		console.log("WebSocket closed:", event.code, event.reason);
-	};
+	// Actual implementation - leave commented out
 	// if (tryWebsocketConnection.value) performHandshake();
 });
+
+// Function to try multiple connection methods
+async function tryConnections(methods: ConnectionMethod[], index = 0) {
+	if (index >= methods.length) {
+		console.error("All WebSocket connection methods failed");
+		utils.toast.error("Failed to connect to chat server. Please try again later.");
+		return;
+	}
+
+	const method = methods[index];
+	console.log(`Trying connection method ${index + 1}/${methods.length}: ${method.name}`);
+
+	try {
+		// Create WebSocket connection
+		const socket = method.protocol ? new WebSocket(method.url, method.protocol) : new WebSocket(method.url);
+
+		// Set up event handlers
+		socket.onopen = () => {
+			console.log(`Successfully connected using method: ${method.name}`);
+			utils.toast.success(`Connected to chat server`);
+
+			// Store the successful connection method for future use
+			localStorage.setItem("successful_ws_method", JSON.stringify(method));
+		};
+
+		socket.onclose = (event) => {
+			console.log(`WebSocket closed (${method.name}):`, event.code, event.reason);
+
+			// If connection was closed abnormally, try next method
+			if (event.code !== 1000 && event.code !== 1001) {
+				console.log(`Connection method ${method.name} failed with code ${event.code}. Trying next method...`);
+				setTimeout(() => tryConnections(methods, index + 1), 1000);
+			}
+		};
+
+		socket.onerror = (error) => {
+			console.error(`WebSocket error (${method.name}):`, error);
+		};
+
+		socket.onmessage = (event) => {
+			console.log(`WebSocket message received:`, event.data);
+		};
+	} catch (error) {
+		console.error(`Failed to create WebSocket using method ${method.name}:`, error);
+
+		// Try next method
+		setTimeout(() => tryConnections(methods, index + 1), 1000);
+	}
+}
 </script>
 
 <style lang="scss" scoped>

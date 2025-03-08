@@ -21,7 +21,7 @@
             flex-direction: column;
             gap: 5px;
         }
-        input, button {
+        input, button, select {
             padding: 8px;
             font-size: 16px;
         }
@@ -83,6 +83,29 @@
         #disconnect.connected {
             background-color: #ff4444;
         }
+        
+        /* Quick connect buttons */
+        .quick-connect {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .quick-connect button {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        /* Connection info */
+        .connection-info {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        .connection-info h3 {
+            margin-top: 0;
+        }
     </style>
 </head>
 <body>
@@ -99,6 +122,13 @@
             <input type="text" id="protocol" placeholder="e.g. 9991-YourUsername" />
         </div>
         
+        <div class="quick-connect">
+            <button id="quickConnect1" title="Direct connection to port 3000">Direct (3000)</button>
+            <button id="quickConnect2" title="Try alternative port 443">Alt Port (443)</button>
+            <button id="quickConnect3" title="Try without protocol">No Protocol</button>
+            <button id="quickConnect4" title="Try with HTTP fetch first">HTTP+WS</button>
+        </div>
+        
         <div class="status-indicator">
             <div class="status-dot disconnected" id="statusDot"></div>
             <div class="status-text" id="statusText">Disconnected</div>
@@ -113,6 +143,14 @@
     
     <div id="log"></div>
     
+    <div class="connection-info">
+        <h3>Browser Information</h3>
+        <div id="browserInfo"></div>
+        
+        <h3>Connection Test Results</h3>
+        <div id="testResults"></div>
+    </div>
+    
     <script>
         // DOM Elements
         const wsUrlInput = document.getElementById('wsUrl');
@@ -123,6 +161,12 @@
         const logEl = document.getElementById('log');
         const statusDot = document.getElementById('statusDot');
         const statusText = document.getElementById('statusText');
+        const quickConnect1 = document.getElementById('quickConnect1');
+        const quickConnect2 = document.getElementById('quickConnect2');
+        const quickConnect3 = document.getElementById('quickConnect3');
+        const quickConnect4 = document.getElementById('quickConnect4');
+        const browserInfoEl = document.getElementById('browserInfo');
+        const testResultsEl = document.getElementById('testResults');
         
         // WebSocket instance
         let ws = null;
@@ -133,6 +177,18 @@
             CONNECTING: 'connecting',
             CONNECTED: 'connected'
         };
+        
+        // Display browser information
+        function showBrowserInfo() {
+            const info = [
+                `User Agent: ${navigator.userAgent}`,
+                `Protocol: ${window.location.protocol}`,
+                `Host: ${window.location.host}`,
+                `Origin: ${window.location.origin}`,
+                `Secure Context: ${window.isSecureContext ? 'Yes' : 'No'}`
+            ];
+            browserInfoEl.innerHTML = info.map(i => `<div>${i}</div>`).join('');
+        }
         
         // Update UI based on connection state
         function updateConnectionState(state) {
@@ -184,18 +240,53 @@
             logEl.scrollTop = logEl.scrollHeight;
         }
         
+        // Test HTTP connection first
+        async function testHttpConnection(url) {
+            try {
+                // Convert WebSocket URL to HTTP URL
+                const httpUrl = url.replace('wss://', 'https://').replace('ws://', 'http://');
+                log(`Testing HTTP connection to ${httpUrl}...`);
+                
+                const response = await fetch(httpUrl, {
+                    method: 'OPTIONS',
+                    mode: 'cors'
+                });
+                
+                log(`HTTP connection successful: ${response.status} ${response.statusText}`, 'success');
+                
+                // Log headers
+                const headers = [];
+                response.headers.forEach((value, key) => {
+                    headers.push(`${key}: ${value}`);
+                    if (key.toLowerCase().includes('cors') || key.toLowerCase().includes('access-control')) {
+                        log(`CORS Header: ${key}: ${value}`, 'info');
+                    }
+                });
+                
+                return true;
+            } catch (error) {
+                log(`HTTP connection failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
         // Connect to WebSocket
-        connectBtn.addEventListener('click', () => {
+        async function connectWebSocket(url, protocol, testHttp = false) {
             if (ws) {
                 log('Closing existing connection first...', 'info');
                 ws.close();
             }
             
-            const url = wsUrlInput.value.trim();
-            const protocol = protocolInput.value.trim();
+            url = url.trim();
+            protocol = protocol ? protocol.trim() : null;
             
             log(`Attempting to connect to: ${url}${protocol ? ' with protocol: ' + protocol : ''}`, 'info');
             updateConnectionState(CONNECTION_STATES.CONNECTING);
+            
+            // Optionally test HTTP connection first
+            if (testHttp) {
+                await testHttpConnection(url);
+            }
             
             try {
                 // Create WebSocket with or without protocol
@@ -205,11 +296,26 @@
                 ws.onopen = () => {
                     log('Connection established successfully!', 'success');
                     updateConnectionState(CONNECTION_STATES.CONNECTED);
+                    
+                    // Add connection to test results
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'success';
+                    resultItem.textContent = `✅ ${url}${protocol ? ' (with protocol)' : ' (no protocol)'} - Connected successfully`;
+                    testResultsEl.appendChild(resultItem);
                 };
                 
                 ws.onclose = (event) => {
                     log(`Connection closed: Code ${event.code}, Reason: ${event.reason || 'No reason provided'}`, 'info');
                     updateConnectionState(CONNECTION_STATES.DISCONNECTED);
+                    
+                    // Add connection to test results if it failed
+                    if (event.code !== 1000) {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'error';
+                        resultItem.textContent = `❌ ${url}${protocol ? ' (with protocol)' : ' (no protocol)'} - Failed with code ${event.code}`;
+                        testResultsEl.appendChild(resultItem);
+                    }
+                    
                     ws = null;
                 };
                 
@@ -225,7 +331,43 @@
                 log(`Failed to create WebSocket: ${error.message}`, 'error');
                 console.error('WebSocket creation error:', error);
                 updateConnectionState(CONNECTION_STATES.DISCONNECTED);
+                
+                // Add connection to test results
+                const resultItem = document.createElement('div');
+                resultItem.className = 'error';
+                resultItem.textContent = `❌ ${url}${protocol ? ' (with protocol)' : ' (no protocol)'} - Error: ${error.message}`;
+                testResultsEl.appendChild(resultItem);
             }
+        }
+        
+        // Connect button
+        connectBtn.addEventListener('click', () => {
+            connectWebSocket(wsUrlInput.value, protocolInput.value);
+        });
+        
+        // Quick connect buttons
+        quickConnect1.addEventListener('click', () => {
+            wsUrlInput.value = 'wss://topsyde-gaming.duckdns.org:3000';
+            protocolInput.value = '9991-YourUsername';
+            connectWebSocket(wsUrlInput.value, protocolInput.value);
+        });
+        
+        quickConnect2.addEventListener('click', () => {
+            wsUrlInput.value = 'wss://topsyde-gaming.duckdns.org:443';
+            protocolInput.value = '9991-YourUsername';
+            connectWebSocket(wsUrlInput.value, protocolInput.value);
+        });
+        
+        quickConnect3.addEventListener('click', () => {
+            wsUrlInput.value = 'wss://topsyde-gaming.duckdns.org:3000';
+            protocolInput.value = '';
+            connectWebSocket(wsUrlInput.value, '');
+        });
+        
+        quickConnect4.addEventListener('click', () => {
+            wsUrlInput.value = 'wss://topsyde-gaming.duckdns.org:3000';
+            protocolInput.value = '9991-YourUsername';
+            connectWebSocket(wsUrlInput.value, protocolInput.value, true);
         });
         
         // Disconnect
@@ -243,8 +385,11 @@
         });
         
         // Page load
-        log('WebSocket Debug Tool loaded. Enter a WebSocket URL and click Connect.', 'info');
-        updateConnectionState(CONNECTION_STATES.DISCONNECTED);
+        window.addEventListener('load', () => {
+            log('WebSocket Debug Tool loaded. Enter a WebSocket URL and click Connect.', 'info');
+            updateConnectionState(CONNECTION_STATES.DISCONNECTED);
+            showBrowserInfo();
+        });
     </script>
 </body>
 </html> 
