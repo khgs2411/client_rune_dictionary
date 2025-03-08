@@ -11,7 +11,7 @@
 		"build:cleanup": "./scripts/cleanup-builds.sh",
 		"deploy": "./scripts/deploy.sh",
 		"preview": "vite preview",
-		"prod": "vite --mode production",
+		"reset-gh-pages": "git push origin --delete gh-pages",
 		"format": "prettier --write --cache .",
 		"prettier": "prettier --write --cache .",
 		"format:check": "prettier --check --cache ."
