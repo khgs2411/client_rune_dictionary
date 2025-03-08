@@ -53,17 +53,19 @@ const emit = defineEmits<{
 
 const api = new API();
 const utils = useUtils();
+
 const messages = ref<WebsocketStructuredMessage[]>([]);
 const inputMessage: Ref<string> = ref(<string>"");
 const messagesContainer = ref<HTMLElement | null>(null);
-const wsOptions = useWebSocketInterface(ref(props.client), messages);
-const { status, send, close } = useWebSocket<WebsocketStructuredMessage>(WEBSOCKET_URL, wsOptions);
-const messenger = useMessenger(send);
 const mode: Ref<"broadcast" | "whisper"> = ref("broadcast");
 const targetEntity = ref<WebsocketEntityData | null>(null);
 
-const whisperMode = computed(() => mode.value === "whisper");
+const wsOptions = useWebSocketInterface(ref(props.client), messages);
+const { status, send, close } = useWebSocket<WebsocketStructuredMessage>(WEBSOCKET_URL, wsOptions);
+const messenger = useMessenger(send);
 
+
+const whisperMode = computed(() => mode.value === "whisper");
 
 function sendMessage(msg?: string) {
 	messenger.sendMessage(props.client, msg || inputMessage.value, { type: whisperMode.value ? E_WebsocketMessageType.WHISPER : E_WebsocketMessageType.BROADCAST, target: targetEntity.value });

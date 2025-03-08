@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #log { height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+        .controls { margin-bottom: 10px; }
+        button { margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    
+    <div class="controls">
+        <div>
+            <label for="protocol">Protocol:</label>
+            <select id="protocol">
+                <option value="wss">WSS (Secure)</option>
+                <option value="ws">WS (Insecure)</option>
+            </select>
+            
+            <label for="host">Host:</label>
+            <input type="text" id="host" value="localhost" />
+            
+            <label for="port">Port:</label>
+            <input type="text" id="port" value="3000" />
+            
+            <label for="path">Path:</label>
+            <input type="text" id="path" value="" placeholder="Optional" />
+        </div>
+        
+        <div style="margin-top: 10px;">
+            <button id="connect">Connect</button>
+            <button id="disconnect" disabled>Disconnect</button>
+            <button id="clear">Clear Log</button>
+        </div>
+    </div>
+    
+    <div>Connection Status: <span id="status">Disconnected</span></div>
+    
+    <div id="log"></div>
+    
+    <script>
+        let ws = null;
+        const statusEl = document.getElementById('status');
+        const logEl = document.getElementById('log');
+        const connectBtn = document.getElementById('connect');
+        const disconnectBtn = document.getElementById('disconnect');
+        const clearBtn = document.getElementById('clear');
+        const protocolSelect = document.getElementById('protocol');
+        const hostInput = document.getElementById('host');
+        const portInput = document.getElementById('port');
+        const pathInput = document.getElementById('path');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.textContent = `${new Date().toISOString()} - ${message}`;
+            div.className = type;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+        
+        connectBtn.addEventListener('click', () => {
+            if (ws) {
+                log('Already connected, disconnecting first...', 'info');
+                ws.close();
+            }
+            
+            const protocol = protocolSelect.value;
+            const host = hostInput.value;
+            const port = portInput.value;
+            const path = pathInput.value;
+            
+            // Build the WebSocket URL
+            let url = `${protocol}://${host}`;
+            if (port) url += `:${port}`;
+            if (path) url += `/${path.replace(/^\//, '')}`;
+            
+            log(`Connecting to ${url}`, 'info');
+            
+            try {
+                // Create WebSocket object with debug info
+                log('Creating WebSocket object...', 'info');
+                
+                // Add client ID and username as protocol
+                const clientId = '1';
+                const username = 'TestUser';
+                const protocols = `${clientId}-${username}`;
+                console.log(url ,protocols);
+                ws = new WebSocket(url, protocols);
+                
+                log('WebSocket object created', 'info');
+                
+                ws.onopen = (event) => {
+                    log('Connection opened', 'success');
+                    statusEl.textContent = 'Connected';
+                    statusEl.style.color = 'green';
+                    connectBtn.disabled = true;
+                    disconnectBtn.disabled = false;
+                };
+                
+                ws.onclose = (event) => {
+                    log(`Connection closed: Code ${event.code}, Reason: ${event.reason || 'None'}`, 'info');
+                    statusEl.textContent = 'Disconnected';
+                    statusEl.style.color = 'red';
+                    connectBtn.disabled = false;
+                    disconnectBtn.disabled = true;
+                    ws = null;
+                };
+                
+                ws.onerror = (event) => {
+                    log('WebSocket error occurred', 'error');
+                    console.error('WebSocket error:', event);
+                };
+                
+                ws.onmessage = (event) => {
+                    log(`Received message: ${event.data}`, 'info');
+                };
+                
+                log('Event handlers attached', 'info');
+            } catch (error) {
+                log(`Error creating WebSocket: ${error.message}`, 'error');
+                statusEl.textContent = 'Error';
+                statusEl.style.color = 'red';
+            }
+        });
+        
+        disconnectBtn.addEventListener('click', () => {
+            if (ws) {
+                log('Disconnecting...', 'info');
+                ws.close();
+            }
+        });
+        
+        clearBtn.addEventListener('click', () => {
+            logEl.innerHTML = '';
+        });
+    </script>
+</body>
+</html> 

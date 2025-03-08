@@ -6,9 +6,8 @@ import useWSM from "./useWSM";
 import useWebsocketLogic from "./useWebsocketLogic";
 
 const PING_PONG_INTERVAL = 20;
-export const WEBSOCKET_URL = `${import.meta.env.VITE_WS_HOST}`;
-console.log("ENV:", import.meta.env);
-console.log("WEBSOCKET_URL", WEBSOCKET_URL);
+export const WEBSOCKET_URL = import.meta.env.VITE_WS_HOST;
+
 const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages: Ref<WebsocketStructuredMessage[]>): UseWebSocketOptions => {
 	const heartbeatOptions: Ref<Heartbeat> = ref({
 		interval: PING_PONG_INTERVAL * 1000,
@@ -17,7 +16,7 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 	});
 
 	const autoReconnectOptions: Ref<AutoReconnect> = ref({
-		retries: 3,
+		retries: 1,
 		delay: 1000,
 		onFailed: handleReconnectFailed,
 	});
@@ -31,12 +30,11 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 		try {
 			const data: WebsocketStructuredMessage = JSON.parse(event.data);
 			const wsm$ = useWSM(data);
-			
+
 			if (wsm$.isMessage.value) {
 				logMessage("Received message", ws, event);
 				messages.value.push(wsm$.data);
 			} else useWebsocketLogic(wsm$);
-		
 		} catch (err) {
 			console.log(JSON.stringify(event.data));
 			console.log(err);
