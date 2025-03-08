@@ -110,9 +110,6 @@ const containerBottom = computed(() => {
 	return window.innerHeight - containerBounds.value.bottom;
 });
 
-// Offset for raising the chat window (15% of viewport height)
-const mobileOffset = computed(() => '15vh');
-
 // Dragging functionality
 function startDragging(e: MouseEvent) {
 	if (isMobile.value) return;
