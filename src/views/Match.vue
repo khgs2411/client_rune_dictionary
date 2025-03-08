@@ -78,23 +78,45 @@ function handleLogout() {
 }
 
 onMounted(() => {
-	if (tryWebsocketConnection.value) performHandshake();
-	// const socket2 = new WebSocket(`wss://topsyde-gaming.duckdns.org:3000`, "9992-YourUsername");
-	// const socket = new WebSocket(`ws://localhost:8080/ws`, "9991-YourUsername");
-	// socket2.onopen = () => {
-	// 	console.log("Connected to WebSocket 2");
-	// };
-	// socket2.onerror = (error) => {
-	// 	console.error("WebSocket error:", error);
-	// };
-	// // Add event listeners
-	// socket.onopen = () => {
-	// 	console.log("Connected to WebSocket 1");
-	// };
+	// if (tryWebsocketConnection.value) performHandshake();
+	
+	// Determine if we're in development or production
+	const isDevMode = import.meta.env.DEV;
+	
+	// In development, use the proxy through /ws
+	// In production, use the direct WebSocket URL from environment variables
+	const wsUrl = isDevMode 
+		? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`
+		: import.meta.env.VITE_WS_HOST;
+	
+	console.log(`Connecting to WebSocket at: ${wsUrl}`);
+	
+	const socket = new WebSocket(wsUrl, "9991-YourUsername");
+	
+	// Add event listeners
+	socket.onopen = () => {
+		console.log("Connected to WebSocket");
+	};
 
-	// socket.onerror = (error) => {
-	// 	console.error("WebSocket error:", error);
-	// };
+	socket.onerror = (error) => {
+		console.error("WebSocket error:", error);
+	};
+
+	const socket_test_1 = new WebSocket('ws://localhost:3000/ws', "9991-YourUsername");
+	const socket_test_2 = new WebSocket('ws://localhost:8080/ws', "9991-YourUsername");
+	const socket_test_3 = new WebSocket('wss://topsyde-gaming.duckdns.org:3000/ws', "9991-YourUsername");
+
+	socket_test_1.onopen = () => {
+		console.log("Connected to WebSocket 1");
+	};
+
+	socket_test_2.onopen = () => {
+		console.log("Connected to WebSocket 2");
+	};
+
+	socket_test_3.onopen = () => {
+		console.log("Connected to WebSocket 3");
+	};
 });
 </script>
 

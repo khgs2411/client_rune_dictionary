@@ -84,9 +84,9 @@ jobs:
         if: github.event_name == 'workflow_dispatch' || needs.check-commit-message.outputs.should_deploy == 'true'
         runs-on: ubuntu-latest
         steps:
-            - name: Checkout code
+            - name: Checkout
               uses: actions/checkout@v3
-
+              
             - name: Setup Bun
               uses: oven-sh/setup-bun@v2
               with:
@@ -106,6 +106,10 @@ jobs:
                   VITE_API_KEY: ${{ env.VITE_API_KEY }}
                   VITE_HOST: ${{ env.VITE_HOST }}
                   VITE_WS_HOST: ${{ env.VITE_WS_HOST }}
+            - name: Add cache control headers
+              run: |
+                echo "/*" > ./dist/_headers
+                echo "  Cache-Control: no-cache, no-store, must-revalidate" >> ./dist/_headers
             - name: Deploy to GitHub Pages
               uses: JamesIves/github-pages-deploy-action@v4
               with:
