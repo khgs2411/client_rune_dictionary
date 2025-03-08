@@ -75,7 +75,21 @@ function handleLogout() {
 }
 
 onMounted(() => {
-	if (tryWebsocketConnection.value) performHandshake();
+	// if (tryWebsocketConnection.value) performHandshake();
+	const wsUrl = import.meta.env.DEV 
+  ? `ws://${window.location.hostname}:8080/ws` 
+  : 'wss://topsyde-gaming.duckdns.org:3000';
+
+  console.log(wsUrl);
+const socket = new WebSocket(wsUrl, '1-YourUsername');
+// Add event listeners
+socket.onopen = () => {
+  console.log('Connected to WebSocket');
+};
+
+socket.onerror = (error) => {
+  console.error('WebSocket error:', error);
+};
 });
 </script>
 

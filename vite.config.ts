@@ -10,6 +10,15 @@ export default defineConfig(({ command }) => {
 		base: command === "serve" ? "/" : "/client_rune_dictionary/",
 		server: {
 			port: 8080,
+			proxy: {
+				// This is the correct way to define a proxy
+				"/ws": {
+					target: "wss://topsyde-gaming.duckdns.org:3000",
+					ws: true,
+					changeOrigin: true,
+					rewrite: (path) => path.replace(/^\/ws/, ""),
+				},
+			},
 		},
 		css: {
 			preprocessorOptions: {
