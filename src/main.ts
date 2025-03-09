@@ -13,11 +13,11 @@ import Ripple from "primevue/ripple";
 import ToastService from "primevue/toastservice";
 import DebugDirective from "./directives/debug.directive.ts";
 
-// @version: 0.2.28 - This comment is auto-updated by deploy script
+// @version: 0.2.29 - This comment is auto-updated by deploy script
 
 // Force refresh when app version changes
 (function() {
-	const APP_VERSION = '0.2.28'; // This should match the version above
+	const APP_VERSION = '0.2.29'; // This should match the version above
 	const LAST_VERSION_KEY = 'app_version';
 	const lastVersion = localStorage.getItem(LAST_VERSION_KEY);
 	
