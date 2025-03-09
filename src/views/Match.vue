@@ -153,14 +153,14 @@ onMounted(() => {
 	}
 }
 
-	@media screen and (max-width: 1024px) and (max-height: 768px) and (orientation: landscape) {
+	@media screen and (min-width: 1024px) and (min-height: 768px) and (orientation: landscape) {
 		.viewport {
 			min-width: 922px;
 			min-height: 622px;
 		}
 	}
 
-	@media screen and (max-width: 768px) and (max-height: 1024px) and (orientation: portrait) {
+	@media screen and (min-width: 768px) and (min-height: 1024px) and (orientation: portrait) {
 		.viewport {
 			min-height: 922px;
 			min-width: 622px;
