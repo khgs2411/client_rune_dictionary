@@ -88,21 +88,19 @@ onMounted(() => {
 	background-position: center;
 	background-repeat: no-repeat;
 	background-attachment: fixed;
+	
 	height: 100%;
 	width: 100%;
 	padding: 0;
 	margin: 0;
 	position: relative;
-	display: flex;
-	justify-content: center;
-	align-items: center;
 
 	.viewport {
 		height: 90%;
 		width: 90%;
 		padding: 1%;
 		border-radius: var(--p-border-radius-md);
-		margin: 0;
+		margin: auto;
 
 		&.background {
 			background: var(--p-content-background);
