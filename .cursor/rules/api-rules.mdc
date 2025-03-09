@@ -1,0 +1,78 @@
+---
+description: Rules for Vue components and composition API usage
+globs: "*.vue"
+alwaysApply: true
+---
+# Vue Component Rules
+
+## Component Structure
+- ALWAYS use Composition API with `<script setup lang="ts">` 
+- Define props using TypeScript interfaces and `defineProps<Props>()`
+- Use `defineEmits<{...}>()` for typed emits
+- Use `ref()` and `reactive()` for reactive state
+- Use `onMounted()`, `onUnmounted()` for lifecycle hooks
+
+## PrimeVue Integration
+- Import PrimeVue components directly from their packages:
+  ```typescript
+  import Button from 'primevue/button';
+  import Dialog from 'primevue/dialog';
+  ```
+- Use PrimeVue directives when appropriate
+- Follow PrimeVue component patterns for forms, dialogs, and data display
+
+## Conditional Rendering
+- Use `v-if` for conditional rendering when the condition rarely changes
+- Use `v-show` for toggling visibility when the element is frequently shown/hidden
+
+## Event Handling
+- Use `@click` instead of `v-on:click`
+- Define handler functions in the script section
+- Use arrow functions for inline handlers that need component context
+
+## Example Component
+```vue
+<template>
+  <div class="component-container">
+    <Dialog v-model:visible="dialogVisible" modal>
+      <template #header>
+        <h3>{{ title }}</h3>
+      </template>
+      
+      <div class="content">
+        <slot></slot>
+      </div>
+      
+      <template #footer>
+        <Button @click="onCancel" label="Cancel" severity="secondary" />
+        <Button @click="onConfirm" label="Confirm" severity="primary" />
+      </template>
+    </Dialog>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import Dialog from 'primevue/dialog';
+import Button from 'primevue/button';
+
+interface Props {
+  title: string;
+}
+
+const props = defineProps<Props>();
+const emit = defineEmits<{
+  (e: 'cancel'): void;
+  (e: 'confirm'): void;
+}>();
+
+const dialogVisible = ref(true);
+
+const onCancel = () => {
+  emit('cancel');
+};
+
+const onConfirm = () => {
+  emit('confirm');
+};
+</script> 
