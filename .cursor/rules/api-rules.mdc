@@ -1,6 +1,6 @@
 ---
 description: Rules for Vue components and composition API usage
-globs: "*.vue"
+globs: "*.vue,*.ts"
 alwaysApply: true
 ---
 # Vue Component Rules
@@ -10,7 +10,35 @@ alwaysApply: true
 - Define props using TypeScript interfaces and `defineProps<Props>()`
 - Use `defineEmits<{...}>()` for typed emits
 - Use `ref()` and `reactive()` for reactive state
+- Use `computed()` for derived state
 - Use `onMounted()`, `onUnmounted()` for lifecycle hooks
+- Keep components small and focused on a single responsibility
+
+## File Organization
+- Group related components in the same directory
+- Use consistent naming conventions:
+  - PascalCase for component names and files
+  - camelCase for variables, functions, and methods
+  - kebab-case for custom events
+- Structure component files in this order:
+  1. `<template>`
+  2. `<script setup lang="ts">`
+  3. `<style lang="scss" scoped>`
+
+## State Management
+- Use Pinia for global state management
+- Keep component state local when possible
+- Use props for parent-to-child communication
+- Use events for child-to-parent communication
+- Use provide/inject for deeply nested components
+- Avoid direct DOM manipulation
+
+## Performance Optimization
+- Use `v-memo` for expensive renders
+- Use `v-once` for static content
+- Use `shallowRef()` for large objects that don't need deep reactivity
+- Avoid unnecessary watchers and computed properties
+- Use `defineAsyncComponent()` for code splitting
 
 ## PrimeVue Integration
 - Import PrimeVue components directly from their packages:
@@ -20,15 +48,30 @@ alwaysApply: true
   ```
 - Use PrimeVue directives when appropriate
 - Follow PrimeVue component patterns for forms, dialogs, and data display
+- Use PrimeVue's built-in validation when possible
 
 ## Conditional Rendering
 - Use `v-if` for conditional rendering when the condition rarely changes
 - Use `v-show` for toggling visibility when the element is frequently shown/hidden
+- Use `v-for` with a unique `:key` for list rendering
 
 ## Event Handling
 - Use `@click` instead of `v-on:click`
 - Define handler functions in the script section
 - Use arrow functions for inline handlers that need component context
+- Avoid complex logic in template event handlers
+
+## Form Handling
+- Use `v-model` for two-way binding
+- Use computed properties with getters and setters for complex form state
+- Validate form inputs before submission
+- Provide clear error messages for invalid inputs
+
+## Accessibility
+- Use semantic HTML elements
+- Add ARIA attributes when necessary
+- Ensure keyboard navigation works
+- Test with screen readers
 
 ## Example Component
 ```vue
@@ -75,4 +118,20 @@ const onCancel = () => {
 const onConfirm = () => {
   emit('confirm');
 };
-</script> 
+</script>
+
+<style lang="scss" scoped>
+.component-container {
+  /* Use CSS variables for theming */
+  color: var(--p-content-color);
+  background-color: var(--p-content-background);
+  
+  /* Mobile-first approach */
+  padding: 1rem;
+  
+  /* Responsive design */
+  @media (min-width: 640px) {
+    padding: 1.5rem;
+  }
+}
+</style> 
