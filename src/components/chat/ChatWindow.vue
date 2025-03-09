@@ -107,7 +107,10 @@ const isMobile = computed(() => window.innerWidth <= 1024);
 // Computed values for mobile positioning
 const containerBottom = computed(() => {
 	if (!containerBounds.value) return 0;
-	return window.innerHeight - containerBounds.value.bottom;
+	// Account for iOS safe area insets
+	const safeAreaBottom = typeof window !== 'undefined' ? 
+		parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0') : 0;
+	return window.innerHeight - containerBounds.value.bottom - safeAreaBottom;
 });
 
 // Dragging functionality
@@ -307,11 +310,14 @@ onUnmounted(() => {
 		bottom: v-bind("containerBounds ? `${containerBottom}px` : '0'") !important;
 		top: auto !important;
 		width: v-bind("containerBounds ? `${containerBounds.width}px` : '100%'") !important;
-		height: 25% !important;
+		height: 40% !important;
 		min-width: v-bind("containerBounds ? `${containerBounds.width}px` : '100%'") !important;
 		border-radius: 6px 6px 0 0;
 		padding-bottom: env(safe-area-inset-bottom);
 		max-height: calc(100vh - 150px);
+		-webkit-transform: translateZ(0);
+		transform: translateZ(0);
+		-webkit-overflow-scrolling: touch;
 	}
 	
 	.resize-handle {

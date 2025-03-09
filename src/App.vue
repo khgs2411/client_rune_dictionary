@@ -16,7 +16,16 @@ import ConnectionDiagnostic from "./components/utilities/connection/ConnectionDi
 $layoutHeight: 55px;
 
 .application {
-	height: calc(100vh - $layoutHeight);
+	height: calc(100vh - $layoutHeight - env(safe-area-inset-bottom));
 	overflow-y: auto;
+	-webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* Mobile adjustments */
+@media (max-width: 1024px) {
+	.application {
+		height: calc(100vh - $layoutHeight - env(safe-area-inset-bottom) - env(safe-area-inset-top));
+		padding-bottom: env(safe-area-inset-bottom);
+	}
 }
 </style>
