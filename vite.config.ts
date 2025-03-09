@@ -36,6 +36,13 @@ export default defineConfig(({ command, mode }) => {
 			sourcemap: false,
 			minify: true,
 			assetsDir: "chunks",
+			rollupOptions: {
+				output: {
+					entryFileNames: `chunks/[name].[hash].js`,
+					chunkFileNames: `chunks/[name].[hash].js`,
+					assetFileNames: `assets/[name].[hash].[ext]`
+				}
+			}
 		},
 		resolve: {
 			alias: {
