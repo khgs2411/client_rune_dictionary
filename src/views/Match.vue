@@ -88,26 +88,27 @@ onMounted(() => {
 	background-position: center;
 	background-repeat: no-repeat;
 	background-attachment: fixed;
-	
+
 	/* Use flexbox for proper centering */
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	
+
 	/* Standard viewport sizing */
 	height: 100%;
 	width: 100%;
-	min-width: 922px;
-	min-height: 622px;
+
 	padding: 0;
 	margin: 0;
 	position: relative;
-	
+
 	/* Fix for iOS Safari */
 	@supports (-webkit-touch-callout: none) {
 		min-height: 100%;
 		height: -webkit-fill-available;
 	}
+
+
 
 	.viewport {
 		height: 90%;
@@ -116,7 +117,6 @@ onMounted(() => {
 		border-radius: var(--p-border-radius-md);
 		/* No need for margin with flexbox centering */
 		margin: 0;
-	
 
 		&.background {
 			background: var(--p-content-background);
@@ -152,4 +152,18 @@ onMounted(() => {
 		}
 	}
 }
+
+	@media screen and (min-width: 1024px) and (min-height: 768px) and (orientation: landscape) {
+		.viewport {
+			min-width: 922px;
+			min-height: 622px;
+		}
+	}
+
+	@media screen and (min-width: 768px) and (min-height: 1024px) and (orientation: portrait) {
+		.viewport {
+			min-width: 922px;
+			min-height: 622px;
+		}
+	}
 </style>
