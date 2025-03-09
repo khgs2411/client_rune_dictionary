@@ -94,6 +94,9 @@ onMounted(() => {
 	padding: 0;
 	margin: 0;
 	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 
 	.viewport {
 		height: 90%;
