@@ -75,3 +75,67 @@
 .text-center {
 	text-align: center;
 }
+
+.margin {
+	margin: $spacing;
+	&.large {
+		margin: $viewSpacing;
+		&.zero {
+			margin: $viewSpacing 0;
+		}
+	}
+	&.zero {
+		margin: $spacing 0;
+	}
+	&.small {
+		margin: calc($spacing / 2);
+		&.zero {
+			margin: calc($spacing / 2) 0;
+		}
+	}
+
+	&-no {
+		&-margin {
+			&-top {
+				margin-top: 0;
+			}
+			&-bottom {
+				margin-bottom: 0;
+			}
+			&-left {
+				margin-left: 0;
+			}
+			&-right {
+				margin-right: 0;
+			}
+		}
+
+		&-padding {
+			&-top {
+				padding-top: 0;
+			}
+			&-bottom {
+				padding-bottom: 0;
+			}
+			&-left {
+				padding-left: 0;
+			}
+			&-right {
+				padding-right: 0;
+			}
+		}
+	}
+}
+
+.padding {
+	padding: $spacing;
+	&.large {
+		padding: $viewSpacing;
+	}
+	&.zero {
+		padding: $spacing 0;
+	}
+	&.small {
+		padding: calc($spacing / 2);
+	}
+}

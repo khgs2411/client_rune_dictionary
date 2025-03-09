@@ -35,7 +35,7 @@ async function handleLoginSubmit(credentials: { username: string, password: stri
 		loading.value = true;
 		const res = await api.login(credentials.username, credentials.password);
 		store.setAuthorized(res.authorized);
-		utils.toast.success("Login successful");
+		utils.toast.success("Login successful", 'center');
 		
 		router.push("/app");
 		setTimeout(() => {
