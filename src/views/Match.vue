@@ -16,13 +16,13 @@
 <script lang="ts" setup>
 import { WebsocketEntityData } from "topsyde-utils";
 import { computed, onMounted, ref, useTemplateRef } from "vue";
-import API from "../api/app.api";
 import useUtils from "../common/composables/useUtils";
 import Chat from "../components/application/Chat.vue";
 import LoginForm from "../components/login/LoginForm.vue";
 import { useAuthStore } from "../stores/auth.store";
+import AuthAPI from "../api/auth.api";
 
-const api = new API();
+const api = new AuthAPI("api", import.meta.env.VITE_HOST);
 const utils = useUtils();
 const viewportRef = useTemplateRef("viewportRef");
 const loading = ref(true);
@@ -36,7 +36,6 @@ const baseUrl = import.meta.env.BASE_URL;
 
 // Set CSS variable for background image
 document.documentElement.style.setProperty("--match-bg-url", `url(${baseUrl}match.webp)`);
-
 
 function handleSubmit(credentials: { username: string; password: string }) {
 	store.username = credentials.username;
@@ -80,7 +79,6 @@ function handleLogout() {
 onMounted(() => {
 	if (tryWebsocketConnection.value) performHandshake();
 });
-
 </script>
 
 <style lang="scss" scoped>

@@ -10,10 +10,4 @@ export default class API extends BaseAPI {
 		const response = await this.post(action, {});
 		return response.data;
 	}
-
-	public async handshake(username: string, password: string, api_key: string) {
-		const action = "handshake";
-		const response = await this.post<{ status: boolean; data: { id: string; name: string } }>(action, { username, password, api_key });
-		return response.data;
-	}
 }
