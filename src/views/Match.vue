@@ -1,5 +1,5 @@
 <template>
-	<div class="match flex column gap large">
+	<div class="match">
 		<div class="viewport" ref="viewportRef" :class="{ background: tryWebsocketConnection }">
 			<template v-if="tryWebsocketConnection">
 				<div v-if="loading" class="loading-container">
@@ -99,6 +99,7 @@ onMounted(() => {
 		width: 90%;
 		padding: 1%;
 		border-radius: var(--p-border-radius-md);
+		margin: auto;
 
 		&.background {
 			background: var(--p-content-background);

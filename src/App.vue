@@ -17,6 +17,7 @@ $layoutHeight: 55px;
 
 .application {
 	height: calc(100vh - $layoutHeight);
+	max-height: calc(100vh - $layoutHeight);
 	overflow-y: auto;
 }
 </style>
