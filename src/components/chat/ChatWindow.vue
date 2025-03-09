@@ -105,13 +105,13 @@ function ensureWithinBounds() {
 const isMobile = computed(() => window.innerWidth <= 1024);
 
 // Computed values for mobile positioning
-const containerBottom = computed(() => {
-	if (!containerBounds.value) return 0;
-	// Account for iOS safe area insets
-	const safeAreaBottom = typeof window !== 'undefined' ? 
-		parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0') : 0;
-	return window.innerHeight - containerBounds.value.bottom - safeAreaBottom;
-});
+// const containerBottom = computed(() => {
+// 	if (!containerBounds.value) return 0;
+// 	// Account for iOS safe area insets
+// 	const safeAreaBottom = typeof window !== 'undefined' ? 
+// 		parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom') || '0') : 0;
+// 	return window.innerHeight - containerBounds.value.bottom - safeAreaBottom;
+// });
 
 // Dragging functionality
 function startDragging(e: MouseEvent) {
