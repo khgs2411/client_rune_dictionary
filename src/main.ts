@@ -13,7 +13,36 @@ import Ripple from "primevue/ripple";
 import ToastService from "primevue/toastservice";
 import DebugDirective from "./directives/debug.directive.ts";
 
-// @version: 0.2.21 - This comment is auto-updated by deploy script
+// @version: 0.2.19 - This comment is auto-updated by deploy script
+
+// Force refresh when app version changes
+(function() {
+	const APP_VERSION = '0.2.19'; // This should match the version above
+	const LAST_VERSION_KEY = 'app_version';
+	const lastVersion = localStorage.getItem(LAST_VERSION_KEY);
+	
+	// If version has changed and not first visit
+	if (lastVersion && lastVersion !== APP_VERSION) {
+		// Clear cache and reload
+		console.log(`App updated from ${lastVersion} to ${APP_VERSION}. Refreshing...`);
+		localStorage.setItem(LAST_VERSION_KEY, APP_VERSION);
+		
+		// Clear caches if available
+		if ('caches' in window) {
+			caches.keys().then(cacheNames => {
+				cacheNames.forEach(cacheName => {
+					caches.delete(cacheName);
+				});
+			});
+		}
+		
+		// Force reload bypassing cache
+		window.location.reload();
+	} else {
+		// Update stored version
+		localStorage.setItem(LAST_VERSION_KEY, APP_VERSION);
+	}
+})();
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);

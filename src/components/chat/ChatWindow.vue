@@ -306,18 +306,25 @@ onUnmounted(() => {
 @media (max-width: 1024px) {
 	.chat-window {
 		position: fixed !important;
-		left: v-bind("containerBounds ? `${containerBounds.left}px` : '0'") !important;
-		bottom: v-bind("containerBounds ? `${containerBottom}px` : '0'") !important;
+		left: 0 !important;
+		bottom: 0 !important;
 		top: auto !important;
-		width: v-bind("containerBounds ? `${containerBounds.width}px` : '100%'") !important;
-		height: 40% !important;
-		min-width: v-bind("containerBounds ? `${containerBounds.width}px` : '100%'") !important;
+		width: 100% !important;
+		height: 50% !important;
+		min-width: 100% !important;
 		border-radius: 6px 6px 0 0;
 		padding-bottom: env(safe-area-inset-bottom);
-		max-height: calc(100vh - 150px);
+		max-height: calc(100vh - 100px);
 		-webkit-transform: translateZ(0);
 		transform: translateZ(0);
 		-webkit-overflow-scrolling: touch;
+		overscroll-behavior: none;
+	}
+	
+	.window-content {
+		overflow-y: auto !important;
+		-webkit-overflow-scrolling: touch;
+		padding-bottom: env(safe-area-inset-bottom);
 	}
 	
 	.resize-handle {
@@ -326,6 +333,9 @@ onUnmounted(() => {
 	
 	.window-header {
 		cursor: default;
+		position: sticky;
+		top: 0;
+		z-index: 10;
 	}
 }
 
