@@ -2,7 +2,7 @@ import BaseAPI from "./api.base";
 
 export default class API extends BaseAPI {
 	constructor() {
-		super("api", `${import.meta.env.VITE_HOST}`);
+		super("api");
 	}
 
 	public async ping() {

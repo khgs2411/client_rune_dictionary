@@ -3,7 +3,7 @@ import BaseAPI from "./api.base";
 
 export default class MatchAPI extends BaseAPI {
 	constructor() {
-		super("match", `${import.meta.env.VITE_HOST}`);
+		super("match");
 	}
 
 	async createMatch(entity: Entity, target: Entity) {

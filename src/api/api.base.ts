@@ -1,11 +1,12 @@
 import Axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, isAxiosError } from "axios";
 class BaseAPI {
 	private api: AxiosInstance;
-	public controller: string;
+	protected controller: string;
 	protected base_url: string;
-	constructor(action: string, base_url?: string) {
-		this.controller = action;
-		this.base_url = base_url || "https://faas-ams3-2a2df116.doserverless.co/api/v1/web/fn-8b5106d1-8570-4f63-a2af-01748ac110f3";
+
+	constructor(controller: string, base_url?: string) {
+		this.controller = controller;
+		this.base_url = base_url || import.meta.env.VITE_HOST || '';
 		this.api = this.initAxios();
 	}
 

@@ -9,12 +9,6 @@ export default defineConfig(({ command, mode }) => {
 	const env = loadEnv(mode, process.cwd(), "");
 	const WEBSOCKET_HOST = env.VITE_WS_HOST || "wss://topsyde-gaming.duckdns.org:3000";
 
-	console.log("mode", mode);
-	console.log("env.VITE_WS_HOST", env.VITE_WS_HOST);
-	console.log("env.VITE_HOST", env.VITE_HOST);
-	console.log("HTTP/S HOST", env.VITE_HOST);
-	console.log("WEBSOCKET_HOST", WEBSOCKET_HOST);
-
 	return {
 		plugins: [vue(), tailwindcss(), topsydeUtilsPlugin()],
 		base: command === "serve" ? "/" : "/client_rune_dictionary/",

@@ -6,6 +6,10 @@ export interface ILoginResponse {
 	msg: string;
 }
 export default class AuthAPI extends BaseAPI {
+	constructor() {
+		super("main", "https://faas-ams3-2a2df116.doserverless.co/api/v1/web/fn-8b5106d1-8570-4f63-a2af-01748ac110f3");
+	}
+
 	public async login(username: string, password?: string) {
 		const action = "index";
 		const payload = {
