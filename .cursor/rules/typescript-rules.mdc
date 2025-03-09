@@ -20,7 +20,7 @@ alwaysApply: true
 - Use UPPER_CASE for constants and readonly static properties
 - Use descriptive names that convey purpose
 - Prefix interfaces with 'I' only when necessary to avoid naming conflicts
-- Prefix type parameters with 'T' (e.g., `TValue`, `TKey`)
+- Prefix enums with 'E' (e.g., `ENames`, `EOptions`)
 
 ## Functions
 - Prefer arrow functions for callbacks and methods
