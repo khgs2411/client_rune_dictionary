@@ -310,6 +310,8 @@ onUnmounted(() => {
 		height: 25% !important;
 		min-width: v-bind("containerBounds ? `${containerBounds.width}px` : '100%'") !important;
 		border-radius: 6px 6px 0 0;
+		padding-bottom: env(safe-area-inset-bottom);
+		max-height: calc(100vh - 150px);
 	}
 	
 	.resize-handle {
