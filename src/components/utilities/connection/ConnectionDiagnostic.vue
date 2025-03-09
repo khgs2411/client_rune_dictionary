@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { runConnectionDiagnostics } from "../utils/connectionDiagnostics";
+import { runConnectionDiagnostics } from "./connectionDiagnostics";
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
 import Message from "primevue/message";

@@ -20,7 +20,7 @@ import AuthAPI from "../api/auth.api";
 import LoginForm from "../components/login/LoginForm.vue";
 import useUtils from "../common/composables/useUtils";
 
-const api = new AuthAPI("main");
+const api = new AuthAPI();
 const store = useAuthStore();
 const router = useRouter();
 const { loading } = storeToRefs(store);

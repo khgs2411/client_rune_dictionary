@@ -9,7 +9,7 @@
 <script setup lang="ts">
 import { RouterView } from "vue-router";
 import Layout from "./components/layout/Layout.vue";
-import ConnectionDiagnostic from "./components/ConnectionDiagnostic.vue";
+import ConnectionDiagnostic from "./components/utilities/connection/ConnectionDiagnostic.vue";
 </script>
 #
 <style lang="scss" scoped>
