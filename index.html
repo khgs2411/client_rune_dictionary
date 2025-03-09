@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" type="image/svg+xml" href="/client_rune_dictionary/logo.webp" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+		<!-- Cache control -->
+		<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Expires" content="0" />
+		<!-- Simple cache busting -->
+		<script type="text/javascript">
+			// Add timestamp to force cache refresh - execute immediately
+			(function() {
+				// Create a timestamp for this build
+				const buildTimestamp = Date.now();
+				
+				// Function to add timestamp to a URL
+				function addTimestamp(url) {
+					if (!url || url.includes('?')) return url;
+					return url + '?v=' + buildTimestamp;
+				}
+				
+				// Override fetch to add cache busting
+				const originalFetch = window.fetch;
+				window.fetch = function(input, init) {
+					if (typeof input === 'string') {
+						input = addTimestamp(input);
+					} else if (input instanceof Request) {
+						input = new Request(addTimestamp(input.url), input);
+					}
+					return originalFetch.call(this, input, init);
+				};
+				
+				// Add timestamp to dynamic script loading
+				const originalCreateElement = document.createElement;
+				document.createElement = function(tagName) {
+					const element = originalCreateElement.call(document, tagName);
+					if (tagName.toLowerCase() === 'script' || tagName.toLowerCase() === 'link') {
+						const originalSetAttribute = element.setAttribute;
+						element.setAttribute = function(name, value) {
+							if ((name === 'src' || name === 'href') && typeof value === 'string') {
+								value = addTimestamp(value);
+							}
+							return originalSetAttribute.call(this, name, value);
+						};
+					}
+					return element;
+				};
+				
+				// Process existing resources when DOM is ready
+				document.addEventListener('DOMContentLoaded', function() {
+					// Add timestamp to all script and CSS URLs
+					const scripts = document.querySelectorAll('script[src]');
+					const links = document.querySelectorAll('link[rel="stylesheet"]');
+					
+					// Add timestamp to scripts
+					scripts.forEach(script => {
+						if (script.src && !script.src.includes('?')) {
+							script.src = addTimestamp(script.src);
+						}
+					});
+					
+					// Add timestamp to stylesheets
+					links.forEach(link => {
+						if (link.href && !link.href.includes('?')) {
+							link.href = addTimestamp(link.href);
+						}
+					});
+				});
+			})();
+			
+			// GitHub Pages SPA redirect script
+			(function (l) {
+				if (l.search[1] === "/") {
+					var decoded = l.search
+						.slice(1)
+						.split("&")
+						.map(function (s) {
+							return s.replace(/~and~/g, "&");
+						})
+						.join("?");
+					window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash);
+				}
+			})(window.location);
+		</script>
+		<script type="module" crossorigin src="/client_rune_dictionary/chunks/index.CpNmOZPM.js"></script>
+		<link rel="stylesheet" crossorigin href="/client_rune_dictionary/assets/index.PS2klSit.css">
+	</head>
+	<body>
+		<div id="app"></div>
+	</body>
+</html>
