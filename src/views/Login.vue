@@ -28,13 +28,17 @@ const utils = useUtils();
 
 async function handleLoginSubmit(credentials: { username: string, password: string }) {
 	try {
+		loading.value = true;
+		
 		// Update store values
 		store.username = credentials.username;
 		store.password = credentials.password;
 		
-		loading.value = true;
+
 		const res = await api.login(credentials.username, credentials.password);
+
 		store.setAuthorized(res.authorized);
+
 		utils.toast.success("Login successful", 'center');
 		
 		router.push("/app");

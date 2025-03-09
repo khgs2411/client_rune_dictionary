@@ -97,6 +97,8 @@ onMounted(() => {
 	/* Standard viewport sizing */
 	height: 100%;
 	width: 100%;
+	min-width: 922px;
+	min-height: 622px;
 	padding: 0;
 	margin: 0;
 	position: relative;
