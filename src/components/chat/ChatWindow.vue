@@ -22,14 +22,9 @@
 		<div class="window-content">
 			<slot></slot>
 		</div>
-		
+
 		<!-- Resize handles -->
-		<div 
-			v-for="handle in ['bottom-right', 'top-right']" 
-			:key="handle"
-			:class="['resize-handle', handle]" 
-			@mousedown.prevent="startResizing(handle as ResizeHandle)" 
-		></div>
+		<div v-for="handle in ['bottom-right', 'top-right']" :key="handle" :class="['resize-handle', handle]" @mousedown.prevent="startResizing(handle as ResizeHandle)"></div>
 	</div>
 </template>
 
@@ -38,7 +33,7 @@ import { useLocalStorage } from "@vueuse/core";
 import { onMounted, onUnmounted, ref, watch, computed } from "vue";
 import Button from "primevue/button";
 
-type ResizeHandle = 'bottom-right' | 'top-right';
+type ResizeHandle = "bottom-right" | "top-right";
 type Position = { x: number; y: number };
 type Size = { width: number; height: number };
 
@@ -81,23 +76,23 @@ function updateContainerBounds() {
 // Boundary enforcement
 function ensureWithinBounds() {
 	if (!windowRef.value) return;
-	
+
 	const windowRect = windowRef.value.getBoundingClientRect();
 	const bounds = containerBounds.value ?? {
 		left: 0,
 		top: 0,
 		width: window.innerWidth,
-		height: window.innerHeight
+		height: window.innerHeight,
 	};
-	
+
 	// Calculate max positions
 	const maxX = bounds.left + bounds.width - windowRect.width;
 	const maxY = bounds.top + bounds.height - windowRect.height;
-	
+
 	// Ensure window is within bounds
 	position.value = {
 		x: Math.max(bounds.left, Math.min(maxX, position.value.x)),
-		y: Math.max(bounds.top, Math.min(maxY, position.value.y))
+		y: Math.max(bounds.top, Math.min(maxY, position.value.y)),
 	};
 }
 
@@ -113,124 +108,124 @@ const containerBottom = computed(() => {
 // Dragging functionality
 function startDragging(e: MouseEvent) {
 	if (isMobile.value) return;
-	
+
 	isDragging.value = true;
 	dragOffset.value = {
 		x: e.clientX - position.value.x,
-		y: e.clientY - position.value.y
+		y: e.clientY - position.value.y,
 	};
-	
+
 	updateContainerBounds();
-	addEventListeners('drag');
+	addEventListeners("drag");
 }
 
 function onDrag(e: MouseEvent) {
 	if (!isDragging.value) return;
-	
+
 	const newX = e.clientX - dragOffset.value.x;
 	const newY = e.clientY - dragOffset.value.y;
-	
+
 	const bounds = containerBounds.value;
 	const windowRect = windowRef.value?.getBoundingClientRect();
-	
+
 	if (bounds && windowRect) {
 		// Constrain within container bounds
 		const maxX = bounds.left + bounds.width - windowRect.width;
 		const maxY = bounds.top + bounds.height - windowRect.height;
-		
+
 		position.value = {
 			x: Math.max(bounds.left, Math.min(maxX, newX)),
-			y: Math.max(bounds.top, Math.min(maxY, newY))
+			y: Math.max(bounds.top, Math.min(maxY, newY)),
 		};
 	} else {
 		// Constrain within viewport
 		position.value = {
 			x: Math.max(0, Math.min(window.innerWidth - size.value.width, newX)),
-			y: Math.max(0, Math.min(window.innerHeight - size.value.height, newY))
+			y: Math.max(0, Math.min(window.innerHeight - size.value.height, newY)),
 		};
 	}
 }
 
 function stopDragging() {
 	isDragging.value = false;
-	removeEventListeners('drag');
+	removeEventListeners("drag");
 }
 
 // Resizing functionality
 function startResizing(handle: ResizeHandle) {
 	if (isMobile.value) return;
-	
+
 	isResizing.value = true;
 	resizeHandle.value = handle;
-	
+
 	updateContainerBounds();
-	addEventListeners('resize');
+	addEventListeners("resize");
 }
 
 function onResize(e: MouseEvent) {
 	if (!isResizing.value || !windowRef.value) return;
-	
+
 	const rect = windowRef.value.getBoundingClientRect();
 	const bounds = containerBounds.value;
-	
+
 	// Default values
 	let newWidth = size.value.width;
 	let newHeight = size.value.height;
 	let newY = position.value.y;
-	
+
 	// Handle-specific resize logic
-	if (resizeHandle.value === 'bottom-right') {
+	if (resizeHandle.value === "bottom-right") {
 		newWidth = Math.max(minWidth(), e.clientX - rect.left);
 		newHeight = Math.max(minHeight(), e.clientY - rect.top);
-	} else if (resizeHandle.value === 'top-right') {
+	} else if (resizeHandle.value === "top-right") {
 		newWidth = Math.max(minWidth(), e.clientX - rect.left);
-		
+
 		const heightDiff = rect.top - e.clientY;
 		newHeight = Math.max(minHeight(), rect.height + heightDiff);
-		
+
 		if (newHeight > minHeight()) {
 			newY = e.clientY;
 		}
 	}
-	
+
 	// Apply container constraints if available
 	if (bounds) {
-		if (resizeHandle.value === 'bottom-right') {
+		if (resizeHandle.value === "bottom-right") {
 			newWidth = Math.min(newWidth, bounds.left + bounds.width - rect.left);
 			newHeight = Math.min(newHeight, bounds.top + bounds.height - rect.top);
-		} else if (resizeHandle.value === 'top-right') {
+		} else if (resizeHandle.value === "top-right") {
 			newWidth = Math.min(newWidth, bounds.left + bounds.width - rect.left);
-			
+
 			const maxHeight = rect.bottom - bounds.top;
 			if (newHeight > maxHeight) {
 				newHeight = maxHeight;
 				newY = bounds.top;
 			}
-			
+
 			newY = Math.max(newY, bounds.top);
 		}
 	}
-	
+
 	// Update size
 	size.value = { width: newWidth, height: newHeight };
-	
+
 	// Update position for top-right resize
-	if (resizeHandle.value === 'top-right') {
+	if (resizeHandle.value === "top-right") {
 		position.value = { ...position.value, y: newY };
 	}
-	
+
 	ensureWithinBounds();
 }
 
 function stopResizing() {
 	isResizing.value = false;
 	resizeHandle.value = null;
-	removeEventListeners('resize');
+	removeEventListeners("resize");
 }
 
 // Event listener management
-function addEventListeners(type: 'drag' | 'resize') {
-	if (type === 'drag') {
+function addEventListeners(type: "drag" | "resize") {
+	if (type === "drag") {
 		document.addEventListener("mousemove", onDrag);
 		document.addEventListener("mouseup", stopDragging);
 	} else {
@@ -239,8 +234,8 @@ function addEventListeners(type: 'drag' | 'resize') {
 	}
 }
 
-function removeEventListeners(type: 'drag' | 'resize') {
-	if (type === 'drag') {
+function removeEventListeners(type: "drag" | "resize") {
+	if (type === "drag") {
 		document.removeEventListener("mousemove", onDrag);
 		document.removeEventListener("mouseup", stopDragging);
 	} else {
@@ -257,32 +252,38 @@ function handleWindowResize() {
 
 // Lifecycle hooks
 onMounted(() => {
-	ensureWithinBounds();
-	window.addEventListener('resize', handleWindowResize);
-	
-	// Update position for mobile on mount
-	if (isMobile.value && containerBounds.value) {
-		position.value = {
-			x: containerBounds.value.left,
-			y: containerBounds.value.bottom - size.value.height
-		};
-	}
+	window.addEventListener("resize", handleWindowResize);
+	setTimeout(() => {
+		ensureWithinBounds();
+
+		// Update position for mobile on mount
+		if (isMobile.value && containerBounds.value) {
+			position.value = {
+				x: containerBounds.value.left,
+				y: containerBounds.value.bottom - size.value.height,
+			};
+		}
+	});
 });
 
 // Update position when container bounds change
-watch(containerBounds, (newBounds) => {
-	if (isMobile.value && newBounds) {
-		position.value = {
-			x: newBounds.left,
-			y: newBounds.bottom - size.value.height
-		};
-	}
-}, { deep: true });
+watch(
+	containerBounds,
+	(newBounds) => {
+		if (isMobile.value && newBounds) {
+			position.value = {
+				x: newBounds.left,
+				y: newBounds.bottom - size.value.height,
+			};
+		}
+	},
+	{ deep: true },
+);
 
 onUnmounted(() => {
-	removeEventListeners('drag');
-	removeEventListeners('resize');
-	window.removeEventListener('resize', handleWindowResize);
+	removeEventListeners("drag");
+	removeEventListeners("resize");
+	window.removeEventListener("resize", handleWindowResize);
 });
 </script>
 
@@ -313,11 +314,11 @@ onUnmounted(() => {
 		padding-bottom: env(safe-area-inset-bottom);
 		max-height: calc(100vh - 150px);
 	}
-	
+
 	.resize-handle {
 		display: none !important;
 	}
-	
+
 	.window-header {
 		cursor: default;
 	}
