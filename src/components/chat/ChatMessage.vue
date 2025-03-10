@@ -5,9 +5,9 @@
 		</div>
 	</template>
 	<div v-else class="message" @contextmenu="onContextMenu" @click="onContextMenu">
-		<span class="timestamp"
-			>[{{ formattedTime }} - <span class="channel" :class="{ 'whisper-indicator': isWhisper, 'error-indicator': isErrorMessage }">{{ channel }}]</span></span
-		>
+		<span class="message-information">
+			[{{ formattedTime }} - <span class="channel" :class="{ 'whisper-indicator': isWhisper, 'error-indicator': isErrorMessage }">{{ channel }}]</span>
+		</span>
 		<span class="sender" :class="{ 'system-indicator': isSystemMessage, 'error-indicator': isErrorMessage, 'generic-indicator': isGenericMessage, 'whisper-indicator': isWhisper }">{{ sender }}:</span>
 
 		<span class="message-content" :class="{ 'whisper-indicator': isWhisper, 'error-indicator': isErrorMessage }">{{ content.message }}</span>
@@ -80,12 +80,18 @@ const onContextMenu = (event: MouseEvent) => {
 	margin-bottom: 0.25rem;
 	line-height: 1.2;
 	cursor: pointer;
+	display: flex;
+	align-items: center;
+	height: 18px;
 }
 
-.timestamp {
+.message-information {
 	color: var(--p-text-color);
 	font-size: 0.8rem;
 	margin-right: 0.5rem;
+	width: 130px;
+	display: flex;
+	justify-content: space-between;
 }
 
 .sender {

@@ -14,7 +14,6 @@ export const useMiscStore = defineStore(
 	() => {
 		const toasts = ref(<ToastMessage[]>[]);
 		function toast(msg: ToastMessage) {
-			console.log("toast", msg);
 			toasts.value.push(msg);
 		}
 		return {
