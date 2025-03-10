@@ -77,31 +77,53 @@ const onContextMenu = (event: MouseEvent) => {
 @use "../../assets/css/common.scss" as *;
 
 .message {
-	margin-bottom: 0.25rem;
+	margin-bottom: 0.15rem;
 	line-height: 1.2;
 	cursor: pointer;
 	display: flex;
 	align-items: center;
-	height: 18px;
+	min-height: 18px;
+	padding: 1px 0;
+	gap: 3px;
 }
 
 .message-information {
-	color: var(--p-text-color);
-	font-size: 0.8rem;
-	margin-right: 0.5rem;
-	width: 130px;
-	display: flex;
-	justify-content: space-between;
+	color: var(--p-text-color-secondary);
+	font-size: 0.75rem;
+	margin-right: 0;
+	min-width: 125px;
+	display: inline-flex;
+	align-items: center;
+	opacity: 0.75;
+	font-family: "Consolas", monospace;
+
+	.channel {
+		margin-left: 3px;
+		padding: 0 4px;
+		border-radius: 2px;
+		background: var(--p-content-background);
+		font-weight: 500;
+	}
 }
 
 .sender {
 	color: var(--p-primary-color);
 	font-weight: 500;
-	margin-right: 0.5rem;
+	margin-right: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 0.9rem;
 }
 
 .message-content {
 	color: var(--p-text-color);
+	flex: 1;
+	word-break: break-word;
+	font-size: 0.9rem;
+	line-height: 1.3;
+	padding-left: 1px;
+	background: var(--p-content-background);
 }
 
 .message.system .message-content {
@@ -118,4 +140,6 @@ const onContextMenu = (event: MouseEvent) => {
 	color: var(--p-success-color);
 	font-style: italic;
 }
+
+
 </style>

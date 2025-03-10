@@ -224,7 +224,7 @@ onUnmounted(() => close());
 
 .input-area {
 	padding: 0.5rem;
-	background: rgba(0, 0, 0, 0.6);
+	background: var(--p-content-background);
 	border-top: 1px solid var(--p-gray-500);
 }
 
@@ -239,7 +239,7 @@ onUnmounted(() => close());
 
 .input-wrapper :deep(input) {
 	flex: 1;
-	background: rgba(0, 0, 0, 0.6);
+	background: var(--p-content-background);
 	border: 1px solid var(--p-gray-500);
 	color: var(--p-text-color);
 	padding: 0.4rem 0.8rem;

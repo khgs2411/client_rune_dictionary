@@ -295,7 +295,7 @@ onUnmounted(() => {
 	z-index: 1000;
 	display: flex;
 	flex-direction: column;
-	background: rgba(0, 0, 0, 0.8);
+	background: var(--p-content-background);
 	border: 1px solid var(--p-gray-500);
 	border-radius: 6px;
 }
@@ -311,7 +311,6 @@ onUnmounted(() => {
 		height: 25% !important;
 		min-width: v-bind("containerBounds ? `${containerBounds.width}px` : '100%'") !important;
 		border-radius: 6px 6px 0 0;
-		padding-bottom: env(safe-area-inset-bottom);
 		max-height: calc(100vh - 150px);
 	}
 
@@ -331,7 +330,7 @@ onUnmounted(() => {
 	justify-content: space-between;
 	align-items: center;
 	padding: 0.5rem;
-	background: rgba(0, 0, 0, 0.8);
+	background: var(--p-content-background);
 	border-bottom: 1px solid var(--p-gray-500);
 	border-top-left-radius: 6px;
 	border-top-right-radius: 6px;
@@ -361,7 +360,7 @@ onUnmounted(() => {
 	right: 0;
 	bottom: 0;
 	cursor: se-resize;
-	background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, 0.3) 50%);
+	background: linear-gradient(135deg, transparent 50%, var(--p-gray-500) 50%);
 	border-bottom-right-radius: 4px;
 }
 
@@ -369,7 +368,7 @@ onUnmounted(() => {
 	right: 0;
 	top: 0;
 	cursor: ne-resize;
-	background: linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.3) 50%);
+	background: linear-gradient(45deg, transparent 50%, var(--p-gray-500) 50%);
 	border-top-right-radius: 4px;
 }
 

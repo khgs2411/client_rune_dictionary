@@ -14,7 +14,7 @@
 
 	&.secondary {
 		&:hover {
-			filter: drop-shadow(0 0 2em var(--p-secondary-color));
+			filter: drop-shadow(0 0 2em var(--p-content-hover-background));
 		}
 	}
 }
@@ -145,23 +145,23 @@
 }
 
 .generic-indicator {
-	color: var(--p-gray-500) !important;
-	font-weight: 500;
+	color: var(--p-gray-400) !important;
+	// font-weight: 500;
 	margin-right: 0.5rem;
 }
 
 .whisper-indicator {
-	color: var(--p-fuchsia-500) !important;
+	color: var(--p-fuchsia-400) !important;
 }
 
 .error-indicator {
-	color: var(--p-red-500) !important;
-	font-weight: 500;
+	color: var(--p-red-400) !important;
+	// font-weight: 500;
 	margin-right: 0.5rem;
 }
 
 .system-indicator {
-	color: var(--p-blue-500) !important;
-	font-weight: 500;
+	color: var(--p-blue-400) !important;
+	// font-weight: 500;
 	margin-right: 0.5rem;
 }
