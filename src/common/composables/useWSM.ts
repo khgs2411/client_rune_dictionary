@@ -4,7 +4,7 @@ import { computed } from "vue";
 export interface I_UseWSM extends ReturnType<typeof useWSM> {}
 
 const useWSM = (wsm: WebsocketStructuredMessage) => {
-	const room = computed(() => {
+	const channel = computed(() => {
 		return Lib.ToPascalCase(wsm.channel ?? "server");
 	});
 
@@ -25,7 +25,7 @@ const useWSM = (wsm: WebsocketStructuredMessage) => {
 	});
 
 	const isWhisper = computed(() => {
-		return type.value === E_WebsocketMessageType.WHISPER;
+		return type.value === E_WebsocketMessageType.WHISPER && !isErrorMessage.value;
 	});
 
 	const isBroadcast = computed(() => {
@@ -37,11 +37,11 @@ const useWSM = (wsm: WebsocketStructuredMessage) => {
 	});
 
 	const isSystemMessage = computed(() => {
-		return type.value == E_WebsocketMessageType.SYSTEM;
+		return type.value == E_WebsocketMessageType.SYSTEM || client.value?.id == "system";
 	});
 
 	const isErrorMessage = computed(() => {
-		return type.value === E_WebsocketMessageType.ERROR;
+		return type.value === E_WebsocketMessageType.ERROR || channel.value === "Alert";
 	});
 
 	const isGenericMessage = computed(() => {
@@ -72,7 +72,7 @@ const useWSM = (wsm: WebsocketStructuredMessage) => {
 		return type.value === _type;
 	}
 
-	return { data: wsm, room, client, type, content, isSystemMessage, isErrorMessage, isGenericMessage, sender, formattedTime, isMessage, isWhisper, isBroadcast, isPrompt, isHeartbeat, is };
+	return { data: wsm, channel, client, type, content, isSystemMessage, isErrorMessage, isGenericMessage, sender, formattedTime, isMessage, isWhisper, isBroadcast, isPrompt, isHeartbeat, is };
 };
 
 export default useWSM;

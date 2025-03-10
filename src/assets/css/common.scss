@@ -139,3 +139,25 @@
 		padding: calc($spacing / 2);
 	}
 }
+
+.generic-indicator {
+	color: var(--p-gray-500) !important;
+	font-weight: 500;
+	margin-right: 0.5rem;
+}
+
+.whisper-indicator {
+	color: var(--p-fuchsia-500) !important;
+}
+
+.error-indicator {
+	color: var(--p-red-500) !important;
+	font-weight: 500;
+	margin-right: 0.5rem;
+}
+
+.system-indicator {
+	color: var(--p-blue-500) !important;
+	font-weight: 500;
+	margin-right: 0.5rem;
+}

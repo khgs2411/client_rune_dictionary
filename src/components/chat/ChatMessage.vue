@@ -4,11 +4,13 @@
 			<ChatMessage :message="item as WebsocketStructuredMessage" />
 		</div>
 	</template>
-	<div v-else class="message" @contextmenu="onRightClick">
-		<span class="timestamp">[{{ formattedTime }} - {{ room }}]</span>
-		<span class="sender" :class="{ 'system-indicator': isSystemMessage, 'error-indicator': isErrorMessage, 'generic-indicator': isGenericMessage }">{{ sender }}:</span>
+	<div v-else class="message" @contextmenu="onContextMenu" @click="onContextMenu">
+		<span class="timestamp"
+			>[{{ formattedTime }} - <span class="channel" :class="{ 'whisper-indicator': isWhisper, 'error-indicator': isErrorMessage }">{{ channel }}]</span></span
+		>
+		<span class="sender" :class="{ 'system-indicator': isSystemMessage, 'error-indicator': isErrorMessage, 'generic-indicator': isGenericMessage, 'whisper-indicator': isWhisper }">{{ sender }}:</span>
 
-		<span class="message-content">{{ content.message }}</span>
+		<span class="message-content" :class="{ 'whisper-indicator': isWhisper, 'error-indicator': isErrorMessage }">{{ content.message }}</span>
 
 		<ContextMenu ref="menu" :model="items">
 			<template #item="{ item, props }">
@@ -37,11 +39,10 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-	(e: "whisper", entity: WebsocketEntityData): void;
-	(e: "match", entity: WebsocketEntityData): void;
+	(e: "action", action: { type: "whisper" | "match"; entity: WebsocketEntityData }): void;
 }>();
 
-const { room, content, isSystemMessage, isErrorMessage, isGenericMessage, sender, formattedTime, client } = useWSM(props.message);
+const { channel, content, isSystemMessage, isErrorMessage, isGenericMessage, isWhisper, sender, formattedTime, client } = useWSM(props.message);
 const utils = useUtils();
 const wsm = useWSM(props.message);
 const menu = ref();
@@ -51,16 +52,20 @@ const items = ref([
 		icon: "pi pi-comment",
 		// shortcut: "⌘+W",
 
-		command: () => emit("whisper", client.value),
+		command: () => onAction({ type: "whisper", entity: client.value }),
 	},
 	{
 		label: "Match",
 		icon: "pi pi-bolt",
-		command: () => emit("match", client.value),
+		command: () => onAction({ type: "match", entity: client.value }),
 	},
 ]);
 
-const onRightClick = (event: MouseEvent) => {
+function onAction(action: { type: "whisper" | "match"; entity: WebsocketEntityData }) {
+	emit("action", action);
+}
+
+const onContextMenu = (event: MouseEvent) => {
 	event.stopPropagation();
 	event.preventDefault();
 	if (wsm.isSystemMessage.value) return;
@@ -68,10 +73,13 @@ const onRightClick = (event: MouseEvent) => {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "../../assets/css/common.scss" as *;
+
 .message {
 	margin-bottom: 0.25rem;
 	line-height: 1.2;
+	cursor: pointer;
 }
 
 .timestamp {
@@ -82,24 +90,6 @@ const onRightClick = (event: MouseEvent) => {
 
 .sender {
 	color: var(--p-primary-color);
-	font-weight: 500;
-	margin-right: 0.5rem;
-}
-
-.system-indicator {
-	color: var(--p-blue-500);
-	font-weight: 500;
-	margin-right: 0.5rem;
-}
-
-.error-indicator {
-	color: var(--p-red-500);
-	font-weight: 500;
-	margin-right: 0.5rem;
-}
-
-.generic-indicator {
-	color: var(--p-gray-500);
 	font-weight: 500;
 	margin-right: 0.5rem;
 }

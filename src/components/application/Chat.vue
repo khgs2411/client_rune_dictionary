@@ -9,7 +9,7 @@
 
 		<div class="chat-content">
 			<div ref="messagesContainer" class="messages">
-				<ChatMessage @whisper="handleWhisper" @match="handleMatch" v-for="(message, index) in messages" :key="index" :message="message" />
+				<ChatMessage @action="handleAction" v-for="(message, index) in messages" :key="index" :message="message" />
 			</div>
 
 			<div class="input-area">
@@ -69,6 +69,9 @@ const whisperMode = computed(() => mode.value === "whisper");
 function sendMessage(msg?: string) {
 	messenger.sendMessage(props.client, msg || inputMessage.value, { type: whisperMode.value ? E_WebsocketMessageType.WHISPER : E_WebsocketMessageType.BROADCAST, target: targetEntity.value });
 	inputMessage.value = "";
+}
+
+function resetChatState() {
 	mode.value = "broadcast";
 	setTargetEntity(null);
 }
@@ -88,6 +91,24 @@ function scrollToBottom() {
 	}
 }
 
+function handleAction(action: { type: "whisper" | "match"; entity: WebsocketEntityData }) {
+	switch (action.type) {
+		case "whisper":
+			handleWhisper(action.entity);
+			break;
+		case "match":
+			handleMatch(action.entity);
+			break;
+	}
+}
+
+function handleMatch(entity: WebsocketEntityData) {
+	utils.lib.Log("Matching with:", entity);
+	const match$ = useMatch();
+	//TODO: this should not be in the chat component
+	match$.challenge(props.client, entity);
+}
+
 function handleWhisper(entity: WebsocketEntityData) {
 	utils.lib.Log("Whispering to:", entity);
 	mode.value = "whisper";
@@ -96,12 +117,6 @@ function handleWhisper(entity: WebsocketEntityData) {
 
 function setTargetEntity(entity: WebsocketEntityData | null) {
 	targetEntity.value = entity;
-}
-
-function handleMatch(entity: WebsocketEntityData) {
-	utils.lib.Log("Matching with:", entity);
-	const match$ = useMatch();
-	match$.challenge(props.client, entity);
 }
 
 async function ping() {
@@ -132,7 +147,8 @@ onMounted(() => {
 onUnmounted(() => close());
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "../../assets/css/common.scss" as *;
 .chat-content {
 	display: flex;
 	flex-direction: column;
@@ -186,10 +202,6 @@ onUnmounted(() => close());
 .status-indicator.CLOSED {
 	background-color: var(--p-red-500);
 	box-shadow: 0 0 4px var(--p-red-500);
-}
-
-.whisper-indicator {
-	color: var(--p-purple-500);
 }
 
 .input-area {
