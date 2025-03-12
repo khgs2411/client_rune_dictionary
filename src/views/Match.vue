@@ -9,6 +9,10 @@
 				<Chat :container-ref="viewportRef" v-else-if="client" :client="client" @logout="handleLogout" />
 			</template>
 			<LoginForm title="Start Chat" v-else @submit="handleSubmit" />
+
+			<div class="content">
+				<!-- content goes here -->
+			</div>
 		</div>
 	</div>
 </template>
