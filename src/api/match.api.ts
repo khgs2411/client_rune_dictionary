@@ -6,15 +6,15 @@ export default class MatchAPI extends BaseAPI {
 		super("match");
 	}
 
-	async createMatch(entity: Entity, target: Entity) {
-		return this.post("create", { target, entity });
+	async createMatch(host: Entity, target: Entity) {
+		return this.post("create", { target, host });
 	}
 
-	async acceptMatch(matchId: string) {
-		return this.post("accept", { matchId });
+	async acceptMatch(matchId: string, host: Entity, target: Entity) {
+		return this.post("accept", { matchId, host, target });
 	}
 
-	async decline(matchId: string) {
-		return this.post("decline", { matchId });
+	async decline(matchId: string, host: Entity, target: Entity) {
+		return this.post("decline", { matchId, host, target });
 	}
 }

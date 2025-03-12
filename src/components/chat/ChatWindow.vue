@@ -296,7 +296,7 @@ onUnmounted(() => {
 	display: flex;
 	flex-direction: column;
 	background: var(--p-content-background);
-	border: 1px solid var(--p-gray-500);
+	outline: 1px solid var(--p-primary-color);
 	border-radius: 6px;
 }
 
@@ -331,7 +331,7 @@ onUnmounted(() => {
 	align-items: center;
 	padding: 0.5rem;
 	background: var(--p-content-background);
-	border-bottom: 1px solid var(--p-gray-500);
+	border-bottom: 1px solid var(--p-primary-color);
 	border-top-left-radius: 6px;
 	border-top-right-radius: 6px;
 }

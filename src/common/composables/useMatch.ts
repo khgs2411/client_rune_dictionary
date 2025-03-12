@@ -22,7 +22,7 @@ const useMatch = () => {
 
 	async function accept(matchId: string) {
 		try {
-			const response = await api.acceptMatch(matchId);
+			const response = await api.acceptMatch(matchId, { id: "", name: "" }, { id: "", name: "" });
 			return response;
 		} catch (e) {
 			utils.toast.error("Something went wrong", "top-left");
@@ -31,7 +31,7 @@ const useMatch = () => {
 
 	async function decline(matchId: string) {
 		try {
-			const response = await api.decline(matchId);
+			const response = await api.decline(matchId, { id: "", name: "" }, { id: "", name: "" });
 			return response;
 		} catch (e) {
 			utils.toast.error("Something went wrong", "top-left");

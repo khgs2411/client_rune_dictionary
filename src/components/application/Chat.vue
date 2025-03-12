@@ -235,7 +235,7 @@ onUnmounted(() => close());
 
 .chat-element {
 	height: 38px;
-}
+}/* 
 
 .input-wrapper :deep(input) {
 	flex: 1;
@@ -254,8 +254,8 @@ onUnmounted(() => close());
 
 .input-wrapper :deep(input::placeholder) {
 	color: var(--p-gray-500);
-}
-
+} */
+/* 
 .input-wrapper :deep(button) {
 	background: rgba(60, 60, 60, 0.9);
 	border: 1px solid var(--p-gray-500);
@@ -275,5 +275,5 @@ onUnmounted(() => close());
 	background: rgba(40, 40, 40, 0.9);
 	color: var(--p-gray-500);
 	cursor: not-allowed;
-}
+} */
 </style>
