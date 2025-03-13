@@ -11,34 +11,19 @@
 			<LoginForm title="Start Chat" v-else @submit="handleSubmit" />
 
 			<div class="content">
-				<div class="flex gap large wrap" style="width: 100%; justify-content: center; height: 100%">
-					<Card v-ripple class="match-card pvp" @click="handleMatchType('pvp')">
+				<div class="flex gap large wrap match-card-wrapper">
+					<Card v-ripple v-for="card in matchCards" :key="card.type" :class="['match-card', card.type]" @click="handleMatchType(card.type)">
 						<template #header>
-							<img alt="pvp header" class="card-image" :src="`${baseUrl}match.webp`" />
+							<img :alt="`${card.type} header`" class="card-image" :src="`${baseUrl}match.webp`" />
 						</template>
 						<template #title>
-							<span class="text-center flex">Player versus Player</span>
+							<span class="text-center flex">{{ card.title }}</span>
 						</template>
 						<template #subtitle>
-							<span class="text-center flex">Challenge other players to a duel</span>
+							<span class="text-center flex">{{ card.subtitle }}</span>
 						</template>
 						<template #content>
-							<p class="flex text-center">Test your skills against other players in real-time combat using your runeabilities.</p>
-						</template>
-					</Card>
-
-					<Card v-ripple class="match-card pve" @click="handleMatchType('pve')">
-						<template #header>
-							<img alt="pve header" class="card-image" :src="`${baseUrl}match.webp`" />
-						</template>
-						<template #title>
-							<span class="text-center flex">Player versus Environment</span>
-						</template>
-						<template #subtitle>
-							<span class="text-center flex">Challenge the environment</span>
-						</template>
-						<template #content>
-							<p class="flex text-center">Face off against AI-controlled opponents and test your strategies.</p>
+							<p class="flex text-center">{{ card.content }}</p>
 						</template>
 					</Card>
 				</div>
@@ -48,6 +33,15 @@
 </template>
 
 <script lang="ts" setup>
+type MatchType = "pvp" | "pve";
+
+interface MatchCard {
+	type: MatchType;
+	title: string;
+	subtitle: string;
+	content: string;
+}
+
 import { WebsocketEntityData } from "topsyde-utils";
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import useUtils from "../common/composables/useUtils";
@@ -68,6 +62,21 @@ const password = computed(() => store.password);
 const api_key = computed(() => import.meta.env.VITE_API_KEY);
 const tryWebsocketConnection = ref(!utils.lib.IsEmpty(username.value));
 const baseUrl = import.meta.env.BASE_URL;
+
+const matchCards = ref<MatchCard[]>([
+	{
+		type: "pvp",
+		title: "Player versus Player",
+		subtitle: "Challenge other players to a duel",
+		content: "Test your skills against other players in real-time combat using your runeabilities.",
+	},
+	{
+		type: "pve",
+		title: "Player versus Environment",
+		subtitle: "Challenge the environment",
+		content: "Face off against AI-controlled opponents and test your strategies.",
+	},
+]);
 
 // Set CSS variable for background image
 document.documentElement.style.setProperty("--match-bg-url", `url(${baseUrl}match.webp)`);
@@ -111,7 +120,7 @@ function handleLogout() {
 	utils.lib.Log("User logged out, returning to login screen");
 }
 
-function handleMatchType(type: "pvp" | "pve") {
+function handleMatchType(type: MatchType) {
 	// Handle match type selection
 	console.log(`Selected match type: ${type}`);
 }
@@ -152,13 +161,16 @@ onMounted(() => {
 		height: 90%;
 		width: 90%;
 		padding: 1%;
-		border-radius: var(--p-border-radius-md);
-		/* No need for margin with flexbox centering */
+		border-radius: var(--p-border-radius-lg);
 		margin: 0;
 
 		&.background {
 			background: var(--p-content-background);
 		}
+
+		box-shadow:
+			0 6px 12px rgba(0, 0, 0, 0.15),
+			0 8px 24px rgba(0, 0, 0, 0.15);
 	}
 
 	.loading-container {
@@ -212,13 +224,17 @@ onMounted(() => {
 	height: 100%;
 	width: 100%;
 	padding: 2rem;
-	overflow-y:auto;	
+	overflow-y: auto;
+}
+.match-card-wrapper {
+	width: 100%;
+	justify-content: center;
+	height: 100%;
 }
 
 .match-card {
 	width: 35rem;
-	height: 75%;
-	min-height: 50%;
+	height: 450px;
 	overflow: hidden;
 	position: relative;
 	cursor: pointer;
