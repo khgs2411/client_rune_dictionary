@@ -11,7 +11,37 @@
 			<LoginForm title="Start Chat" v-else @submit="handleSubmit" />
 
 			<div class="content">
-				<!-- content goes here -->
+				<div class="flex gap large wrap" style="width: 100%; justify-content: center; height: 100%">
+					<Card v-ripple class="match-card pvp" @click="handleMatchType('pvp')">
+						<template #header>
+							<img alt="pvp header" class="card-image" :src="`${baseUrl}match.webp`" />
+						</template>
+						<template #title>
+							<span class="text-center flex">Player versus Player</span>
+						</template>
+						<template #subtitle>
+							<span class="text-center flex">Challenge other players to a duel</span>
+						</template>
+						<template #content>
+							<p class="flex text-center">Test your skills against other players in real-time combat using your runeabilities.</p>
+						</template>
+					</Card>
+
+					<Card v-ripple class="match-card pve" @click="handleMatchType('pve')">
+						<template #header>
+							<img alt="pve header" class="card-image" :src="`${baseUrl}match.webp`" />
+						</template>
+						<template #title>
+							<span class="text-center flex">Player versus Environment</span>
+						</template>
+						<template #subtitle>
+							<span class="text-center flex">Challenge the environment</span>
+						</template>
+						<template #content>
+							<p class="flex text-center">Face off against AI-controlled opponents and test your strategies.</p>
+						</template>
+					</Card>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -25,6 +55,7 @@ import Chat from "../components/application/Chat.vue";
 import LoginForm from "../components/login/LoginForm.vue";
 import { useAuthStore } from "../stores/auth.store";
 import AuthAPI from "../api/auth.api";
+import { Card } from "primevue";
 
 const api = new AuthAPI("api", import.meta.env.VITE_HOST);
 const utils = useUtils();
@@ -80,6 +111,11 @@ function handleLogout() {
 	utils.lib.Log("User logged out, returning to login screen");
 }
 
+function handleMatchType(type: "pvp" | "pve") {
+	// Handle match type selection
+	console.log(`Selected match type: ${type}`);
+}
+
 onMounted(() => {
 	if (tryWebsocketConnection.value) performHandshake();
 });
@@ -111,8 +147,6 @@ onMounted(() => {
 		min-height: 100%;
 		height: -webkit-fill-available;
 	}
-
-
 
 	.viewport {
 		height: 90%;
@@ -157,17 +191,75 @@ onMounted(() => {
 	}
 }
 
-	@media screen and (min-width: 1024px) and (min-height: 768px) and (orientation: landscape) {
-		.viewport {
-			min-width: 922px;
-			min-height: 622px;
-		}
+@media screen and (min-width: 1024px) and (min-height: 768px) and (orientation: landscape) {
+	.viewport {
+		min-width: 922px;
+		min-height: 622px;
+	}
+}
+
+@media screen and (min-width: 768px) and (min-height: 1024px) and (orientation: portrait) {
+	.viewport {
+		min-height: 922px;
+		min-width: 622px;
+	}
+}
+
+.content {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100%;
+	width: 100%;
+	padding: 2rem;
+	overflow-y:auto;	
+}
+
+.match-card {
+	width: 35rem;
+	height: 75%;
+	min-height: 50%;
+	overflow: hidden;
+	position: relative;
+	cursor: pointer;
+	box-shadow:
+		0 4px 8px rgba(0, 0, 0, 0.1),
+		0 6px 20px rgba(0, 0, 0, 0.1);
+	transition:
+		transform 0.3s ease,
+		box-shadow 0.3s ease;
+	background: var(--p-content-background);
+
+	&:hover {
+		transform: translateY(-5px);
+		box-shadow:
+			0 6px 12px rgba(0, 0, 0, 0.15),
+			0 8px 24px rgba(0, 0, 0, 0.15);
 	}
 
-	@media screen and (min-width: 768px) and (min-height: 1024px) and (orientation: portrait) {
-		.viewport {
-			min-height: 922px;
-			min-width: 622px;
-		}
+	.card-image {
+		width: 100%;
+		height: 250px;
+		object-fit: cover;
+		transition: transform 0.3s ease;
 	}
+
+	&.pve .card-image {
+		filter: hue-rotate(180deg) brightness(1.1);
+		transform: scaleX(-1);
+	}
+
+	&::before {
+		content: "";
+		position: absolute;
+		top: 0px;
+		left: 0px;
+		right: 0px;
+		bottom: 0px;
+		border-radius: var(--p-card-border-radius);
+		border: 1px solid var(--p-primary-color);
+		opacity: 0.3;
+		pointer-events: none;
+	}
+}
 </style>
