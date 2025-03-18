@@ -235,45 +235,5 @@ onUnmounted(() => close());
 
 .chat-element {
 	height: 38px;
-} /* 
-
-.input-wrapper :deep(input) {
-	flex: 1;
-	background: var(--p-content-background);
-	border: 1px solid var(--p-gray-500);
-	color: var(--p-text-color);
-	padding: 0.4rem 0.8rem;
-	border-radius: 4px;
-	font-size: 0.9rem;
-}
-
-.input-wrapper :deep(input:focus) {
-	outline: none;
-	border-color: var(--p-gray-500);
-}
-
-.input-wrapper :deep(input::placeholder) {
-	color: var(--p-gray-500);
-} */
-/* 
-.input-wrapper :deep(button) {
-	background: rgba(60, 60, 60, 0.9);
-	border: 1px solid var(--p-gray-500);
-	color: var(--p-text-color);
-	padding: 0.4rem 1rem;
-	cursor: pointer;
-	border-radius: 4px;
-	font-size: 0.9rem;
-	transition: background 0.2s;
-}
-
-.input-wrapper :deep(button:hover) {
-	background: rgba(80, 80, 80, 0.9);
-}
-
-.input-wrapper :deep(button:disabled) {
-	background: rgba(40, 40, 40, 0.9);
-	color: var(--p-gray-500);
-	cursor: not-allowed;
-} */
+} 
 </style>

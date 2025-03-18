@@ -30,8 +30,6 @@ const useAuth = () => {
 		try {
 			const api = new AuthAPI("main");
 			loading.value = true;
-
-			// Update store values
 			username.value = credentials.username;
 			password.value = credentials.password;
 
@@ -52,14 +50,11 @@ const useAuth = () => {
 	}
 
 	function websocketLogout() {
-		// Reset client data
 		client.value = null;
 		username.value = "";
 
-		// Reset connection state
 		tryWebsocketConnection.value = false;
 
-		// Log the logout action
 		utils.lib.Log("User logged out, returning to login screen");
 	}
 

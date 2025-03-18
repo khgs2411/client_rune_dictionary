@@ -303,6 +303,7 @@ onUnmounted(() => {
 /* Mobile styles */
 @media (max-width: 1024px) {
 	.chat-window {
+		display: none;
 		position: fixed !important;
 		left: v-bind("containerBounds ? `${containerBounds.left}px` : '0'") !important;
 		bottom: v-bind("containerBounds ? `${containerBottom}px` : '0'") !important;

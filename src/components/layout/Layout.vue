@@ -1,6 +1,6 @@
 <template>
 	<div class="Layout">
-		<Loading :loading="auth.loading.value"></Loading>
+		<Loading :loading="auth$.loading.value"></Loading>
 		<Menu></Menu>
 		<Toast></Toast>
 		<Settings></Settings>
@@ -16,10 +16,9 @@ import Menu from "./Menu.vue";
 import Settings from "./Settings.vue";
 import Prompt from "../utilities/Prompt.vue";
 
-const auth = useAuth();
+const auth$ = useAuth();
 </script>
 
 <style lang="scss" scoped>
-.Layout {
-}
+
 </style>
