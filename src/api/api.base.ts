@@ -6,7 +6,7 @@ class BaseAPI {
 
 	constructor(controller: string, base_url?: string) {
 		this.controller = controller;
-		this.base_url = base_url || import.meta.env.VITE_HOST || '';
+		this.base_url = base_url || import.meta.env.VITE_HOST || "";
 		this.api = this.initAxios();
 	}
 

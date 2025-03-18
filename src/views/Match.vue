@@ -1,15 +1,6 @@
 <template>
 	<div class="match">
-		<div class="viewport" ref="viewportRef" :class="{ background: tryWebsocketConnection }">
-			<template v-if="tryWebsocketConnection">
-				<div v-if="loading" class="loading-container">
-					<div class="loading-spinner"></div>
-					<p>Connecting to chat server...</p>
-				</div>
-				<Chat :container-ref="viewportRef" v-else-if="client" :client="client" @logout="handleLogout" />
-			</template>
-			<LoginForm title="Start Chat" v-else @submit="handleSubmit" />
-
+		<div class="viewport background">
 			<div class="content">
 				<div class="flex gap large wrap match-card-wrapper">
 					<Card v-ripple v-for="card in matchCards" :key="card.type" :class="['match-card', card.type]" @click="handleMatchType(card.type)">
@@ -42,25 +33,9 @@ interface MatchCard {
 	content: string;
 }
 
-import { WebsocketEntityData } from "topsyde-utils";
-import { computed, onMounted, ref, useTemplateRef } from "vue";
-import useUtils from "../common/composables/useUtils";
-import Chat from "../components/application/Chat.vue";
-import LoginForm from "../components/login/LoginForm.vue";
-import { useAuthStore } from "../stores/auth.store";
-import AuthAPI from "../api/auth.api";
 import { Card } from "primevue";
+import { ref } from "vue";
 
-const api = new AuthAPI("api", import.meta.env.VITE_HOST);
-const utils = useUtils();
-const viewportRef = useTemplateRef("viewportRef");
-const loading = ref(true);
-const client = ref<WebsocketEntityData | null>(null);
-const store = useAuthStore();
-const username = computed(() => store.username);
-const password = computed(() => store.password);
-const api_key = computed(() => import.meta.env.VITE_API_KEY);
-const tryWebsocketConnection = ref(!utils.lib.IsEmpty(username.value));
 const baseUrl = import.meta.env.BASE_URL;
 
 const matchCards = ref<MatchCard[]>([
@@ -80,60 +55,14 @@ const matchCards = ref<MatchCard[]>([
 
 // Set CSS variable for background image
 document.documentElement.style.setProperty("--match-bg-url", `url(${baseUrl}match.webp)`);
-
-function handleSubmit(credentials: { username: string; password: string }) {
-	store.username = credentials.username;
-	performHandshake();
-}
-
-async function performHandshake() {
-	try {
-		tryWebsocketConnection.value = true;
-		loading.value = true;
-		if (utils.lib.IsEmpty(username.value) || utils.lib.IsEmpty(password.value) || utils.lib.IsEmpty(api_key.value)) throw new Error("Invalid credentials");
-		const response = await api.handshake(username.value, password.value, api_key.value);
-		if (!response.status) throw new Error("Invalid handshake response");
-
-		client.value = {
-			id: response.data.id,
-			name: response.data.name,
-		};
-
-		utils.lib.Log("Handshake successful - client data:", client.value);
-		loading.value = false;
-	} catch (error) {
-		tryWebsocketConnection.value = false;
-		utils.toast.error("Handshake failed:");
-		utils.lib.Warn("Handshake failed:", error);
-	}
-}
-
-function handleLogout() {
-	// Reset client data
-	client.value = null;
-	store.username = "";
-
-	// Reset connection state
-	tryWebsocketConnection.value = false;
-
-	// Log the logout action
-	utils.lib.Log("User logged out, returning to login screen");
-}
-
 function handleMatchType(type: MatchType) {
 	// Handle match type selection
 	console.log(`Selected match type: ${type}`);
 }
-
-onMounted(() => {
-	if (tryWebsocketConnection.value) performHandshake();
-});
 </script>
 
 <style lang="scss" scoped>
-@mixin var-to-rgba($var, $opacity) {
-	background-color: color-mix(in srgb, var(#{$var}), transparent calc(100% - #{$opacity} * 100%));
-}
+@use "../assets/css/common.scss" as *;
 
 .match {
 	background-image: var(--match-bg-url);
@@ -169,8 +98,7 @@ onMounted(() => {
 		margin: 0;
 
 		&.background {
-			// background: var(--p-content-background);
-			@include var-to-rgba(--p-content-background, .9);
+			@include var-to-rgba(--p-content-background, 0.9);
 		}
 
 		box-shadow:

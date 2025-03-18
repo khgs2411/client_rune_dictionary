@@ -139,7 +139,7 @@ const runDiagnostics = async () => {
 	// Only start countdown if dialog is visible
 	if (dialogVisible.value) {
 		startCountdown();
-	} 
+	}
 };
 
 const startCountdown = () => {

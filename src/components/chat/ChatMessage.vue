@@ -140,6 +140,4 @@ const onContextMenu = (event: MouseEvent) => {
 	color: var(--p-success-color);
 	font-style: italic;
 }
-
-
 </style>

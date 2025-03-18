@@ -40,9 +40,9 @@ export default defineConfig(({ command, mode }) => {
 				output: {
 					entryFileNames: `chunks/[name].[hash].js`,
 					chunkFileNames: `chunks/[name].[hash].js`,
-					assetFileNames: `assets/[name].[hash].[ext]`
-				}
-			}
+					assetFileNames: `assets/[name].[hash].[ext]`,
+				},
+			},
 		},
 		resolve: {
 			alias: {

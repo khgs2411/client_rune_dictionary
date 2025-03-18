@@ -1,5 +1,9 @@
 @use "./variables.scss" as *;
 
+@mixin var-to-rgba($var, $opacity) {
+	background-color: color-mix(in srgb, var(#{$var}), transparent calc(100% - #{$opacity} * 100%));
+}
+
 .logo {
 	height: 6em;
 	padding: 1.5em;

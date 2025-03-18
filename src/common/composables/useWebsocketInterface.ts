@@ -5,7 +5,7 @@ import { AutoReconnect, Heartbeat } from "../types/websocket.types";
 import useWSM from "./useWSM";
 import useWebsocketLogic from "./useWebsocketLogic";
 
-export const WEBSOCKET_HOST = import.meta.env.VITE_WS_HOST ;
+export const WEBSOCKET_HOST = import.meta.env.VITE_WS_HOST;
 const PING_PONG_INTERVAL = 20;
 
 const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages: Ref<WebsocketStructuredMessage[]>): UseWebSocketOptions => {

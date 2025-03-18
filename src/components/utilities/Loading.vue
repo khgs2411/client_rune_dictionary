@@ -1,31 +1,27 @@
 <template>
-	<div 
-		v-if="loading" 
-		class="loading fixed inset-0 flex flex-col items-center justify-center z-[9999] bg-black bg-opacity-80 backdrop-blur-sm transition-all duration-300"
-	>
+	<div v-if="loading" class="loading fixed inset-0 flex flex-col items-center justify-center z-[9999] bg-black bg-opacity-80 backdrop-blur-sm transition-all duration-300">
 		<div class="spinner-container mb-4">
 			<div class="spinner border-t-primary border-r-transparent border-b-transparent border-l-transparent"></div>
 		</div>
-		<h2 class="text-primary text-xl font-semibold">{{ message || 'Loading...' }}</h2>
+		<h2 class="text-primary text-xl font-semibold">{{ message || "Loading..." }}</h2>
 		<p v-if="subMessage" class="text-surface-200 mt-2">{{ subMessage }}</p>
 	</div>
 </template>
 
 <script lang="ts" setup>
-
- defineProps({
-	loading: { 
-		type: Boolean, 
-		required: true 
+defineProps({
+	loading: {
+		type: Boolean,
+		required: true,
 	},
 	message: {
 		type: String,
-		default: 'Loading...'
+		default: "Loading...",
 	},
 	subMessage: {
 		type: String,
-		default: ''
-	}
+		default: "",
+	},
 });
 </script>
 

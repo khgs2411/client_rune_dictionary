@@ -21,7 +21,7 @@ const useMessenger = (send: (data: string | ArrayBuffer | Blob, useBuffer?: bool
 		// Format message according to WebsocketStructuredMessage interface
 		const message: WebsocketStructuredMessage = {
 			type: options?.type || E_WebsocketMessageType.MESSAGE,
-			content: { message: input},
+			content: { message: input },
 			channel: options?.channel || "global",
 			timestamp: new Date().toISOString(),
 			client: client,

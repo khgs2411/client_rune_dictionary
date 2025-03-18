@@ -235,7 +235,7 @@ onUnmounted(() => close());
 
 .chat-element {
 	height: 38px;
-}/* 
+} /* 
 
 .input-wrapper :deep(input) {
 	flex: 1;

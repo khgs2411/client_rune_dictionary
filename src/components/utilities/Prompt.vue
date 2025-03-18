@@ -125,8 +125,6 @@ const startTimer = (seconds: number) => {
 	}, 1000);
 };
 
-
-
 onUnmounted(() => {
 	if (timerInterval) {
 		clearInterval(timerInterval);
@@ -210,18 +208,18 @@ onUnmounted(() => {
 		max-height: 80vh;
 		overflow-y: auto;
 	}
-	
+
 	.prompt-content {
 		padding: 16px;
 		max-height: 50vh;
 		overflow-y: auto;
 	}
-	
+
 	.prompt-actions {
 		padding: 12px;
 		flex-direction: column;
 	}
-	
+
 	.prompt-actions button {
 		width: 100%;
 		margin: 4px 0;

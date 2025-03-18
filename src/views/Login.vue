@@ -1,54 +1,23 @@
 ﻿<template>
 	<div class="login-container flex justify-center items-center min-h-screen bg-surface-ground">
 		<div class="w-full max-w-md">
-			<LoginForm 
-				title="Welcome Back" 
-				submitLabel="Sign In" 
-				:showPassword="true"
-				:loading="loading"
-				@submit="handleLoginSubmit" 
-			/>
+			<LoginForm title="Welcome Back" submitLabel="Sign In" :showPassword="true" :loading="loading" @submit="submit" />
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { useRouter } from "vue-router";
-import { useAuthStore } from "../stores/auth.store";
-import AuthAPI from "../api/auth.api";
+import useAuth from "../common/composables/useAuth";
 import LoginForm from "../components/login/LoginForm.vue";
-import useUtils from "../common/composables/useUtils";
+import { useAuthStore } from "../stores/auth.store";
 
-const api = new AuthAPI();
 const store = useAuthStore();
-const router = useRouter();
 const { loading } = storeToRefs(store);
-const utils = useUtils();
+const auth$ = useAuth();
 
-async function handleLoginSubmit(credentials: { username: string, password: string }) {
-	try {
-		loading.value = true;
-		
-		// Update store values
-		store.username = credentials.username;
-		store.password = credentials.password;
-		
-
-		const res = await api.login(credentials.username, credentials.password);
-
-		store.setAuthorized(res.authorized);
-
-		utils.toast.success("Login successful", 'center');
-		
-		router.push("/app");
-		setTimeout(() => {
-			loading.value = false;
-		}, 1001);
-	} catch (e) {
-		loading.value = false;
-		utils.toast.error("Failed to login. Please check your credentials.");
-	}
+async function submit(credentials: { username: string; password: string }) {
+	await auth$.login(credentials);
 }
 </script>
 

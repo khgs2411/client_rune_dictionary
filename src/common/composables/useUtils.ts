@@ -12,12 +12,12 @@ const useUtils = () => {
 		 * @param position Toast position (default: 'center')
 		 * @param duration Duration in ms (default: 3000)
 		 */
-		error: (message: string, position: ToastPosition|undefined = undefined, duration: number = 3000) => {
+		error: (message: string, position: ToastPosition | undefined = undefined, duration: number = 3000) => {
 			miscStore.toast({
 				msg: message,
 				position,
-				severity: 'error',
-				duration
+				severity: "error",
+				duration,
 			});
 		},
 
@@ -27,12 +27,12 @@ const useUtils = () => {
 		 * @param position Toast position (default: 'center')
 		 * @param duration Duration in ms (default: 3000)
 		 */
-		success: (message: string, position: ToastPosition|undefined = undefined, duration: number = 3000) => {
+		success: (message: string, position: ToastPosition | undefined = undefined, duration: number = 3000) => {
 			miscStore.toast({
 				msg: message,
 				position,
-				severity: 'success',
-				duration
+				severity: "success",
+				duration,
 			});
 		},
 
@@ -42,20 +42,20 @@ const useUtils = () => {
 		 * @param position Toast position (default: 'center')
 		 * @param duration Duration in ms (default: 3000)
 		 */
-		info: (message: string, position: ToastPosition|undefined = undefined, duration: number = 3000) => {
+		info: (message: string, position: ToastPosition | undefined = undefined, duration: number = 3000) => {
 			miscStore.toast({
 				msg: message,
 				position,
-				severity: 'info',
-				duration
+				severity: "info",
+				duration,
 			});
-		}
+		},
 	};
 
 	return {
 		lib: Lib,
 		guards: Guards,
-		toast
+		toast,
 	};
 };
 
