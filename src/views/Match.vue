@@ -131,6 +131,10 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+@mixin var-to-rgba($var, $opacity) {
+	background-color: color-mix(in srgb, var(#{$var}), transparent calc(100% - #{$opacity} * 100%));
+}
+
 .match {
 	background-image: var(--match-bg-url);
 	background-size: cover;
@@ -165,7 +169,8 @@ onMounted(() => {
 		margin: 0;
 
 		&.background {
-			background: var(--p-content-background);
+			// background: var(--p-content-background);
+			@include var-to-rgba(--p-content-background, .9);
 		}
 
 		box-shadow:
@@ -226,6 +231,7 @@ onMounted(() => {
 	padding: 2rem;
 	overflow-y: auto;
 }
+
 .match-card-wrapper {
 	width: 100%;
 	justify-content: center;
