@@ -24,6 +24,7 @@ const useAuth = () => {
 		localStorage.removeItem("redirect");
 		store.setAuthorized(false);
 		store.setClient(null);
+		password.value = ""; // SECURITY: Clear password on logout
 	}
 
 	async function login(credentials: { username: string; password: string }) {
@@ -67,6 +68,7 @@ const useAuth = () => {
 		username.value = "";
 		tryWebsocketConnection.value = false;
 		store.setAuthorized(false);
+		password.value = ""; // SECURITY: Clear password on logout
 		utils.lib.Log("User logged out, returning to login screen");
 	}
 
