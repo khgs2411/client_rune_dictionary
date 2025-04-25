@@ -12,12 +12,15 @@
 				@logout="auth$.logout()"
 			/>
 		</template>
-		<LoginForm title="Start Chat" v-else @submit="handleSubmit" :loading="auth$.loading.value" />
+		<div v-else>
+			<div v-if="errorMessage" class="chat-error-message">{{ errorMessage }}</div>
+			<LoginForm title="Start Chat" @submit="handleSubmit" :loading="auth$.loading.value" />
+		</div>
 	</div>
 </template>
 
 <script lang="ts" setup>
-import { computed, PropType } from "vue";
+import { computed, PropType, ref, watch } from "vue";
 import useAuth from "../../common/composables/useAuth";
 import LoginForm from "../login/LoginForm.vue";
 import Chat from "./Chat.vue";
@@ -31,14 +34,38 @@ defineProps({
 
 const auth$ = useAuth();
 
+const errorMessage = ref("");
+
 // 2. Single computed property for chat readiness
 const isChatReady = computed(() => auth$.authorized.value && !!auth$.client.value);
 
+// Watch for desync: authorized but no client (chat connection failed)
+watch(
+	() => [auth$.authorized.value, auth$.client.value],
+	([authorized, client]) => {
+		if (authorized && !client) {
+			errorMessage.value = "Your chat session expired or failed to connect. Please log in again.";
+			auth$.logout();
+		}
+	},
+	{ immediate: true }
+);
+
 async function handleSubmit(credentials: { username: string; password: string }) {
 	await auth$.login(credentials);
+	errorMessage.value = "";
 }
 
 // 7. SECURITY: Do not persist sensitive data like passwords. Ensure password is cleared on logout.
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.chat-error-message {
+	color: var(--p-red-500);
+	background: var(--p-content-background);
+	padding: 1rem;
+	margin-bottom: 1rem;
+	border-radius: 4px;
+	text-align: center;
+}
+</style>
