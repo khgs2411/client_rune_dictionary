@@ -32,10 +32,8 @@ const auth$ = useAuth();
 
 const errorMessage = ref("");
 
-// Single computed property for chat readiness
 const isChatReady = computed(() => auth$.authorized.value && !!auth$.client.value);
 
-// Watch for desync: authorized but no client (chat connection failed)
 watch(
 	() => [auth$.authorized.value, auth$.client.value],
 	([authorized, client]) => {

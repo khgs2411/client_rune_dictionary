@@ -3,20 +3,23 @@
 		<div class="viewport" :class="{ opaque: inLobby, background: inMatch }">
 			<div class="content">
 				<div class="flex gap large wrap match-card-wrapper" v-if="inLobby">
-					<Card v-ripple v-for="card in matchCards" :key="card.type" :class="['match-card', card.type]" @click="handleMatchType(card.type)">
-						<template #header>
-							<img :alt="`${card.type} header`" class="card-image" :src="`${IMAGE_URL}match.webp`" />
-						</template>
-						<template #title>
-							<span class="text-center flex">{{ card.title }}</span>
-						</template>
-						<template #subtitle>
-							<span class="text-center flex">{{ card.subtitle }}</span>
-						</template>
-						<template #content>
-							<p class="flex text-center">{{ card.content }}</p>
-						</template>
-					</Card>
+					<div v-for="card in matchCards" :key="card.type" class="match-card-wrapper-outer">
+						<span v-if="card.wip" class="wip-badge">WIP</span>
+						<Card v-ripple :class="['match-card', card.type, { disabled: card.disabled }]" @click="!card.disabled && handleMatchType(card.type)">
+							<template #header>
+								<img :alt="`${card.type} header`" class="card-image" :src="`${IMAGE_URL}match.webp`" />
+							</template>
+							<template #title>
+								<span class="text-center flex">{{ card.title }}</span>
+							</template>
+							<template #subtitle>
+								<span class="text-center flex">{{ card.subtitle }}</span>
+							</template>
+							<template #content>
+								<p class="flex text-center">{{ card.content }}</p>
+							</template>
+						</Card>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -42,12 +45,16 @@ const matchCards = ref<MatchCard[]>([
 		title: "Player versus Player",
 		subtitle: "Challenge other players to a duel",
 		content: "Test your skills against other players in real-time combat using your runeabilities.",
+		wip: true,
+		disabled: true,
 	},
 	{
 		type: "pve",
 		title: "Player versus Environment",
 		subtitle: "Challenge the environment",
 		content: "Face off against AI-controlled opponents and test your strategies.",
+		wip: false,
+		disabled: false,
 	},
 ]);
 
@@ -182,6 +189,11 @@ async function handlePVPMatch() {}
 	height: 100%;
 }
 
+.match-card-wrapper-outer {
+	position: relative;
+	display: inline-block;
+}
+
 .match-card {
 	width: 35rem;
 	height: 450px;
@@ -227,5 +239,41 @@ async function handlePVPMatch() {}
 		opacity: 0.3;
 		pointer-events: none;
 	}
+
+	&.disabled {
+		pointer-events: none;
+		opacity: 0.6;
+		filter: grayscale(0.2);
+		cursor: not-allowed;
+		.wip-badge {
+			opacity: 1 !important;
+			filter: none !important;
+		}
+	}
+
+	.card-header-container {
+		position: relative;
+	}
+}
+.wip-badge {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	background: linear-gradient(90deg, var(--p-primary-color) 0%, var(--p-primary-hover-color) 100%);
+	color: var(--p-primary-contrast-color);
+	font-weight: bold;
+	font-size: 0.95rem;
+	padding: 0.35em 1em;
+	border-radius: var(--p-card-border-radius, 1em);
+	box-shadow:
+		0 2px 8px var(--p-content-background, #fff),
+		0 2px 8px rgba(0, 0, 0, 0.12);
+	z-index: 10;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	pointer-events: none;
+	opacity: 1;
+	filter: none;
+	isolation: isolate;
 }
 </style>

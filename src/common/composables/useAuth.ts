@@ -27,34 +27,49 @@ const useAuth = () => {
 		username.value = ""; // Also clear username for full session reset
 	}
 
+	async function performLogin(username: string, password: string) {
+		const api = new AuthAPI("main");
+		const res = await api.login(username, password);
+		return res;
+	}
+
+	async function performHandshake(username: string, password: string, api_key: string) {
+		const handshakeApi = new AuthAPI("api", import.meta.env.VITE_HOST);
+		const handshakeRes = await handshakeApi.handshake(username, password, api_key);
+		return handshakeRes;
+	}
+
 	async function login(credentials: { username: string; password: string }) {
 		try {
-			const api = new AuthAPI("main");
 			loading.value = true;
 			username.value = credentials.username;
 			password.value = credentials.password;
 
-			const res = await api.login(credentials.username, credentials.password);
+			//? Login
+			const res = await performLogin(credentials.username, credentials.password);
 			if (!res.authorized) throw new Error("Login failed");
 
-			// After successful login, perform handshake
-			const handshakeApi = new AuthAPI("api", import.meta.env.VITE_HOST);
+			//? Handshake
 			const api_key_val = api_key.value;
 			if (utils.lib.IsEmpty(username.value) || utils.lib.IsEmpty(password.value) || utils.lib.IsEmpty(api_key_val)) throw new Error("Invalid credentials");
-			const handshakeRes = await handshakeApi.handshake(username.value, password.value, api_key_val);
+			const handshakeRes = await performHandshake(username.value, password.value, api_key_val);
 			if (!handshakeRes.status) throw new Error("Handshake failed");
 
+			//? Set state and navigate
 			store.setClient({
 				id: handshakeRes.data.id,
 				name: handshakeRes.data.name,
 			});
+
 			store.setAuthorized(true);
 
 			utils.toast.success("Login successful", "center");
 			router.push("/app");
+			
 			setTimeout(() => {
 				loading.value = false;
 			}, 1001);
+
 		} catch (e) {
 			loading.value = false;
 			store.setAuthorized(false);

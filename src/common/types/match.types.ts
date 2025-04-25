@@ -4,4 +4,6 @@ export interface MatchCard {
 	title: string;
 	subtitle: string;
 	content: string;
+	wip?: boolean;
+	disabled?: boolean;
 }
