@@ -12,7 +12,6 @@ const useAuth = () => {
 	const api_key = computed(() => import.meta.env.VITE_API_KEY);
 	const router = useRouter();
 	const utils = useUtils();
-	const tryWebsocketConnection = ref(!utils.lib.IsEmpty(username.value));
 
 	const client = computed(() => store.client);
 	const authorized = computedEager(() => store.authorized);
@@ -25,6 +24,7 @@ const useAuth = () => {
 		store.setAuthorized(false);
 		store.setClient(null);
 		password.value = ""; // SECURITY: Clear password on logout
+		username.value = ""; // Also clear username for full session reset
 	}
 
 	async function login(credentials: { username: string; password: string }) {
@@ -63,49 +63,14 @@ const useAuth = () => {
 		}
 	}
 
-	function websocketLogout() {
-		store.setClient(null);
-		username.value = "";
-		tryWebsocketConnection.value = false;
-		store.setAuthorized(false);
-		password.value = ""; // SECURITY: Clear password on logout
-		utils.lib.Log("User logged out, returning to login screen");
-	}
-
-	async function websocketHandshake() {
-		try {
-			const api = new AuthAPI("api", import.meta.env.VITE_HOST);
-			tryWebsocketConnection.value = true;
-			loading.value = true;
-			if (utils.lib.IsEmpty(username.value) || utils.lib.IsEmpty(password.value) || utils.lib.IsEmpty(api_key.value)) throw new Error("Invalid credentials");
-			const response = await api.handshake(username.value, password.value, api_key.value);
-			if (!response.status) throw new Error("Invalid handshake response");
-
-			store.setClient({
-				id: response.data.id,
-				name: response.data.name,
-			});
-
-			utils.lib.Log("Handshake successful - client data:", client.value);
-			loading.value = false;
-		} catch (error) {
-			tryWebsocketConnection.value = false;
-			utils.toast.error("Handshake failed:");
-			utils.lib.Warn("Handshake failed:", error);
-		}
-	}
-
 	return {
 		authorized,
 		username,
 		password,
 		loading,
 		client,
-		tryWebsocketConnection,
 		login,
 		logout,
-		websocketLogout,
-		websocketHandshake,
 	};
 };
 export default useAuth;

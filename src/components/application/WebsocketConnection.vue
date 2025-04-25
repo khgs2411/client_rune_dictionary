@@ -9,7 +9,7 @@
 				:container-ref="containerRef"
 				v-else-if="auth$.client.value"
 				:client="auth$.client.value!"
-				@logout="auth$.websocketLogout()"
+				@logout="auth$.logout()"
 			/>
 		</template>
 		<LoginForm title="Start Chat" v-else @submit="handleSubmit" :loading="auth$.loading.value" />
