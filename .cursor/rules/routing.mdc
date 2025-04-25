@@ -1,0 +1,20 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Routing
+
+## Organization
+- Routing is managed with Vue Router.
+- Router configuration is in [src/router/router.ts](mdc:src/router/router.ts).
+- Route definitions are in [src/router/routes.ts](mdc:src/router/routes.ts).
+
+## Conventions
+- Define routes in [routes.ts](mdc:src/router/routes.ts) and import them into [router.ts](mdc:src/router/router.ts).
+- Use route-based code splitting for large views.
+- Place top-level views in [src/views/](mdc:src/views).
+
+## Example
+- [Match.vue](mdc:src/views/Match.vue): A top-level view routed by Vue Router.
+- [Dictionary.vue](mdc:src/views/Dictionary.vue): Another routed view.

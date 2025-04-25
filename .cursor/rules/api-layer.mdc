@@ -1,0 +1,20 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# API Layer
+
+## Organization
+- API logic is located in [src/api/](mdc:src/api).
+- Each API file corresponds to a feature or resource (e.g., [auth.api.ts](mdc:src/api/auth.api.ts), [match.api.ts](mdc:src/api/match.api.ts)).
+- [api.base.ts](mdc:src/api/api.base.ts) provides shared API logic and base configuration.
+
+## Conventions
+- Use Axios for HTTP requests.
+- Export functions for each API endpoint.
+- Group related endpoints in the same file.
+
+## Example
+- [auth.api.ts](mdc:src/api/auth.api.ts): Authentication-related API calls.
+- [match.api.ts](mdc:src/api/match.api.ts): Match-related API calls.

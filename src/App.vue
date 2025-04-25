@@ -27,6 +27,7 @@ $layoutHeight: 55px;
 	height: calc(100vh - $layoutHeight);
 	max-height: calc(100vh - $layoutHeight);
 	overflow-y: auto;
+	max-width: 100%;;
 
 	/* Fix for mobile viewport height issues */
 	@supports (-webkit-touch-callout: none) {

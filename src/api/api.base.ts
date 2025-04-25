@@ -30,6 +30,10 @@ class BaseAPI {
 		return instance;
 	}
 
+	public static Status(response: AxiosResponse<{ status: boolean }>) {
+		if (!response.data.status) throw new Error("Something went wrong");
+	}
+
 	/**
 	 * @description Axios GET request wrapper
 	 * @param endpoint string

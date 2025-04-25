@@ -8,6 +8,7 @@ export default class API extends BaseAPI {
 	public async ping() {
 		const action = "ping";
 		const response = await this.post(action, {});
+		BaseAPI.Status(response);
 		return response.data;
 	}
 }

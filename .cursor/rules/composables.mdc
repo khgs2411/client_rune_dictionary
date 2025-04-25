@@ -1,0 +1,19 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Composables
+
+## Organization
+- Composables are located in [src/common/composables/](mdc:src/common/composables).
+- Each file provides reusable logic for a specific feature or concern (e.g., [useAuth.ts](mdc:src/common/composables/useAuth.ts), [useWebsocketInterface.ts](mdc:src/common/composables/useWebsocketInterface.ts)).
+
+## Conventions
+- Use the `useX` naming convention for composables.
+- Export functions or reactive state for use in components.
+
+## Example
+- [useAuth.ts](mdc:src/common/composables/useAuth.ts): Authentication logic.
+- [useWebsocketInterface.ts](mdc:src/common/composables/useWebsocketInterface.ts): WebSocket interface logic.
+- [usePrompt.ts](mdc:src/common/composables/usePrompt.ts): Prompt dialog logic.

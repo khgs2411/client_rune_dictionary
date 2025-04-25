@@ -6,15 +6,35 @@ export default class MatchAPI extends BaseAPI {
 		super("match");
 	}
 
+	async pve(whoami: Entity) {
+		const response = await this.post<{
+			status: boolean;
+			data: {
+				message: string;
+				whoami: Entity;
+				matchId: string;
+				channelId: string;
+			};
+		}>("pve", { whoami });
+		BaseAPI.Status(response);
+		return response.data;
+	}
+
 	async createMatch(host: Entity, target: Entity) {
-		return this.post("create", { target, host });
+		const response = await this.post("create", { target, host });
+		BaseAPI.Status(response);
+		return response.data;
 	}
 
 	async acceptMatch(matchId: string, host: Entity, target: Entity) {
-		return this.post("accept", { matchId, host, target });
+		const response = await this.post("accept", { matchId, host, target });
+		BaseAPI.Status(response);
+		return response.data;
 	}
 
 	async decline(matchId: string, host: Entity, target: Entity) {
-		return this.post("decline", { matchId, host, target });
+		const response = await this.post("decline", { matchId, host, target });
+		BaseAPI.Status(response);
+		return response.data;
 	}
 }

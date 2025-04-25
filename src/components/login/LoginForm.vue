@@ -97,7 +97,7 @@ function handleSubmit() {
 @use "../../assets/css/common.scss" as *;
 
 .login-form-component {
-	@include var-to-rgba(--p-content-background, 0.9);
+	background-color: var-to-rgba(--p-content-background, 0.9);
 	width: 100%;
 	height: 100%;
 	position: absolute;

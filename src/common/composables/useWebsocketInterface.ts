@@ -2,13 +2,14 @@ import { UseWebSocketOptions } from "@vueuse/core";
 import { Lib, WebsocketEntityData, WebsocketStructuredMessage } from "topsyde-utils";
 import { ref, Ref } from "vue";
 import { AutoReconnect, Heartbeat } from "../types/websocket.types";
-import useWSM from "./useWSM";
+import useWSM, { I_UseWSM } from "./useWSM";
 import useWebsocketLogic from "./useWebsocketLogic";
 
 export const WEBSOCKET_HOST = import.meta.env.VITE_WS_HOST;
 const PING_PONG_INTERVAL = 20;
 
 const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages: Ref<WebsocketStructuredMessage[]>): UseWebSocketOptions => {
+	const logic$ = useWebsocketLogic();
 	const heartbeatOptions: Ref<Heartbeat> = ref({
 		interval: PING_PONG_INTERVAL * 1000,
 		pongTimeout: PING_PONG_INTERVAL * 1000,
@@ -21,24 +22,27 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 		onFailed: handleReconnectFailed,
 	});
 
-	function logMessage(title: string, ws: WebSocket, event?: MessageEvent) {
-		const dataString = event ? event.data : "";
-		Lib.Log(`[${ws.url}] - ${title}:`, dataString);
-	}
-
 	function handleMessage(ws: WebSocket, event: MessageEvent) {
 		try {
 			const data: WebsocketStructuredMessage = JSON.parse(event.data);
 			const wsm$ = useWSM(data);
 
-			if (wsm$.isMessage.value) {
-				logMessage("Received message", ws, event);
-				messages.value.push(wsm$.data);
-			} else useWebsocketLogic(wsm$);
+			if (wsm$.isMessage.value) onMessageReceived(ws, event, wsm$);
+			else onActionReceived(ws, event, wsm$);
 		} catch (err) {
 			console.log(JSON.stringify(event.data));
 			console.log(err);
 		}
+	}
+
+	function onMessageReceived(ws: WebSocket, event: MessageEvent, wsm$: I_UseWSM) {
+		logMessage("Received message", ws, event);
+		messages.value.push(wsm$.data);
+	}
+
+	function onActionReceived(ws: WebSocket, event: MessageEvent, wsm$: I_UseWSM) {
+		logMessage("Received action", ws, event);
+		logic$.process(wsm$);
 	}
 
 	function handleConnected(ws: WebSocket) {
@@ -90,6 +94,16 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 			},
 			timestamp: new Date().toISOString(),
 		});
+	}
+
+	function logMessage(title: string, ws: WebSocket, event?: MessageEvent, toString: boolean = false) {
+		let dataString = event ? event.data : "";
+		try {
+			if (!toString) dataString = JSON.parse(dataString);
+		} catch (err) {
+			dataString = dataString.toString();
+		}
+		Lib.Log(`[${ws.url}] - ${title}`, dataString);
 	}
 
 	return {

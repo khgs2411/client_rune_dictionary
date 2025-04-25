@@ -167,6 +167,7 @@ onUnmounted(() => close());
 
 <style lang="scss" scoped>
 @use "../../assets/css/common.scss" as *;
+
 .chat-content {
 	display: flex;
 	flex-direction: column;

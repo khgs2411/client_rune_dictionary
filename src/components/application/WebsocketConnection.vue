@@ -18,7 +18,7 @@ import LoginForm from "../login/LoginForm.vue";
 import Chat from "./Chat.vue";
 defineProps({
 	containerRef: {
-		type: Object as PropType<HTMLElement | null>,
+		type: [Object, null] as PropType<HTMLElement | null>,
 		required: true,
 	},
 });
@@ -26,8 +26,7 @@ defineProps({
 const auth$ = useAuth();
 
 async function handleSubmit(credentials: { username: string; password: string }) {
-	auth$.username.value = credentials.username;
-	await auth$.websocketHandshake();
+	await auth$.login(credentials);
 }
 
 onMounted(() => {

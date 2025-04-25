@@ -1,0 +1,50 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Project Structure Guide
+
+This project is a Vue 3 + TypeScript + Vite application. Below is an overview of the main directories and their purposes:
+
+## Main Entry Points
+- [index.html](mdc:index.html): The main HTML entry point.
+- [src/main.ts](mdc:src/main.ts): The main TypeScript entry point, bootstraps the Vue app.
+- [src/App.vue](mdc:src/App.vue): The root Vue component.
+
+## Source Directory ([src/](mdc:src))
+- [api/](mdc:src/api): API layer, contains files for HTTP requests and API logic (e.g., [api.base.ts](mdc:src/api/api.base.ts), [auth.api.ts](mdc:src/api/auth.api.ts)).
+- [assets/](mdc:src/assets): Static assets such as CSS and images. Includes [css/](mdc:src/assets/css) for SCSS variables and styles.
+- [common/](mdc:src/common): Shared code, including:
+  - [composables/](mdc:src/common/composables): Vue composables (reusable logic, e.g., [useAuth.ts](mdc:src/common/composables/useAuth.ts)).
+  - [consts/](mdc:src/common/consts): Constants (e.g., [app.consts.ts](mdc:src/common/consts/app.consts.ts)).
+  - [helpers/](mdc:src/common/helpers): Helper functions (currently empty).
+  - [types/](mdc:src/common/types): TypeScript types (e.g., [types.ts](mdc:src/common/types/types.ts)).
+- [components/](mdc:src/components): Vue components, organized by feature:
+  - [application/](mdc:src/components/application): App-level components (e.g., [Chat.vue](mdc:src/components/application/Chat.vue)).
+  - [chat/](mdc:src/components/chat): Chat-related components (e.g., [ChatWindow.vue](mdc:src/components/chat/ChatWindow.vue)).
+  - [common/](mdc:src/components/common): Common UI components (currently empty).
+  - [layout/](mdc:src/components/layout): Layout and navigation (e.g., [Layout.vue](mdc:src/components/layout/Layout.vue)).
+  - [login/](mdc:src/components/login): Login form component.
+  - [utilities/](mdc:src/components/utilities): Utility UI components (e.g., [Prompt.vue](mdc:src/components/utilities/Prompt.vue)), with [connection/](mdc:src/components/utilities/connection) for connection diagnostics.
+- [directives/](mdc:src/directives): Custom Vue directives (e.g., [debug.directive.ts](mdc:src/directives/debug.directive.ts)).
+- [router/](mdc:src/router): Vue Router configuration ([router.ts](mdc:src/router/router.ts), [routes.ts](mdc:src/router/routes.ts)).
+- [stores/](mdc:src/stores): Pinia stores for state management (e.g., [auth.store.ts](mdc:src/stores/auth.store.ts)).
+- [utils/](mdc:src/utils): Utility functions (currently empty).
+- [views/](mdc:src/views): Top-level views/pages (e.g., [Match.vue](mdc:src/views/Match.vue), [Dictionary.vue](mdc:src/views/Dictionary.vue)).
+
+## Configuration & Tooling
+- [package.json](mdc:package.json): Project metadata, dependencies, and scripts.
+- [vite.config.ts](mdc:vite.config.ts): Vite configuration.
+- [tsconfig.json](mdc:tsconfig.json): TypeScript configuration.
+- [.prettierrc](mdc:.prettierrc): Prettier formatting rules.
+- [.env](mdc:.env): Environment variables.
+
+## Plugins & Scripts
+- [plugins/](mdc:plugins): Custom Vite plugins (e.g., [topsyde-utils-vite-plugin.ts](mdc:plugins/topsyde-utils-vite-plugin.ts)).
+- [scripts/](mdc:scripts): Shell scripts for build, deploy, and cleanup tasks.
+
+## Notes
+- The project uses Pinia for state management, PrimeVue for UI components, and Vue Router for routing.
+- SCSS is used for styling, with variables and common styles in [src/assets/css/](mdc:src/assets/css).
+- The [README.md](mdc:README.md) provides a brief overview and links to Vue 3 and TypeScript documentation.

@@ -1,11 +1,11 @@
 <template>
 	<div class="match">
-		<div class="viewport background">
+		<div class="viewport" :class="{ opaque: inLobby, background: inMatch }">
 			<div class="content">
-				<div class="flex gap large wrap match-card-wrapper">
+				<div class="flex gap large wrap match-card-wrapper" v-if="inLobby">
 					<Card v-ripple v-for="card in matchCards" :key="card.type" :class="['match-card', card.type]" @click="handleMatchType(card.type)">
 						<template #header>
-							<img :alt="`${card.type} header`" class="card-image" :src="`${baseUrl}match.webp`" />
+							<img :alt="`${card.type} header`" class="card-image" :src="`${IMAGE_URL}match.webp`" />
 						</template>
 						<template #title>
 							<span class="text-center flex">{{ card.title }}</span>
@@ -24,20 +24,18 @@
 </template>
 
 <script lang="ts" setup>
-type MatchType = "pvp" | "pve";
-
-interface MatchCard {
-	type: MatchType;
-	title: string;
-	subtitle: string;
-	content: string;
-}
-
 import { Card } from "primevue";
 import { ref } from "vue";
+import useMatch from "../common/composables/useMatch";
+import { MatchCard, MatchType } from "../common/types/match.types";
+import useUtils from "../common/composables/useUtils";
 
-const baseUrl = import.meta.env.BASE_URL;
+const utils = useUtils();
 
+const match$ = useMatch();
+const { inLobby, inMatch } = match$;
+
+const IMAGE_URL = import.meta.env.BASE_URL;
 const matchCards = ref<MatchCard[]>([
 	{
 		type: "pvp",
@@ -54,11 +52,29 @@ const matchCards = ref<MatchCard[]>([
 ]);
 
 // Set CSS variable for background image
-document.documentElement.style.setProperty("--match-bg-url", `url(${baseUrl}match.webp)`);
-function handleMatchType(type: MatchType) {
+document.documentElement.style.setProperty("--match-bg-url", `url(${IMAGE_URL}match.webp)`);
+
+async function handleMatchType(type: MatchType) {
 	// Handle match type selection
 	console.log(`Selected match type: ${type}`);
+	if (type === "pve") await handlePVEMatch();
+	else await handlePVPMatch();
 }
+
+async function handlePVEMatch() {
+	try {
+		if (inMatch.value) {
+			utils.toast.error("You are already in a match", "center");
+			return;
+		}
+		const response = await match$.pve();
+		console.log(response);
+	} catch (e) {
+		utils.toast.error("Something went wrong", "top-left");
+	}
+}
+
+async function handlePVPMatch() {}
 </script>
 
 <style lang="scss" scoped>
@@ -71,15 +87,11 @@ function handleMatchType(type: MatchType) {
 	background-repeat: no-repeat;
 	background-attachment: fixed;
 
-	/* Use flexbox for proper centering */
 	display: flex;
 	justify-content: center;
 	align-items: center;
-
-	/* Standard viewport sizing */
 	height: 100%;
 	width: 100%;
-
 	padding: 0;
 	margin: 0;
 	position: relative;
@@ -91,19 +103,23 @@ function handleMatchType(type: MatchType) {
 	}
 
 	.viewport {
-		height: 90%;
-		width: 90%;
+		height: 92%;
+		width: 96%;
 		padding: 1%;
 		border-radius: var(--p-border-radius-lg);
 		margin: 0;
 
+		&.opaque {
+			background-color: var-to-rgba(--p-content-background, 0.5);
+		}
+
 		&.background {
-			@include var-to-rgba(--p-content-background, 0.9);
+			background-color: var(--p-content-background);
 		}
 
 		box-shadow:
-			0 6px 12px rgba(0, 0, 0, 0.15),
-			0 8px 24px rgba(0, 0, 0, 0.15);
+			0 6px 12px var-to-rgba(--p-content-background, 0.5),
+			0 8px 24px var-to-rgba(--p-content-background, 0.5);
 	}
 
 	.loading-container {

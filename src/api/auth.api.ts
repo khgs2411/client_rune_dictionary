@@ -21,18 +21,21 @@ export default class AuthAPI extends BaseAPI {
 			},
 		};
 		const response = await this.post<ILoginResponse>(action, payload);
+		BaseAPI.Status(response);
 		return response.data;
 	}
 
 	public async ping() {
 		const action = "ping";
 		const response = await this.post(action, {});
+		BaseAPI.Status(response);
 		return response.data;
 	}
 
 	public async handshake(username: string, password: string, api_key: string) {
 		const action = "handshake";
 		const response = await this.post<{ status: boolean; data: { id: string; name: string } }>(action, { username, password, api_key });
+		BaseAPI.Status(response);
 		return response.data;
 	}
 }
