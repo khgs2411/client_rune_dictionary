@@ -1,6 +1,6 @@
 import { computedEager } from "@vueuse/core";
 import { storeToRefs } from "pinia";
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useRouter } from "vue-router";
 import AuthAPI from "../../api/auth.api";
 import { useAuthStore } from "../../stores/auth.store";
