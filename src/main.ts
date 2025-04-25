@@ -13,7 +13,7 @@ import Ripple from "primevue/ripple";
 import ToastService from "primevue/toastservice";
 import DebugDirective from "./directives/debug.directive.ts";
 
-// @version: 0.2.40 - This comment is auto-updated by deploy script
+// @version: 0.2.41 - This comment is auto-updated by deploy script
 
 // Force refresh when app version changes
 (function () {
