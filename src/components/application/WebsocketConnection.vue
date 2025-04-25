@@ -12,17 +12,13 @@
 				@logout="auth$.logout()"
 			/>
 		</template>
-		<div v-else>
-			<div v-if="errorMessage" class="chat-error-message">{{ errorMessage }}</div>
-			<LoginForm title="Start Chat" @submit="handleSubmit" :loading="auth$.loading.value" />
-		</div>
+		<div v-else-if="errorMessage" class="chat-error-message">{{ errorMessage }}</div>
 	</div>
 </template>
 
 <script lang="ts" setup>
 import { computed, PropType, ref, watch } from "vue";
 import useAuth from "../../common/composables/useAuth";
-import LoginForm from "../login/LoginForm.vue";
 import Chat from "./Chat.vue";
 
 defineProps({
@@ -36,7 +32,7 @@ const auth$ = useAuth();
 
 const errorMessage = ref("");
 
-// 2. Single computed property for chat readiness
+// Single computed property for chat readiness
 const isChatReady = computed(() => auth$.authorized.value && !!auth$.client.value);
 
 // Watch for desync: authorized but no client (chat connection failed)
@@ -50,13 +46,6 @@ watch(
 	},
 	{ immediate: true }
 );
-
-async function handleSubmit(credentials: { username: string; password: string }) {
-	await auth$.login(credentials);
-	errorMessage.value = "";
-}
-
-// 7. SECURITY: Do not persist sensitive data like passwords. Ensure password is cleared on logout.
 </script>
 
 <style lang="scss" scoped>

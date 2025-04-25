@@ -3,20 +3,21 @@
 	<ConnectionDiagnostic />
 	<div class="application" ref="viewportRef">
 		<RouterView />
-		<WebsocketConnection :container-ref="viewportRef" />
+		<WebsocketConnection v-if="showWebsocketConnection" :container-ref="viewportRef" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { RouterView } from "vue-router";
+import { RouterView, useRoute } from "vue-router";
+import { computed } from "vue";
 import Layout from "./components/layout/Layout.vue";
 import ConnectionDiagnostic from "./components/utilities/connection/ConnectionDiagnostic.vue";
 import { useTemplateRef } from "vue";
 import WebsocketConnection from "./components/application/WebsocketConnection.vue";
 
 const viewportRef = useTemplateRef("viewportRef");
-
-
+const route = useRoute();
+const showWebsocketConnection = computed(() => route.name !== "login");
 </script>
 
 <style lang="scss" scoped>
