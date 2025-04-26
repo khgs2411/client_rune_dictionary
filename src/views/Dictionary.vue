@@ -1,7 +1,7 @@
 <template>
 	<div class="dictionary flex start column gap large">
 		<SelectButton :allowEmpty="false" option-value="key" option-label="label" v-model="value" :options="options" />
-		<div class="flex gap large wrap" style="width: 80%">
+		<div class="flex gap large wrap" style="width: 50%">
 			<template v-for="card in cards[value]" :key="card.title">
 				<Card v-ripple class="card" v-if="!card.hidden">
 					<template #header>
