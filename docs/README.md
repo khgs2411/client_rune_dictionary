@@ -31,7 +31,7 @@ This project can be deployed to GitHub Pages using the provided deployment scrip
      ```
 
 ## Notes
-- The deployment script is located at [`scripts/deploy.sh`](../scripts/deploy.sh).
+- The deployment script is located at [`compose/deploy.sh`](../compose/deploy.sh).
 - The build output is configured for static hosting as required by GitHub Pages.
 - If you encounter issues, ensure your repository's GitHub Pages settings match your deployment branch and folder.
 - For custom domains or advanced settings, refer to the [GitHub Pages documentation](https://docs.github.com/en/pages).

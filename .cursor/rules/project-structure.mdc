@@ -42,7 +42,7 @@ This project is a Vue 3 + TypeScript + Vite application. Below is an overview of
 
 ## Plugins & Scripts
 - [plugins/](mdc:plugins): Custom Vite plugins (e.g., [topsyde-utils-vite-plugin.ts](mdc:plugins/topsyde-utils-vite-plugin.ts)).
-- [scripts/](mdc:scripts): Shell scripts for build, deploy, and cleanup tasks.
+- [compose/](mdc:scripts): Shell scripts for build, deploy, and cleanup tasks.
 
 ## Notes
 - The project uses Pinia for state management, PrimeVue for UI components, and Vue Router for routing.

@@ -9,9 +9,9 @@ alwaysApply: false
 - Use `npm run dev` or `npm run serve` to start the Vite development server.
 - Use `npm run build` to type-check and build the project for production.
 - Use `npm run preview` to preview the production build locally.
-- Use `npm run build:test` to run the test build script ([test-build.sh](mdc:scripts/test-build.sh)).
-- Use `npm run build:cleanup` to clean up builds ([cleanup-builds.sh](mdc:scripts/cleanup-builds.sh)).
-- Use `npm run deploy` to deploy the project ([deploy.sh](mdc:scripts/deploy.sh)).
+- Use `npm run build:test` to run the test build script ([test-build.sh](mdc:compose/test-build.sh)).
+- Use `npm run build:cleanup` to clean up builds ([cleanup-builds.sh](mdc:compose/cleanup-builds.sh)).
+- Use `npm run deploy` to deploy the project ([deploy.sh](mdc:compose/deploy.sh)).
 - Use `npm run reset-gh-pages` to reset the GitHub Pages branch.
 
 ## Formatting
@@ -27,4 +27,4 @@ alwaysApply: false
 ## Notes
 - The project uses [Pinia](mdc:package.json) for state management, [PrimeVue](mdc:package.json) for UI, and [Vue Router](mdc:package.json) for routing.
 - Custom Vite plugins are in [plugins/](mdc:plugins).
-- Shell scripts for build and deployment are in [scripts/](mdc:scripts).
+- Shell scripts for build and deployment are in [compose/](mdc:scripts).
