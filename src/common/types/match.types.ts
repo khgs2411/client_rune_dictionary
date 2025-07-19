@@ -6,4 +6,5 @@ export interface MatchCard {
 	content: string;
 	wip?: boolean;
 	disabled?: boolean;
+	loading?: boolean;
 }

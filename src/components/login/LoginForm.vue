@@ -75,8 +75,8 @@ const emit = defineEmits<{
 	(e: "submit", credentials: { username: string; password: string }): void;
 }>();
 
-const username = ref("");
-const password = ref("");
+const username = ref("tal");
+const password = ref("Aa123123");
 const submitted = ref(false);
 
 function handleSubmit() {
