@@ -1,7 +1,7 @@
 import { WebsocketStructuredMessage } from "topsyde-utils";
 import { computed, onUnmounted } from "vue";
 import MatchAPI from "../../api/match.api";
-import { useMatchStore } from "../../stores/match.store";
+import { useMatchStore, MatchResult } from "../../stores/match.store";
 import { Entity } from "../types/types";
 import useAuth from "./useAuth";
 import usePrompt, { PromptChoice, PromptData } from "./usePrompt";
@@ -36,12 +36,31 @@ const useMatch = () => {
 			matchStore.currentMatchId = response.data.matchId;
 			matchStore.currentChannelId = response.data.channelId;
 
+			// Initialize game state for new match
+			initializeGameState();
+
 			// Connect to match channel for real-time updates
 			await connectToMatchChannel();
 		}
 
 		matchStore.matchState = E_MatchState.IN_PROGRESS;
 		return response.data;
+	}
+
+	/**
+	 * Initialize game state for a new match
+	 */
+	function initializeGameState() {
+		matchStore.gameState = {
+			playerHealth: 100,
+			enemyHealth: 100,
+			playerMaxHealth: 100,
+			enemyMaxHealth: 100,
+			currentTurn: 'player',
+			actionsPerformed: 0,
+			matchStartTime: new Date()
+		};
+		matchStore.matchResult = null;
 	}
 
 	// Computed properties using store state (facade pattern)
@@ -138,11 +157,102 @@ const useMatch = () => {
 	function handleMatchEnd(data: any) {
 		console.log("Match ended:", data);
 
-		// Clean up match state
-		cleanup();
+		// Calculate match duration
+		const startTime = matchStore.gameState.matchStartTime;
+		const duration = startTime ? Math.floor((Date.now() - startTime.getTime()) / 1000) : 0;
 
-		// Show match result
-		utils.toast.success("Match completed!", "center");
+		// Determine match result based on game state
+		const result = determineMatchResult(data);
+
+		// Create match result object
+		const matchResult: MatchResult = {
+			result,
+			duration,
+			playerHealth: matchStore.gameState.playerHealth,
+			enemyHealth: matchStore.gameState.enemyHealth,
+			actionsPerformed: matchStore.gameState.actionsPerformed,
+			timestamp: new Date()
+		};
+
+		// Store match result
+		matchStore.matchResult = matchResult;
+		matchStore.matchHistory.push(matchResult);
+
+		// Set match state to finished
+		matchStore.matchState = E_MatchState.FINISHED;
+
+		// Save match result to database (if available)
+		saveMatchResult(matchResult);
+
+		// Show match result notification
+		const resultMessage = getMatchResultMessage(result);
+		if (result === 'victory') {
+			utils.toast.success(resultMessage, "center");
+		} else if (result === 'defeat') {
+			utils.toast.error(resultMessage, "center");
+		} else {
+			utils.toast.info(resultMessage, "center");
+		}
+
+		console.log("Match result:", matchResult);
+	}
+
+	/**
+	 * Determine match result based on game state and data
+	 */
+	function determineMatchResult(data: any): 'victory' | 'defeat' | 'disconnect' | 'draw' {
+		// If specific result provided in data
+		if (data?.result) {
+			return data.result;
+		}
+
+		// Check health values
+		const playerHealth = matchStore.gameState.playerHealth;
+		const enemyHealth = matchStore.gameState.enemyHealth;
+
+		if (playerHealth <= 0 && enemyHealth <= 0) {
+			return 'draw';
+		} else if (playerHealth <= 0) {
+			return 'defeat';
+		} else if (enemyHealth <= 0) {
+			return 'victory';
+		}
+
+		// Default to disconnect if no clear winner
+		return 'disconnect';
+	}
+
+	/**
+	 * Get user-friendly match result message
+	 */
+	function getMatchResultMessage(result: string): string {
+		switch (result) {
+			case 'victory':
+				return '🎉 Victory! You defeated the AI opponent!';
+			case 'defeat':
+				return '💀 Defeat! The AI opponent proved too strong.';
+			case 'draw':
+				return '🤝 Draw! Both fighters fell in battle.';
+			case 'disconnect':
+				return '🔌 Match ended due to disconnection.';
+			default:
+				return 'Match completed.';
+		}
+	}
+
+	/**
+	 * Save match result to database (placeholder for MongoDB integration)
+	 */
+	async function saveMatchResult(result: MatchResult) {
+		try {
+			// TODO: Integrate with MongoDB to save match statistics
+			console.log("Saving match result to database:", result);
+			
+			// This will be implemented when backend MongoDB integration is ready
+			// await api.saveMatchResult(auth$.client.value.id, result);
+		} catch (error) {
+			console.error("Failed to save match result:", error);
+		}
 	}
 
 	/**
@@ -151,13 +261,94 @@ const useMatch = () => {
 	function cleanup() {
 		console.log("Cleaning up match resources");
 
+		// Close WebSocket connections
+		if (matchStore.isConnectedToMatch) {
+			disconnectFromMatchChannel();
+		}
+
+		// Reset match store state
 		matchStore.currentMatchId = null;
 		matchStore.currentChannelId = null;
 		matchStore.isConnectedToMatch = false;
 		matchStore.matchState = E_MatchState.LOBBY;
 
-		// TODO: Close WebSocket connections
-		// TODO: Clear any match-specific UI state
+		// Keep match result for UI display but reset game state
+		matchStore.gameState = {
+			playerHealth: 100,
+			enemyHealth: 100,
+			playerMaxHealth: 100,
+			enemyMaxHealth: 100,
+			currentTurn: 'player',
+			actionsPerformed: 0,
+			matchStartTime: null
+		};
+
+		console.log("Match cleanup completed");
+	}
+
+	/**
+	 * Disconnect from match WebSocket channel
+	 */
+	function disconnectFromMatchChannel() {
+		try {
+			console.log("Disconnecting from match channel");
+			// TODO: Implement actual WebSocket disconnection when WebSocket system is integrated
+			// This would typically involve:
+			// - Removing event listeners
+			// - Closing WebSocket connections
+			// - Clearing any pending timeouts/intervals
+			
+			matchStore.isConnectedToMatch = false;
+		} catch (error) {
+			console.error("Error disconnecting from match channel:", error);
+		}
+	}
+
+	/**
+	 * Start a rematch with the same settings
+	 */
+	async function startRematch() {
+		try {
+			console.log("Starting rematch");
+			
+			// Clear previous match result
+			matchStore.matchResult = null;
+			
+			// Start new PVE match
+			await pve();
+			
+			utils.toast.info("Starting new match...", "center");
+		} catch (error) {
+			console.error("Failed to start rematch:", error);
+			utils.toast.error("Failed to start rematch", "top-right");
+		}
+	}
+
+	/**
+	 * Return to lobby (clean up and reset everything)
+	 */
+	function returnToLobby() {
+		cleanup();
+		utils.toast.info("Returned to lobby", "center");
+	}
+
+	/**
+	 * Get current match statistics
+	 */
+	function getMatchStats() {
+		const history = matchStore.matchHistory;
+		const totalMatches = history.length;
+		const victories = history.filter(m => m.result === 'victory').length;
+		const defeats = history.filter(m => m.result === 'defeat').length;
+		const draws = history.filter(m => m.result === 'draw').length;
+		
+		return {
+			totalMatches,
+			victories,
+			defeats,
+			draws,
+			winRate: totalMatches > 0 ? Math.round((victories / totalMatches) * 100) : 0
+		};
 	}
 
 	// Clean up on component unmount
@@ -235,6 +426,7 @@ const useMatch = () => {
 		// Computed properties
 		inMatch,
 		inLobby,
+		isFinished: computed(() => matchStore.matchState === E_MatchState.FINISHED),
 		// Match operations
 		challenge,
 		accept,
@@ -245,6 +437,10 @@ const useMatch = () => {
 		connectToMatchChannel,
 		onGameEvent,
 		cleanup,
+		// New match end methods
+		startRematch,
+		returnToLobby,
+		getMatchStats,
 		// Store access for advanced usage
 		matchStore,
 	};
