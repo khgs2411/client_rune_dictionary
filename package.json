@@ -24,7 +24,7 @@
 		"pinia-plugin-persistedstate": "^4.2.0",
 		"primeicons": "^7.0.0",
 		"primevue": "^4.3.2",
-		"topsyde-utils": "^1.0.180",
+		"topsyde-utils": "^1.0.184",
 		"vue": "^3.5.13",
 		"vue-router": "^4.5.0"
 	},
