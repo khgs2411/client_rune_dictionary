@@ -1249,7 +1249,7 @@ import { MatchCard, MatchType } from "../common/types/match.types";
 
 	@media screen and (max-width: 480px) {
 		.match-result-screen {
-			padding: $spacing / 2;
+			padding: calc($spacing / 2);
 		}
 
 		.result-container {
@@ -1257,7 +1257,7 @@ import { MatchCard, MatchType } from "../common/types/match.types";
 		}
 
 		.stats-grid {
-			gap: $spacing / 2;
+			gap: calc($spacing / 2);
 		}
 	}
 </style>

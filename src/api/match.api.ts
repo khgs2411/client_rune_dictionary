@@ -37,4 +37,10 @@ export default class MatchAPI extends BaseAPI {
 		BaseAPI.Status(response);
 		return response.data;
 	}
+
+	async leaveMatch(matchId: string, whoami: Entity) {
+		const response = await this.post("leave", { matchId, whoami });
+		BaseAPI.Status(response);
+		return response.data;
+	}
 }

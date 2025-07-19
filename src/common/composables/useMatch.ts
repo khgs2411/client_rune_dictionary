@@ -1,7 +1,7 @@
 import { WebsocketStructuredMessage } from "topsyde-utils";
 import { computed, onUnmounted } from "vue";
 import MatchAPI from "../../api/match.api";
-import { useMatchStore, MatchResult } from "../../stores/match.store";
+import { MatchResult, useMatchStore } from "../../stores/match.store";
 import { Entity } from "../types/types";
 import useAuth from "./useAuth";
 import usePrompt, { PromptChoice, PromptData } from "./usePrompt";
@@ -247,7 +247,7 @@ const useMatch = () => {
 		try {
 			// TODO: Integrate with MongoDB to save match statistics
 			console.log("Saving match result to database:", result);
-			
+
 			// This will be implemented when backend MongoDB integration is ready
 			// await api.saveMatchResult(auth$.client.value.id, result);
 		} catch (error) {
@@ -292,13 +292,16 @@ const useMatch = () => {
 	function disconnectFromMatchChannel() {
 		try {
 			console.log("Disconnecting from match channel");
-			// TODO: Implement actual WebSocket disconnection when WebSocket system is integrated
-			// This would typically involve:
-			// - Removing event listeners
-			// - Closing WebSocket connections
-			// - Clearing any pending timeouts/intervals
-			
-			matchStore.isConnectedToMatch = false;
+			api.leaveMatch(matchStore.currentMatchId || "", auth$.client.value).then(() => {
+				// TODO: Implement actual WebSocket disconnection when WebSocket system is integrated
+				// This would typically involve:
+				// - Removing event listeners
+				// - Closing WebSocket connections
+				// - Clearing any pending timeouts/intervals
+
+				matchStore.isConnectedToMatch = false;
+				console.log("Disconnected from match channel successfully");
+			});
 		} catch (error) {
 			console.error("Error disconnecting from match channel:", error);
 		}
@@ -310,13 +313,13 @@ const useMatch = () => {
 	async function startRematch() {
 		try {
 			console.log("Starting rematch");
-			
+
 			// Clear previous match result
 			matchStore.matchResult = null;
-			
+
 			// Start new PVE match
 			await pve();
-			
+
 			utils.toast.info("Starting new match...", "center");
 		} catch (error) {
 			console.error("Failed to start rematch:", error);
@@ -341,7 +344,7 @@ const useMatch = () => {
 		const victories = history.filter(m => m.result === 'victory').length;
 		const defeats = history.filter(m => m.result === 'defeat').length;
 		const draws = history.filter(m => m.result === 'draw').length;
-		
+
 		return {
 			totalMatches,
 			victories,
