@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { E_MatchState } from "../common/composables/useMatch";
 
 export interface MatchResult {
-    result: 'victory' | 'defeat' | 'disconnect' | 'draw';
+    result: 'victory' | 'defeat' | 'disconnect' | 'draw' | 'loading';
     duration: number; // in seconds
     playerHealth: number;
     enemyHealth: number;

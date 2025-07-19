@@ -1,5 +1,5 @@
 import { WebsocketStructuredMessage } from "topsyde-utils";
-import { computed, onUnmounted } from "vue";
+import { computed, onUnmounted, reactive } from "vue";
 import MatchAPI from "../../api/match.api";
 import { MatchResult, useMatchStore } from "../../stores/match.store";
 import { Entity } from "../types/types";
@@ -24,11 +24,28 @@ const useMatch = () => {
 	const utils = useUtils();
 	const auth$ = useAuth();
 	const prompt$ = usePrompt();
+	const loading = reactive({
+		match: false,
+		api: false,
+	})
 
 	// Use Pinia store for persistent state
 	const matchStore = useMatchStore();
 
+	async function leaveMatch() {
+		if (matchStore.isConnectedToMatch) {
+			loading.api = true;
+			await api.leaveMatch(matchStore.currentMatchId || "", auth$.client.value);
+			matchStore.isConnectedToMatch = false;
+			matchStore.currentMatchId = null;
+			matchStore.currentChannelId = null;
+			loading.api = false;
+		}
+
+	}
+
 	async function pve() {
+		loading.match = true;
 		const response = await api.pve(auth$.client.value);
 
 		// Store match data for WebSocket connection
@@ -44,6 +61,7 @@ const useMatch = () => {
 		}
 
 		matchStore.matchState = E_MatchState.IN_PROGRESS;
+		loading.match = false;
 		return response.data;
 	}
 
@@ -315,9 +333,17 @@ const useMatch = () => {
 			console.log("Starting rematch");
 
 			// Clear previous match result
-			matchStore.matchResult = null;
 
 			// Start new PVE match
+			await leaveMatch();
+			matchStore.matchResult = {
+				result: 'loading',
+				duration: 0,
+				playerHealth: 100,
+				enemyHealth: 100,
+				actionsPerformed: 0,
+				timestamp: new Date()
+			};
 			await pve();
 
 			utils.toast.info("Starting new match...", "center");
@@ -446,6 +472,7 @@ const useMatch = () => {
 		getMatchStats,
 		// Store access for advanced usage
 		matchStore,
+		loading,
 	};
 };
 export default useMatch;

@@ -45,7 +45,7 @@
 							<div class="stat-row">
 								<span class="stat-label">Match Duration:</span>
 								<span class="stat-value">{{ formatDuration(match$.matchStore.matchResult?.duration || 0)
-								}}</span>
+									}}</span>
 							</div>
 							<div class="stat-row">
 								<span class="stat-label">Your Health:</span>
@@ -59,7 +59,7 @@
 							<div class="stat-row">
 								<span class="stat-label">Actions Performed:</span>
 								<span class="stat-value">{{ match$.matchStore.matchResult?.actionsPerformed || 0
-								}}</span>
+									}}</span>
 							</div>
 						</div>
 
@@ -86,11 +86,13 @@
 						</div>
 
 						<div class="result-actions">
-							<Button @click="handleRematch" severity="success" size="large" class="rematch-button">
+							<Button :loading="match$.loading.api || match$.loading.match" @click="handleRematch"
+								severity="success" size="large" class="rematch-button">
 								<i class="pi pi-refresh"></i>
 								Rematch
 							</Button>
-							<Button @click="handleReturnToLobby" severity="secondary" size="large" class="lobby-button">
+							<Button @click="handleReturnToLobby" :disabled="match$.loading.api || match$.loading.match"
+								severity="secondary" size="large" class="lobby-button">
 								<i class="pi pi-home"></i>
 								Return to Lobby
 							</Button>
@@ -119,8 +121,11 @@
 								<div class="player-info">
 									<h3>You</h3>
 									<div class="health-bar">
-										<div class="health-fill" :style="{ width: `${(match$.matchStore.gameState.playerHealth / match$.matchStore.gameState.playerMaxHealth) * 100}%` }"></div>
-										<span class="health-text">{{ match$.matchStore.gameState.playerHealth }} / {{ match$.matchStore.gameState.playerMaxHealth }}</span>
+										<div class="health-fill"
+											:style="{ width: `${(match$.matchStore.gameState.playerHealth / match$.matchStore.gameState.playerMaxHealth) * 100}%` }">
+										</div>
+										<span class="health-text">{{ match$.matchStore.gameState.playerHealth }} / {{
+											match$.matchStore.gameState.playerMaxHealth }}</span>
 									</div>
 								</div>
 								<div class="turn-indicator" :class="{ active: isPlayerTurn }">
@@ -143,8 +148,11 @@
 								<div class="enemy-info">
 									<h3>{{ getEnemyName() }}</h3>
 									<div class="health-bar">
-										<div class="health-fill enemy" :style="{ width: `${(match$.matchStore.gameState.enemyHealth / match$.matchStore.gameState.enemyMaxHealth) * 100}%` }"></div>
-										<span class="health-text">{{ match$.matchStore.gameState.enemyHealth }} / {{ match$.matchStore.gameState.enemyMaxHealth }}</span>
+										<div class="health-fill enemy"
+											:style="{ width: `${(match$.matchStore.gameState.enemyHealth / match$.matchStore.gameState.enemyMaxHealth) * 100}%` }">
+										</div>
+										<span class="health-text">{{ match$.matchStore.gameState.enemyHealth }} / {{
+											match$.matchStore.gameState.enemyMaxHealth }}</span>
 									</div>
 								</div>
 								<div class="turn-indicator" :class="{ active: isEnemyTurn }">
@@ -165,7 +173,8 @@
 									Attack
 								</Button>
 								<!-- Demo button for testing match end -->
-								<Button @click="triggerMatchEnd('victory')" severity="success" size="small" class="demo-button">
+								<Button @click="triggerMatchEnd('victory')" severity="success" size="small"
+									class="demo-button">
 									<i class="pi pi-trophy"></i>
 									Test Victory
 								</Button>
@@ -455,6 +464,8 @@ import { MatchCard, MatchType } from "../common/types/match.types";
 				return 'Draw';
 			case 'disconnect':
 				return 'Disconnected';
+			case 'loading':
+				return 'Loading...';
 			default:
 				return 'Match Complete';
 		}
@@ -471,6 +482,8 @@ import { MatchCard, MatchType } from "../common/types/match.types";
 				return 'Both fighters fell in an epic battle!';
 			case 'disconnect':
 				return 'The match ended due to a connection issue.';
+			case 'loading':
+				return 'Loading the match, please wait...';
 			default:
 				return 'The match has concluded.';
 		}
@@ -487,6 +500,8 @@ import { MatchCard, MatchType } from "../common/types/match.types";
 				return 'pi pi-minus-circle';
 			case 'disconnect':
 				return 'pi pi-wifi';
+			case 'loading':
+				return 'pi pi-spinner pi-spin';
 			default:
 				return 'pi pi-check-circle';
 		}
@@ -627,7 +642,6 @@ import { MatchCard, MatchType } from "../common/types/match.types";
 		height: 100%;
 		width: 100%;
 		padding: 2rem;
-		overflow-y: hidden;
 	}
 
 	.match-card-wrapper {
