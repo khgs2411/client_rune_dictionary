@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { E_MatchState } from "../common/composables/useMatch";
+import { E_MatchState } from "../components/match/useMatch";
 
 export interface MatchResult {
     result: 'victory' | 'defeat' | 'disconnect' | 'draw' | 'loading';

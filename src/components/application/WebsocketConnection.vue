@@ -18,8 +18,8 @@ import { WebsocketStructuredMessage } from "topsyde-utils";
 import { computed, PropType, ref, watch } from "vue";
 import useAuth from "../../common/composables/useAuth";
 import useWebSocketInterface, { WEBSOCKET_HOST } from "../../common/composables/useWebsocketInterface";
-import Chat from "./Chat.vue";
-
+import useWebsocketLogic from "../../common/composables/useWebsocketLogic";
+import Chat from "../chat/Chat.vue";
 	defineProps({
 		containerRef: {
 			type: [Object, null] as PropType<HTMLElement | null>,
@@ -37,6 +37,7 @@ import Chat from "./Chat.vue";
 
 	const wsOptions = useWebSocketInterface(ref(auth$.client.value!), messages);
 	const ws = useWebSocket<WebsocketStructuredMessage>(WEBSOCKET_HOST, wsOptions);
+	useWebsocketLogic(ws);
 
 	watch(
 		() => [auth$.authorized.value, auth$.client.value],
@@ -48,6 +49,7 @@ import Chat from "./Chat.vue";
 		},
 		{ immediate: true }
 	);
+
 </script>
 
 <style lang="scss" scoped>

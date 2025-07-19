@@ -1,12 +1,13 @@
-import { WebsocketStructuredMessage } from "topsyde-utils";
+import { Guards, NamespaceActions, WebsocketStructuredMessage } from "topsyde-utils";
 import { computed, onUnmounted, reactive } from "vue";
 import MatchAPI from "../../api/match.api";
+import useAuth from "../../common/composables/useAuth";
+import usePrompt, { PromptChoice, PromptData } from "../../common/composables/usePrompt";
+import useUtils from "../../common/composables/useUtils";
+import { WebsocketClient } from "../../common/composables/useWebsocketInterface";
+import { I_UseWSM } from "../../common/composables/useWSM";
+import { Entity } from "../../common/types/types";
 import { MatchResult, useMatchStore } from "../../stores/match.store";
-import { Entity } from "../types/types";
-import useAuth from "./useAuth";
-import usePrompt, { PromptChoice, PromptData } from "./usePrompt";
-import useUtils from "./useUtils";
-import { I_UseWSM } from "./useWSM";
 
 const MATCH_CHANNEL = "match";
 const MATCH_MESSAGE = " Would like to battle";
@@ -16,6 +17,7 @@ export enum E_MatchState {
 	IN_PROGRESS = "IN_PROGRESS",
 	FINISHED = "FINISHED",
 }
+
 
 export { MATCH_CHANNEL, MATCH_MESSAGE };
 
@@ -30,15 +32,15 @@ const useMatch = () => {
 	})
 
 	// Use Pinia store for persistent state
-	const matchStore = useMatchStore();
+	const store = useMatchStore();
 
 	async function leaveMatch() {
-		if (matchStore.isConnectedToMatch) {
+		if (store.isConnectedToMatch) {
 			loading.api = true;
-			await api.leaveMatch(matchStore.currentMatchId || "", auth$.client.value);
-			matchStore.isConnectedToMatch = false;
-			matchStore.currentMatchId = null;
-			matchStore.currentChannelId = null;
+			await api.leaveMatch(store.currentMatchId || "", auth$.client.value);
+			store.isConnectedToMatch = false;
+			store.currentMatchId = null;
+			store.currentChannelId = null;
 			loading.api = false;
 		}
 
@@ -50,8 +52,8 @@ const useMatch = () => {
 
 		// Store match data for WebSocket connection
 		if (response.data?.matchId && response.data?.channelId) {
-			matchStore.currentMatchId = response.data.matchId;
-			matchStore.currentChannelId = response.data.channelId;
+			store.currentMatchId = response.data.matchId;
+			store.currentChannelId = response.data.channelId;
 
 			// Initialize game state for new match
 			initializeGameState();
@@ -60,7 +62,7 @@ const useMatch = () => {
 			await connectToMatchChannel();
 		}
 
-		matchStore.matchState = E_MatchState.IN_PROGRESS;
+		store.matchState = E_MatchState.IN_PROGRESS;
 		loading.match = false;
 		return response.data;
 	}
@@ -69,7 +71,7 @@ const useMatch = () => {
 	 * Initialize game state for a new match
 	 */
 	function initializeGameState() {
-		matchStore.gameState = {
+		store.gameState = {
 			playerHealth: 100,
 			enemyHealth: 100,
 			playerMaxHealth: 100,
@@ -78,25 +80,25 @@ const useMatch = () => {
 			actionsPerformed: 0,
 			matchStartTime: new Date()
 		};
-		matchStore.matchResult = null;
+		store.matchResult = null;
 	}
 
 	// Computed properties using store state (facade pattern)
-	const inMatch = computed(() => matchStore.matchState === E_MatchState.IN_PROGRESS);
-	const inLobby = computed(() => matchStore.matchState === E_MatchState.LOBBY);
+	const inMatch = computed(() => store.matchState === E_MatchState.IN_PROGRESS);
+	const inLobby = computed(() => store.matchState === E_MatchState.LOBBY);
 
 	/**
 	 * Connect to the match WebSocket channel for real-time updates
 	 */
 	async function connectToMatchChannel() {
-		if (!matchStore.currentChannelId) {
+		if (!store.currentChannelId) {
 			console.error("Cannot connect to match channel: No channel ID");
 			return;
 		}
 
 		try {
-			console.log(`Connecting to match channel: ${matchStore.currentChannelId}`);
-			matchStore.isConnectedToMatch = true;
+			console.log(`Connecting to match channel: ${store.currentChannelId}`);
+			store.isConnectedToMatch = true;
 
 			// Add WebSocket event listeners for PVE match events
 			setupMatchEventListeners();
@@ -104,7 +106,7 @@ const useMatch = () => {
 		} catch (error) {
 			console.error("Failed to connect to match channel:", error);
 			utils.toast.error("Failed to connect to match", "top-right");
-			matchStore.isConnectedToMatch = false;
+			store.isConnectedToMatch = false;
 		}
 	}
 
@@ -176,7 +178,7 @@ const useMatch = () => {
 		console.log("Match ended:", data);
 
 		// Calculate match duration
-		const startTime = matchStore.gameState.matchStartTime;
+		const startTime = store.gameState.matchStartTime;
 		const duration = startTime ? Math.floor((Date.now() - startTime.getTime()) / 1000) : 0;
 
 		// Determine match result based on game state
@@ -186,18 +188,18 @@ const useMatch = () => {
 		const matchResult: MatchResult = {
 			result,
 			duration,
-			playerHealth: matchStore.gameState.playerHealth,
-			enemyHealth: matchStore.gameState.enemyHealth,
-			actionsPerformed: matchStore.gameState.actionsPerformed,
+			playerHealth: store.gameState.playerHealth,
+			enemyHealth: store.gameState.enemyHealth,
+			actionsPerformed: store.gameState.actionsPerformed,
 			timestamp: new Date()
 		};
 
 		// Store match result
-		matchStore.matchResult = matchResult;
-		matchStore.matchHistory.push(matchResult);
+		store.matchResult = matchResult;
+		store.matchHistory.push(matchResult);
 
 		// Set match state to finished
-		matchStore.matchState = E_MatchState.FINISHED;
+		store.matchState = E_MatchState.FINISHED;
 
 		// Save match result to database (if available)
 		saveMatchResult(matchResult);
@@ -225,8 +227,8 @@ const useMatch = () => {
 		}
 
 		// Check health values
-		const playerHealth = matchStore.gameState.playerHealth;
-		const enemyHealth = matchStore.gameState.enemyHealth;
+		const playerHealth = store.gameState.playerHealth;
+		const enemyHealth = store.gameState.enemyHealth;
 
 		if (playerHealth <= 0 && enemyHealth <= 0) {
 			return 'draw';
@@ -280,18 +282,18 @@ const useMatch = () => {
 		console.log("Cleaning up match resources");
 
 		// Close WebSocket connections
-		if (matchStore.isConnectedToMatch) {
+		if (store.isConnectedToMatch) {
 			disconnectFromMatchChannel();
 		}
 
 		// Reset match store state
-		matchStore.currentMatchId = null;
-		matchStore.currentChannelId = null;
-		matchStore.isConnectedToMatch = false;
-		matchStore.matchState = E_MatchState.LOBBY;
+		store.currentMatchId = null;
+		store.currentChannelId = null;
+		store.isConnectedToMatch = false;
+		store.matchState = E_MatchState.LOBBY;
 
 		// Keep match result for UI display but reset game state
-		matchStore.gameState = {
+		store.gameState = {
 			playerHealth: 100,
 			enemyHealth: 100,
 			playerMaxHealth: 100,
@@ -310,14 +312,14 @@ const useMatch = () => {
 	function disconnectFromMatchChannel() {
 		try {
 			console.log("Disconnecting from match channel");
-			api.leaveMatch(matchStore.currentMatchId || "", auth$.client.value).then(() => {
+			api.leaveMatch(store.currentMatchId || "", auth$.client.value).then(() => {
 				// TODO: Implement actual WebSocket disconnection when WebSocket system is integrated
 				// This would typically involve:
 				// - Removing event listeners
 				// - Closing WebSocket connections
 				// - Clearing any pending timeouts/intervals
 
-				matchStore.isConnectedToMatch = false;
+				store.isConnectedToMatch = false;
 				console.log("Disconnected from match channel successfully");
 			});
 		} catch (error) {
@@ -336,7 +338,7 @@ const useMatch = () => {
 
 			// Start new PVE match
 			await leaveMatch();
-			matchStore.matchResult = {
+			store.matchResult = {
 				result: 'loading',
 				duration: 0,
 				playerHealth: 100,
@@ -365,7 +367,7 @@ const useMatch = () => {
 	 * Get current match statistics
 	 */
 	function getMatchStats() {
-		const history = matchStore.matchHistory;
+		const history = store.matchHistory;
 		const totalMatches = history.length;
 		const victories = history.filter(m => m.result === 'victory').length;
 		const defeats = history.filter(m => m.result === 'defeat').length;
@@ -382,7 +384,7 @@ const useMatch = () => {
 
 	// Clean up on component unmount
 	onUnmounted(() => {
-		if (matchStore.isConnectedToMatch) {
+		if (store.isConnectedToMatch) {
 			cleanup();
 		}
 	});
@@ -447,15 +449,40 @@ const useMatch = () => {
 		});
 	}
 
+	function onWebsocketEvents(ws: WebsocketClient): NamespaceActions {
+		return {
+			'match.action': (data) => {
+				console.log("Attack action received:", data);
+				if (Guards.IsNil(store.currentChannelId)) {
+					throw new Error("Cannot send action: No current channel ID");
+				}
+
+				if (Guards.IsNil(auth$.client.value)) {
+					throw new Error("Cannot send action: No authenticated client");
+				}
+
+				const wsm: WebsocketStructuredMessage = {
+					type: 'match.action',
+					content: { action: 'attack', ...data },
+					channel: store.currentChannelId,
+					timestamp: new Date().toISOString(),
+					client: auth$.client.value,
+					metadata: {},
+				}
+				ws.send(JSON.stringify(wsm));
+			}
+		}
+	}
+
 
 
 	return {
 		// Legacy state for backward compatibility
-		state: computed(() => matchStore.matchState),
+		state: computed(() => store.matchState),
 		// Computed properties
 		inMatch,
 		inLobby,
-		isFinished: computed(() => matchStore.matchState === E_MatchState.FINISHED),
+		isFinished: computed(() => store.matchState === E_MatchState.FINISHED),
 		// Match operations
 		challenge,
 		accept,
@@ -470,9 +497,12 @@ const useMatch = () => {
 		startRematch,
 		returnToLobby,
 		getMatchStats,
+		leaveMatch,
 		// Store access for advanced usage
-		matchStore,
+		store,
 		loading,
+		// Websocket Logic
+		onWebsocketEvents
 	};
 };
 export default useMatch;

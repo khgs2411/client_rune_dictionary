@@ -2,214 +2,31 @@
 	<div class="match">
 		<div class="viewport" :class="{ opaque: inLobby, background: inMatch }">
 			<div class="content">
-				<div class="flex gap large wrap match-card-wrapper" v-if="inLobby">
-					<div v-for="card in matchCards" :key="card.type" class="match-card-wrapper-outer">
-						<span v-if="card.wip" class="wip-badge">WIP</span>
-						<Card v-ripple
-							:class="['match-card', card.type, { disabled: card.disabled || card.loading, loading: card.loading }]"
-							@click="!card.disabled && !card.loading && handleMatchType(card)">
-							<template #header>
-								<div class="card-header-container">
-									<img :alt="`${card.type} header`" class="card-image"
-										:src="`${IMAGE_URL}match.webp`" />
-									<div v-if="card.loading" class="loading-overlay">
-										<ProgressSpinner size="large" stroke-width="3" />
-										<p>Starting match...</p>
-									</div>
-								</div>
-							</template>
-							<template #title>
-								<span class="text-center flex">{{ card.title }}</span>
-							</template>
-							<template #subtitle>
-								<span class="text-center flex">{{ card.subtitle }}</span>
-							</template>
-							<template #content>
-								<p class="flex text-center">{{ card.content }}</p>
-							</template>
-						</Card>
-					</div>
-				</div>
-				<!-- Match Result Screen -->
-				<div v-if="isFinished" class="match-result-screen">
-					<div class="result-container">
-						<div class="result-header">
-							<div class="result-icon" :class="getResultIconClass()">
-								<i :class="getResultIcon()"></i>
-							</div>
-							<h2 class="result-title">{{ getResultTitle() }}</h2>
-							<p class="result-subtitle">{{ getResultSubtitle() }}</p>
-						</div>
+				<MatchLobby v-if="inLobby" :match-cards="matchCards" :image-url="IMAGE_URL"
+					@match-type-selected="handleMatchType" />
+				<MatchResult v-if="isFinished" :match-result="match$.store.matchResult"
+					:session-stats="getSessionStats()" :is-loading="match$.loading.api || match$.loading.match"
+					@rematch="handleRematch" @return-to-lobby="handleReturnToLobby" />
 
-						<div class="result-stats">
-							<div class="stat-row">
-								<span class="stat-label">Match Duration:</span>
-								<span class="stat-value">{{ formatDuration(match$.matchStore.matchResult?.duration || 0)
-									}}</span>
-							</div>
-							<div class="stat-row">
-								<span class="stat-label">Your Health:</span>
-								<span class="stat-value">{{ match$.matchStore.matchResult?.playerHealth || 0 }}
-									HP</span>
-							</div>
-							<div class="stat-row">
-								<span class="stat-label">Enemy Health:</span>
-								<span class="stat-value">{{ match$.matchStore.matchResult?.enemyHealth || 0 }} HP</span>
-							</div>
-							<div class="stat-row">
-								<span class="stat-label">Actions Performed:</span>
-								<span class="stat-value">{{ match$.matchStore.matchResult?.actionsPerformed || 0
-									}}</span>
-							</div>
-						</div>
-
-						<div class="session-stats">
-							<h3>Session Statistics</h3>
-							<div class="stats-grid">
-								<div class="stat-item">
-									<span class="stat-number">{{ getSessionStats().victories }}</span>
-									<span class="stat-text">Victories</span>
-								</div>
-								<div class="stat-item">
-									<span class="stat-number">{{ getSessionStats().defeats }}</span>
-									<span class="stat-text">Defeats</span>
-								</div>
-								<div class="stat-item">
-									<span class="stat-number">{{ getSessionStats().winRate }}%</span>
-									<span class="stat-text">Win Rate</span>
-								</div>
-								<div class="stat-item">
-									<span class="stat-number">{{ getSessionStats().totalMatches }}</span>
-									<span class="stat-text">Total Matches</span>
-								</div>
-							</div>
-						</div>
-
-						<div class="result-actions">
-							<Button :loading="match$.loading.api || match$.loading.match" @click="handleRematch"
-								severity="success" size="large" class="rematch-button">
-								<i class="pi pi-refresh"></i>
-								Rematch
-							</Button>
-							<Button @click="handleReturnToLobby" :disabled="match$.loading.api || match$.loading.match"
-								severity="secondary" size="large" class="lobby-button">
-								<i class="pi pi-home"></i>
-								Return to Lobby
-							</Button>
-						</div>
-					</div>
-				</div>
-
-				<!-- Game Interface - Unified for PVE and PVP -->
-				<div v-if="inMatch" class="game-interface">
-					<!-- Game Header -->
-					<div class="game-header">
-						<div class="match-info">
-							<span class="match-type">{{ getMatchTypeLabel() }}</span>
-							<span class="match-id">Match: {{ match$.matchStore.currentMatchId || 'Unknown' }}</span>
-						</div>
-					</div>
-
-					<!-- Player vs Enemy Display -->
-					<div class="battle-area">
-						<!-- Player Section -->
-						<div class="player-section">
-							<div class="player-card">
-								<div class="player-avatar">
-									<i class="pi pi-user" style="font-size: 2rem; color: var(--p-primary-color);"></i>
-								</div>
-								<div class="player-info">
-									<h3>You</h3>
-									<div class="health-bar">
-										<div class="health-fill"
-											:style="{ width: `${(match$.matchStore.gameState.playerHealth / match$.matchStore.gameState.playerMaxHealth) * 100}%` }">
-										</div>
-										<span class="health-text">{{ match$.matchStore.gameState.playerHealth }} / {{
-											match$.matchStore.gameState.playerMaxHealth }}</span>
-									</div>
-								</div>
-								<div class="turn-indicator" :class="{ active: isPlayerTurn }">
-									<span v-if="isPlayerTurn">Your Turn</span>
-								</div>
-							</div>
-						</div>
-
-						<!-- VS Divider -->
-						<div class="vs-divider">
-							<span class="vs-text">VS</span>
-						</div>
-
-						<!-- Enemy Section -->
-						<div class="enemy-section">
-							<div class="enemy-card">
-								<div class="enemy-avatar">
-									<i class="pi pi-android" style="font-size: 2rem; color: var(--p-orange-500);"></i>
-								</div>
-								<div class="enemy-info">
-									<h3>{{ getEnemyName() }}</h3>
-									<div class="health-bar">
-										<div class="health-fill enemy"
-											:style="{ width: `${(match$.matchStore.gameState.enemyHealth / match$.matchStore.gameState.enemyMaxHealth) * 100}%` }">
-										</div>
-										<span class="health-text">{{ match$.matchStore.gameState.enemyHealth }} / {{
-											match$.matchStore.gameState.enemyMaxHealth }}</span>
-									</div>
-								</div>
-								<div class="turn-indicator" :class="{ active: isEnemyTurn }">
-									<span v-if="isEnemyTurn">{{ getEnemyName() }}'s Turn</span>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<!-- Game Actions -->
-					<div class="game-actions">
-						<div class="action-panel">
-							<h4>Actions</h4>
-							<div class="actions-grid">
-								<Button :disabled="!isPlayerTurn || isProcessingAction" @click="performAttack"
-									severity="danger" size="large" class="attack-button">
-									<i class="pi pi-bolt"></i>
-									Attack
-								</Button>
-								<!-- Demo button for testing match end -->
-								<Button @click="triggerMatchEnd('victory')" severity="success" size="small"
-									class="demo-button">
-									<i class="pi pi-trophy"></i>
-									Test Victory
-								</Button>
-							</div>
-						</div>
-					</div>
-
-					<!-- Game Log -->
-					<ScrollPanel class="game-log" :style="{ height: '200px', width: '100%' }">
-						<h4>Combat Log</h4>
-						<div class="log-entries">
-							<div v-for="(entry, index) in gameLog" :key="index" class="log-entry" :class="entry.type">
-								<span class="log-timestamp">{{ formatTime(entry.timestamp) }}</span>
-								<span class="log-message">{{ entry.message }}</span>
-							</div>
-							<div v-if="gameLog.length === 0" class="log-entry system">
-								<span class="log-message">Match started! Waiting for first turn...</span>
-							</div>
-						</div>
-					</ScrollPanel>
-				</div>
+				<GameInterface v-if="inMatch" :match-type-label="getMatchTypeLabel()"
+					:match-id="match$.store.currentMatchId" :enemy-name="getEnemyName()"
+					:game-state="match$.store.gameState" :is-player-turn="isPlayerTurn" :is-enemy-turn="isEnemyTurn"
+					:is-processing-action="isProcessingAction" :game-log="gameLog" @attack="performAttack"
+					@test-victory="triggerMatchEnd('victory')" />
 			</div>
 		</div>
 	</div>
 </template>
 
 <script lang="ts" setup>
-	import Button from "primevue/button";
-import Card from "primevue/card";
-import ProgressSpinner from "primevue/progressspinner";
-import ScrollPanel from "primevue/scrollpanel";
+	import { Rxjs } from "topsyde-utils";
 import { ref } from "vue";
-import useMatch from "../common/composables/useMatch";
 import useUtils from "../common/composables/useUtils";
 import { MatchCard, MatchType } from "../common/types/match.types";
+import GameInterface from "../components/match/GameInterface.vue";
+import MatchLobby from "../components/match/MatchLobby.vue";
+import MatchResult from "../components/match/MatchResult.vue";
+import useMatch from "../components/match/useMatch";
 
 	const utils = useUtils();
 
@@ -323,20 +140,32 @@ import { MatchCard, MatchType } from "../common/types/match.types";
 			isProcessingAction.value = true;
 
 			// Update action count
-			match$.matchStore.gameState.actionsPerformed++;
+			match$.store.gameState.actionsPerformed++;
+			const rxjs = Rxjs.GetInstance<Rxjs<'match'>>();
+
+			rxjs.next('match', {
+				cta: 'match.action',
+				data: {
+					type: 'match.action',
+					actionType: 'attack',
+					matchId: match$.store.currentMatchId, 
+					channelId: match$.store.currentChannelId
+				}
+			});
 
 			// Simulate damage - player deals 15-25 damage to enemy
 			const playerDamage = Math.floor(Math.random() * 11) + 15; // 15-25 damage
-			match$.matchStore.gameState.enemyHealth -= playerDamage;
-			if (match$.matchStore.gameState.enemyHealth < 0) {
-				match$.matchStore.gameState.enemyHealth = 0;
+			match$.store.gameState.enemyHealth -= playerDamage;
+			
+			if (match$.store.gameState.enemyHealth < 0) {
+				match$.store.gameState.enemyHealth = 0;
 			}
 
 			// Add player action to log
-			addLogEntry("player", `You attack for ${playerDamage} damage! Enemy health: ${match$.matchStore.gameState.enemyHealth}`);
+			addLogEntry("player", `You attack for ${playerDamage} damage! Enemy health: ${match$.store.gameState.enemyHealth}`);
 
 			// Check if enemy is defeated
-			if (match$.matchStore.gameState.enemyHealth <= 0) {
+			if (match$.store.gameState.enemyHealth <= 0) {
 				triggerMatchEnd('victory');
 				return;
 			}
@@ -383,15 +212,15 @@ import { MatchCard, MatchType } from "../common/types/match.types";
 	function simulateEnemyAction() {
 		// Simulate damage - enemy deals 10-20 damage to player
 		const enemyDamage = Math.floor(Math.random() * 11) + 10; // 10-20 damage
-		match$.matchStore.gameState.playerHealth -= enemyDamage;
-		if (match$.matchStore.gameState.playerHealth < 0) {
-			match$.matchStore.gameState.playerHealth = 0;
+		match$.store.gameState.playerHealth -= enemyDamage;
+		if (match$.store.gameState.playerHealth < 0) {
+			match$.store.gameState.playerHealth = 0;
 		}
 
-		addLogEntry("enemy", `${getEnemyName()} attacks for ${enemyDamage} damage! Your health: ${match$.matchStore.gameState.playerHealth}`);
+		addLogEntry("enemy", `${getEnemyName()} attacks for ${enemyDamage} damage! Your health: ${match$.store.gameState.playerHealth}`);
 
 		// Check if player is defeated
-		if (match$.matchStore.gameState.playerHealth <= 0) {
+		if (match$.store.gameState.playerHealth <= 0) {
 			triggerMatchEnd('defeat');
 			return;
 		}
@@ -407,7 +236,7 @@ import { MatchCard, MatchType } from "../common/types/match.types";
 	 */
 	function triggerMatchEnd(result: 'victory' | 'defeat' | 'draw' | 'disconnect') {
 		addLogEntry("system", `Match ended: ${result.toUpperCase()}!`);
-		
+
 		// Use the enhanced match end handler from useMatch
 		const mockData = { result };
 		match$.onGameEvent({
@@ -433,12 +262,6 @@ import { MatchCard, MatchType } from "../common/types/match.types";
 		}
 	}
 
-	/**
-	 * Format timestamp for display
-	 */
-	function formatTime(timestamp: Date): string {
-		return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-	}
 
 	async function handlePVPMatch(card: MatchCard) {
 		card.loading = true;
@@ -452,82 +275,6 @@ import { MatchCard, MatchType } from "../common/types/match.types";
 		if (card) card[property] = value;
 	}
 
-	// Match result functions
-	function getResultTitle(): string {
-		const result = match$.matchStore.matchResult?.result;
-		switch (result) {
-			case 'victory':
-				return 'Victory!';
-			case 'defeat':
-				return 'Defeat';
-			case 'draw':
-				return 'Draw';
-			case 'disconnect':
-				return 'Disconnected';
-			case 'loading':
-				return 'Loading...';
-			default:
-				return 'Match Complete';
-		}
-	}
-
-	function getResultSubtitle(): string {
-		const result = match$.matchStore.matchResult?.result;
-		switch (result) {
-			case 'victory':
-				return 'You have successfully defeated the AI opponent!';
-			case 'defeat':
-				return 'The AI opponent proved to be too strong this time.';
-			case 'draw':
-				return 'Both fighters fell in an epic battle!';
-			case 'disconnect':
-				return 'The match ended due to a connection issue.';
-			case 'loading':
-				return 'Loading the match, please wait...';
-			default:
-				return 'The match has concluded.';
-		}
-	}
-
-	function getResultIcon(): string {
-		const result = match$.matchStore.matchResult?.result;
-		switch (result) {
-			case 'victory':
-				return 'pi pi-trophy';
-			case 'defeat':
-				return 'pi pi-times-circle';
-			case 'draw':
-				return 'pi pi-minus-circle';
-			case 'disconnect':
-				return 'pi pi-wifi';
-			case 'loading':
-				return 'pi pi-spinner pi-spin';
-			default:
-				return 'pi pi-check-circle';
-		}
-	}
-
-	function getResultIconClass(): string {
-		const result = match$.matchStore.matchResult?.result;
-		switch (result) {
-			case 'victory':
-				return 'victory';
-			case 'defeat':
-				return 'defeat';
-			case 'draw':
-				return 'draw';
-			case 'disconnect':
-				return 'disconnect';
-			default:
-				return 'default';
-		}
-	}
-
-	function formatDuration(seconds: number): string {
-		const minutes = Math.floor(seconds / 60);
-		const remainingSeconds = seconds % 60;
-		return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-	}
 
 	function getSessionStats() {
 		return match$.getMatchStats();
@@ -641,401 +388,10 @@ import { MatchCard, MatchType } from "../common/types/match.types";
 		align-items: center;
 		height: 100%;
 		width: 100%;
-		padding: 2rem;
+		padding: 0;
 	}
 
-	.match-card-wrapper {
-		width: 100%;
-		justify-content: center;
-		height: 100%;
-	}
 
-	.match-card-wrapper-outer {
-		position: relative;
-		display: inline-block;
-	}
-
-	.match-card {
-		width: 35rem;
-		height: 450px;
-		overflow: hidden;
-		position: relative;
-		cursor: pointer;
-		box-shadow:
-			0 4px 8px rgba(0, 0, 0, 0.1),
-			0 6px 20px rgba(0, 0, 0, 0.1);
-		transition:
-			transform 0.3s ease,
-			box-shadow 0.3s ease;
-		background: var(--p-content-background);
-
-		&:hover {
-			transform: translateY(-5px);
-			box-shadow:
-				0 6px 12px rgba(0, 0, 0, 0.15),
-				0 8px 24px rgba(0, 0, 0, 0.15);
-		}
-
-		.card-image {
-			width: 100%;
-			height: 250px;
-			object-fit: cover;
-			transition: transform 0.3s ease;
-		}
-
-		&.pve .card-image {
-			filter: hue-rotate(180deg) brightness(1.1);
-			transform: scaleX(-1);
-		}
-
-		&::before {
-			content: "";
-			position: absolute;
-			top: 0px;
-			left: 0px;
-			right: 0px;
-			bottom: 0px;
-			border-radius: var(--p-card-border-radius);
-			border: 1px solid var(--p-primary-color);
-			opacity: 0.3;
-			pointer-events: none;
-		}
-
-		&.disabled {
-			pointer-events: none;
-			opacity: 0.6;
-			filter: grayscale(0.2);
-			cursor: not-allowed;
-
-			.wip-badge {
-				opacity: 1 !important;
-				filter: none !important;
-			}
-		}
-
-		.card-header-container {
-			position: relative;
-		}
-
-		&.loading {
-			opacity: 0.8;
-			pointer-events: none;
-		}
-	}
-
-	.loading-overlay {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: var-to-rgba(--p-content-background, 0.9);
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		border-radius: var(--p-card-border-radius);
-		z-index: 5;
-
-		p {
-			margin-top: 1rem;
-			font-size: 1.1rem;
-			font-weight: 500;
-			color: var(--p-text-color);
-		}
-	}
-
-	/* Game Interface Styles */
-	.game-interface {
-		display: flex;
-		flex-direction: column;
-		gap: $viewSpacing;
-		padding: $viewSpacing;
-		height: 100%;
-		width: 100%;
-		max-width: 1200px;
-		margin: 0 auto;
-	}
-
-	.game-header {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		padding: $viewSpacing;
-		background: var(--p-content-background);
-		border-radius: var(--p-border-radius-lg);
-		box-shadow: 0 2px 8px var-to-rgba(--p-surface-900, 0.1);
-	}
-
-	.match-info {
-		display: flex;
-		gap: calc($viewSpacing * 2);
-		align-items: center;
-	}
-
-	.match-type {
-		font-size: 1.2rem;
-		font-weight: bold;
-		color: var(--p-primary-color);
-	}
-
-	.match-id {
-		font-size: 0.9rem;
-		color: var(--p-text-muted-color);
-	}
-
-	.battle-area {
-		display: grid;
-		grid-template-columns: 1fr auto 1fr;
-		gap: calc($viewSpacing * 2);
-		align-items: center;
-		padding: calc($viewSpacing * 2);
-		background: var(--p-content-background);
-		border-radius: var(--p-border-radius-lg);
-		box-shadow: 0 2px 8px var-to-rgba(--p-surface-900, 0.1);
-	}
-
-	.player-card,
-	.enemy-card {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: $viewSpacing;
-		padding: calc($viewSpacing * 1.5);
-		border-radius: var(--p-border-radius-md);
-		border: 2px solid transparent;
-		transition: border-color 0.3s ease;
-	}
-
-	.player-card {
-		border-color: var(--p-primary-color);
-	}
-
-	.enemy-card {
-		border-color: var(--p-orange-500);
-	}
-
-	.player-avatar,
-	.enemy-avatar {
-		width: 60px;
-		height: 60px;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: var(--p-surface-100);
-		border: 3px solid;
-	}
-
-	.player-avatar {
-		border-color: var(--p-primary-color);
-	}
-
-	.enemy-avatar {
-		border-color: var(--p-orange-500);
-	}
-
-	.player-info,
-	.enemy-info {
-		text-align: center;
-	}
-
-	.player-info h3,
-	.enemy-info h3 {
-		margin: 0;
-		font-size: 1.1rem;
-		font-weight: bold;
-	}
-
-	.health-bar {
-		position: relative;
-		width: 120px;
-		height: 20px;
-		background: var(--p-surface-200);
-		border-radius: var(--p-border-radius-md);
-		overflow: hidden;
-		margin: $spacing 0;
-	}
-
-	.health-fill {
-		height: 100%;
-		background: var(--p-green-500);
-		transition: width 0.5s ease;
-		border-radius: var(--p-border-radius-md);
-	}
-
-	.health-fill.enemy {
-		background: var(--p-orange-500);
-	}
-
-	.health-text {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		font-size: 0.8rem;
-		font-weight: bold;
-		color: var(--p-surface-0);
-		text-shadow: 1px 1px 2px var-to-rgba(--p-surface-900, 0.7);
-	}
-
-	.turn-indicator {
-		padding: $spacing $viewSpacing;
-		border-radius: var(--p-border-radius-md);
-		font-weight: bold;
-		font-size: 0.9rem;
-		opacity: 0.3;
-		transition: opacity 0.3s ease;
-	}
-
-	.turn-indicator.active {
-		opacity: 1;
-		background: var(--p-primary-color);
-		color: var(--p-primary-contrast-color);
-	}
-
-	.vs-divider {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.vs-text {
-		font-size: 2rem;
-		font-weight: bold;
-		color: var(--p-text-muted-color);
-		background: var(--p-surface-100);
-		padding: $viewSpacing;
-		border-radius: 50%;
-		width: 60px;
-		height: 60px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.game-actions {
-		background: var(--p-content-background);
-		border-radius: var(--p-border-radius-lg);
-		padding: calc($viewSpacing * 1.5);
-		box-shadow: 0 2px 8px var-to-rgba(--p-surface-900, 0.1);
-	}
-
-	.action-panel h4 {
-		margin: 0 0 $viewSpacing 0;
-		color: var(--p-text-color);
-	}
-
-	.actions-grid {
-		display: flex;
-		gap: $viewSpacing;
-		justify-content: center;
-	}
-
-	.attack-button {
-		min-width: 120px;
-	}
-
-	.demo-button {
-		min-width: 100px;
-		opacity: 0.7;
-		font-size: 0.8rem;
-	}
-
-	.game-log {
-		background: var(--p-content-background);
-		border-radius: var(--p-border-radius-lg);
-		padding: calc($viewSpacing * 1.5);
-		box-shadow: 0 2px 8px var-to-rgba(--p-surface-900, 0.1);
-	}
-
-	.game-log h4 {
-		margin: 0 0 $viewSpacing 0;
-		color: var(--p-text-color);
-	}
-
-	.log-entries {
-		display: flex;
-		flex-direction: column;
-		gap: $spacing;
-	}
-
-	.log-entry {
-		display: flex;
-		gap: $spacing;
-		padding: $spacing;
-		border-radius: var(--p-border-radius-sm);
-		font-size: 0.9rem;
-		color: var(--p-content-background);
-	}
-
-	.log-entry.player {
-		background: var(--p-primary-50);
-		border-left: 3px solid var(--p-primary-color);
-	}
-
-	.log-entry.enemy {
-		background: var(--p-orange-50);
-		border-left: 3px solid var(--p-orange-500);
-	}
-
-	.log-entry.system {
-		background: var(--p-surface-100);
-		border-left: 3px solid var(--p-surface-400);
-	}
-
-	.log-timestamp {
-		font-size: 0.8rem;
-		color: var(--p-text-muted-color);
-		white-space: nowrap;
-	}
-
-	.log-message {
-		flex: 1;
-	}
-
-	/* Responsive Design */
-	@media screen and (max-width: 768px) {
-		.battle-area {
-			grid-template-columns: 1fr;
-			gap: $viewSpacing;
-			text-align: center;
-		}
-
-		.vs-divider {
-			order: 1;
-		}
-
-		.player-section {
-			order: 0;
-		}
-
-		.enemy-section {
-			order: 2;
-		}
-	}
-
-	.wip-badge {
-		position: absolute;
-		top: 12px;
-		right: 12px;
-		background: linear-gradient(90deg, var(--p-primary-color) 0%, var(--p-primary-hover-color) 100%);
-		color: var(--p-primary-contrast-color);
-		font-weight: bold;
-		font-size: 0.95rem;
-		padding: 0.35em 1em;
-		border-radius: var(--p-card-border-radius, 1em);
-		box-shadow:
-			0 2px 8px var(--p-content-background, #fff),
-			0 2px 8px rgba(0, 0, 0, 0.12);
-		z-index: 10;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		pointer-events: none;
-		opacity: 1;
-		filter: none;
-		isolation: isolate;
-	}
 
 	/* Match Result Screen Styles */
 	.match-result-screen {

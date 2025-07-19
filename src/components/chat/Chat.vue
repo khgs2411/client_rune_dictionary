@@ -2,7 +2,7 @@
 	<ChatWindow :container-ref="containerRef" storageKey="chat" :minWidth="300" :minHeight="200"
 		:initialSize="{ width: 600, height: 500 }" @logout="handleLogout">
 		<template #title>Connected as: <span class="client-name">{{ client ? `(${client.name})` : ""
-				}}</span></template>
+		}}</span></template>
 		<template #controls>
 			<div class="status-indicator" :class="status"></div>
 		</template>
@@ -42,11 +42,11 @@ import { Button, InputGroup, InputGroupAddon, InputText } from "primevue";
 import { E_WebsocketMessageType, WebsocketEntityData, WebsocketStructuredMessage } from "topsyde-utils";
 import { computed, nextTick, onMounted, onUnmounted, Ref, ref, useTemplateRef, watch } from "vue";
 import API from "../../api/app.api";
-import useMatch from "../../common/composables/useMatch";
 import useMessenger from "../../common/composables/useMessenger";
 import useUtils from "../../common/composables/useUtils";
 import ChatMessage from "../chat/ChatMessage.vue";
 import ChatWindow from "../chat/ChatWindow.vue";
+import useMatch from "../match/useMatch";
 
 	const props = defineProps<{
 		client: WebsocketEntityData;
@@ -66,7 +66,7 @@ import ChatWindow from "../chat/ChatWindow.vue";
 	const mode: Ref<"broadcast" | "whisper"> = ref("broadcast");
 	const targetEntity = ref<WebsocketEntityData | null>(null);
 	const inputRef = useTemplateRef("inputRef");
-	
+
 	const { status, send, close } = props.ws;
 	const messenger = useMessenger(send);
 

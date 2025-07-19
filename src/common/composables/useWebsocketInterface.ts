@@ -1,16 +1,20 @@
-import { UseWebSocketOptions } from "@vueuse/core";
+import { UseWebSocketOptions, UseWebSocketReturn } from "@vueuse/core";
 import { Lib, WebsocketEntityData, WebsocketStructuredMessage } from "topsyde-utils";
 import { ref, Ref } from "vue";
 import { AutoReconnect, Heartbeat } from "../types/websocket.types";
 import useWSM, { I_UseWSM } from "./useWSM";
-import useWebsocketLogic from "./useWebsocketLogic";
+import useWebsocketEventHandler from "./useWebsocketEventHandler";
 
 export const WEBSOCKET_HOST = import.meta.env.VITE_WS_HOST || "wss://topsyde-gaming.duckdns.org:3000";
 console.log("WebSocket Host:", WEBSOCKET_HOST);
 const PING_PONG_INTERVAL = 20;
 
+export type WebsocketClient = UseWebSocketReturn<WebsocketStructuredMessage>;
+
+
 const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages: Ref<WebsocketStructuredMessage[]>): UseWebSocketOptions => {
-	const logic$ = useWebsocketLogic();
+	const eventHandler = useWebsocketEventHandler();
+	
 	const heartbeatOptions: Ref<Heartbeat> = ref({
 		interval: PING_PONG_INTERVAL * 1000,
 		pongTimeout: PING_PONG_INTERVAL * 1000,
@@ -43,7 +47,7 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 
 	function onActionReceived(ws: WebSocket, event: MessageEvent, wsm$: I_UseWSM) {
 		logMessage("Received action", ws, event);
-		logic$.process(wsm$);
+		eventHandler.process(wsm$);
 	}
 
 	function handleConnected(ws: WebSocket) {

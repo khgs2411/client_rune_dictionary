@@ -1,22 +1,13 @@
-import { E_WebsocketMessageType } from "topsyde-utils";
-import useMatch from "./useMatch";
-import { I_UseWSM } from "./useWSM";
+import { useRxjs } from "topsyde-utils";
+import useMatch from "../../components/match/useMatch";
+import { WebsocketClient } from "./useWebsocketInterface";
 
-const useWebsocketLogic = () => {
-	const match$ = useMatch();
-	
-	function process(wsm$: I_UseWSM) {
-		if (wsm$.is(E_WebsocketMessageType.SYSTEM)) {
-			console.log(wsm$.data);
-		}
+const useWebsocketLogic = (ws: WebsocketClient) => {
+    const match$ = useMatch();
+    useRxjs('match', match$.onWebsocketEvents(ws));
 
-		if (wsm$.is(E_WebsocketMessageType.ERROR)) {
-			console.log(wsm$.data);
-		}
+   
 
-		if (wsm$.is("match")) match$.onMatchRequest(wsm$);
-	}
+}
 
-	return { process };
-};
 export default useWebsocketLogic;
