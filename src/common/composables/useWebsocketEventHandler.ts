@@ -16,6 +16,10 @@ const useWebsocketEventHandler = () => {
 		}
 
 		else if (wsm$.is("match")) match$.onMatchRequest(wsm$);
+		else if (wsm$.type.value?.startsWith("match.")) {
+			// Route match game events to the game event handler
+			match$.onGameEvent(wsm$);
+		}
 		else {
 			console.log(wsm$.data)
 		}

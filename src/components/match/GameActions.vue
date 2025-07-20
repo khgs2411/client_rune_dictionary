@@ -12,16 +12,7 @@
 					<i class="pi pi-bolt"></i>
 					Attack
 				</Button>
-				<!-- Demo button for testing match end -->
-				<Button 
-					@click="$emit('testVictory')" 
-					severity="success" 
-					class="demo-button"
-					size="small"
-				>
-					<i class="pi pi-trophy"></i>
-					Test Victory
-				</Button>
+				<!-- Additional actions can be added here when implemented server-side -->
 			</div>
 		</div>
 	</div>
@@ -37,7 +28,6 @@ interface Props {
 
 interface Emits {
 	(e: 'attack'): void;
-	(e: 'testVictory'): void;
 }
 
 defineProps<Props>();
@@ -75,9 +65,6 @@ defineEmits<Emits>();
 				}
 			}
 
-			.demo-button {
-				opacity: 0.7;
-			}
 		}
 	}
 }
@@ -98,8 +85,7 @@ defineEmits<Emits>();
 	.actions-grid {
 		flex-direction: column;
 		
-		.attack-button,
-		.demo-button {
+		.attack-button {
 			width: 100%;
 			min-width: unset;
 		}

@@ -34,6 +34,11 @@ const useMatch = () => {
 	// Use Pinia store for persistent state
 	const store = useMatchStore();
 
+	// Callback functions for frontend integration
+	let onPlayerTurnCallback: (() => void) | null = null;
+	let onEnemyTurnCallback: (() => void) | null = null;
+	let addLogEntryCallback: ((type: string, message: string) => void) | null = null;
+
 	async function leaveMatch() {
 		if (store.isConnectedToMatch) {
 			loading.api = true;
@@ -115,11 +120,18 @@ const useMatch = () => {
 	 */
 	function setupMatchEventListeners() {
 		console.log("Setting up match event listeners for PVE");
-		// TODO: Add specific event listeners for:
-		// - Turn-based gameplay events
-		// - NPC action events  
-		// - Game state updates
-		// - Match end events
+		
+		// The onGameEvent handler is now properly connected through useWebsocketEventHandler
+		// and will receive the following server events:
+		// - match.damage.dealt: When damage is dealt to any participant
+		// - match.health.update: When participant health changes
+		// - match.turn.start: When a new turn begins
+		// - match.turn.end: When a turn ends
+		// - match.victory: When match ends with victory/defeat
+		// - match.error: When action validation fails
+		// - match.state.update: For general state synchronization
+		
+		console.log("Match event listeners configured for server-authoritative combat");
 	}
 
 	/**
@@ -141,6 +153,25 @@ const useMatch = () => {
 				break;
 			case "match.end":
 				handleMatchEnd(wsm$.data);
+				break;
+			// New server events for server-authoritative combat
+			case "match.damage.dealt":
+				handleDamageDealt(wsm$.data);
+				break;
+			case "match.health.update":
+				handleHealthUpdate(wsm$.data);
+				break;
+			case "match.turn.start":
+				handleTurnStart(wsm$.data);
+				break;
+			case "match.turn.end":
+				handleTurnEnd(wsm$.data);
+				break;
+			case "match.victory":
+				handleVictory(wsm$.data);
+				break;
+			case "match.error":
+				handleMatchError(wsm$.data);
 				break;
 			default:
 				console.log("Unknown game event type:", wsm$.data?.type);
@@ -218,27 +249,17 @@ const useMatch = () => {
 	}
 
 	/**
-	 * Determine match result based on game state and data
+	 * Determine match result - now server authoritative only
 	 */
 	function determineMatchResult(data: any): 'victory' | 'defeat' | 'disconnect' | 'draw' {
-		// If specific result provided in data
+		// Server always provides the result - no frontend logic needed
 		if (data?.result) {
 			return data.result;
 		}
 
-		// Check health values
-		const playerHealth = store.gameState.playerHealth;
-		const enemyHealth = store.gameState.enemyHealth;
-
-		if (playerHealth <= 0 && enemyHealth <= 0) {
-			return 'draw';
-		} else if (playerHealth <= 0) {
-			return 'defeat';
-		} else if (enemyHealth <= 0) {
-			return 'victory';
-		}
-
-		// Default to disconnect if no clear winner
+		// If no result provided by server, default to disconnect
+		// This should not happen in normal server-authoritative flow
+		console.warn('Match ended without server-provided result, defaulting to disconnect');
 		return 'disconnect';
 	}
 
@@ -273,6 +294,151 @@ const useMatch = () => {
 		} catch (error) {
 			console.error("Failed to save match result:", error);
 		}
+	}
+
+	/**
+	 * Handle damage dealt events from server
+	 */
+	function handleDamageDealt(data: any) {
+		console.log("Damage dealt:", data);
+		
+		const { attackerId, targetId, damage, message } = data.content || data;
+		const currentUserId = auth$.client.value?.id;
+		
+		// Update UI with damage information (could trigger animations, floating text, etc.)
+		utils.toast.info(message, "center");
+		
+		// Update actions performed counter
+		store.gameState.actionsPerformed++;
+		
+		// Add to game log if callback is available
+		if (addLogEntryCallback) {
+			const logType = attackerId === currentUserId ? "player" : "enemy";
+			addLogEntryCallback(logType, message);
+		}
+		
+		console.log(`${attackerId} dealt ${damage} damage to ${targetId}`);
+	}
+
+	/**
+	 * Handle health update events from server
+	 */
+	function handleHealthUpdate(data: any) {
+		console.log("Health update:", data);
+		
+		const { entityId, health, maxHealth } = data.content || data;
+		const currentUserId = auth$.client.value?.id;
+		
+		// Update health in game state based on entity
+		if (entityId === currentUserId) {
+			// Update player health
+			store.gameState.playerHealth = health;
+			store.gameState.playerMaxHealth = maxHealth;
+		} else {
+			// Update enemy health
+			store.gameState.enemyHealth = health;
+			store.gameState.enemyMaxHealth = maxHealth;
+		}
+		
+		console.log(`Health updated for ${entityId}: ${health}/${maxHealth}`);
+	}
+
+	/**
+	 * Handle turn start events from server
+	 */
+	function handleTurnStart(data: any) {
+		console.log("Turn start:", data);
+		
+		const { entityId, turnNumber } = data.content || data;
+		const currentUserId = auth$.client.value?.id;
+		
+		// Update turn state
+		if (entityId === currentUserId) {
+			store.gameState.currentTurn = 'player';
+			utils.toast.info("Your turn!", "center");
+			// Call frontend callback to update UI
+			if (onPlayerTurnCallback) {
+				onPlayerTurnCallback();
+			}
+		} else {
+			store.gameState.currentTurn = 'enemy';
+			utils.toast.info("Enemy's turn...", "center");
+			// Call frontend callback to update UI
+			if (onEnemyTurnCallback) {
+				onEnemyTurnCallback();
+			}
+		}
+		
+		console.log(`Turn ${turnNumber} started for ${entityId}`);
+	}
+
+	/**
+	 * Handle turn end events from server
+	 */
+	function handleTurnEnd(data: any) {
+		console.log("Turn end:", data);
+		
+		const { entityId, turnNumber } = data.content || data;
+		// Could add turn end animations or effects here
+		
+		console.log(`Turn ${turnNumber} ended for ${entityId}`);
+	}
+
+	/**
+	 * Handle victory events from server
+	 */
+	function handleVictory(data: any) {
+		console.log("Victory event:", data);
+		
+		const { result, winnerId, message } = data.content || data;
+		const currentUserId = auth$.client.value?.id;
+		
+		// Determine result from player's perspective
+		let playerResult: 'victory' | 'defeat' | 'draw';
+		if (winnerId === currentUserId) {
+			playerResult = 'victory';
+		} else {
+			playerResult = 'defeat';
+		}
+		
+		// Handle match end with server-determined result
+		handleMatchEnd({ 
+			type: 'match.end', 
+			result: playerResult,
+			message 
+		});
+		
+		console.log(`Victory: ${result}, Winner: ${winnerId}`);
+	}
+
+	/**
+	 * Handle match error events from server
+	 */
+	function handleMatchError(data: any) {
+		console.log("Match error:", data);
+		
+		const { error, entityId } = data.content || data;
+		const currentUserId = auth$.client.value?.id;
+		
+		// Show error message to user if it affects them
+		if (!entityId || entityId === currentUserId) {
+			utils.toast.error(typeof error === 'string' ? error : 'Match error occurred', "top-right");
+		}
+		
+		console.error(`Match error for ${entityId || 'unknown'}: ${error}`);
+	}
+
+	/**
+	 * Set callback functions for frontend integration
+	 */
+	function setUICallbacks(callbacks: {
+		onPlayerTurn?: () => void;
+		onEnemyTurn?: () => void;
+		addLogEntry?: (type: string, message: string) => void;
+	}) {
+		onPlayerTurnCallback = callbacks.onPlayerTurn || null;
+		onEnemyTurnCallback = callbacks.onEnemyTurn || null;
+		addLogEntryCallback = callbacks.addLogEntry || null;
 	}
 
 	/**
@@ -502,7 +668,16 @@ const useMatch = () => {
 		store,
 		loading,
 		// Websocket Logic
-		onWebsocketEvents
+		onWebsocketEvents,
+		// Server event handlers for frontend integration
+		handleDamageDealt,
+		handleHealthUpdate,
+		handleTurnStart,
+		handleTurnEnd,
+		handleVictory,
+		handleMatchError,
+		// Frontend integration
+		setUICallbacks
 	};
 };
 export default useMatch;

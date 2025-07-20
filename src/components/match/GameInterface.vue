@@ -24,7 +24,6 @@
 			:is-player-turn="isPlayerTurn"
 			:is-processing-action="isProcessingAction"
 			@attack="$emit('attack')"
-			@test-victory="$emit('testVictory')"
 		/>
 
 		<!-- Game Log -->
@@ -55,7 +54,6 @@ interface Props {
 
 interface Emits {
 	(e: 'attack'): void;
-	(e: 'testVictory'): void;
 }
 
 defineProps<Props>();
