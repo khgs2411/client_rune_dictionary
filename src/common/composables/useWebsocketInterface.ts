@@ -3,7 +3,7 @@ import { Lib, WebsocketEntityData, WebsocketStructuredMessage } from "topsyde-ut
 import { ref, Ref } from "vue";
 import { AutoReconnect, Heartbeat } from "../types/websocket.types";
 import useWSM, { I_UseWSM } from "./useWSM";
-import useWebsocketEventHandler from "./useWebsocketEventHandler";
+import useWebsocketEventHandler, { I_WebsocketEventHandlerInterface } from "./useWebsocketEventHandler";
 
 export const WEBSOCKET_HOST = import.meta.env.VITE_WS_HOST || "wss://topsyde-gaming.duckdns.org:3000";
 console.log("WebSocket Host:", WEBSOCKET_HOST);
@@ -13,7 +13,7 @@ export type WebsocketClient = UseWebSocketReturn<WebsocketStructuredMessage>;
 
 
 const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages: Ref<WebsocketStructuredMessage[]>): UseWebSocketOptions => {
-	const eventHandler = useWebsocketEventHandler();
+	const eventHandler: I_WebsocketEventHandlerInterface = useWebsocketEventHandler();
 	
 	const heartbeatOptions: Ref<Heartbeat> = ref({
 		interval: PING_PONG_INTERVAL * 1000,

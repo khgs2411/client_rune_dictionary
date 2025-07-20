@@ -2,7 +2,6 @@
 	<div class="game-actions">
 		<div class="action-panel">
 			<h4>Actions</h4>
-			{{ isPlayerTurn }} {{isProcessingAction}}
 			<div class="actions-grid">
 				<Button 
 					:disabled="!isPlayerTurn || isProcessingAction" 

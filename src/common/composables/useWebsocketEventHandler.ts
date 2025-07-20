@@ -8,7 +8,11 @@ export interface I_WebsocketEventHandler {
 	outputEvents: (ws: WebsocketClient) => NamespaceActions;
 }
 
-const useWebsocketEventHandler = () => {
+export interface I_WebsocketEventHandlerInterface {
+	process: (wsm$: I_UseWSM) => void;
+}
+
+const useWebsocketEventHandler = (): I_WebsocketEventHandlerInterface => {
 	const matchEventHandler$ = useMatchWebsocketEventHandler();
 
 
@@ -22,7 +26,7 @@ const useWebsocketEventHandler = () => {
 		}
 
 		
-		else if (wsm$.type.value?.startsWith("match.")) {
+		else if (wsm$.type.value?.startsWith("match")) {
 			// Route match game events to the game event handler
 			matchEventHandler$.onWebsocketEvents(wsm$);
 		}

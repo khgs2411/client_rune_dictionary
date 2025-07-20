@@ -2,6 +2,7 @@ import { Guards, NamespaceActions, Rxjs, WebsocketStructuredMessage } from "tops
 import useAuth from "../../common/composables/useAuth";
 import usePrompt, { PromptChoice, PromptData } from "../../common/composables/usePrompt";
 import useUtils from "../../common/composables/useUtils";
+import { I_WebsocketEventHandler } from "../../common/composables/useWebsocketEventHandler";
 import { WebsocketClient } from "../../common/composables/useWebsocketInterface";
 import { I_UseWSM } from "../../common/composables/useWSM";
 import { MatchResult, useMatchStore } from "../../stores/match.store";
@@ -9,7 +10,7 @@ import { E_MatchState, MATCH_MESSAGE } from "./useMatch";
 
 
 
-const useMatchWebsocketEventHandler = ()/* : I_WebsocketEventHandler */ => {
+const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
     const prompt$ = usePrompt();
     const auth$ = useAuth();
     const store = useMatchStore();
@@ -70,18 +71,6 @@ const useMatchWebsocketEventHandler = ()/* : I_WebsocketEventHandler */ => {
 
         // Handle different game event types
         switch (wsm$.data?.type) {
-            case "player.turn":
-                handlePlayerTurn(wsm$.data);
-                break;
-            case "enemy.turn":
-                handleEnemyTurn(wsm$.data);
-                break;
-            case "game.state.update":
-                handleGameStateUpdate(wsm$.data);
-                break;
-            case "match.end":
-                handleMatchEnd(wsm$.data);
-                break;
             // New server events for server-authoritative combat
             case "match.damage.dealt":
                 handleDamageDealt(wsm$.data);
@@ -107,29 +96,6 @@ const useMatchWebsocketEventHandler = ()/* : I_WebsocketEventHandler */ => {
     }
 
 
-    /**
-     * Handle player turn events
-     */
-    function handlePlayerTurn(data: any) {
-        console.log("Player turn:", data);
-        // TODO: Update UI for player turn
-    }
-
-    /**
-     * Handle enemy turn events
-     */
-    function handleEnemyTurn(data: any) {
-        console.log("Enemy turn:", data);
-        // TODO: Display enemy actions and animations
-    }
-
-    /**
-     * Handle game state updates
-     */
-    function handleGameStateUpdate(data: any) {
-        console.log("Game state update:", data);
-        // TODO: Update game state in UI
-    }
 
 
     /**
@@ -142,16 +108,14 @@ const useMatchWebsocketEventHandler = ()/* : I_WebsocketEventHandler */ => {
         const currentUserId = auth$.client.value?.id;
 
         // Update UI with damage information (could trigger animations, floating text, etc.)
-        utils.toast.info(message, "center");
+        utils.toast.info(message, "bottom-right");
 
         // Update actions performed counter
         store.gameState.actionsPerformed++;
 
         // Add to game log if callback is available
-        if (addLogEntryCallback) {
-            const logType = attackerId === currentUserId ? "player" : "enemy";
-            addLogEntryCallback(logType, message);
-        }
+        const logType = attackerId === currentUserId ? "player" : "enemy";
+        Rxjs.Next('match', { 'cta': 'onLogEntry', data: { type: logType, message } });
 
         console.log(`${attackerId} dealt ${damage} damage to ${targetId}`);
     }
@@ -170,10 +134,12 @@ const useMatchWebsocketEventHandler = ()/* : I_WebsocketEventHandler */ => {
             // Update player health
             store.gameState.playerHealth = health;
             store.gameState.playerMaxHealth = maxHealth;
+            Rxjs.Next('match', { cta: 'onLogEntry', data: { type: 'player', message: 'Health updated' } })
         } else {
             // Update enemy health
             store.gameState.enemyHealth = health;
             store.gameState.enemyMaxHealth = maxHealth;
+            Rxjs.Next('match', { cta: 'onLogEntry', data: { type: 'enemy', message: 'Health updated' } })
         }
 
         console.log(`Health updated for ${entityId}: ${health}/${maxHealth}`);
@@ -191,12 +157,12 @@ const useMatchWebsocketEventHandler = ()/* : I_WebsocketEventHandler */ => {
         // Update turn state
         if (entityId === currentUserId) {
             store.gameState.currentTurn = 'player';
-            utils.toast.info("Your turn!", "center");
+            utils.toast.info("Your turn!", "bottom-right");
             // Call frontend callback to update UI
             Rxjs.Next('match', { cta: 'onPlayerTurn', data: {} },);
         } else {
             store.gameState.currentTurn = 'enemy';
-            utils.toast.info("Enemy's turn...", "center");
+            utils.toast.info("Enemy's turn...", "bottom-right");
             // Call frontend callback to update UI
             Rxjs.Next('match', { cta: 'onEnemyTurn', data: {} },);
         }
@@ -297,11 +263,11 @@ const useMatchWebsocketEventHandler = ()/* : I_WebsocketEventHandler */ => {
         // Show match result notification
         const resultMessage = getMatchResultMessage(result);
         if (result === 'victory') {
-            utils.toast.success(resultMessage, "center");
+            utils.toast.success(resultMessage, "bottom-right");
         } else if (result === 'defeat') {
-            utils.toast.error(resultMessage, "center");
+            utils.toast.error(resultMessage, "bottom-right");
         } else {
-            utils.toast.info(resultMessage, "center");
+            utils.toast.info(resultMessage, "bottom-right");
         }
 
         console.log("Match result:", matchResult);
@@ -356,26 +322,8 @@ const useMatchWebsocketEventHandler = ()/* : I_WebsocketEventHandler */ => {
         }
     }
 
-    /**
-     * Set callback functions for frontend integration
-     */
-    function setUICallbacks(callbacks: {
-        onPlayerTurn?: () => void;
-        onEnemyTurn?: () => void;
-        addLogEntry?: (type: string, message: string) => void;
-    }) {
-        console.log("Setting UI callbacks for match events");
-        onPlayerTurnCallback = callbacks.onPlayerTurn || null;
-        onEnemyTurnCallback = callbacks.onEnemyTurn || null;
-        addLogEntryCallback = callbacks.addLogEntry || null;
-    }
-
-
-
-
 
     return {
-        setUICallbacks,
         outputEvents,
         onWebsocketEvents,
     }

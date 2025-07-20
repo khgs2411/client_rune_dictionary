@@ -17,8 +17,8 @@
 import { WebsocketStructuredMessage } from "topsyde-utils";
 import { computed, PropType, ref, watch } from "vue";
 import useAuth from "../../common/composables/useAuth";
+import useWebsocketEmitter from "../../common/composables/useWebsocketEmitter";
 import useWebSocketInterface, { WEBSOCKET_HOST } from "../../common/composables/useWebsocketInterface";
-import useWebsocketLogic from "../../common/composables/useWebsocketLogic";
 import Chat from "../chat/Chat.vue";
 	defineProps({
 		containerRef: {
@@ -37,7 +37,7 @@ import Chat from "../chat/Chat.vue";
 
 	const wsOptions = useWebSocketInterface(ref(auth$.client.value!), messages);
 	const ws = useWebSocket<WebsocketStructuredMessage>(WEBSOCKET_HOST, wsOptions);
-	useWebsocketLogic(ws);
+	useWebsocketEmitter(ws);
 
 	watch(
 		() => [auth$.authorized.value, auth$.client.value],

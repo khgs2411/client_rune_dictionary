@@ -21,6 +21,7 @@
 					:is-enemy-turn="isEnemyTurn"
 					:is-processing-action="isProcessingAction"
 					:game-log="gameLog"
+					@leave-match="handleReturnToLobby"
 					@attack="perfornAction('attack')" />
 			</div>
 		</div>
@@ -37,8 +38,11 @@ import MatchLobby from "../components/match/MatchLobby.vue";
 import MatchResult from "../components/match/MatchResult.vue";
 import useMatch from "../components/match/useMatch";
 
-const utils = useUtils();
+// Set CSS variable for background image
+const IMAGE_URL = import.meta.env.BASE_URL;
+document.documentElement.style.setProperty("--match-bg-url", `url(${IMAGE_URL}match.webp)`);
 
+const utils = useUtils();
 const match$ = useMatch();
 const { inLobby, inMatch, isFinished } = match$;
 
@@ -54,9 +58,7 @@ useRxjs("match", {
 	onEnemyTurn: switchToEnemyTurn,
 	onLogEntry: addLogEntry,
 });
-// Generic loading state for match initiation
 
-const IMAGE_URL = import.meta.env.BASE_URL;
 const matchCards = ref<MatchCard[]>([
 	{
 		type: "pvp",
@@ -78,8 +80,6 @@ const matchCards = ref<MatchCard[]>([
 	},
 ]);
 
-// Set CSS variable for background image
-document.documentElement.style.setProperty("--match-bg-url", `url(${IMAGE_URL}match.webp)`);
 
 async function handleMatchType(card: MatchCard) {
 	// Handle match type selection
@@ -167,12 +167,14 @@ async function perfornAction(type: string) {
 			},
 		});
 
-		// Server will respond with:
-		// - match.damage.dealt event with damage information
-		// - match.health.update event with updated health
-		// - match.turn.start/end events for turn management
-		// - match.victory event if match ends
-		// Frontend just waits for server response
+		/**
+		 * Server will respond with:
+		 - match.damage.dealt event with damage information
+		 - match.health.update event with updated health
+		 - match.turn.start/end events for turn management
+		 - match.victory event if match ends
+		 Frontend just waits for server response
+		 */
 	} catch (error) {
 		console.error("Attack failed:", error);
 		utils.toast.error("Attack failed", "top-right");
@@ -219,6 +221,10 @@ function addLogEntry(data: { type: string; message: string }) {
 	}
 }
 
+/**
+ * 
+ * @param card 
+ */
 async function handlePVPMatch(card: MatchCard) {
 	card.loading = true;
 	setCardProperty("pve", "disabled", true);
@@ -226,15 +232,27 @@ async function handlePVPMatch(card: MatchCard) {
 	setCardProperty("pve", "disabled", false);
 }
 
+/**
+ * 
+ * @param type 
+ * @param property 
+ * @param value 
+ */
 function setCardProperty<K extends keyof MatchCard>(type: MatchType, property: K, value: any) {
 	const card: MatchCard | undefined = matchCards.value.find((c) => c.type === type);
 	if (card) card[property] = value;
 }
 
+/**
+ * 
+ */
 function getSessionStats() {
 	return match$.getMatchStats();
 }
 
+/**
+ * 
+ */
 async function handleRematch() {
 	try {
 		await match$.startRematch();

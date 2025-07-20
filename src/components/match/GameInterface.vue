@@ -4,27 +4,23 @@
 		<div class="game-header">
 			<div class="match-info">
 				<span class="match-type">{{ matchTypeLabel }}</span>
-				<span class="match-id">Match: {{ matchId || 'Unknown' }}</span>
+				<span class="match-id">Match: {{ matchId || "Unknown" }}</span>
 			</div>
 		</div>
+		<Button :disabled="isProcessingAction" v-ripple size="small" class="leavae-match-button pointer" @click="$emit('leave-match')">Leave Match</Button>
 
 		<!-- Battle Area -->
-		<BattleArea 
+		<BattleArea
 			:player-health="gameState.playerHealth"
 			:player-max-health="gameState.playerMaxHealth"
 			:enemy-health="gameState.enemyHealth"
 			:enemy-max-health="gameState.enemyMaxHealth"
 			:enemy-name="enemyName"
 			:is-player-turn="isPlayerTurn"
-			:is-enemy-turn="isEnemyTurn"
-		/>
+			:is-enemy-turn="isEnemyTurn" />
 
 		<!-- Game Actions -->
-		<GameActions 
-			:is-player-turn="isPlayerTurn"
-			:is-processing-action="isProcessingAction"
-			@attack="$emit('attack')"
-		/>
+		<GameActions :is-player-turn="isPlayerTurn" :is-processing-action="isProcessingAction" @attack="$emit('attack')" />
 
 		<!-- Game Log -->
 		<GameLog :game-log="gameLog" />
@@ -32,12 +28,13 @@
 </template>
 
 <script lang="ts" setup>
-import { GameState } from '../../stores/match.store';
-import BattleArea from './BattleArea.vue';
-import GameActions from './GameActions.vue';
-import GameLog from './GameLog.vue';
+import Button from "primevue/button";
+import { GameState } from "../../stores/match.store";
+import BattleArea from "./BattleArea.vue";
+import GameActions from "./GameActions.vue";
+import GameLog from "./GameLog.vue";
 
-interface Props {
+defineProps<{
 	matchTypeLabel: string;
 	matchId: string | null;
 	enemyName: string;
@@ -50,14 +47,13 @@ interface Props {
 		message: string;
 		timestamp: Date;
 	}>;
-}
+}>();
 
-interface Emits {
-	(e: 'attack'): void;
-}
+defineEmits<{
+	(e: "attack"): void;
+	(e: "leave-match"): void;
+}>();
 
-defineProps<Props>();
-defineEmits<Emits>();
 </script>
 
 <style lang="scss" scoped>
