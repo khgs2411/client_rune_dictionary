@@ -1,13 +1,10 @@
 import { useRxjs } from "topsyde-utils";
-import useMatch from "../../components/match/useMatch";
+import useMatchWebsocketEventHandler from "../../components/match/useMatchWebsocketEventHandler";
 import { WebsocketClient } from "./useWebsocketInterface";
 
 const useWebsocketLogic = (ws: WebsocketClient) => {
-    const match$ = useMatch();
-    useRxjs('match', match$.onWebsocketEvents(ws));
-
-   
-
+    const matchWebsocketHandler$ = useMatchWebsocketEventHandler();
+    useRxjs('match', matchWebsocketHandler$.outputEvents(ws));
 }
 
 export default useWebsocketLogic;

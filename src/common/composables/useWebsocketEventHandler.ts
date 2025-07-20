@@ -1,9 +1,15 @@
-import { E_WebsocketMessageType } from "topsyde-utils";
-import useMatch from "../../components/match/useMatch";
+import { E_WebsocketMessageType, NamespaceActions } from "topsyde-utils";
+import useMatchWebsocketEventHandler from "../../components/match/useMatchWebsocketEventHandler";
 import { I_UseWSM } from "./useWSM";
+import { WebsocketClient } from "./useWebsocketInterface";
+
+export interface I_WebsocketEventHandler {
+	onWebsocketEvents: (wsm$: I_UseWSM) => void;
+	outputEvents: (ws: WebsocketClient) => NamespaceActions;
+}
 
 const useWebsocketEventHandler = () => {
-	const match$ = useMatch();
+	const matchEventHandler$ = useMatchWebsocketEventHandler();
 
 
 	function process(wsm$: I_UseWSM): void {
@@ -15,10 +21,10 @@ const useWebsocketEventHandler = () => {
 			console.log(wsm$.data);
 		}
 
-		else if (wsm$.is("match")) match$.onMatchRequest(wsm$);
+		
 		else if (wsm$.type.value?.startsWith("match.")) {
 			// Route match game events to the game event handler
-			match$.onGameEvent(wsm$);
+			matchEventHandler$.onWebsocketEvents(wsm$);
 		}
 		else {
 			console.log(wsm$.data)

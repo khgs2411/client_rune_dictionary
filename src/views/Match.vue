@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Rxjs } from "topsyde-utils";
+import { Rxjs, useRxjs } from "topsyde-utils";
 import { ref } from "vue";
 import useUtils from "../common/composables/useUtils";
 import { MatchCard, MatchType } from "../common/types/match.types";
@@ -49,6 +49,11 @@ const isProcessingAction = ref(false);
 const gameLog = ref<Array<{ type: string; message: string; timestamp: Date }>>([]);
 const currentMatchType = ref<MatchType | null>(null);
 
+useRxjs("match", {
+	onPlayerTurn: switchToPlayerTurn,
+	onEnemyTurn: switchToEnemyTurn,
+	onLogEntry: addLogEntry,
+});
 // Generic loading state for match initiation
 
 const IMAGE_URL = import.meta.env.BASE_URL;
@@ -94,12 +99,13 @@ async function handlePVEMatch(card: MatchCard) {
 			return;
 		}
 
-		const response = await match$.pve();
-		console.log("PVE match created:", response);
-
-		// Initialize game state for PVE match
+		// Initialize game state and callbacks BEFORE creating the match
+		// This ensures callbacks are ready for immediate server events
 		currentMatchType.value = "pve";
 		initializeGameState();
+
+		const response = await match$.pve();
+		console.log("PVE match created:", response);
 	} catch (e) {
 		console.error("PVE match error:", e);
 		utils.toast.error("Something went wrong", "top-left");
@@ -119,14 +125,10 @@ function initializeGameState() {
 	gameLog.value = [];
 
 	// Set up callbacks for server event integration
-	match$.setUICallbacks({
-		onPlayerTurn: switchToPlayerTurn,
-		onEnemyTurn: switchToEnemyTurn,
-		addLogEntry: addLogEntry,
-	});
+	console.log("Set up callbacks for server event integration");
 
 	// Add initial log entry
-	addLogEntry("system", "Match started! It's your turn.");
+	addLogEntry({ type: "system", message: "Match started! It's your turn." });
 }
 
 /**
@@ -185,7 +187,7 @@ async function perfornAction(type: string) {
 function switchToEnemyTurn() {
 	isPlayerTurn.value = false;
 	isEnemyTurn.value = true;
-	addLogEntry("system", `${getEnemyName()}'s turn...`);
+	addLogEntry({ type: "system", message: `${getEnemyName()}'s turn...` });
 }
 
 /**
@@ -195,7 +197,7 @@ function switchToPlayerTurn() {
 	isPlayerTurn.value = true;
 	isEnemyTurn.value = false;
 	isProcessingAction.value = false; // Reset processing state when it's player's turn
-	addLogEntry("system", "Your turn!");
+	addLogEntry({ type: "system", message: "Your turn!" });
 }
 
 // Note: Match end is now handled exclusively by server authority
@@ -204,10 +206,10 @@ function switchToPlayerTurn() {
 /**
  * Add entry to game log
  */
-function addLogEntry(type: string, message: string) {
+function addLogEntry(data: { type: string; message: string }) {
 	gameLog.value.unshift({
-		type,
-		message,
+		type: data.type,
+		message: data.message,
 		timestamp: new Date(),
 	});
 
