@@ -141,14 +141,13 @@ import useMatch from "../components/match/useMatch";
 
 			// Update action count
 			match$.store.gameState.actionsPerformed++;
-			const rxjs = Rxjs.GetInstance<Rxjs<'match'>>();
-
-			rxjs.next('match', {
+			
+			Rxjs.Next('match', {
 				cta: 'match.action',
 				data: {
 					type: 'match.action',
 					actionType: 'attack',
-					matchId: match$.store.currentMatchId, 
+					matchId: match$.store.currentMatchId,
 					channelId: match$.store.currentChannelId
 				}
 			});
