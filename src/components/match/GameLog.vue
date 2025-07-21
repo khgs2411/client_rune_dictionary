@@ -2,10 +2,8 @@
 	<ScrollPanel class="game-log" :style="{ height: '200px', width: '100%' }">
 		<h4>Combat Log</h4>
 		<div class="log-entries">
-			<Message v-if="gameLog.length === 0" severity="info">
-				Match started! Waiting for first turn...
-			</Message>
-			<Message v-for="(entry, index) in gameLog" :key="index" :severity="getSeverityClass(entry.type)" >
+			<Message v-if="gameLog.length === 0" severity="info"> Match started! Waiting for first turn... </Message>
+			<Message v-for="(entry, index) in gameLog" :key="index" :severity="getSeverityClass(entry.type)">
 				<span class="log-timestamp">{{ formatTime(entry.timestamp) }}</span>
 				<span class="log-message">{{ entry.message }}</span>
 			</Message>
@@ -28,113 +26,65 @@ interface Props {
 defineProps<Props>();
 
 function formatTime(date: Date): string {
-	return date.toLocaleTimeString('en-US', { 
-		hour12: false, 
-		hour: '2-digit', 
-		minute: '2-digit', 
-		second: '2-digit' 
+	return date.toLocaleTimeString("en-US", {
+		hour12: false,
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
 	});
 }
 
-function getSeverityClass(type:string){
-
-	switch(type) {
-		case 'player':
-			return 'success';
-		case 'enemy':
-			return 'info';
-		case 'system':
-			return 'warn';
-		case 'damage':
-			return 'error';
-		case 'heal':
-			return 'secondary';
-		case 'victory':
-			return 'contrast';
-		case 'defeat':
-			return 'error';
+function getSeverityClass(type: string) {
+	switch (type) {
+		case "player":
+			return "success";
+		case "enemy":
+			return "info";
+		case "system":
+			return "warn";
+		case "damage":
+			return "error";
+		case "heal":
+			return "secondary";
+		case "victory":
+			return "contrast";
+		case "defeat":
+			return "error";
 		default:
-			return 'info';
+			return "info";
 	}
 }
-
 </script>
 
 <style lang="scss" scoped>
+@use "../../assets/css/common.scss" as *;
+@use "../../assets/css/variables.scss" as *;
+
 .game-log {
 	background: var(--p-content-background);
 	border: 1px solid var(--p-content-border-color);
 	border-radius: 8px;
-	padding: 1rem;
+	padding: $viewSpacing;
 
 	h4 {
-		margin: 0 0 1rem 0;
+		margin: 0 0 $viewSpacing 0;
 		color: var(--p-text-color);
 	}
 
 	.log-entries {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: $spacing;
 
-		.log-entry {
-			padding: 0.5rem;
-			border-radius: 4px;
-			border-left: 4px solid transparent;
-			background: var(--p-surface-100);
-			display: flex;
-			gap: 0.75rem;
-			align-items: center;
+		.log-timestamp {
+			font-size: 0.8rem;
+			font-family: monospace;
+			min-width: 70px;
+			padding: 0 $spacing;
+		}
 
-			.log-timestamp {
-				font-size: 0.8rem;
-				color: var(--p-text-muted-color);
-				font-family: monospace;
-				min-width: 70px;
-			}
-
-			.log-message {
-				flex: 1;
-				color: var(--p-text-color);
-			}
-
-			&.player {
-				border-left-color: var(--p-primary-color);
-				background: var(--p-primary-200);
-			}
-
-			&.enemy {
-				border-left-color: var(--p-orange-500);
-				background: var(--p-orange-200);
-			}
-
-			&.system {
-				border-left-color: var(--p-surface-500);
-				background: var(--p-surface-200);
-				font-style: italic;
-			}
-
-			&.damage {
-				border-left-color: var(--p-red-500);
-				background: var(--p-red-200);
-			}
-
-			&.heal {
-				border-left-color: var(--p-green-500);
-				background: var(--p-green-200);
-			}
-
-			&.victory {
-				border-left-color: var(--p-green-500);
-				background: var(--p-green-100);
-				font-weight: 600;
-			}
-
-			&.defeat {
-				border-left-color: var(--p-red-500);
-				background: var(--p-red-100);
-				font-weight: 600;
-			}
+		.log-message {
+			flex: 1;
 		}
 	}
 }

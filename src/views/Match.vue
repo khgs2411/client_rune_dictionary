@@ -29,8 +29,8 @@
 </template>
 
 <script lang="ts" setup>
-import { Rxjs, useRxjs } from "topsyde-utils";
-import { ref } from "vue";
+import { Guards, Rxjs, useRxjs } from "topsyde-utils";
+import { onMounted, ref } from "vue";
 import useUtils from "../common/composables/useUtils";
 import { MatchCard, MatchType } from "../common/types/match.types";
 import GameInterface from "../components/match/GameInterface.vue";
@@ -108,7 +108,7 @@ async function handlePVEMatch(card: MatchCard) {
 		console.log("PVE match created:", response);
 	} catch (e) {
 		console.error("PVE match error:", e);
-		utils.toast.error("Something went wrong", "top-left");
+		utils.toast.error("Something went wrong", "center");
 	} finally {
 		setCardProperty("pvp", "disabled", true); // FIXME: When implementing PVP, this should be set to false
 		card.loading = false;
@@ -177,7 +177,7 @@ async function perfornAction(type: string) {
 		 */
 	} catch (error) {
 		console.error("Attack failed:", error);
-		utils.toast.error("Attack failed", "top-right");
+		utils.toast.error("Attack failed", "center");
 		isProcessingAction.value = false;
 	}
 	// Note: isProcessingAction.value will be set to false when server responds with turn events
@@ -264,6 +264,12 @@ async function handleRematch() {
 function handleReturnToLobby() {
 	match$.returnToLobby();
 }
+
+onMounted(()=>{
+	if(Guards.IsNil(currentMatchType.value)){
+		match$.returnToLobby();
+	}
+})
 </script>
 
 <style lang="scss" scoped>

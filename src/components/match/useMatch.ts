@@ -203,10 +203,10 @@ const useMatch = () => {
 			};
 			await pve();
 
-			utils.toast.info("Starting new match...", "center");
+			utils.toast.info("Starting new match...", "bottom-right");
 		} catch (error) {
 			console.error("Failed to start rematch:", error);
-			utils.toast.error("Failed to start rematch", "top-right");
+			utils.toast.error("Failed to start rematch", "center");
 		}
 	}
 
@@ -215,7 +215,7 @@ const useMatch = () => {
 	 */
 	function returnToLobby() {
 		cleanup();
-		utils.toast.info("Returned to lobby", "center");
+		utils.toast.info("Returned to lobby", "bottom-right");
 	}
 
 	/**

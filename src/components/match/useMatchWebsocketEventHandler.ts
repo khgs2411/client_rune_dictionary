@@ -220,7 +220,7 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 
         // Show error message to user if it affects them
         if (!entityId || entityId === currentUserId) {
-            utils.toast.error(typeof error === 'string' ? error : 'Match error occurred', "top-right");
+            utils.toast.error(typeof error === 'string' ? error : 'Match error occurred', "center");
         }
 
         console.error(`Match error for ${entityId || 'unknown'}: ${error}`);
