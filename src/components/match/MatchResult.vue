@@ -260,7 +260,7 @@ function formatDuration(seconds: number): string {
 		.stat-item {
 			text-align: center;
 			padding: 1rem;
-			background: var(--p-surface-100);
+			background: var(--p-surface-800);
 			border-radius: 6px;
 
 			.stat-number {

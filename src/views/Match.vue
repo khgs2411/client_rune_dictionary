@@ -453,15 +453,15 @@ function handleReturnToLobby() {
 	word-break: break-word;
 
 	.victory & {
-		color: var(--p-green-600);
+		color: var(--p-green-400);
 	}
 
 	.defeat & {
-		color: var(--p-red-600);
+		color: var(--p-red-400);
 	}
 
 	.draw & {
-		color: var(--p-orange-600);
+		color: var(--p-orange-400);
 	}
 }
 

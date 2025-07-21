@@ -1,4 +1,4 @@
-.test {
+.test_only_colors_dictionary {
 	--p-contextmenu-background: var(--p-content-background);
 	--p-contextmenu-border-color: var(--p-content-border-color);
 	--p-contextmenu-color: var(--p-content-color);

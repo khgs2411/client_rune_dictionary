@@ -2,18 +2,19 @@
 	<ScrollPanel class="game-log" :style="{ height: '200px', width: '100%' }">
 		<h4>Combat Log</h4>
 		<div class="log-entries">
-			<div v-for="(entry, index) in gameLog" :key="index" class="log-entry" :class="entry.type">
+			<Message v-if="gameLog.length === 0" severity="info">
+				Match started! Waiting for first turn...
+			</Message>
+			<Message v-for="(entry, index) in gameLog" :key="index" :severity="getSeverityClass(entry.type)" >
 				<span class="log-timestamp">{{ formatTime(entry.timestamp) }}</span>
 				<span class="log-message">{{ entry.message }}</span>
-			</div>
-			<div v-if="gameLog.length === 0" class="log-entry system">
-				<span class="log-message">Match started! Waiting for first turn...</span>
-			</div>
+			</Message>
 		</div>
 	</ScrollPanel>
 </template>
 
 <script lang="ts" setup>
+import Message from "primevue/message";
 import ScrollPanel from "primevue/scrollpanel";
 
 interface Props {
@@ -34,6 +35,29 @@ function formatTime(date: Date): string {
 		second: '2-digit' 
 	});
 }
+
+function getSeverityClass(type:string){
+
+	switch(type) {
+		case 'player':
+			return 'success';
+		case 'enemy':
+			return 'info';
+		case 'system':
+			return 'warn';
+		case 'damage':
+			return 'error';
+		case 'heal':
+			return 'secondary';
+		case 'victory':
+			return 'contrast';
+		case 'defeat':
+			return 'error';
+		default:
+			return 'info';
+	}
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -76,12 +100,12 @@ function formatTime(date: Date): string {
 
 			&.player {
 				border-left-color: var(--p-primary-color);
-				background: var(--p-primary-50);
+				background: var(--p-primary-200);
 			}
 
 			&.enemy {
 				border-left-color: var(--p-orange-500);
-				background: var(--p-orange-50);
+				background: var(--p-orange-200);
 			}
 
 			&.system {
@@ -92,12 +116,12 @@ function formatTime(date: Date): string {
 
 			&.damage {
 				border-left-color: var(--p-red-500);
-				background: var(--p-red-50);
+				background: var(--p-red-200);
 			}
 
 			&.heal {
 				border-left-color: var(--p-green-500);
-				background: var(--p-green-50);
+				background: var(--p-green-200);
 			}
 
 			&.victory {
