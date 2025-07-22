@@ -79,7 +79,7 @@ defineProps<Props>();
 .enemy-section {
 	.player-card,
 	.enemy-card {
-		background: var(--p-surface-100);
+		background: var(--p-content-border-color);
 		border-radius: 8px;
 		padding: 1rem;
 		text-align: center;
@@ -130,7 +130,7 @@ defineProps<Props>();
 			transform: translate(-50%, -50%);
 			font-weight: 600;
 			font-size: 0.85rem;
-			color: white;
+			color: var(--p-text-color);
 			text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 		}
 	}

@@ -1,17 +1,18 @@
 {
 	"mcpServers": {
 		"notionApi": {
-			"command": "docker",
-			"args": [
-				"run",
-				"--rm",
-				"-i",
-				"-e",
-				"OPENAPI_MCP_HEADERS",
-				"mcp/notion"
-			],
+			"command": "bunx",
+			"args": ["-y", "@notionhq/notion-mcp-server"],
 			"env": {
-				"OPENAPI_MCP_HEADERS": "{\"Authorization\":\"Bearer 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\",\"Notion-Version\":\"2022-06-28\"}"
+				"OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer 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\", \"Notion-Version\": \"2022-06-28\" }"
+			}
+		},
+		"taskmaster-ai": {
+			"type": "stdio",
+			"command": "bunx",
+			"args": ["-y", "task-master-ai"],
+			"env": {
+				"CLAUDE_API_KEY": "mcp"
 			}
 		}
 	}
