@@ -51,13 +51,11 @@
 			</div>
 
 			<div class="result-actions">
-				<Button :loading="isLoading" @click="$emit('rematch')"
-					severity="success" size="large" class="rematch-button">
+				<Button :loading="isLoading" @click="$emit('rematch')" severity="success" size="large" class="rematch-button">
 					<i class="pi pi-refresh"></i>
 					Rematch
 				</Button>
-				<Button @click="$emit('returnToLobby')" :disabled="isLoading"
-					severity="secondary" size="large" class="lobby-button">
+				<Button @click="$emit('returnToLobby')" :disabled="isLoading" severity="secondary" size="large" class="lobby-button">
 					<i class="pi pi-home"></i>
 					Return to Lobby
 				</Button>
@@ -82,8 +80,8 @@ interface Props {
 }
 
 interface Emits {
-	(e: 'rematch'): void;
-	(e: 'returnToLobby'): void;
+	(e: "rematch"): void;
+	(e: "returnToLobby"): void;
 }
 
 const props = defineProps<Props>();
@@ -92,63 +90,63 @@ defineEmits<Emits>();
 function getResultIconClass() {
 	const result = props.matchResult?.result;
 	switch (result) {
-		case 'victory':
-			return 'success';
-		case 'defeat':
-			return 'danger';
-		case 'draw':
-			return 'warning';
+		case "victory":
+			return "success";
+		case "defeat":
+			return "danger";
+		case "draw":
+			return "warning";
 		default:
-			return 'info';
+			return "info";
 	}
 }
 
 function getResultIcon() {
 	const result = props.matchResult?.result;
 	switch (result) {
-		case 'victory':
-			return 'pi pi-trophy';
-		case 'defeat':
-			return 'pi pi-times-circle';
-		case 'draw':
-			return 'pi pi-minus-circle';
+		case "victory":
+			return "pi pi-trophy";
+		case "defeat":
+			return "pi pi-times-circle";
+		case "draw":
+			return "pi pi-minus-circle";
 		default:
-			return 'pi pi-info-circle';
+			return "pi pi-info-circle";
 	}
 }
 
 function getResultTitle() {
 	const result = props.matchResult?.result;
 	switch (result) {
-		case 'victory':
-			return 'Victory!';
-		case 'defeat':
-			return 'Defeat';
-		case 'draw':
-			return 'Draw';
+		case "victory":
+			return "Victory!";
+		case "defeat":
+			return "Defeat";
+		case "draw":
+			return "Draw";
 		default:
-			return 'Match Complete';
+			return "Match Complete";
 	}
 }
 
 function getResultSubtitle() {
 	const result = props.matchResult?.result;
 	switch (result) {
-		case 'victory':
-			return 'You defeated the AI opponent!';
-		case 'defeat':
-			return 'The AI opponent proved too strong.';
-		case 'draw':
-			return 'Both fighters fell in battle.';
+		case "victory":
+			return "You defeated the AI opponent!";
+		case "defeat":
+			return "The AI opponent proved too strong.";
+		case "draw":
+			return "Both fighters fell in battle.";
 		default:
-			return 'The match has ended.';
+			return "The match has ended.";
 	}
 }
 
 function formatDuration(seconds: number): string {
 	const minutes = Math.floor(seconds / 60);
 	const remainingSeconds = seconds % 60;
-	return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+	return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 </script>
 

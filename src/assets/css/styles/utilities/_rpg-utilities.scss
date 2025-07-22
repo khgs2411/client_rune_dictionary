@@ -1,0 +1,213 @@
+// RPG-specific Utility Classes
+// Complement Tailwind with game-specific utilities
+
+@use "../mixins/breakpoints" as *;
+@use "../mixins/utilities" as *;
+
+// RPG Container variations
+.rpg-container {
+	@include container;
+}
+
+.rpg-container-narrow {
+	@include container;
+
+	@include breakpoint-up("lg") {
+		max-width: 768px;
+	}
+}
+
+.rpg-container-wide {
+	@include container;
+
+	@include breakpoint-up("2xl") {
+		max-width: 1536px;
+	}
+}
+
+// RPG Card components
+.rpg-card {
+	@include rpg-card;
+}
+
+.rpg-card-interactive {
+	@include rpg-card;
+	cursor: pointer;
+
+	&:hover {
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-glow-md);
+	}
+
+	&:active {
+		transform: translateY(0);
+	}
+}
+
+// RPG Glow effects
+.rpg-glow-sm {
+	@include rpg-glow(var(--color-mystic-500), 10px);
+}
+
+.rpg-glow-md {
+	@include rpg-glow(var(--color-mystic-500), 20px);
+}
+
+.rpg-glow-lg {
+	@include rpg-glow(var(--color-mystic-500), 40px);
+}
+
+.rpg-glow-blood {
+	@include rpg-glow(var(--color-blood-500), 20px);
+}
+
+// RPG Backgrounds
+.rpg-bg-parchment {
+	background-color: var(--color-parchment-100);
+
+	.dark & {
+		background-color: var(--p-surface-800);
+	}
+}
+
+.rpg-bg-gradient-mystic {
+	background: linear-gradient(135deg, var(--color-mystic-500) 0%, var(--color-mystic-700) 100%);
+}
+
+.rpg-bg-gradient-blood {
+	background: linear-gradient(135deg, var(--color-blood-500) 0%, var(--color-blood-700) 100%);
+}
+
+// RPG Borders
+.rpg-border-mystic {
+	border: 2px solid var(--color-mystic-500);
+}
+
+.rpg-border-blood {
+	border: 2px solid var(--color-blood-500);
+}
+
+.rpg-border-parchment {
+	border: 2px solid var(--color-parchment-400);
+}
+
+// Loading states
+.rpg-skeleton {
+	@include skeleton;
+	border-radius: var(--radius-md);
+}
+
+// Scroll shadows (for scrollable areas)
+.rpg-scroll-shadow {
+	background:
+		linear-gradient(white 30%, rgba(255, 255, 255, 0)),
+		linear-gradient(rgba(255, 255, 255, 0), white 70%) 0 100%,
+		radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)),
+		radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0)) 0 100%;
+	background-repeat: no-repeat;
+	background-color: white;
+	background-size:
+		100% 40px,
+		100% 40px,
+		100% 14px,
+		100% 14px;
+	background-attachment: local, local, scroll, scroll;
+
+	.dark & {
+		background:
+			linear-gradient(var(--p-surface-900) 30%, rgba(0, 0, 0, 0)),
+			linear-gradient(rgba(0, 0, 0, 0), var(--p-surface-900) 70%) 0 100%,
+			radial-gradient(farthest-side at 50% 0, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0)),
+			radial-gradient(farthest-side at 50% 100%, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0)) 0 100%;
+		background-repeat: no-repeat;
+		background-color: var(--p-surface-900);
+		background-size:
+			100% 40px,
+			100% 40px,
+			100% 14px,
+			100% 14px;
+		background-attachment: local, local, scroll, scroll;
+	}
+}
+
+// Responsive spacing utilities (complement Tailwind)
+@each $size,
+	$value
+		in (
+			"0": 0,
+			"1": var(--spacing-1),
+			"2": var(--spacing-2),
+			"3": var(--spacing-3),
+			"4": var(--spacing-4),
+			"5": var(--spacing-5),
+			"6": var(--spacing-6),
+			"8": var(--spacing-8),
+			"10": var(--spacing-10),
+			"12": var(--spacing-12),
+			"16": var(--spacing-16),
+			"20": var(--spacing-20),
+			"24": var(--spacing-24)
+		)
+{
+	.rpg-p-#{$size} {
+		padding: #{$value};
+	}
+
+	.rpg-m-#{$size} {
+		margin: #{$value};
+	}
+
+	// Responsive versions
+	@include breakpoint-up("sm") {
+		.sm\:rpg-p-#{$size} {
+			padding: #{$value};
+		}
+
+		.sm\:rpg-m-#{$size} {
+			margin: #{$value};
+		}
+	}
+
+	@include breakpoint-up("md") {
+		.md\:rpg-p-#{$size} {
+			padding: #{$value};
+		}
+
+		.md\:rpg-m-#{$size} {
+			margin: #{$value};
+		}
+	}
+
+	@include breakpoint-up("lg") {
+		.lg\:rpg-p-#{$size} {
+			padding: #{$value};
+		}
+
+		.lg\:rpg-m-#{$size} {
+			margin: #{$value};
+		}
+	}
+}
+
+// Visibility utilities for responsive design
+.rpg-mobile-only {
+	@include breakpoint-up("md") {
+		display: none !important;
+	}
+}
+
+.rpg-tablet-only {
+	@include breakpoint-down("sm") {
+		display: none !important;
+	}
+
+	@include breakpoint-up("lg") {
+		display: none !important;
+	}
+}
+
+.rpg-desktop-only {
+	@include breakpoint-down("lg") {
+		display: none !important;
+	}
+}

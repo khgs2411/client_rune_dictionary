@@ -1,0 +1,28 @@
+// Main SCSS Architecture
+// Mobile-first responsive design with Tailwind integration
+
+// 1. Design Tokens (CSS Custom Properties)
+@use "../design-tokens";
+
+// 2. Mixins (must be imported before use)
+@use "mixins" as *;
+
+// 3. Base styles
+@use "base/reset";
+@use "base/typography";
+
+// 4. Utility classes that complement Tailwind
+@use "utilities/layout";
+@use "utilities/rpg-utilities";
+@use "utilities/performance";
+@use "utilities/responsive";
+@use "utilities/reduced-motion";
+
+// 5. Component-specific styles would go here
+// @use 'components/buttons';
+// @use 'components/cards';
+// @use 'components/forms';
+
+// 6. Theme-specific overrides would go here
+// @use 'themes/dark';
+// @use 'themes/mystic';

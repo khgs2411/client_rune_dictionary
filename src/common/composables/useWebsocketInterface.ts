@@ -11,10 +11,9 @@ const PING_PONG_INTERVAL = 20;
 
 export type WebsocketClient = UseWebSocketReturn<WebsocketStructuredMessage>;
 
-
 const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages: Ref<WebsocketStructuredMessage[]>): UseWebSocketOptions => {
 	const eventHandler: I_WebsocketEventHandlerInterface = useWebsocketEventHandler();
-	
+
 	const heartbeatOptions: Ref<Heartbeat> = ref({
 		interval: PING_PONG_INTERVAL * 1000,
 		pongTimeout: PING_PONG_INTERVAL * 1000,

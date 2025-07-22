@@ -10,11 +10,13 @@ const router = createRouter({
 function checkIsAuthorized(to: RouteLocationNormalizedGeneric, next: NavigationGuardNext) {
 	const authStore = useAuthStore();
 	const isAuthorized = authStore.authorized;
+	const publicRoutes = ["home", "login"];
+
 	if (to.name === "login" && isAuthorized) {
 		//? If the user is authorized and tries to access the login page, redirect to the Dictionary component
 		next({ name: "app" });
-	} else if (to.name !== "login" && !isAuthorized) {
-		//? If the user is not authorized and tries to access any page other than login, redirect to the login page
+	} else if (!publicRoutes.includes(to.name as string) && !isAuthorized) {
+		//? If the user is not authorized and tries to access any protected page, redirect to the login page
 		authStore.loading = true;
 		next({ name: "login" });
 		setTimeout(() => {

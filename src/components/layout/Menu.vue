@@ -1,14 +1,31 @@
 <template>
-	<Menubar class="run-dict-menu" :model="items">
-		<template #end>
-			<Button @click="setDarkMode(false)" icon="pi pi-moon" v-if="darkMode" text></Button>
-			<Button @click="setDarkMode(true)" icon="pi pi-sun" v-else text></Button>
-			<Button @click="onSettingsBtn" icon="pi pi-cog" text></Button>
-		</template>
-	</Menubar>
+	<motion.div
+		:initial="{ opacity: 0, y: -20 }"
+		:animate="{ opacity: 1, y: 0 }"
+		:transition="{ duration: 0.4, ease: 'easeOut' }">
+		<Menubar class="run-dict-menu" :model="items">
+			<template #end>
+				<motion.div
+					:initial="{ opacity: 0, scale: 0.8 }"
+					:animate="{ opacity: 1, scale: 1 }"
+					:transition="{ duration: 0.3, ease: 'easeOut', delay: 0.2 }">
+					<Button @click="setDarkMode(false)" icon="pi pi-moon" v-if="darkMode" text />
+					<Button @click="setDarkMode(true)" icon="pi pi-sun" v-else text />
+				</motion.div>
+				<motion.div
+					:initial="{ opacity: 0, scale: 0.8 }"
+					:animate="{ opacity: 1, scale: 1 }"
+					:transition="{ duration: 0.3, ease: 'easeOut', delay: 0.3 }">
+					<Button @click="onSettingsBtn" icon="pi pi-cog" text />
+				</motion.div>
+			</template>
+		</Menubar>
+	</motion.div>
 </template>
 
 <script lang="ts" setup>
+import { motion } from "motion-v";
+
 interface MenuItem {
 	label?: string | ((...args: any) => string) | undefined;
 	icon?: string | undefined;
@@ -51,11 +68,62 @@ function onSettingsBtn() {
 </script>
 
 <style lang="scss" scoped>
+@import "../../assets/css/styles/mixins/breakpoints";
+
 .run-dict-menu {
+	// Ensure menu is responsive
+	width: 100%;
+
 	&:deep() {
 		.p-menubar-item-content,
 		.p-menubar-item-icon {
 			color: var(--p-primary-color);
+		}
+
+		// Mobile adjustments
+		@include breakpoint-down("sm") {
+			.p-menubar-root-list {
+				gap: 0.5rem;
+			}
+
+			.p-menubar-item-content {
+				padding: 0.5rem;
+			}
+
+			.p-menubar-item-label {
+				font-size: 0.875rem;
+			}
+		}
+
+		// Tablet and up
+		@include breakpoint-up("md") {
+			.p-menubar-item-content {
+				padding: 0.75rem 1rem;
+			}
+		}
+	}
+
+	// End section buttons responsive
+	:deep(.p-menubar-end) {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+
+		@include breakpoint-up("sm") {
+			gap: 0.5rem;
+		}
+
+		.p-button {
+			// Smaller buttons on mobile
+			@include breakpoint-down("sm") {
+				width: 2rem;
+				height: 2rem;
+				padding: 0;
+
+				.p-button-icon {
+					font-size: 1rem;
+				}
+			}
 		}
 	}
 }

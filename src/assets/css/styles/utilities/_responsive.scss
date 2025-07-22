@@ -1,0 +1,348 @@
+// Responsive Utilities
+// Grid and Flexbox utilities for responsive layouts
+
+@import "../mixins/breakpoints";
+
+// Container utilities with responsive padding
+.container-responsive {
+	width: 100%;
+	margin-left: auto;
+	margin-right: auto;
+	padding-left: 1rem;
+	padding-right: 1rem;
+
+	@include breakpoint-up("sm") {
+		max-width: 640px;
+		padding-left: 1.5rem;
+		padding-right: 1.5rem;
+	}
+
+	@include breakpoint-up("md") {
+		max-width: 768px;
+	}
+
+	@include breakpoint-up("lg") {
+		max-width: 1024px;
+		padding-left: 2rem;
+		padding-right: 2rem;
+	}
+
+	@include breakpoint-up("xl") {
+		max-width: 1280px;
+	}
+
+	@include breakpoint-up("2xl") {
+		max-width: 1536px;
+	}
+}
+
+// Fluid container
+.container-fluid {
+	width: 100%;
+	max-width: 1920px;
+	margin-left: auto;
+	margin-right: auto;
+	padding-left: 1rem;
+	padding-right: 1rem;
+
+	@include breakpoint-up("md") {
+		padding-left: 2rem;
+		padding-right: 2rem;
+	}
+
+	@include breakpoint-up("lg") {
+		padding-left: 3rem;
+		padding-right: 3rem;
+	}
+}
+
+// Responsive grid system
+.responsive-grid {
+	display: grid;
+	gap: 1rem;
+
+	// Mobile first - single column
+	grid-template-columns: 1fr;
+
+	@include breakpoint-up("sm") {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	@include breakpoint-up("md") {
+		&.md\:grid-cols-2 {
+			grid-template-columns: repeat(2, 1fr);
+		}
+		&.md\:grid-cols-3 {
+			grid-template-columns: repeat(3, 1fr);
+		}
+		&.md\:grid-cols-4 {
+			grid-template-columns: repeat(4, 1fr);
+		}
+	}
+
+	@include breakpoint-up("lg") {
+		&.lg\:grid-cols-2 {
+			grid-template-columns: repeat(2, 1fr);
+		}
+		&.lg\:grid-cols-3 {
+			grid-template-columns: repeat(3, 1fr);
+		}
+		&.lg\:grid-cols-4 {
+			grid-template-columns: repeat(4, 1fr);
+		}
+	}
+}
+
+// Responsive flex utilities
+.flex-responsive {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+
+	@include breakpoint-up("sm") {
+		flex-direction: row;
+		align-items: center;
+	}
+
+	&.flex-wrap-responsive {
+		flex-wrap: wrap;
+	}
+}
+
+// Responsive spacing utilities
+@each $size, $value in ("sm": 0.5rem, "md": 1rem, "lg": 1.5rem, "xl": 2rem, "2xl": 3rem) {
+	.p-responsive-#{$size} {
+		padding: $value;
+
+		@include breakpoint-up("md") {
+			padding: calc($value * 1.5);
+		}
+
+		@include breakpoint-up("lg") {
+			padding: calc($value * 2);
+		}
+	}
+
+	.m-responsive-#{$size} {
+		margin: $value;
+
+		@include breakpoint-up("md") {
+			margin: calc($value * 1.5);
+		}
+
+		@include breakpoint-up("lg") {
+			margin: calc($value * 2);
+		}
+	}
+}
+
+// Text responsive utilities
+.text-responsive {
+	font-size: 0.875rem; // 14px
+
+	@include breakpoint-up("sm") {
+		font-size: 1rem; // 16px
+	}
+
+	@include breakpoint-up("md") {
+		font-size: 1.125rem; // 18px
+	}
+
+	&.text-responsive-lg {
+		font-size: 1.125rem; // 18px
+
+		@include breakpoint-up("sm") {
+			font-size: 1.25rem; // 20px
+		}
+
+		@include breakpoint-up("md") {
+			font-size: 1.5rem; // 24px
+		}
+
+		@include breakpoint-up("lg") {
+			font-size: 1.875rem; // 30px
+		}
+	}
+
+	&.text-responsive-xl {
+		font-size: 1.5rem; // 24px
+
+		@include breakpoint-up("sm") {
+			font-size: 2rem; // 32px
+		}
+
+		@include breakpoint-up("md") {
+			font-size: 2.5rem; // 40px
+		}
+
+		@include breakpoint-up("lg") {
+			font-size: 3rem; // 48px
+		}
+	}
+}
+
+// Hide/Show utilities
+.hide-mobile {
+	@include breakpoint-down("sm") {
+		display: none !important;
+	}
+}
+
+.show-mobile {
+	@include breakpoint-up("md") {
+		display: none !important;
+	}
+}
+
+.hide-tablet {
+	@include breakpoint-between("sm", "lg") {
+		display: none !important;
+	}
+}
+
+.show-desktop {
+	@include breakpoint-down("lg") {
+		display: none !important;
+	}
+}
+
+// Responsive width utilities
+.w-full-mobile {
+	@include breakpoint-down("sm") {
+		width: 100% !important;
+	}
+}
+
+.w-auto-desktop {
+	@include breakpoint-up("lg") {
+		width: auto !important;
+	}
+}
+
+// Stack to horizontal layout pattern
+.stack-to-horizontal {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+
+	@include breakpoint-up("md") {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+	}
+}
+
+// Responsive card layout
+.card-responsive {
+	padding: 1rem;
+	border-radius: 0.5rem;
+
+	@include breakpoint-up("sm") {
+		padding: 1.5rem;
+	}
+
+	@include breakpoint-up("md") {
+		padding: 2rem;
+	}
+
+	@include breakpoint-up("lg") {
+		padding: 2.5rem;
+	}
+}
+
+// Aspect ratio utilities
+.aspect-responsive {
+	position: relative;
+	width: 100%;
+
+	&::before {
+		content: "";
+		display: block;
+		padding-top: 100%; // 1:1 default
+	}
+
+	&.aspect-16-9::before {
+		padding-top: 56.25%; // 16:9
+	}
+
+	&.aspect-4-3::before {
+		padding-top: 75%; // 4:3
+	}
+
+	> * {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+	}
+}
+
+// Responsive button sizes
+.btn-responsive {
+	padding: 0.5rem 1rem;
+	font-size: 0.875rem;
+
+	@include breakpoint-up("sm") {
+		padding: 0.625rem 1.25rem;
+		font-size: 1rem;
+	}
+
+	@include breakpoint-up("md") {
+		padding: 0.75rem 1.5rem;
+	}
+
+	&.btn-responsive-full {
+		width: 100%;
+
+		@include breakpoint-up("sm") {
+			width: auto;
+			min-width: 140px;
+		}
+	}
+}
+
+// Safe area padding for mobile devices
+.safe-area-padding {
+	padding-left: env(safe-area-inset-left);
+	padding-right: env(safe-area-inset-right);
+	padding-bottom: env(safe-area-inset-bottom);
+}
+
+// Clamp utilities for fluid typography
+.text-clamp-sm {
+	font-size: clamp(0.875rem, 2vw, 1rem);
+}
+
+.text-clamp-base {
+	font-size: clamp(1rem, 2.5vw, 1.125rem);
+}
+
+.text-clamp-lg {
+	font-size: clamp(1.25rem, 3vw, 1.5rem);
+}
+
+.text-clamp-xl {
+	font-size: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.text-clamp-2xl {
+	font-size: clamp(2rem, 5vw, 3.5rem);
+}
+
+// Responsive gap utilities
+.gap-responsive {
+	gap: 0.5rem;
+
+	@include breakpoint-up("sm") {
+		gap: 1rem;
+	}
+
+	@include breakpoint-up("md") {
+		gap: 1.5rem;
+	}
+
+	@include breakpoint-up("lg") {
+		gap: 2rem;
+	}
+}

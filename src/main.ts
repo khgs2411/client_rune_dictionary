@@ -3,6 +3,7 @@ import "./style.css";
 import "./assets/css/style.scss";
 import "primeicons/primeicons.css";
 import App from "./App.vue";
+import { initializeCSSOptimizations } from "./utils/css-optimization";
 import router from "./router/router.ts";
 import PrimeVue from "primevue/config";
 import Aura from "@primevue/themes/aura";
@@ -47,7 +48,7 @@ import DebugDirective from "./directives/debug.directive.ts";
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
-createApp(App)
+const app = createApp(App)
 	.use(router)
 	.use(pinia)
 	.use(PrimeVue, {
@@ -57,6 +58,7 @@ createApp(App)
 			options: {
 				prefix: "p",
 				darkModeSelector: ".dark",
+				cssLayer: false,
 			},
 		},
 	})
@@ -65,3 +67,9 @@ createApp(App)
 	.directive("ripple", Ripple)
 	.directive("debug", DebugDirective)
 	.mount("#app");
+
+// Initialize CSS optimizations after app mount
+initializeCSSOptimizations();
+
+// Make router available globally for CSS optimization
+window.router = router;

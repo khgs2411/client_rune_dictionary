@@ -61,6 +61,7 @@ The WebSocket implementation follows a **layered architecture**:
 **Purpose**: Provides WebSocket connection configuration and event handlers
 
 **Key Features**:
+
 - **Connection Configuration**: Host, heartbeat, auto-reconnect settings
 - **Event Handling**: Message processing, connection state management
 - **Protocol Support**: Custom protocol for client identification
@@ -73,20 +74,21 @@ const PING_PONG_INTERVAL = 20; // seconds
 
 // Heartbeat Configuration
 const heartbeatOptions: Ref<Heartbeat> = ref({
-    interval: PING_PONG_INTERVAL * 1000,
-    pongTimeout: PING_PONG_INTERVAL * 1000,
-    message: "ping",
+	interval: PING_PONG_INTERVAL * 1000,
+	pongTimeout: PING_PONG_INTERVAL * 1000,
+	message: "ping",
 });
 
 // Auto-reconnect Configuration
 const autoReconnectOptions: Ref<AutoReconnect> = ref({
-    retries: 1,
-    delay: 1000,
-    onFailed: handleReconnectFailed,
+	retries: 1,
+	delay: 1000,
+	onFailed: handleReconnectFailed,
 });
 ```
 
 **Message Processing Flow**:
+
 1. Receive raw WebSocket message
 2. Parse JSON to `WebsocketStructuredMessage`
 3. Create WSM instance with `useWSM`
@@ -98,21 +100,22 @@ const autoReconnectOptions: Ref<AutoReconnect> = ref({
 **Purpose**: Handles WebSocket message routing and business logic
 
 **Message Types Handled**:
+
 - **SYSTEM**: System notifications and status updates
 - **ERROR**: Error messages and alerts
 - **MATCH**: Match requests and matchmaking actions
 
 ```typescript
 function process(wsm$: I_UseWSM) {
-    if (wsm$.is(E_WebsocketMessageType.SYSTEM)) {
-        console.log(wsm$.data);
-    }
-    
-    if (wsm$.is(E_WebsocketMessageType.ERROR)) {
-        console.log(wsm$.data);
-    }
-    
-    if (wsm$.is("match")) match$.onMatchRequest(wsm$);
+	if (wsm$.is(E_WebsocketMessageType.SYSTEM)) {
+		console.log(wsm$.data);
+	}
+
+	if (wsm$.is(E_WebsocketMessageType.ERROR)) {
+		console.log(wsm$.data);
+	}
+
+	if (wsm$.is("match")) match$.onMatchRequest(wsm$);
 }
 ```
 
@@ -121,6 +124,7 @@ function process(wsm$: I_UseWSM) {
 **Purpose**: Parses and provides typed access to WebSocket messages
 
 **Key Computed Properties**:
+
 - `isMessage`: Standard chat messages
 - `isWhisper`: Private messages
 - `isBroadcast`: Public broadcast messages
@@ -130,17 +134,13 @@ function process(wsm$: I_UseWSM) {
 - `isHeartbeat`: Ping/pong messages
 
 ```typescript
-const isMessage = computed(() => 
-    type.value === E_WebsocketMessageType.MESSAGE || 
-    type.value === E_WebsocketMessageType.WHISPER || 
-    type.value === E_WebsocketMessageType.BROADCAST
-);
+const isMessage = computed(() => type.value === E_WebsocketMessageType.MESSAGE || type.value === E_WebsocketMessageType.WHISPER || type.value === E_WebsocketMessageType.BROADCAST);
 
 const sender = computed(() => {
-    if (!isGenericMessage.value) {
-        return client.value?.name || client.value?.id || "System";
-    }
-    return "System";
+	if (!isGenericMessage.value) {
+		return client.value?.name || client.value?.id || "System";
+	}
+	return "System";
 });
 ```
 
@@ -149,22 +149,23 @@ const sender = computed(() => {
 **Purpose**: Handles outgoing message construction and transmission
 
 **Message Types Supported**:
+
 - **MESSAGE**: Regular chat messages
 - **WHISPER**: Private messages to specific users
 - **BROADCAST**: Public messages to all users
 
 ```typescript
 function sendMessage(client: MessagesEntity, input: string, options?: I_SendMessageOptions) {
-    const message: WebsocketStructuredMessage = {
-        type: options?.type || E_WebsocketMessageType.MESSAGE,
-        content: { message: input },
-        channel: options?.channel || "global",
-        timestamp: new Date().toISOString(),
-        client: client,
-        metadata: options?.metadata,
-    };
-    
-    send(JSON.stringify(message));
+	const message: WebsocketStructuredMessage = {
+		type: options?.type || E_WebsocketMessageType.MESSAGE,
+		content: { message: input },
+		channel: options?.channel || "global",
+		timestamp: new Date().toISOString(),
+		client: client,
+		metadata: options?.metadata,
+	};
+
+	send(JSON.stringify(message));
 }
 ```
 
@@ -177,6 +178,7 @@ function sendMessage(client: MessagesEntity, input: string, options?: I_SendMess
 **Purpose**: Top-level WebSocket connection manager and authentication gate
 
 **Key Features**:
+
 - **Authentication Integration**: Checks user authorization
 - **Connection State Management**: Loading states and error handling
 - **Client Validation**: Ensures valid client data before connection
@@ -184,20 +186,18 @@ function sendMessage(client: MessagesEntity, input: string, options?: I_SendMess
 
 ```vue
 <template>
-    <div class="websocket-connection-interface">
-        <template v-if="isChatReady">
-            <div v-if="auth$.loading.value" class="loading-container">
-                <div class="loading-spinner"></div>
-                <p>Connecting to chat server...</p>
-            </div>
-            <Chat v-else-if="auth$.client.value" 
-                  :client="auth$.client.value!" 
-                  @logout="auth$.logout()" />
-        </template>
-        <div v-else-if="errorMessage" class="chat-error-message">
-            {{ errorMessage }}
-        </div>
-    </div>
+	<div class="websocket-connection-interface">
+		<template v-if="isChatReady">
+			<div v-if="auth$.loading.value" class="loading-container">
+				<div class="loading-spinner"></div>
+				<p>Connecting to chat server...</p>
+			</div>
+			<Chat v-else-if="auth$.client.value" :client="auth$.client.value!" @logout="auth$.logout()" />
+		</template>
+		<div v-else-if="errorMessage" class="chat-error-message">
+			{{ errorMessage }}
+		</div>
+	</div>
 </template>
 ```
 
@@ -206,6 +206,7 @@ function sendMessage(client: MessagesEntity, input: string, options?: I_SendMess
 **Purpose**: Main chat functionality with messaging and real-time features
 
 **Key Features**:
+
 - **Message Display**: Scrollable message history
 - **Input Handling**: Message composition and sending
 - **Whisper Mode**: Private messaging functionality
@@ -213,30 +214,27 @@ function sendMessage(client: MessagesEntity, input: string, options?: I_SendMess
 - **Macro Commands**: Chat shortcuts (e.g., `/s` to clear whisper)
 
 **Chat Modes**:
+
 - **Broadcast Mode**: Default public chat
 - **Whisper Mode**: Private messaging with target selection
 
 ```typescript
 // Message sending logic
 function sendMessage(msg?: string) {
-    messenger.sendMessage(
-        props.client, 
-        msg || inputMessage.value, 
-        { 
-            type: whisperMode.value ? E_WebsocketMessageType.WHISPER : E_WebsocketMessageType.BROADCAST, 
-            target: targetEntity.value 
-        }
-    );
-    inputMessage.value = "";
+	messenger.sendMessage(props.client, msg || inputMessage.value, {
+		type: whisperMode.value ? E_WebsocketMessageType.WHISPER : E_WebsocketMessageType.BROADCAST,
+		target: targetEntity.value,
+	});
+	inputMessage.value = "";
 }
 
 // Whisper mode activation
 function handleWhisper(entity: WebsocketEntityData) {
-    mode.value = "whisper";
-    setTargetEntity(entity);
-    nextTick(() => {
-        (inputRef.value as any).$el.focus();
-    });
+	mode.value = "whisper";
+	setTargetEntity(entity);
+	nextTick(() => {
+		(inputRef.value as any).$el.focus();
+	});
 }
 ```
 
@@ -245,6 +243,7 @@ function handleWhisper(entity: WebsocketEntityData) {
 **Purpose**: Provides resizable and draggable chat interface
 
 **Key Features**:
+
 - **Drag and Drop**: Window positioning
 - **Resize Handles**: Bottom-right and top-right resize
 - **Boundary Constraints**: Keeps window within container
@@ -257,13 +256,13 @@ const isMobile = computed(() => window.innerWidth <= 1024);
 
 // Boundary enforcement
 function ensureWithinBounds() {
-    const maxX = bounds.left + bounds.width - windowRect.width;
-    const maxY = bounds.top + bounds.height - windowRect.height;
-    
-    position.value = {
-        x: Math.max(bounds.left, Math.min(maxX, position.value.x)),
-        y: Math.max(bounds.top, Math.min(maxY, position.value.y)),
-    };
+	const maxX = bounds.left + bounds.width - windowRect.width;
+	const maxY = bounds.top + bounds.height - windowRect.height;
+
+	position.value = {
+		x: Math.max(bounds.left, Math.min(maxX, position.value.x)),
+		y: Math.max(bounds.top, Math.min(maxY, position.value.y)),
+	};
 }
 ```
 
@@ -272,6 +271,7 @@ function ensureWithinBounds() {
 **Purpose**: Renders individual chat messages with actions
 
 **Key Features**:
+
 - **Message Formatting**: Timestamp, sender, content display
 - **Context Menu**: Right-click actions (whisper, match)
 - **Message Types**: Different styling for system, error, whisper messages
@@ -279,18 +279,14 @@ function ensureWithinBounds() {
 
 ```vue
 <template>
-    <div class="message" @contextmenu="onContextMenu" @click="onContextMenu">
-        <span class="message-information">
-            [{{ formattedTime }} - 
-            <span class="channel" :class="{ 'whisper-indicator': isWhisper }">
-                {{ channel }}]
-            </span>
-        </span>
-        <span class="sender" :class="{ 'system-indicator': isSystemMessage }">
-            {{ sender }}:
-        </span>
-        <span class="message-content">{{ content.message }}</span>
-    </div>
+	<div class="message" @contextmenu="onContextMenu" @click="onContextMenu">
+		<span class="message-information">
+			[{{ formattedTime }} -
+			<span class="channel" :class="{ 'whisper-indicator': isWhisper }"> {{ channel }}] </span>
+		</span>
+		<span class="sender" :class="{ 'system-indicator': isSystemMessage }"> {{ sender }}: </span>
+		<span class="message-content">{{ content.message }}</span>
+	</div>
 </template>
 ```
 
@@ -304,13 +300,13 @@ All messages follow the `WebsocketStructuredMessage` interface:
 
 ```typescript
 interface WebsocketStructuredMessage<T = Record<string, any>> {
-    type: string;                    // Message type identifier
-    content: T;                      // Message payload
-    channel?: string;                // Channel identifier
-    timestamp?: string;              // ISO timestamp
-    client?: WebsocketEntityData;    // Sender information
-    metadata?: Record<string, any>;  // Additional metadata
-    [key: string]: any;             // Custom fields
+	type: string; // Message type identifier
+	content: T; // Message payload
+	channel?: string; // Channel identifier
+	timestamp?: string; // ISO timestamp
+	client?: WebsocketEntityData; // Sender information
+	metadata?: Record<string, any>; // Additional metadata
+	[key: string]: any; // Custom fields
 }
 ```
 
@@ -318,20 +314,20 @@ interface WebsocketStructuredMessage<T = Record<string, any>> {
 
 ```typescript
 enum E_WebsocketMessageType {
-    CLIENT_CONNECTED = "client.connected",
-    CLIENT_DISCONNECTED = "client.disconnected",
-    CLIENT_JOIN_CHANNEL = "client.join.channel",
-    CLIENT_LEAVE_CHANNEL = "client.leave.channel",
-    CLIENT_JOIN_CHANNELS = "client.join.channels",
-    CLIENT_LEAVE_CHANNELS = "client.leave.channels",
-    PING = "ping",
-    PONG = "pong",
-    MESSAGE = "message",
-    WHISPER = "whisper",
-    BROADCAST = "broadcast",
-    PROMPT = "prompt",
-    ERROR = "error",
-    SYSTEM = "system"
+	CLIENT_CONNECTED = "client.connected",
+	CLIENT_DISCONNECTED = "client.disconnected",
+	CLIENT_JOIN_CHANNEL = "client.join.channel",
+	CLIENT_LEAVE_CHANNEL = "client.leave.channel",
+	CLIENT_JOIN_CHANNELS = "client.join.channels",
+	CLIENT_LEAVE_CHANNELS = "client.leave.channels",
+	PING = "ping",
+	PONG = "pong",
+	MESSAGE = "message",
+	WHISPER = "whisper",
+	BROADCAST = "broadcast",
+	PROMPT = "prompt",
+	ERROR = "error",
+	SYSTEM = "system",
 }
 ```
 
@@ -346,8 +342,8 @@ enum E_WebsocketMessageType {
 
 ```typescript
 interface WebsocketEntityData {
-    id: string;      // Unique client identifier
-    name: string;    // Display name
+	id: string; // Unique client identifier
+	name: string; // Display name
 }
 ```
 
@@ -365,23 +361,23 @@ interface WebsocketEntityData {
 ```typescript
 // Authentication process
 async function login(credentials: { username: string; password: string }) {
-    loading.value = true;
-    
-    // Step 1: Login validation
-    const res = await performLogin(credentials.username, credentials.password);
-    if (!res.authorized) throw new Error("Login failed");
-    
-    // Step 2: API handshake
-    const handshakeRes = await performHandshake(username.value, password.value, api_key_val);
-    if (!handshakeRes.status) throw new Error("Handshake failed");
-    
-    // Step 3: Set client state
-    store.setClient({
-        id: handshakeRes.data.id,
-        name: handshakeRes.data.name,
-    });
-    
-    store.setAuthorized(true);
+	loading.value = true;
+
+	// Step 1: Login validation
+	const res = await performLogin(credentials.username, credentials.password);
+	if (!res.authorized) throw new Error("Login failed");
+
+	// Step 2: API handshake
+	const handshakeRes = await performHandshake(username.value, password.value, api_key_val);
+	if (!handshakeRes.status) throw new Error("Handshake failed");
+
+	// Step 3: Set client state
+	store.setClient({
+		id: handshakeRes.data.id,
+		name: handshakeRes.data.name,
+	});
+
+	store.setAuthorized(true);
 }
 ```
 
@@ -409,9 +405,9 @@ async function login(credentials: { username: string; password: string }) {
 ```typescript
 // Heartbeat configuration
 const heartbeatOptions: Ref<Heartbeat> = ref({
-    interval: 20000,        // 20 seconds
-    pongTimeout: 20000,     // 20 seconds timeout
-    message: "ping",        // Ping message
+	interval: 20000, // 20 seconds
+	pongTimeout: 20000, // 20 seconds timeout
+	message: "ping", // Ping message
 });
 ```
 
@@ -420,9 +416,9 @@ const heartbeatOptions: Ref<Heartbeat> = ref({
 ```typescript
 // Auto-reconnect configuration
 const autoReconnectOptions: Ref<AutoReconnect> = ref({
-    retries: 1,            // Single retry attempt
-    delay: 1000,           // 1 second delay
-    onFailed: handleReconnectFailed,
+	retries: 1, // Single retry attempt
+	delay: 1000, // 1 second delay
+	onFailed: handleReconnectFailed,
 });
 ```
 
@@ -446,20 +442,20 @@ const autoReconnectOptions: Ref<AutoReconnect> = ref({
 
 ```typescript
 function handleError(ws: WebSocket, event: Event) {
-    Lib.Warn(`WebSocket error:`, event);
-    messages.value.push({
-        type: "error",
-        content: { message: "Error with chat connection" },
-        timestamp: new Date().toISOString(),
-    });
+	Lib.Warn(`WebSocket error:`, event);
+	messages.value.push({
+		type: "error",
+		content: { message: "Error with chat connection" },
+		timestamp: new Date().toISOString(),
+	});
 }
 
 function handleReconnectFailed() {
-    messages.value.push({
-        type: "error",
-        content: { message: "Failed to reconnect after multiple attempts" },
-        timestamp: new Date().toISOString(),
-    });
+	messages.value.push({
+		type: "error",
+		content: { message: "Failed to reconnect after multiple attempts" },
+		timestamp: new Date().toISOString(),
+	});
 }
 ```
 
@@ -470,12 +466,14 @@ function handleReconnectFailed() {
 ### 1. Chat System
 
 **Features**:
+
 - **Real-time Messaging**: Instant message delivery
 - **Message History**: Persistent chat history
 - **Message Types**: Support for different message formats
 - **User Presence**: Online/offline status indicators
 
 **Message Flow**:
+
 ```
 User Input → Messenger → WebSocket → Server → Broadcast → All Clients → UI Update
 ```
@@ -483,6 +481,7 @@ User Input → Messenger → WebSocket → Server → Broadcast → All Clients 
 ### 2. Private Messaging (Whisper)
 
 **Features**:
+
 - **Target Selection**: Click-to-whisper functionality
 - **Visual Indicators**: Whisper mode highlighting
 - **Message Routing**: Server-side private message delivery
@@ -491,17 +490,18 @@ User Input → Messenger → WebSocket → Server → Broadcast → All Clients 
 ```typescript
 // Whisper message structure
 const whisperMessage: WebsocketStructuredMessage = {
-    type: E_WebsocketMessageType.WHISPER,
-    content: { message: inputMessage, target: target },
-    channel: "global",
-    timestamp: new Date().toISOString(),
-    client: client,
+	type: E_WebsocketMessageType.WHISPER,
+	content: { message: inputMessage, target: target },
+	channel: "global",
+	timestamp: new Date().toISOString(),
+	client: client,
 };
 ```
 
 ### 3. Match System Integration
 
 **Features**:
+
 - **Match Requests**: Real-time match invitations
 - **Prompt System**: Interactive match acceptance/decline
 - **Status Updates**: Match progress notifications
@@ -510,21 +510,22 @@ const whisperMessage: WebsocketStructuredMessage = {
 ```typescript
 // Match request handling
 function onMatchRequest(wsm$: I_UseWSM) {
-    prompt$.next({
-        message: MATCH_MESSAGE,
-        from: wsm$.client.value,
-        time: 10,
-        metadata: wsm$.data,
-        callback: (choice: PromptChoice, data: PromptData) => {
-            console.log(choice, data.metadata);
-        },
-    });
+	prompt$.next({
+		message: MATCH_MESSAGE,
+		from: wsm$.client.value,
+		time: 10,
+		metadata: wsm$.data,
+		callback: (choice: PromptChoice, data: PromptData) => {
+			console.log(choice, data.metadata);
+		},
+	});
 }
 ```
 
 ### 4. System Notifications
 
 **Features**:
+
 - **Connection Status**: Join/leave notifications
 - **System Messages**: Server announcements
 - **Error Notifications**: Connection and system errors
@@ -543,7 +544,7 @@ sequenceDiagram
     participant Auth Store
     participant WebSocket
     participant Server
-    
+
     User->>Vue App: Login Request
     Vue App->>Auth Store: Validate Credentials
     Auth Store->>Server: Authentication API
@@ -565,7 +566,7 @@ sequenceDiagram
     participant Server
     participant WebSocket B
     participant Client B
-    
+
     Client A->>WebSocket A: Send Message
     WebSocket A->>Server: JSON Message
     Server->>Server: Process & Route
@@ -584,7 +585,7 @@ sequenceDiagram
     participant WebSocket
     participant Server
     participant Target Client
-    
+
     Sender->>Chat Component: Right-click Message
     Chat Component->>Chat Component: Enable Whisper Mode
     Sender->>Chat Component: Type Message
@@ -606,7 +607,7 @@ sequenceDiagram
     participant Server
     participant Chat B
     participant Player B
-    
+
     Player A->>Chat A: Challenge Player B
     Chat A->>Match System: Create Match Request
     Match System->>WebSocket: Match Message
@@ -628,17 +629,17 @@ sequenceDiagram
 ```typescript
 // Server-side WebSocket service
 export default class WebsocketService implements I_WebsocketInterface {
-    private actions: I_WebsocketActions;
-    private channels: WebsocketChannel;
-    private ms: MessagesService;
-    
-    constructor() {
-        this.actions = {
-            broadcast: this.ms.broadcast.bind(this.ms),
-            message: this.ms.message.bind(this.ms),
-            whisper: this.ms.whisper.bind(this.ms),
-        };
-    }
+	private actions: I_WebsocketActions;
+	private channels: WebsocketChannel;
+	private ms: MessagesService;
+
+	constructor() {
+		this.actions = {
+			broadcast: this.ms.broadcast.bind(this.ms),
+			message: this.ms.message.bind(this.ms),
+			whisper: this.ms.whisper.bind(this.ms),
+		};
+	}
 }
 ```
 
@@ -654,17 +655,17 @@ export default class WebsocketService implements I_WebsocketInterface {
 // Client parsing from WebSocket protocol
 public static ParseWebsocketClient(creds: string): WebsocketEntityData {
     const hyphenIndex = creds.indexOf('-');
-    
+
     if (hyphenIndex === -1) {
         return {
             id: (totalClients + 1).toString(),
             name: creds.trim() || 'Anonymous',
         };
     }
-    
+
     const id = creds.substring(0, hyphenIndex).trim();
     const username = creds.substring(hyphenIndex + 1).trim();
-    
+
     return {
         id: id || (totalClients + 1).toString(),
         name: username || 'Anonymous',
@@ -737,6 +738,7 @@ public static ParseWebsocketClient(creds: string): WebsocketEntityData {
 The WebSocket implementation in the Vue 3 client application demonstrates a well-architected real-time communication system. The modular design with composables provides excellent maintainability and testability, while the integration with VueUse WebSocket offers robust connection management.
 
 Key strengths include:
+
 - **Modular Architecture**: Clean separation of concerns
 - **Type Safety**: Comprehensive TypeScript integration
 - **Real-time Features**: Robust chat and matching systems
@@ -747,5 +749,5 @@ The system provides a solid foundation for real-time gaming applications with ro
 
 ---
 
-*Analysis completed by Batman for Task 2.4: WebSocket Implementation Analysis*
-*Generated on: 2025-07-18*
+_Analysis completed by Batman for Task 2.4: WebSocket Implementation Analysis_
+_Generated on: 2025-07-18_

@@ -1,0 +1,91 @@
+// Breakpoint Mixins
+// Mobile-first responsive design mixins that align with Tailwind's breakpoints
+
+// Tailwind v4 default breakpoints
+$breakpoints: (
+	"sm": 640px,
+	// Small devices
+	"md": 768px,
+	// Medium devices
+	"lg": 1024px,
+	// Large devices
+	"xl": 1280px,
+	// Extra large devices
+	"2xl": 1536px, // 2X large devices
+) !default;
+
+// Mobile-first breakpoint mixin (min-width)
+@mixin breakpoint-up($breakpoint) {
+	@if map-has-key($breakpoints, $breakpoint) {
+		$breakpoint-value: map-get($breakpoints, $breakpoint);
+		@media (min-width: $breakpoint-value) {
+			@content;
+		}
+	} @else if type-of($breakpoint) == number {
+		@media (min-width: $breakpoint) {
+			@content;
+		}
+	} @else {
+		@error "Invalid breakpoint: #{$breakpoint}";
+	}
+}
+
+// Max-width breakpoint mixin
+@mixin breakpoint-down($breakpoint) {
+	@if map-has-key($breakpoints, $breakpoint) {
+		$breakpoint-value: map-get($breakpoints, $breakpoint);
+		@media (max-width: ($breakpoint-value - 1px)) {
+			@content;
+		}
+	} @else if type-of($breakpoint) == number {
+		@media (max-width: $breakpoint) {
+			@content;
+		}
+	} @else {
+		@error "Invalid breakpoint: #{$breakpoint}";
+	}
+}
+
+// Between two breakpoints
+@mixin breakpoint-between($min, $max) {
+	$min-value: if(map-has-key($breakpoints, $min), map-get($breakpoints, $min), $min);
+	$max-value: if(map-has-key($breakpoints, $max), map-get($breakpoints, $max), $max);
+
+	@media (min-width: $min-value) and (max-width: ($max-value - 1px)) {
+		@content;
+	}
+}
+
+// Landscape orientation
+@mixin landscape {
+	@media (orientation: landscape) {
+		@content;
+	}
+}
+
+// Portrait orientation
+@mixin portrait {
+	@media (orientation: portrait) {
+		@content;
+	}
+}
+
+// High DPI screens
+@mixin retina {
+	@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+		@content;
+	}
+}
+
+// Tailwind-style responsive utilities generator
+@mixin responsive-utility($property, $value, $prefix: "") {
+	#{$prefix}#{$property}: $value;
+
+	@each $breakpoint, $size in $breakpoints {
+		@include breakpoint-up($breakpoint) {
+			.#{$breakpoint}\:#{$prefix}#{$property} {
+				#{$property}: $value;
+			}
+		}
+	}
+}

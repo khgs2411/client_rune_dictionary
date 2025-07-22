@@ -3,28 +3,25 @@
 		<div class="flex gap large wrap match-card-wrapper">
 			<div v-for="card in matchCards" :key="card.type" class="match-card-wrapper-outer">
 				<span v-if="card.wip" class="wip-badge">WIP</span>
-				<Card v-ripple
-					:class="['match-card', card.type, { disabled: card.disabled || card.loading, loading: card.loading }]"
-					@click="!card.disabled && !card.loading && handleMatchType(card)">
-				<template #header>
-					<div class="card-header-container">
-						<img :alt="`${card.type} header`" class="card-image"
-							:src="`${imageUrl}match.webp`" />
-						<div v-if="card.loading" class="loading-overlay">
-							<ProgressSpinner size="large" stroke-width="3" />
-							<p>Starting match...</p>
+				<Card v-ripple :class="['match-card', card.type, { disabled: card.disabled || card.loading, loading: card.loading }]" @click="!card.disabled && !card.loading && handleMatchType(card)">
+					<template #header>
+						<div class="card-header-container">
+							<img :alt="`${card.type} header`" class="card-image" :src="`${imageUrl}match.webp`" />
+							<div v-if="card.loading" class="loading-overlay">
+								<ProgressSpinner size="large" stroke-width="3" />
+								<p>Starting match...</p>
+							</div>
 						</div>
-					</div>
-				</template>
-				<template #title>
-					<span class="text-center flex">{{ card.title }}</span>
-				</template>
-				<template #subtitle>
-					<span class="text-center flex">{{ card.subtitle }}</span>
-				</template>
-				<template #content>
-					<p class="flex text-center">{{ card.content }}</p>
-				</template>
+					</template>
+					<template #title>
+						<span class="text-center flex">{{ card.title }}</span>
+					</template>
+					<template #subtitle>
+						<span class="text-center flex">{{ card.subtitle }}</span>
+					</template>
+					<template #content>
+						<p class="flex text-center">{{ card.content }}</p>
+					</template>
 				</Card>
 			</div>
 		</div>
@@ -42,40 +39,61 @@ interface Props {
 }
 
 interface Emits {
-	(e: 'matchTypeSelected', card: MatchCard): void;
+	(e: "matchTypeSelected", card: MatchCard): void;
 }
 
 defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 function handleMatchType(card: MatchCard) {
-	emit('matchTypeSelected', card);
+	emit("matchTypeSelected", card);
 }
 </script>
 
 <style lang="scss" scoped>
+@import "../../assets/css/styles/mixins/breakpoints";
+
 .match-lobby {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	height: 100%;
 	width: 100%;
-	padding: 2rem;
+	padding: 1rem;
+	overflow-y: auto;
+
+	@include breakpoint-up("sm") {
+		padding: 1.5rem;
+	}
+
+	@include breakpoint-up("md") {
+		padding: 2rem;
+	}
 }
 
 .match-card-wrapper {
 	width: 100%;
+	display: flex;
 	justify-content: center;
 	align-items: center;
-	margin: 2rem auto;
-	gap: 2rem;
+	gap: 1rem;
 	flex-wrap: wrap;
+	max-width: 1200px;
+	margin: 0 auto;
+
+	@include breakpoint-up("sm") {
+		gap: 1.5rem;
+	}
+
+	@include breakpoint-up("md") {
+		gap: 2rem;
+	}
 }
 
 .match-card-wrapper-outer {
 	position: relative;
 	display: inline-block;
-	
+
 	.wip-badge {
 		position: absolute;
 		top: 12px;
@@ -100,8 +118,11 @@ function handleMatchType(card: MatchCard) {
 }
 
 .match-card {
-	width: 35rem;
-	height: 450px;
+	width: 100%;
+	max-width: 35rem;
+	min-width: 280px;
+	height: auto;
+	min-height: 400px;
 	overflow: hidden;
 	position: relative;
 	cursor: pointer;
@@ -112,6 +133,27 @@ function handleMatchType(card: MatchCard) {
 		transform 0.3s ease,
 		box-shadow 0.3s ease;
 	background: var(--p-content-background);
+	display: flex;
+	flex-direction: column;
+
+	// Mobile size
+	@include breakpoint-down("sm") {
+		width: calc(100vw - 2rem);
+		max-width: 400px;
+		min-height: 350px;
+	}
+
+	// Tablet size
+	@include breakpoint-between("sm", "lg") {
+		width: 300px;
+		min-height: 380px;
+	}
+
+	// Desktop size
+	@include breakpoint-up("lg") {
+		width: 35rem;
+		height: 450px;
+	}
 
 	&:hover:not(.disabled):not(.loading) {
 		transform: translateY(-5px);
@@ -143,9 +185,17 @@ function handleMatchType(card: MatchCard) {
 
 	.card-image {
 		width: 100%;
-		height: 250px;
+		height: 200px;
 		object-fit: cover;
 		transition: transform 0.3s ease;
+
+		@include breakpoint-up("sm") {
+			height: 220px;
+		}
+
+		@include breakpoint-up("md") {
+			height: 250px;
+		}
 	}
 
 	&.pve .card-image {

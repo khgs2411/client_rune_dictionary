@@ -1,4 +1,14 @@
+// Common utilities and variables
 @use "./common.scss" as *;
+
+// Design tokens must load first
+@use "./design-tokens.scss";
+
+// SCSS Architecture (includes mixins, base styles, utilities)
+@use "./styles/index";
+
+// RPG theme enhancements
+@use "./rpg-theme.scss";
 
 :root {
 	font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;

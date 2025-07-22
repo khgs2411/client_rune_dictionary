@@ -19,6 +19,4 @@ import Prompt from "../utilities/Prompt.vue";
 const auth$ = useAuth();
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

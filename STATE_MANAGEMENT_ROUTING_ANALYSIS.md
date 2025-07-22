@@ -22,17 +22,19 @@ This document provides a comprehensive analysis of the Vue 3 client application'
 **Purpose**: Manages user authentication state and client identity.
 
 **State Structure**:
+
 ```typescript
 interface AuthState {
-  username: string;           // Persisted via localStorage
-  password: string;           // Populated from environment variable
-  loading: boolean;           // Loading state for UI
-  authorized: boolean;        // Persisted via localStorage
-  client: WebsocketEntityData | null; // Current client data
+	username: string; // Persisted via localStorage
+	password: string; // Populated from environment variable
+	loading: boolean; // Loading state for UI
+	authorized: boolean; // Persisted via localStorage
+	client: WebsocketEntityData | null; // Current client data
 }
 ```
 
 **Key Features**:
+
 - **Persistence**: Uses `useLocalStorage` for `username` and `authorized` state
 - **Security**: Password sourced from environment variable (`VITE_API_KEY`)
 - **Computed Properties**: `authorized` and `client` as computed refs
@@ -40,6 +42,7 @@ interface AuthState {
 - **HMR Support**: Hot Module Replacement for development
 
 **State Flow**:
+
 ```mermaid
 graph LR
     A[Environment] --> B[password]
@@ -54,21 +57,23 @@ graph LR
 **Purpose**: Manages application-wide UI state, primarily toast notifications.
 
 **State Structure**:
+
 ```typescript
 interface MiscState {
-  toasts: ToastMessage[];
+	toasts: ToastMessage[];
 }
 
 interface ToastMessage {
-  msg: string;
-  title?: string;
-  duration?: number;
-  severity?: "error" | "secondary" | "info" | "success" | "warn" | "contrast";
-  position?: ToastPosition;
+	msg: string;
+	title?: string;
+	duration?: number;
+	severity?: "error" | "secondary" | "info" | "success" | "warn" | "contrast";
+	position?: ToastPosition;
 }
 ```
 
 **Key Features**:
+
 - **Reactive Toast Queue**: Array of toast messages consumed by UI components
 - **Flexible Positioning**: 7 different toast positions supported
 - **Severity Levels**: 6 different severity types for visual distinction
@@ -79,28 +84,31 @@ interface ToastMessage {
 **Purpose**: Manages application theme and UI preferences.
 
 **State Structure**:
+
 ```typescript
 interface SettingsState {
-  visible: boolean;           // Settings panel visibility
-  darkMode: boolean;          // Dark mode preference (persisted)
-  currentTheme: CurrentThemeData; // Current theme data (persisted)
+	visible: boolean; // Settings panel visibility
+	darkMode: boolean; // Dark mode preference (persisted)
+	currentTheme: CurrentThemeData; // Current theme data (persisted)
 }
 
 interface CurrentThemeData {
-  group: string | undefined;
-  name: string | undefined;
-  variable: string | undefined;
-  value: string | undefined;
+	group: string | undefined;
+	name: string | undefined;
+	variable: string | undefined;
+	value: string | undefined;
 }
 ```
 
 **Key Features**:
+
 - **Full Persistence**: All settings persisted via `pinia-plugin-persistedstate`
 - **Theme Integration**: Direct integration with PrimeVue theme system
 - **Reactive Dark Mode**: Automatic DOM class toggling via watchers
 - **24 Color Presets**: Comprehensive color palette support
 
 **Theme Management Flow**:
+
 ```mermaid
 graph TD
     A[Color Selection] --> B[setTheme()]
@@ -120,46 +128,48 @@ The application uses a simple but effective routing structure:
 
 ```typescript
 const routes = [
-  {
-    path: "/",
-    redirect: { name: "login" },
-    children: [
-      { path: "login", name: "login", component: () => import("../views/Login.vue") },
-      { path: "app", name: "app", component: () => import("../views/Dictionary.vue") },
-      { path: "match", name: "match", component: () => import("../views/Match.vue") },
-    ],
-  },
-  {
-    path: "/:pathMatch(.*)*",
-    redirect: { name: "login" },
-  },
+	{
+		path: "/",
+		redirect: { name: "login" },
+		children: [
+			{ path: "login", name: "login", component: () => import("../views/Login.vue") },
+			{ path: "app", name: "app", component: () => import("../views/Dictionary.vue") },
+			{ path: "match", name: "match", component: () => import("../views/Match.vue") },
+		],
+	},
+	{
+		path: "/:pathMatch(.*)*",
+		redirect: { name: "login" },
+	},
 ];
 ```
 
 ### Navigation Guards
 
 **Authentication Guard**:
+
 ```typescript
 function checkIsAuthorized(to: RouteLocationNormalizedGeneric, next: NavigationGuardNext) {
-  const authStore = useAuthStore();
-  const isAuthorized = authStore.authorized;
-  
-  if (to.name === "login" && isAuthorized) {
-    next({ name: "app" });
-  } else if (to.name !== "login" && !isAuthorized) {
-    authStore.loading = true;
-    next({ name: "login" });
-    setTimeout(() => {
-      authStore.loading = false;
-    }, 1000);
-  } else {
-    authStore.loading = false;
-    next();
-  }
+	const authStore = useAuthStore();
+	const isAuthorized = authStore.authorized;
+
+	if (to.name === "login" && isAuthorized) {
+		next({ name: "app" });
+	} else if (to.name !== "login" && !isAuthorized) {
+		authStore.loading = true;
+		next({ name: "login" });
+		setTimeout(() => {
+			authStore.loading = false;
+		}, 1000);
+	} else {
+		authStore.loading = false;
+		next();
+	}
 }
 ```
 
 **Key Features**:
+
 - **Centralized Authentication**: Single guard for all routes
 - **Loading State Management**: Automatic loading state handling
 - **Fallback Routing**: 404 handling with redirect to login
@@ -176,22 +186,22 @@ graph TD
     C --> D{User Authorized?}
     D -->|No| E[Login Flow]
     D -->|Yes| F[Main App]
-    
+
     E --> G[Auth API Call]
     G --> H[Handshake API Call]
     H --> I[Update Auth Store]
     I --> J[Navigate to App]
-    
+
     F --> K[Component Rendering]
     K --> L[Store State Access]
     L --> M[User Interactions]
     M --> N[Store Mutations]
     N --> O[UI Updates]
-    
+
     P[Settings Changes] --> Q[Theme Updates]
     Q --> R[PrimeVue Integration]
     R --> S[CSS Variables]
-    
+
     T[Toast Notifications] --> U[Misc Store]
     U --> V[Toast Components]
     V --> W[Display & Cleanup]
@@ -206,7 +216,7 @@ sequenceDiagram
     participant A as Auth Store
     participant API as Auth API
     participant R as Router
-    
+
     U->>C: Login Attempt
     C->>A: Set Loading State
     C->>API: performLogin()
@@ -228,9 +238,9 @@ sequenceDiagram
 
 1. **User Input**: Username/password entered in LoginForm.vue
 2. **Auth Store Update**: Credentials stored in auth store
-3. **API Calls**: 
-   - `performLogin()` - Validates credentials
-   - `performHandshake()` - Establishes API connection
+3. **API Calls**:
+    - `performLogin()` - Validates credentials
+    - `performHandshake()` - Establishes API connection
 4. **State Persistence**: Authorization state saved to localStorage
 5. **Navigation**: Router redirects to main application
 6. **WebSocket Setup**: Client data stored for real-time features
@@ -238,10 +248,10 @@ sequenceDiagram
 ### Logout Process
 
 1. **User Action**: Logout button clicked in Settings.vue
-2. **State Cleanup**: 
-   - localStorage cleared
-   - Auth store reset
-   - Password and username cleared
+2. **State Cleanup**:
+    - localStorage cleared
+    - Auth store reset
+    - Password and username cleared
 3. **Navigation**: Router redirects to login page
 4. **Session Reset**: All temporary state cleared
 
@@ -265,23 +275,23 @@ sequenceDiagram
 ```typescript
 // Authentication composable pattern
 async function login(credentials: { username: string; password: string }) {
-  try {
-    loading.value = true;
-    const res = await performLogin(credentials.username, credentials.password);
-    if (!res.authorized) throw new Error("Login failed");
-    
-    const handshakeRes = await performHandshake(username.value, password.value, api_key_val);
-    if (!handshakeRes.status) throw new Error("Handshake failed");
-    
-    store.setClient(handshakeRes.data);
-    store.setAuthorized(true);
-    
-    router.push("/app");
-  } catch (e) {
-    loading.value = false;
-    store.setAuthorized(false);
-    utils.toast.error("Failed to login or connect to chat");
-  }
+	try {
+		loading.value = true;
+		const res = await performLogin(credentials.username, credentials.password);
+		if (!res.authorized) throw new Error("Login failed");
+
+		const handshakeRes = await performHandshake(username.value, password.value, api_key_val);
+		if (!handshakeRes.status) throw new Error("Handshake failed");
+
+		store.setClient(handshakeRes.data);
+		store.setAuthorized(true);
+
+		router.push("/app");
+	} catch (e) {
+		loading.value = false;
+		store.setAuthorized(false);
+		utils.toast.error("Failed to login or connect to chat");
+	}
 }
 ```
 
@@ -301,9 +311,13 @@ const username = useLocalStorage("username", "");
 const _authorized = useLocalStorage("authorized", false);
 
 // Via Pinia plugin
-export const useSettingsStore = defineStore("settingsStore", () => {
-  // ... store implementation
-}, { persist: true });
+export const useSettingsStore = defineStore(
+	"settingsStore",
+	() => {
+		// ... store implementation
+	},
+	{ persist: true },
+);
 ```
 
 ### Cache Management
@@ -333,8 +347,8 @@ const { authorized, username, loading } = auth;
 
 // Component triggering store mutations
 function logout() {
-  auth.logout();
-  router.push({ name: "login" });
+	auth.logout();
+	router.push({ name: "login" });
 }
 ```
 
@@ -394,4 +408,4 @@ This architecture provides a solid foundation for a real-time chat application w
 
 ---
 
-*Analysis completed by Batman - Task 2.2: State Management and Routing Analysis*
+_Analysis completed by Batman - Task 2.2: State Management and Routing Analysis_

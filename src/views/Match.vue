@@ -80,7 +80,6 @@ const matchCards = ref<MatchCard[]>([
 	},
 ]);
 
-
 async function handleMatchType(card: MatchCard) {
 	// Handle match type selection
 	console.log(`Selected match type: ${card.type}`);
@@ -222,8 +221,8 @@ function addLogEntry(data: { type: string; message: string }) {
 }
 
 /**
- * 
- * @param card 
+ *
+ * @param card
  */
 async function handlePVPMatch(card: MatchCard) {
 	card.loading = true;
@@ -233,10 +232,10 @@ async function handlePVPMatch(card: MatchCard) {
 }
 
 /**
- * 
- * @param type 
- * @param property 
- * @param value 
+ *
+ * @param type
+ * @param property
+ * @param value
  */
 function setCardProperty<K extends keyof MatchCard>(type: MatchType, property: K, value: any) {
 	const card: MatchCard | undefined = matchCards.value.find((c) => c.type === type);
@@ -244,14 +243,14 @@ function setCardProperty<K extends keyof MatchCard>(type: MatchType, property: K
 }
 
 /**
- * 
+ *
  */
 function getSessionStats() {
 	return match$.getMatchStats();
 }
 
 /**
- * 
+ *
  */
 async function handleRematch() {
 	try {
@@ -265,16 +264,17 @@ function handleReturnToLobby() {
 	match$.returnToLobby();
 }
 
-onMounted(()=>{
-	if(Guards.IsNil(currentMatchType.value)){
+onMounted(() => {
+	if (Guards.IsNil(currentMatchType.value)) {
 		match$.returnToLobby();
 	}
-})
+});
 </script>
 
 <style lang="scss" scoped>
 @use "../assets/css/common.scss" as *;
 @use "../assets/css/variables.scss" as *;
+@use "../assets/css/styles/mixins/breakpoints" as *;
 
 .match {
 	background-image: var(--match-bg-url);
@@ -303,7 +303,22 @@ onMounted(()=>{
 		width: 96%;
 		padding: 1%;
 		border-radius: var(--p-border-radius-lg);
-		margin: 0;
+		margin: 0 auto;
+		max-width: 1920px;
+
+		// Mobile adjustments
+		@include breakpoint-down("sm") {
+			height: 100%;
+			width: 100%;
+			padding: 0;
+			border-radius: 0;
+		}
+
+		// Small tablets
+		@include breakpoint-between("sm", "md") {
+			width: 94%;
+			padding: 0.5%;
+		}
 
 		&.opaque {
 			background-color: var-to-rgba(--p-content-background, 0.5);
@@ -316,6 +331,11 @@ onMounted(()=>{
 		box-shadow:
 			0 6px 12px var-to-rgba(--p-content-background, 0.5),
 			0 8px 24px var-to-rgba(--p-content-background, 0.5);
+
+		// Remove shadow on mobile
+		@include breakpoint-down("sm") {
+			box-shadow: none;
+		}
 	}
 
 	.loading-container {

@@ -3,12 +3,7 @@
 		<div class="action-panel">
 			<h4>Actions</h4>
 			<div class="actions-grid">
-				<Button 
-					:disabled="!isPlayerTurn || isProcessingAction" 
-					@click="$emit('attack')"
-					severity="danger" 
-					class="attack-button"
-				>
+				<Button :disabled="!isPlayerTurn || isProcessingAction" @click="$emit('attack')" severity="danger" class="attack-button">
 					<i class="pi pi-bolt"></i>
 					Attack
 				</Button>
@@ -27,7 +22,7 @@ interface Props {
 }
 
 interface Emits {
-	(e: 'attack'): void;
+	(e: "attack"): void;
 }
 
 defineProps<Props>();
@@ -64,7 +59,6 @@ defineEmits<Emits>();
 					opacity: 0.6;
 				}
 			}
-
 		}
 	}
 }
@@ -84,7 +78,7 @@ defineEmits<Emits>();
 @media (max-width: 768px) {
 	.actions-grid {
 		flex-direction: column;
-		
+
 		.attack-button {
 			width: 100%;
 			min-width: unset;

@@ -17,7 +17,7 @@ import WebsocketConnection from "./components/application/WebsocketConnection.vu
 
 const viewportRef = useTemplateRef("viewportRef");
 const route = useRoute();
-const showWebsocketConnection = computed(() => route.name !== "login");
+const showWebsocketConnection = computed(() => !["login", "home"].includes(route.name as string));
 </script>
 
 <style lang="scss" scoped>
@@ -28,7 +28,9 @@ $layoutHeight: 55px;
 	height: calc(100vh - $layoutHeight);
 	max-height: calc(100vh - $layoutHeight);
 	overflow-y: auto;
-	max-width: 100%;;
+	max-width: 100%;
+	width: 100%;
+	position: relative;
 
 	/* Fix for mobile viewport height issues */
 	@supports (-webkit-touch-callout: none) {
@@ -37,5 +39,16 @@ $layoutHeight: 55px;
 		height: calc(-webkit-fill-available - $layoutHeight);
 		max-height: calc(-webkit-fill-available - $layoutHeight);
 	}
+
+	/* Dynamic viewport height for mobile browsers */
+	@supports (height: 100dvh) {
+		min-height: calc(100dvh - $layoutHeight);
+		height: calc(100dvh - $layoutHeight);
+		max-height: calc(100dvh - $layoutHeight);
+	}
+
+	/* Ensure proper scrolling on mobile */
+	-webkit-overflow-scrolling: touch;
+	overscroll-behavior-y: contain;
 }
 </style>

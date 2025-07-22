@@ -3,8 +3,8 @@ import useMatchWebsocketEventHandler from "../../components/match/useMatchWebsoc
 import { WebsocketClient } from "./useWebsocketInterface";
 
 const useWebsocketEmitter = (ws: WebsocketClient) => {
-    const matchWebsocketHandler$ = useMatchWebsocketEventHandler();
-    useRxjs('match', matchWebsocketHandler$.outputEvents(ws));
-}
+	const matchWebsocketHandler$ = useMatchWebsocketEventHandler();
+	useRxjs("match", matchWebsocketHandler$.outputEvents(ws));
+};
 
 export default useWebsocketEmitter;

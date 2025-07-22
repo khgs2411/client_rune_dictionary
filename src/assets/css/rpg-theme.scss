@@ -1,0 +1,82 @@
+// RPG Theme Enhancements
+// This file adds RPG-specific styling on top of PrimeVue's Aura theme
+// without breaking the existing functionality
+
+// RPG-specific color palette that complements PrimeVue
+:root {
+	// RPG theme colors
+	--rpg-mystic: #8445ff;
+	--rpg-mystic-light: #9f75ff;
+	--rpg-mystic-dark: #6b1ce6;
+
+	--rpg-parchment: #f0e9dc;
+	--rpg-parchment-light: #f8f5f0;
+	--rpg-parchment-dark: #d6bc9a;
+
+	--rpg-blood: #dc2626;
+	--rpg-blood-light: #f87171;
+	--rpg-blood-dark: #991b1b;
+
+	// Animation performance budgets
+	--animation-critical: 100ms;
+	--animation-transition: 300ms;
+	--animation-decorative: 500ms;
+
+	// Easing functions
+	--ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+	--ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+	// RPG-specific shadows
+	--shadow-glow: 0 0 20px rgba(132, 69, 255, 0.3);
+	--shadow-glow-strong: 0 0 40px rgba(132, 69, 255, 0.5);
+}
+
+// Dark mode adjustments
+.dark {
+	--shadow-glow: 0 0 20px rgba(159, 117, 255, 0.4);
+	--shadow-glow-strong: 0 0 40px rgba(159, 117, 255, 0.6);
+}
+
+// Smooth theme transitions
+.theme-transition {
+	* {
+		transition:
+			background-color var(--animation-transition) var(--ease-default),
+			color var(--animation-transition) var(--ease-default),
+			border-color var(--animation-transition) var(--ease-default) !important;
+	}
+}
+
+// RPG utility classes
+.rpg-glow {
+	box-shadow: var(--shadow-glow);
+
+	&:hover {
+		box-shadow: var(--shadow-glow-strong);
+	}
+}
+
+.rpg-parchment-bg {
+	background: var(--rpg-parchment-light);
+
+	.dark & {
+		background: var(--p-surface-800);
+	}
+}
+
+// Accessibility: Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--animation-critical: 0ms;
+		--animation-transition: 0ms;
+		--animation-decorative: 0ms;
+	}
+
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}

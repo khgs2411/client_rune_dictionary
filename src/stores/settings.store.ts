@@ -3,6 +3,7 @@ import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, Ref, ref, watch } from "vue";
 import { COLOR_PRESETS } from "../common/consts/app.consts";
 import { useLocalStorage } from "@vueuse/core";
+import { enableThemeTransition } from "../utils/theme-utils";
 export type Theme = keyof typeof COLOR_PRESETS;
 export type ThemeData = { name: string; variable: string; value: any };
 export type CurrentThemeData = ThemeData & { group: string | undefined };
@@ -26,6 +27,11 @@ export const useSettingsStore = defineStore(
 		function setTheme(themeData: ThemeData) {
 			const theme = themeData.name.split("-")[3];
 			_currentTheme.value = { name: themeData.name, value: themeData.value, variable: themeData.variable, group: theme };
+
+			// Enable smooth transition
+			enableThemeTransition();
+
+			// Update theme colors
 			updatePrimaryPalette({
 				50: `{${theme}.50}`,
 				100: `{${theme}.100}`,

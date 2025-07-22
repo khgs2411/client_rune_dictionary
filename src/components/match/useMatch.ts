@@ -14,7 +14,6 @@ export enum E_MatchState {
 	FINISHED = "FINISHED",
 }
 
-
 export { MATCH_CHANNEL, MATCH_MESSAGE };
 
 const useMatch = () => {
@@ -25,10 +24,9 @@ const useMatch = () => {
 	const loading = reactive({
 		match: false,
 		api: false,
-	})
+	});
 
 	// Use Pinia store for persistent state
-
 
 	async function leaveMatch() {
 		if (store.isConnectedToMatch) {
@@ -39,7 +37,6 @@ const useMatch = () => {
 			store.currentChannelId = null;
 			loading.api = false;
 		}
-
 	}
 
 	async function pve() {
@@ -72,9 +69,9 @@ const useMatch = () => {
 			enemyHealth: 100,
 			playerMaxHealth: 100,
 			enemyMaxHealth: 100,
-			currentTurn: 'player',
+			currentTurn: "player",
 			actionsPerformed: 0,
-			matchStartTime: new Date()
+			matchStartTime: new Date(),
 		};
 		store.matchResult = null;
 	}
@@ -98,7 +95,6 @@ const useMatch = () => {
 
 			// Add WebSocket event listeners for PVE match events
 			setupMatchEventListeners();
-
 		} catch (error) {
 			console.error("Failed to connect to match channel:", error);
 			utils.toast.error("Failed to connect to match", "top-right");
@@ -111,7 +107,7 @@ const useMatch = () => {
 	 */
 	function setupMatchEventListeners() {
 		console.log("Setting up match event listeners for PVE");
-		
+
 		// The onGameEvent handler is now properly connected through useWebsocketEventHandler
 		// and will receive the following server events:
 		// - match.damage.dealt: When damage is dealt to any participant
@@ -121,15 +117,10 @@ const useMatch = () => {
 		// - match.victory: When match ends with victory/defeat
 		// - match.error: When action validation fails
 		// - match.state.update: For general state synchronization
-		
+
 		console.log("Match event listeners configured for server-authoritative combat");
 	}
 
-	
-
-
-
-	
 	/**
 	 * Clean up match resources and reset state
 	 */
@@ -153,9 +144,9 @@ const useMatch = () => {
 			enemyHealth: 100,
 			playerMaxHealth: 100,
 			enemyMaxHealth: 100,
-			currentTurn: 'player',
+			currentTurn: "player",
 			actionsPerformed: 0,
-			matchStartTime: null
+			matchStartTime: null,
 		};
 
 		console.log("Match cleanup completed");
@@ -194,12 +185,12 @@ const useMatch = () => {
 			// Start new PVE match
 			await leaveMatch();
 			store.matchResult = {
-				result: 'loading',
+				result: "loading",
 				duration: 0,
 				playerHealth: 100,
 				enemyHealth: 100,
 				actionsPerformed: 0,
-				timestamp: new Date()
+				timestamp: new Date(),
 			};
 			await pve();
 
@@ -224,16 +215,16 @@ const useMatch = () => {
 	function getMatchStats() {
 		const history = store.matchHistory;
 		const totalMatches = history.length;
-		const victories = history.filter(m => m.result === 'victory').length;
-		const defeats = history.filter(m => m.result === 'defeat').length;
-		const draws = history.filter(m => m.result === 'draw').length;
+		const victories = history.filter((m) => m.result === "victory").length;
+		const defeats = history.filter((m) => m.result === "defeat").length;
+		const draws = history.filter((m) => m.result === "draw").length;
 
 		return {
 			totalMatches,
 			victories,
 			defeats,
 			draws,
-			winRate: totalMatches > 0 ? Math.round((victories / totalMatches) * 100) : 0
+			winRate: totalMatches > 0 ? Math.round((victories / totalMatches) * 100) : 0,
 		};
 	}
 
@@ -287,9 +278,6 @@ const useMatch = () => {
 		}
 	}
 
-
-
-
 	return {
 		// Legacy state for backward compatibility
 		state: computed(() => store.matchState),
@@ -313,7 +301,6 @@ const useMatch = () => {
 		// Store access for advanced usage
 		store,
 		loading,
-		
 	};
 };
 export default useMatch;

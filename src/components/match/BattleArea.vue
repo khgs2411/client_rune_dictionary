@@ -4,14 +4,12 @@
 		<div class="player-section">
 			<div class="player-card">
 				<div class="player-avatar">
-					<i class="pi pi-user" style="font-size: 2rem; color: var(--p-primary-color);"></i>
+					<i class="pi pi-user" style="font-size: 2rem; color: var(--p-primary-color)"></i>
 				</div>
 				<div class="player-info">
 					<h3>You</h3>
 					<div class="health-bar">
-						<div class="health-fill"
-							:style="{ width: `${(playerHealth / playerMaxHealth) * 100}%` }">
-						</div>
+						<div class="health-fill" :style="{ width: `${(playerHealth / playerMaxHealth) * 100}%` }"></div>
 						<span class="health-text">{{ playerHealth }} / {{ playerMaxHealth }}</span>
 					</div>
 				</div>
@@ -30,14 +28,12 @@
 		<div class="enemy-section">
 			<div class="enemy-card">
 				<div class="enemy-avatar">
-					<i class="pi pi-android" style="font-size: 2rem; color: var(--p-orange-500);"></i>
+					<i class="pi pi-android" style="font-size: 2rem; color: var(--p-orange-500)"></i>
 				</div>
 				<div class="enemy-info">
 					<h3>{{ enemyName }}</h3>
 					<div class="health-bar">
-						<div class="health-fill enemy"
-							:style="{ width: `${(enemyHealth / enemyMaxHealth) * 100}%` }">
-						</div>
+						<div class="health-fill enemy" :style="{ width: `${(enemyHealth / enemyMaxHealth) * 100}%` }"></div>
 						<span class="health-text">{{ enemyHealth }} / {{ enemyMaxHealth }}</span>
 					</div>
 				</div>
@@ -158,7 +154,7 @@ defineProps<Props>();
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	
+
 	.vs-text {
 		background: var(--p-primary-color);
 		color: white;
@@ -179,17 +175,17 @@ defineProps<Props>();
 		grid-template-columns: 1fr;
 		grid-template-rows: auto auto auto;
 		gap: 1rem;
-		
+
 		.vs-divider {
 			order: 2;
-			
+
 			.vs-text {
 				width: 40px;
 				height: 40px;
 				font-size: 1rem;
 			}
 		}
-		
+
 		.enemy-section {
 			order: 3;
 		}
