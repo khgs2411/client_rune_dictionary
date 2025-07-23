@@ -32,6 +32,10 @@ $layoutHeight: 55px;
 	width: 100%;
 	position: relative;
 
+	/* Ensure proper scrolling on mobile */
+	-webkit-overflow-scrolling: touch;
+	overscroll-behavior-y: contain;
+
 	/* Fix for mobile viewport height issues */
 	@supports (-webkit-touch-callout: none) {
 		/* iOS specific fix */
@@ -46,9 +50,5 @@ $layoutHeight: 55px;
 		height: calc(100dvh - $layoutHeight);
 		max-height: calc(100dvh - $layoutHeight);
 	}
-
-	/* Ensure proper scrolling on mobile */
-	-webkit-overflow-scrolling: touch;
-	overscroll-behavior-y: contain;
 }
 </style>

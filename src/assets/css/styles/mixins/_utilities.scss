@@ -64,7 +64,7 @@
 // Focus visible styles
 @mixin focus-visible {
 	&:focus-visible {
-		outline: 2px solid var(--color-primary);
+		outline: 2px solid var(--p-primary-color);
 		outline-offset: 2px;
 	}
 }
@@ -89,20 +89,21 @@
 		0 0 calc($size * 2) rgba($color, 0.2);
 }
 
+// Loading skeleton keyframes (defined at root level)
+@keyframes loading {
+	0% {
+		background-position: 200% 0;
+	}
+	100% {
+		background-position: -200% 0;
+	}
+}
+
 // Loading skeleton
 @mixin skeleton {
 	background: linear-gradient(90deg, var(--p-surface-200) 25%, var(--p-surface-300) 50%, var(--p-surface-200) 75%);
 	background-size: 200% 100%;
 	animation: loading 1.5s ease-in-out infinite;
-
-	@keyframes loading {
-		0% {
-			background-position: 200% 0;
-		}
-		100% {
-			background-position: -200% 0;
-		}
-	}
 }
 
 // Container with responsive padding

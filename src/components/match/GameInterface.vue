@@ -56,7 +56,7 @@ defineEmits<{
 </script>
 
 <style lang="scss" scoped>
-@import "../../assets/css/styles/mixins/breakpoints";
+@use "../../assets/css/styles/mixins/breakpoints" as *;
 
 .game-interface {
 	padding: 1rem;

@@ -1,7 +1,7 @@
 // Responsive Utilities
 // Grid and Flexbox utilities for responsive layouts
 
-@import "../mixins/breakpoints";
+@use "../mixins/breakpoints" as *;
 
 // Container utilities with responsive padding
 .container-responsive {

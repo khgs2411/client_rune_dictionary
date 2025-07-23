@@ -93,8 +93,8 @@
 
 // Loading states
 .rpg-skeleton {
-	@include skeleton;
 	border-radius: var(--radius-md);
+	@include skeleton;
 }
 
 // Scroll shadows (for scrollable areas)
@@ -207,7 +207,7 @@
 }
 
 .rpg-desktop-only {
-	@include breakpoint-down("lg") {
+	@include breakpoint-down("md") {
 		display: none !important;
 	}
 }

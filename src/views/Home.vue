@@ -22,25 +22,25 @@
 						:transition="{ type: 'spring', stiffness: 60, damping: 12, mass: 1, delay: 0.1 }"
 						:viewport="{ once: true }">
 						<Card class="feature-card group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-surface-800/90 backdrop-blur border border-purple-500/30">
-						<template #header>
-							<div class="card-header-wrapper relative overflow-hidden h-48">
-								<img :src="`${baseUrl}rune_generation.webp`" alt="Rune Dictionary" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-								<div class="card-overlay absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-							</div>
-						</template>
-						<template #title>
-							<h3 class="text-2xl font-bold text-purple-300 flex items-center gap-2">
-								<i class="pi pi-book text-purple-400"></i>
-								Rune Dictionary
-							</h3>
-						</template>
-						<template #content>
-							<p class="text-gray-300">Master the ancient knowledge of runes. Create, edit, and combine powerful runic abilities.</p>
-						</template>
-						<template #footer>
-							<Button label="Explore Runes" icon="pi pi-arrow-right" class="w-full bg-purple-600/80 hover:bg-purple-600 border-0 transition-colors" @click="$router.push('/dictionary')" />
-						</template>
-					</Card>
+							<template #header>
+								<div class="card-header-wrapper relative overflow-hidden h-48">
+									<img :src="`${baseUrl}rune_generation.webp`" alt="Rune Dictionary" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+									<div class="card-overlay absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+								</div>
+							</template>
+							<template #title>
+								<h3 class="text-2xl font-bold text-purple-300 flex items-center gap-2">
+									<i class="pi pi-book text-purple-400"></i>
+									Rune Dictionary
+								</h3>
+							</template>
+							<template #content>
+								<p class="text-gray-300">Master the ancient knowledge of runes. Create, edit, and combine powerful runic abilities.</p>
+							</template>
+							<template #footer>
+								<Button label="Explore Runes" icon="pi pi-arrow-right" class="w-full bg-purple-600/80 hover:bg-purple-600 border-0 transition-colors" @click="$router.push('/dictionary')" />
+							</template>
+						</Card>
 					</motion.div>
 
 					<!-- Battle Arena Card -->
@@ -50,25 +50,25 @@
 						:transition="{ type: 'spring', stiffness: 60, damping: 12, mass: 1, delay: 0.25 }"
 						:viewport="{ once: true }">
 						<Card class="feature-card group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-surface-800/90 backdrop-blur border border-red-500/30">
-						<template #header>
-							<div class="card-header-wrapper relative overflow-hidden h-48">
-								<img :src="`${baseUrl}match.webp`" alt="Battle Arena" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-								<div class="card-overlay absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-							</div>
-						</template>
-						<template #title>
-							<h3 class="text-2xl font-bold text-red-300 flex items-center gap-2">
-								<i class="pi pi-bolt text-red-400"></i>
-								Battle Arena
-							</h3>
-						</template>
-						<template #content>
-							<p class="text-gray-300">Test your skills in epic turn-based combat. Challenge opponents and rise through the ranks.</p>
-						</template>
-						<template #footer>
-							<Button label="Enter Battle" icon="pi pi-arrow-right" class="w-full bg-red-600/80 hover:bg-red-600 border-0 transition-colors" @click="$router.push('/match')" />
-						</template>
-					</Card>
+							<template #header>
+								<div class="card-header-wrapper relative overflow-hidden h-48">
+									<img :src="`${baseUrl}match.webp`" alt="Battle Arena" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+									<div class="card-overlay absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+								</div>
+							</template>
+							<template #title>
+								<h3 class="text-2xl font-bold text-red-300 flex items-center gap-2">
+									<i class="pi pi-bolt text-red-400"></i>
+									Battle Arena
+								</h3>
+							</template>
+							<template #content>
+								<p class="text-gray-300">Test your skills in epic turn-based combat. Challenge opponents and rise through the ranks.</p>
+							</template>
+							<template #footer>
+								<Button label="Enter Battle" icon="pi pi-arrow-right" class="w-full bg-red-600/80 hover:bg-red-600 border-0 transition-colors" @click="$router.push('/match')" />
+							</template>
+						</Card>
 					</motion.div>
 
 					<!-- Profile Card -->
@@ -78,25 +78,25 @@
 						:transition="{ type: 'spring', stiffness: 60, damping: 12, mass: 1, delay: 0.4 }"
 						:viewport="{ once: true }">
 						<Card class="feature-card group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-surface-800/90 backdrop-blur border border-blue-500/30">
-						<template #header>
-							<div class="card-header-wrapper relative overflow-hidden h-48">
-								<img :src="`${baseUrl}logo.webp`" alt="Profile" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-								<div class="card-overlay absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-							</div>
-						</template>
-						<template #title>
-							<h3 class="text-2xl font-bold text-blue-300 flex items-center gap-2">
-								<i class="pi pi-user text-blue-400"></i>
-								Your Journey
-							</h3>
-						</template>
-						<template #content>
-							<p class="text-gray-300">Track your progress, achievements, and battle statistics. Become a legendary runemaster.</p>
-						</template>
-						<template #footer>
-							<Button label="View Profile" icon="pi pi-arrow-right" class="w-full bg-blue-600/80 hover:bg-blue-600 border-0 transition-colors" @click="$router.push('/profile')" />
-						</template>
-					</Card>
+							<template #header>
+								<div class="card-header-wrapper relative overflow-hidden h-48">
+									<img :src="`${baseUrl}logo.webp`" alt="Profile" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+									<div class="card-overlay absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+								</div>
+							</template>
+							<template #title>
+								<h3 class="text-2xl font-bold text-blue-300 flex items-center gap-2">
+									<i class="pi pi-user text-blue-400"></i>
+									Your Journey
+								</h3>
+							</template>
+							<template #content>
+								<p class="text-gray-300">Track your progress, achievements, and battle statistics. Become a legendary runemaster.</p>
+							</template>
+							<template #footer>
+								<Button label="View Profile" icon="pi pi-arrow-right" class="w-full bg-blue-600/80 hover:bg-blue-600 border-0 transition-colors" @click="$router.push('/profile')" />
+							</template>
+						</Card>
 					</motion.div>
 				</div>
 			</div>
@@ -105,10 +105,10 @@
 </template>
 
 <script setup lang="ts">
-import { Card, Button } from "primevue";
-import HeroSection from "@/components/hero/HeroSection.vue";
-import { computed } from "vue";
 import { motion } from "motion-v";
+import { Button, Card } from "primevue";
+import { computed } from "vue";
+import HeroSection from "../components/hero/HeroSection.vue";
 
 const baseUrl = computed(() => import.meta.env.BASE_URL);
 </script>

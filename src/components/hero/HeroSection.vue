@@ -98,13 +98,13 @@
 </template>
 
 <script setup lang="ts">
-import { Button } from "primevue";
 import { motion } from "motion-v";
+import { Button } from "primevue";
 </script>
 
 <style lang="scss" scoped>
 @use "sass:math";
-@import "../../assets/css/styles/mixins/breakpoints";
+@use "../../assets/css/styles/mixins/breakpoints" as *;
 
 .hero-section {
 	position: relative;

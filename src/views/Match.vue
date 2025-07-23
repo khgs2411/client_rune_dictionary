@@ -305,6 +305,9 @@ onMounted(() => {
 		border-radius: var(--p-border-radius-lg);
 		margin: 0 auto;
 		max-width: 1920px;
+		box-shadow:
+			0 6px 12px var-to-rgba(--p-content-background, 0.5),
+			0 8px 24px var-to-rgba(--p-content-background, 0.5);
 
 		// Mobile adjustments
 		@include breakpoint-down("sm") {
@@ -327,10 +330,6 @@ onMounted(() => {
 		&.background {
 			background-color: var(--p-content-background);
 		}
-
-		box-shadow:
-			0 6px 12px var-to-rgba(--p-content-background, 0.5),
-			0 8px 24px var-to-rgba(--p-content-background, 0.5);
 
 		// Remove shadow on mobile
 		@include breakpoint-down("sm") {
