@@ -13,7 +13,7 @@
 
 			<!-- Animated particles -->
 			<div class="hero-particles absolute inset-0">
-				<div v-for="i in 20" :key="i" class="particle absolute rounded-full opacity-30" :class="`particle-${i}`"></div>
+				<div v-for="i in 25" :key="i" class="particle absolute rounded-full opacity-50" :class="`particle-${i}`"></div>
 			</div>
 
 			<!-- Mystical fog effect -->
@@ -144,19 +144,19 @@ import { Button } from "primevue";
 	height: 100%;
 	background: var(--p-primary-color);
 	border-radius: 50% 50% 0 0;
-	opacity: 0.25;
-	animation: wave-motion 8s ease-in-out infinite;
+	opacity: 0.35;
+	animation: wave-motion 6s ease-in-out infinite;
 }
 
 .wave-1 {
-	animation-duration: 8s;
-	opacity: 0.3;
+	animation-duration: 6s;
+	opacity: 0.4;
 }
 
 .wave-2 {
-	animation-duration: 12s;
-	animation-delay: -4s;
-	opacity: 0.2;
+	animation-duration: 8s;
+	animation-delay: -3s;
+	opacity: 0.3;
 	bottom: -55%;
 }
 
@@ -165,25 +165,25 @@ import { Button } from "primevue";
 		transform: translateY(0) rotateZ(0deg) scaleY(1);
 	}
 	25% {
-		transform: translateY(-30px) rotateZ(1deg) scaleY(1.05);
+		transform: translateY(-40px) rotateZ(1.5deg) scaleY(1.08);
 	}
 	50% {
-		transform: translateY(-50px) rotateZ(2deg) scaleY(1.1);
+		transform: translateY(-70px) rotateZ(3deg) scaleY(1.15);
 	}
 	75% {
-		transform: translateY(-30px) rotateZ(1deg) scaleY(1.05);
+		transform: translateY(-40px) rotateZ(1.5deg) scaleY(1.08);
 	}
 }
 
 // Particle animations
 
-@for $i from 1 through 20 {
+@for $i from 1 through 25 {
 	.particle-#{$i} {
 		$size: math.random(6) + 3px;
 		$startX: math.random(100) + 0%;
 		$endX: math.random(100) + 0%;
-		$duration: math.random(15) + 15s;
-		$delay: math.random(10) + 0s;
+		$duration: math.random(10) + 10s;
+		$delay: math.random(5) + 0s;
 
 		width: $size;
 		height: $size;
@@ -201,10 +201,10 @@ import { Button } from "primevue";
 			opacity: 0;
 		}
 		10% {
-			opacity: 0.4;
+			opacity: 0.6;
 		}
 		90% {
-			opacity: 0.4;
+			opacity: 0.6;
 		}
 		100% {
 			transform: translateY(-120vh) translateX(#{math.random(100) - 50}px);

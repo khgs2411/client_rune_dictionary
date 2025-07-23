@@ -1,14 +1,14 @@
 <template>
-	<div class="dictionary-view min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+	<div class="dictionary-view min-h-screen bg-gradient-to-br from-slate-900 via-primary-900 to-slate-900">
 		<!-- RPG Header -->
 		<div class="dictionary-header relative py-12 px-4 text-center overflow-hidden">
 			<!-- Background effects -->
 			<div class="absolute inset-0 bg-black/30"></div>
-			<div class="absolute inset-0 bg-gradient-to-b from-transparent via-purple-900/20 to-transparent"></div>
+			<div class="absolute inset-0 bg-gradient-to-b from-transparent via-primary-900/20 to-transparent"></div>
 
 			<div class="relative z-10">
-				<h1 class="text-5xl md:text-6xl font-bold text-purple-200 mb-4 drop-shadow-lg">Tome of Knowledge</h1>
-				<p class="text-xl text-purple-300/80">Master the ancient arts of runecraft</p>
+				<h1 class="text-5xl md:text-6xl font-bold text-primary-200 mb-4 drop-shadow-lg">Tome of Knowledge</h1>
+				<p class="text-xl text-primary-300/80">Master the ancient arts of runecraft</p>
 			</div>
 		</div>
 
@@ -35,13 +35,13 @@
 							</div>
 						</template>
 						<template #title>
-							<h3 class="text-2xl font-bold text-purple-300 text-center flex items-center justify-center gap-2">
+							<h3 class="text-2xl font-bold text-primary-300 text-center flex items-center justify-center gap-2">
 								<i :class="getIconClass(card.title)"></i>
 								{{ card.title }}
 							</h3>
 						</template>
 						<template #subtitle>
-							<p class="text-purple-400/80 text-center italic">{{ card.subtitle }}</p>
+							<p class="text-primary-400/80 text-center italic">{{ card.subtitle }}</p>
 						</template>
 						<template #content>
 							<p class="text-gray-300 text-center h-20 flex items-center justify-center">{{ card.content }}</p>
@@ -57,7 +57,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Card, SelectButton, Button } from "primevue";
+import { Button, Card, SelectButton } from "primevue";
 import { ref } from "vue";
 import { useSettingsStore } from "../stores/settings.store";
 const settings = useSettingsStore();
@@ -103,13 +103,13 @@ const getActionLabel = (title: string): string => {
 
 const getButtonClass = (title: string): string => {
 	const classes: Record<string, string> = {
-		Generate: "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700",
+		Generate: "bg-gradient-to-r from-primary-600 to-pink-600 hover:from-primary-700 hover:to-pink-700",
 		View: "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700",
 		Create: "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700",
 		Edit: "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700",
 		Delete: "bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700",
 	};
-	return classes[title] || "bg-purple-600 hover:bg-purple-700";
+	return classes[title] || "bg-primary-600 hover:bg-primary-700";
 };
 
 const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: string; img?: string; hidden?: boolean }[] }>{
@@ -196,9 +196,11 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 		right: 0;
 		bottom: 0;
 		background-image:
-			radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-			radial-gradient(circle at 40% 20%, rgba(120, 119, 198, 0.3) 0%, transparent 50%);
-		animation: float 20s ease-in-out infinite;
+			radial-gradient(circle at 20% 50%, var(--p-primary-color) 0%, transparent 50%), 
+			radial-gradient(circle at 80% 80%, var(--p-primary-color) 0%, transparent 50%),
+			radial-gradient(circle at 40% 20%, var(--p-primary-color) 0%, transparent 50%);
+		opacity: 0.7;
+		animation: float 10s ease-in-out infinite;
 		pointer-events: none;
 	}
 }
@@ -206,13 +208,16 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 @keyframes float {
 	0%,
 	100% {
-		transform: translateY(0) rotate(0deg);
+		transform: translateY(0) rotate(0deg) scale(1);
 	}
-	33% {
-		transform: translateY(-20px) rotate(1deg);
+	25% {
+		transform: translateY(-60px) rotate(3deg) scale(1.15);
 	}
-	66% {
-		transform: translateY(20px) rotate(-1deg);
+	50% {
+		transform: translateY(-30px) rotate(-1deg) scale(1.2);
+	}
+	75% {
+		transform: translateY(50px) rotate(-3deg) scale(0.85);
 	}
 }
 
@@ -226,15 +231,15 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 	@keyframes glow {
 		from {
 			text-shadow:
-				0 0 10px rgba(147, 51, 234, 0.5),
-				0 0 20px rgba(147, 51, 234, 0.3),
-				0 0 30px rgba(147, 51, 234, 0.2);
+				0 0 15px var(--p-primary-color),
+				0 0 30px var(--p-primary-color),
+				0 0 45px var(--p-primary-color);
 		}
 		to {
 			text-shadow:
-				0 0 20px rgba(147, 51, 234, 0.8),
-				0 0 30px rgba(147, 51, 234, 0.6),
-				0 0 40px rgba(147, 51, 234, 0.4);
+				0 0 25px var(--p-primary-color),
+				0 0 40px var(--p-primary-color),
+				0 0 60px var(--p-primary-color);
 		}
 	}
 }
@@ -242,28 +247,28 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 // RPG Select Button styles
 :deep(.rpg-select-button) {
 	.p-selectbutton {
-		@apply bg-black/30 backdrop-blur-sm border-2 border-purple-500/50 rounded-lg overflow-hidden;
+		@apply bg-black/30 backdrop-blur-sm border-2 border-primary-500/50 rounded-lg overflow-hidden;
 	}
 
 	.p-button {
-		@apply bg-transparent border-0 text-purple-200 font-semibold px-6 py-3 transition-all duration-300;
+		@apply bg-transparent border-0 text-primary-200 font-semibold px-6 py-3 transition-all duration-300;
 
 		&:hover {
-			@apply bg-purple-500/20 text-white;
+			@apply bg-primary-500/20 text-white;
 		}
 
 		&.p-highlight {
-			@apply bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg;
+			@apply bg-gradient-to-r from-primary-600 to-pink-600 text-white shadow-lg;
 		}
 	}
 }
 
 // RPG Card styles
 .rpg-card {
-	@apply bg-gray-900/90 backdrop-blur-sm border-2 border-purple-500/30 overflow-hidden;
+	@apply bg-gray-900/90 backdrop-blur-sm border-2 border-primary-500/30 overflow-hidden;
 
 	&:hover {
-		@apply border-purple-400/60 shadow-purple-500/30;
+		@apply border-primary-400/60 shadow-primary-500/30;
 
 		.card-icon {
 			animation: bounce 0.5s ease-in-out;
