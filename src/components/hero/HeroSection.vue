@@ -3,11 +3,17 @@
 		<!-- Animated background layers -->
 		<div class="hero-background absolute inset-0">
 			<!-- Gradient base layer -->
-			<div class="hero-gradient absolute inset-0 bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 opacity-90"></div>
+			<div class="hero-gradient absolute inset-0"></div>
+
+			<!-- Animated wave layers -->
+			<div class="hero-waves absolute inset-0">
+				<div class="wave wave-1"></div>
+				<div class="wave wave-2"></div>
+			</div>
 
 			<!-- Animated particles -->
 			<div class="hero-particles absolute inset-0">
-				<div v-for="i in 20" :key="i" class="particle absolute rounded-full bg-white opacity-20" :class="`particle-${i}`"></div>
+				<div v-for="i in 20" :key="i" class="particle absolute rounded-full opacity-30" :class="`particle-${i}`"></div>
 			</div>
 
 			<!-- Mystical fog effect -->
@@ -27,7 +33,7 @@
 				:initial="{ opacity: 0, y: 30 }"
 				:animate="{ opacity: 1, y: 0 }"
 				:transition="{ duration: 0.8, ease: 'easeOut', delay: 0.4 }"
-				class="hero-subtitle text-xl md:text-2xl lg:text-3xl text-purple-200 mb-12 drop-shadow-md">
+				class="hero-subtitle text-xl md:text-2xl lg:text-3xl mb-12 drop-shadow-md">
 				Master the Ancient Arts of Runecraft
 			</motion.p>
 
@@ -50,7 +56,7 @@
 					<Button
 						label="Enter Arena"
 						icon="pi pi-bolt"
-						class="p-button-lg p-button-rounded p-button-outlined border-2 border-purple-400 text-purple-200 font-semibold px-8 py-3 hover:bg-purple-400/20 hover:scale-105 transition-all duration-300"
+						class="p-button-lg p-button-rounded p-button-outlined enter-arena-btn font-semibold px-8 py-3 hover:scale-105 transition-all duration-300"
 						@click="$router.push('/match')" />
 				</motion.div>
 			</div>
@@ -61,35 +67,35 @@
 			<!-- Top left rune -->
 			<motion.div
 				:initial="{ opacity: 0, scale: 0, rotate: -180 }"
-				:animate="{ opacity: 0.3, scale: 1, rotate: 0 }"
+				:animate="{ opacity: 0.5, scale: 1, rotate: 0 }"
 				:transition="{ type: 'spring', stiffness: 80, damping: 12, delay: 1 }"
-				class="rune-decoration absolute top-10 left-10 text-6xl text-purple-300 animate-pulse">
+				class="rune-decoration absolute top-10 left-10 text-6xl animate-pulse">
 				⚡
 			</motion.div>
 			<!-- Top right rune -->
 			<motion.div
 				:initial="{ opacity: 0, scale: 0, rotate: 180 }"
-				:animate="{ opacity: 0.3, scale: 1, rotate: 0 }"
+				:animate="{ opacity: 0.5, scale: 1, rotate: 0 }"
 				:transition="{ type: 'spring', stiffness: 80, damping: 12, delay: 1.2 }"
-				class="rune-decoration absolute top-10 right-10 text-6xl text-blue-300 animate-pulse"
+				class="rune-decoration absolute top-10 right-10 text-6xl animate-pulse"
 				style="animation-delay: 0.5s">
 				✦
 			</motion.div>
 			<!-- Bottom left rune -->
 			<motion.div
 				:initial="{ opacity: 0, scale: 0, rotate: -180 }"
-				:animate="{ opacity: 0.3, scale: 1, rotate: 0 }"
+				:animate="{ opacity: 0.5, scale: 1, rotate: 0 }"
 				:transition="{ type: 'spring', stiffness: 80, damping: 12, delay: 1.4 }"
-				class="rune-decoration absolute bottom-10 left-10 text-6xl text-indigo-300 animate-pulse"
+				class="rune-decoration absolute bottom-10 left-10 text-6xl animate-pulse"
 				style="animation-delay: 1s">
 				❋
 			</motion.div>
 			<!-- Bottom right rune -->
 			<motion.div
 				:initial="{ opacity: 0, scale: 0, rotate: 180 }"
-				:animate="{ opacity: 0.3, scale: 1, rotate: 0 }"
+				:animate="{ opacity: 0.5, scale: 1, rotate: 0 }"
 				:transition="{ type: 'spring', stiffness: 80, damping: 12, delay: 1.6 }"
-				class="rune-decoration absolute bottom-10 right-10 text-6xl text-purple-300 animate-pulse"
+				class="rune-decoration absolute bottom-10 right-10 text-6xl animate-pulse"
 				style="animation-delay: 1.5s">
 				✧
 			</motion.div>
@@ -112,20 +118,79 @@ import { Button } from "primevue";
 	background: var(--p-content-background);
 }
 
+// Gradient background with primary color
+.hero-gradient {
+	background: linear-gradient(135deg, 
+		var(--p-primary-900) 0%, 
+		var(--p-primary-800) 25%, 
+		var(--p-primary-700) 50%, 
+		var(--p-primary-800) 75%, 
+		var(--p-primary-900) 100%);
+	opacity: 0.9;
+}
+
+// Animated wave layers
+.hero-waves {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+}
+
+.wave {
+	position: absolute;
+	bottom: -50%;
+	left: -5%;
+	width: 110%;
+	height: 100%;
+	background: var(--p-primary-color);
+	border-radius: 50% 50% 0 0;
+	opacity: 0.25;
+	animation: wave-motion 8s ease-in-out infinite;
+}
+
+.wave-1 {
+	animation-duration: 8s;
+	opacity: 0.3;
+}
+
+.wave-2 {
+	animation-duration: 12s;
+	animation-delay: -4s;
+	opacity: 0.2;
+	bottom: -55%;
+}
+
+@keyframes wave-motion {
+	0%, 100% {
+		transform: translateY(0) rotateZ(0deg) scaleY(1);
+	}
+	25% {
+		transform: translateY(-30px) rotateZ(1deg) scaleY(1.05);
+	}
+	50% {
+		transform: translateY(-50px) rotateZ(2deg) scaleY(1.1);
+	}
+	75% {
+		transform: translateY(-30px) rotateZ(1deg) scaleY(1.05);
+	}
+}
+
 // Particle animations
 
 @for $i from 1 through 20 {
 	.particle-#{$i} {
-		$size: math.random(4) + 2px;
+		$size: math.random(6) + 3px;
 		$startX: math.random(100) + 0%;
 		$endX: math.random(100) + 0%;
-		$duration: math.random(20) + 20s;
+		$duration: math.random(15) + 15s;
 		$delay: math.random(10) + 0s;
 
 		width: $size;
 		height: $size;
 		left: $startX;
 		top: 110%;
+		background: var(--p-primary-color);
+		box-shadow: 0 0 #{$size * 2} var(--p-primary-color);
 		animation: float-up-#{$i} $duration infinite linear;
 		animation-delay: $delay;
 	}
@@ -136,10 +201,10 @@ import { Button } from "primevue";
 			opacity: 0;
 		}
 		10% {
-			opacity: 0.2;
+			opacity: 0.4;
 		}
 		90% {
-			opacity: 0.2;
+			opacity: 0.4;
 		}
 		100% {
 			transform: translateY(-120vh) translateX(#{math.random(100) - 50}px);
@@ -172,15 +237,42 @@ import { Button } from "primevue";
 @keyframes title-glow {
 	from {
 		text-shadow:
-			0 0 10px rgba(147, 51, 234, 0.5),
-			0 0 20px rgba(147, 51, 234, 0.3),
-			0 0 30px rgba(147, 51, 234, 0.2);
+			0 0 15px var(--p-primary-color),
+			0 0 30px var(--p-primary-color),
+			0 0 45px var(--p-primary-color);
 	}
 	to {
 		text-shadow:
-			0 0 20px rgba(147, 51, 234, 0.8),
-			0 0 30px rgba(147, 51, 234, 0.6),
-			0 0 40px rgba(147, 51, 234, 0.4);
+			0 0 25px var(--p-primary-color),
+			0 0 40px var(--p-primary-color),
+			0 0 60px var(--p-primary-color);
+	}
+}
+
+// Subtitle styling
+.hero-subtitle {
+	color: var(--p-primary-200);
+}
+
+// Rune decorations
+.rune-decoration {
+	color: var(--p-primary-color);
+	filter: drop-shadow(0 0 10px var(--p-primary-color));
+}
+
+// Enter Arena button styling
+.enter-arena-btn {
+	border: 2px solid rgba(255, 255, 255, 0.8);
+	color: var(--p-surface-50);
+	background: rgba(0, 0, 0, 0.3);
+	backdrop-filter: blur(10px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	
+	&:hover {
+		background: rgba(0, 0, 0, 0.5);
+		border-color: var(--p-surface-50);
+		color: var(--p-surface-50);
+		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 	}
 }
 
