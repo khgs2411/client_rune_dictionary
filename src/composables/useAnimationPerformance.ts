@@ -3,7 +3,8 @@
  * Provides performance budgets, frame rate monitoring, and reduced motion support
  */
 
-import { ref, computed, onMounted, onUnmounted, getCurrentInstance } from 'vue';
+import { Easing } from 'motion-v';
+import { computed, getCurrentInstance, onMounted, onUnmounted, ref } from 'vue';
 
 // Performance Budget Configuration
 export const ANIMATION_BUDGETS = {
@@ -119,13 +120,13 @@ export function useAnimationPerformance() {
   const validateBudget = (duration: number, category: AnimationCategory): boolean => {
     const budget = ANIMATION_BUDGETS[category];
     const withinBudget = duration <= budget;
-    
+
     if (!withinBudget) {
       console.warn(
         `Animation budget exceeded: ${duration}ms > ${budget}ms for ${category} animation`
       );
     }
-    
+
     return withinBudget;
   };
 
@@ -134,7 +135,7 @@ export function useAnimationPerformance() {
    */
   const recordMetrics = (duration: number, category: AnimationCategory) => {
     const frameDrops = Math.max(0, 60 - frameMonitor.fps.value);
-    
+
     const metrics: AnimationMetrics = {
       duration,
       category,
@@ -144,7 +145,7 @@ export function useAnimationPerformance() {
     };
 
     performanceMetrics.value.push(metrics);
-    
+
     // Keep storage size manageable
     if (performanceMetrics.value.length > maxMetricsStorage) {
       performanceMetrics.value.shift();
@@ -165,7 +166,7 @@ export function useAnimationPerformance() {
       // Use minimal duration for reduced motion
       return Math.min(100, customDuration || ANIMATION_BUDGETS[category]);
     }
-    
+
     return customDuration || ANIMATION_BUDGETS[category];
   };
 
@@ -177,10 +178,10 @@ export function useAnimationPerformance() {
     customDuration?: number
   ) => {
     const duration = getOptimalDuration(category, customDuration) / 1000; // Convert to seconds
-    
+
     return {
       duration,
-      ease: prefersReducedMotion.value ? 'linear' : 'easeOut',
+      ease: <Easing>(prefersReducedMotion.value ? 'linear' : 'easeOut'),
       // Record metrics on animation complete
       onComplete: () => {
         recordMetrics(duration * 1000, category);
@@ -200,7 +201,7 @@ export function useAnimationPerformance() {
    */
   const getPerformanceStats = computed(() => {
     const recentMetrics = performanceMetrics.value.slice(-20);
-    
+
     if (recentMetrics.length === 0) {
       return {
         averageFps: 60,
@@ -212,7 +213,7 @@ export function useAnimationPerformance() {
 
     const averageFps = recentMetrics.reduce((sum, m) => sum + m.frameRate, 0) / recentMetrics.length;
     const averageFrameDrops = recentMetrics.reduce((sum, m) => sum + m.frameDrops, 0) / recentMetrics.length;
-    const budgetViolations = recentMetrics.filter(m => 
+    const budgetViolations = recentMetrics.filter(m =>
       m.duration > ANIMATION_BUDGETS[m.category]
     ).length;
 
@@ -230,14 +231,14 @@ export function useAnimationPerformance() {
     currentFps: frameMonitor.fps,
     shouldAnimate,
     isMonitoring,
-    
+
     // Methods
     validateBudget,
     recordMetrics,
     getOptimalDuration,
     createAnimationConfig,
     getPerformanceStats,
-    
+
     // Constants
     BUDGETS: ANIMATION_BUDGETS,
   };

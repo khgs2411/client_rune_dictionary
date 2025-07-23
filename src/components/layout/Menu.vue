@@ -125,17 +125,20 @@ const items: ComputedRef<MenuItem[]> = computed(() => [
 		label: "Match",
 		icon: "pi pi-fw pi-users",
 		command: () => router.push("/match"),
+		class: router.currentRoute.value.name === "match" ? "p-menubar-item-active" : "",
 	},
 	{
 		label: "Dictionary",
 		icon: "pi pi-fw pi-book",
 		command: () => router.push("/app"),
 		visible: auth.authorized.value,
+		class: router.currentRoute.value.name === "app" || router.currentRoute.value.name === "dictionary" ? "p-menubar-item-active" : "",
 	},
 	{
 		label: "Animations",
 		icon: "pi pi-fw pi-sparkles",
 		command: () => router.push("/animations"),
+		class: router.currentRoute.value.name === "animations" ? "p-menubar-item-active" : "",
 	},
 ]);
 
@@ -205,40 +208,97 @@ function handleMobileNavClick(item: MenuItem) {
 .run-dict-menu {
 	width: 100%;
 	background: var(--p-content-background);
-	border-bottom: 2px solid var(--p-primary-color);
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	border-bottom: 1px solid var(--p-surface-border);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 	backdrop-filter: blur(8px);
 
 	&:deep() {
 		.p-menubar {
 			background: transparent;
 			border: none;
-			padding: 0.5rem 1rem;
+			padding: 0.25rem 1rem;
+			min-height: auto;
 		}
 
-		.p-menubar-item-content {
-			color: var(--p-text-color);
-			border-radius: var(--p-border-radius);
-			transition: all 0.3s ease-in-out;
+		.p-menubar-list {
+			display: flex;
+			align-items: center;
+			gap: 0.25rem;
+		}
+
+		.p-menubar-item {
+			margin: 0;
+		}
+
+		.p-menubar-item-link {
+			display: flex;
+			align-items: center;
+			justify-content: center;
 			padding: 0.5rem 1rem;
+			border-radius: 0.5rem;
+			color: var(--p-text-color);
+			position: relative;
+			transition: all 0.2s ease;
+			border: 1px solid transparent;
+			text-decoration: none;
 
 			&:hover {
 				background: var(--p-highlight-bg);
-				color: var(--p-highlight-text-color);
-				transform: translateY(-1px);
+				border-color: var(--p-primary-color);
+				transform: translateY(-1px) scale(1.02);
+				box-shadow: 0 2px 8px rgba(147, 51, 234, 0.15);
+				text-decoration: none;
+
+				.p-menubar-item-icon {
+					transform: scale(1.1);
+					color: var(--p-text-color);
+				}
+
+				.p-menubar-item-label {
+					text-decoration: none;
+				}
 			}
 
-			&:focus-visible {
-				@include focus-visible;
+			&:active {
+				transform: scale(0.98);
+			}
+		}
+
+		// Active page indicator
+		.p-menubar-item-active {
+			.p-menubar-item-link {
+				background: var(--p-primary-100);
+				border-color: var(--p-primary-200);
+				color: var(--p-primary-700);
+
+				.p-menubar-item-icon {
+					color: var(--p-primary-700);
+				}
+
+				&:hover {
+					background: var(--p-primary-200);
+					border-color: var(--p-primary-color);
+				}
 			}
 		}
 
 		.p-menubar-item-icon {
 			color: var(--p-primary-color);
+			font-size: 1rem;
+			transition: all 0.2s ease;
+		}
+
+		.p-menubar-item-label {
+			font-weight: 500;
+			transition: all 0.2s ease;
 		}
 
 		.p-menubar-start {
 			margin-right: auto;
+		}
+
+		.p-menubar-end {
+			margin-left: 0.5rem;
 		}
 	}
 }
@@ -279,20 +339,49 @@ function handleMobileNavClick(item: MenuItem) {
 .rpg-theme-toggle,
 .rpg-settings-btn,
 .rpg-hamburger {
-	transition: all 0.2s ease-in-out;
+	width: 2.25rem;
+	height: 2.25rem;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	transition: all 0.2s ease;
+	position: relative;
+
+	&::before {
+		content: "";
+		position: absolute;
+		inset: -2px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, var(--p-primary-color), var(--p-primary-700));
+		opacity: 0;
+		transform: scale(0.8);
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		z-index: -1;
+	}
 
 	&:hover {
-		background: var(--p-highlight-bg);
+		transform: scale(1.1);
+		
+		&::before {
+			opacity: 0.2;
+			transform: scale(1);
+		}
 	}
 
 	&:active {
 		transform: scale(0.95);
 	}
+
+	.pi {
+		font-size: 1rem;
+	}
 }
 
 .rpg-menu-actions {
 	@include flex-center;
-	gap: 0.5rem;
+	gap: 0.25rem;
 }
 
 // Mobile Sidebar styling

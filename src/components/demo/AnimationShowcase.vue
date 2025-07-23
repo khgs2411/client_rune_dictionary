@@ -191,19 +191,19 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed, toValue } from 'vue';
 import { motion } from 'motion-v';
 import Button from 'primevue/button';
-import { 
-  useEntranceAnimation, 
-  useHoverAnimation, 
-  useStaggerAnimation,
-  useLoadingAnimation 
-} from '../../composables/useAnimations';
-import { 
+import { computed, onMounted, ref, toValue } from 'vue';
+import {
   useAnimationPerformance,
   type AnimationCategory,
 } from '../../composables/useAnimationPerformance';
+import {
+  useEntranceAnimation,
+  useHoverAnimation,
+  useLoadingAnimation,
+  useStaggerAnimation
+} from '../../composables/useAnimations';
 import { useReducedMotion } from '../../composables/useReducedMotion';
 
 // Performance and motion state
@@ -400,7 +400,7 @@ onMounted(() => {
   font-weight: bold;
   padding: 0.25rem 0.5rem;
   border-radius: var(--p-border-radius);
-  background: var(--p-surface-100);
+  background: var(--p-content-background);
   color: var(--p-text-color);
   
   &.stat-warning {
