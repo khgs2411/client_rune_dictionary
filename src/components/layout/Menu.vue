@@ -54,19 +54,21 @@
 					<span class="rpg-sidebar-title">Navigation</span>
 				</div>
 			</template>
-			<nav class="rpg-mobile-nav" role="navigation">
-				<motion.ul :initial="{ opacity: 0 }" :animate="{ opacity: 1 }" :transition="{ duration: 0.4, ease: 'easeOut', delay: 0.1 }" class="rpg-mobile-nav-list">
-					<motion.li
-						v-for="(item, index) in items"
-						:key="item.key"
-						:initial="{ opacity: 0, x: 20 }"
-						:animate="{ opacity: 1, x: 0 }"
-						:transition="{ duration: 0.3, ease: 'easeOut', delay: 0.1 + index * 0.1 }"
-						v-show="item.visible !== false"
-						class="rpg-mobile-nav-item">
-						<Button @click="handleMobileNavClick(item)" :icon="item.icon" :label="item.label?.toString()" text class="rpg-mobile-nav-button" :aria-label="`Navigate to ${item.label}`" />
-					</motion.li>
-				</motion.ul>
+			<div class="rpg-mobile-nav-container">
+				<nav class="rpg-mobile-nav" role="navigation">
+					<motion.ul :initial="{ opacity: 0 }" :animate="{ opacity: 1 }" :transition="{ duration: 0.4, ease: 'easeOut', delay: 0.1 }" class="rpg-mobile-nav-list">
+						<motion.li
+							v-for="(item, index) in items"
+							:key="item.key"
+							:initial="{ opacity: 0, x: 20 }"
+							:animate="{ opacity: 1, x: 0 }"
+							:transition="{ duration: 0.3, ease: 'easeOut', delay: 0.1 + index * 0.1 }"
+							v-show="item.visible !== false"
+							class="rpg-mobile-nav-item">
+							<Button @click="handleMobileNavClick(item)" :icon="item.icon" :label="item.label?.toString()" text class="rpg-mobile-nav-button" :aria-label="`Navigate to ${item.label}`" />
+						</motion.li>
+					</motion.ul>
+				</nav>
 				<motion.div :initial="{ opacity: 0, y: 20 }" :animate="{ opacity: 1, y: 0 }" :transition="{ duration: 0.4, ease: 'easeOut', delay: 0.3 }" class="rpg-mobile-footer">
 					<Button
 						@click="
@@ -81,7 +83,7 @@
 						class="rpg-mobile-footer-button"
 						aria-label="Open settings" />
 				</motion.div>
-			</nav>
+			</div>
 		</Drawer>
 	</motion.div>
 </template>
@@ -295,17 +297,24 @@ function handleMobileNavClick(item: MenuItem) {
 
 // Mobile Sidebar styling
 .rpg-mobile-sidebar {
-	&:deep(.p-sidebar) {
+	&:deep(.p-drawer) {
 		background: var(--p-content-background);
 		border-left: 2px solid var(--p-primary-color);
 		min-width: 280px;
 	}
 
-	&:deep(.p-sidebar-header) {
+	&:deep(.p-drawer-header) {
 		background: var(--p-primary-color);
 		color: var(--p-primary-contrast-color);
 		padding: 1.5rem;
 		border-bottom: 1px solid var(--p-surface-border);
+	}
+
+	&:deep(.p-drawer-content) {
+		padding: 0;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
 	}
 }
 
@@ -323,9 +332,18 @@ function handleMobileNavClick(item: MenuItem) {
 	}
 }
 
+// Mobile Navigation Container
+.rpg-mobile-nav-container {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
 // Mobile Navigation
 .rpg-mobile-nav {
-	padding: 1.5rem 1rem;
+	padding: 1rem;
+	flex: 1;
+	overflow-y: auto;
 }
 
 .rpg-mobile-nav-list {
@@ -334,7 +352,7 @@ function handleMobileNavClick(item: MenuItem) {
 	padding: 0;
 	display: flex;
 	flex-direction: column;
-	gap: 0.75rem;
+	gap: 0.25rem;
 }
 
 .rpg-mobile-nav-item {
@@ -344,7 +362,7 @@ function handleMobileNavClick(item: MenuItem) {
 .rpg-mobile-nav-button {
 	width: 100%;
 	justify-content: flex-start;
-	padding: 0.875rem 1rem;
+	padding: 0.625rem 1rem;
 	border-radius: var(--p-border-radius);
 	transition: all 0.2s ease-in-out;
 	background: transparent;
@@ -370,15 +388,15 @@ function handleMobileNavClick(item: MenuItem) {
 }
 
 .rpg-mobile-footer {
-	margin-top: 2rem;
-	padding-top: 1.5rem;
+	padding: 1rem;
 	border-top: 1px solid var(--p-surface-border);
+	margin-top: auto;
 }
 
 .rpg-mobile-footer-button {
 	width: 100%;
 	justify-content: flex-start;
-	padding: 0.875rem 1rem;
+	padding: 0.625rem 1rem;
 	border-radius: var(--p-border-radius);
 	transition: all 0.2s ease-in-out;
 	background: transparent;

@@ -151,6 +151,7 @@ const baseUrl = computed(() => import.meta.env.BASE_URL);
 
 	:deep(.p-card-title) {
 		margin-bottom: 0.5rem;
+		padding: 1.5rem 1.5rem 0 1.5rem;
 	}
 }
 

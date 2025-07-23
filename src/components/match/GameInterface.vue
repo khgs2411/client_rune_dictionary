@@ -124,13 +124,15 @@ defineEmits<{
 
 // Leave match button positioning
 .leavae-match-button {
-	position: absolute;
-	top: 0.5rem;
-	right: 0.5rem;
+	// position: absolute;
+	// top: 0.5rem;
+	// right: 0.5rem;
+	// padding-top: 0.5rem;
+	// margin-top:1rem;
 
 	@include breakpoint-up("sm") {
-		top: 1rem;
-		right: 1rem;
+		// top: 1rem;
+		// right: 1rem;
 	}
 }
 
