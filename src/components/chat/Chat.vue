@@ -1,5 +1,5 @@
 <template>
-	<ChatWindow :container-ref="containerRef" storageKey="chat" :minWidth="300" :minHeight="200" :initialSize="{ width: 600, height: 500 }" @logout="handleLogout">
+	<ChatWindow :container-ref="containerRef" storageKey="chat" :minWidth="300" :minHeight="200" :initialSize="{ width: 600, height: 500 }" :collapsible="true" @logout="handleLogout">
 		<template #title
 			>Connected as: <span class="client-name">{{ client ? `(${client.name})` : "" }}</span></template
 		>

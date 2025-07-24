@@ -1,38 +1,23 @@
 <template>
 	<div class="game-interface">
-		<!-- Game Header -->
-		<div class="game-header">
-			<div class="match-info">
-				<span class="match-type">{{ matchTypeLabel }}</span>
-				<span class="match-id">Match: {{ matchId || "Unknown" }}</span>
-			</div>
-		</div>
-		<Button :disabled="isProcessingAction" v-ripple size="small" class="leavae-match-button pointer" @click="$emit('leave-match')">Leave Match</Button>
-
-		<!-- Battle Area -->
-		<BattleArea
+		<!-- New Battle Arena -->
+		<BattleArena
 			:player-health="gameState.playerHealth"
 			:player-max-health="gameState.playerMaxHealth"
 			:enemy-health="gameState.enemyHealth"
 			:enemy-max-health="gameState.enemyMaxHealth"
 			:enemy-name="enemyName"
 			:is-player-turn="isPlayerTurn"
-			:is-enemy-turn="isEnemyTurn" />
-
-		<!-- Game Actions -->
-		<GameActions :is-player-turn="isPlayerTurn" :is-processing-action="isProcessingAction" @attack="$emit('attack')" />
-
-		<!-- Game Log -->
-		<GameLog :game-log="gameLog" />
+			:is-enemy-turn="isEnemyTurn"
+			:is-processing-action="isProcessingAction"
+			@attack="$emit('attack')"
+			@leave-match="$emit('leave-match')" />
 	</div>
 </template>
 
 <script lang="ts" setup>
-import Button from "primevue/button";
 import { GameState } from "../../stores/match.store";
-import BattleArea from "./BattleArea.vue";
-import GameActions from "./GameActions.vue";
-import GameLog from "./GameLog.vue";
+import BattleArena from "./BattleArena.vue";
 
 defineProps<{
 	matchTypeLabel: string;
@@ -59,87 +44,8 @@ defineEmits<{
 @use "../../assets/css/styles/mixins/breakpoints" as *;
 
 .game-interface {
-	padding: 1rem;
 	width: 100%;
-	max-width: 800px;
-	margin: 0 auto;
-	display: flex;
-	flex-direction: column;
-	gap: 1rem;
-
-	// Responsive padding
-	@include breakpoint-down("sm") {
-		padding: 0.5rem;
-		gap: 0.75rem;
-	}
-
-	@include breakpoint-up("md") {
-		gap: 1.5rem;
-	}
-
-	@include breakpoint-up("lg") {
-		padding: 1.5rem;
-		gap: 2rem;
-	}
-}
-
-.game-header {
-	background: var(--p-content-background);
-	border: 1px solid var(--p-content-border-color);
-	border-radius: 6px;
-	padding: 1rem;
+	height: 100%;
 	position: relative;
-
-	@include breakpoint-down("sm") {
-		padding: 0.75rem;
-		border-radius: 4px;
-	}
-
-	.match-info {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-
-		.match-type {
-			font-weight: 600;
-			color: var(--p-primary-color);
-			font-size: clamp(1rem, 2.5vw, 1.25rem);
-		}
-
-		.match-id {
-			color: var(--p-text-muted-color);
-			font-size: clamp(0.75rem, 2vw, 0.9rem);
-		}
-
-		// Stack on very small screens
-		@include breakpoint-down(400px) {
-			flex-direction: column;
-			align-items: flex-start;
-			gap: 0.25rem;
-		}
-	}
-}
-
-// Leave match button positioning
-.leavae-match-button {
-	// position: absolute;
-	// top: 0.5rem;
-	// right: 0.5rem;
-	// padding-top: 0.5rem;
-	// margin-top:1rem;
-
-	@include breakpoint-up("sm") {
-		// top: 1rem;
-		// right: 1rem;
-	}
-}
-
-// Ensure all child components are responsive
-:deep(.battle-area),
-:deep(.game-actions),
-:deep(.game-log) {
-	width: 100%;
 }
 </style>

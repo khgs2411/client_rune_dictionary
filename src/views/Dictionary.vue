@@ -196,8 +196,7 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 		right: 0;
 		bottom: 0;
 		background-image:
-			radial-gradient(circle at 20% 50%, var(--p-primary-color) 0%, transparent 50%), 
-			radial-gradient(circle at 80% 80%, var(--p-primary-color) 0%, transparent 50%),
+			radial-gradient(circle at 20% 50%, var(--p-primary-color) 0%, transparent 50%), radial-gradient(circle at 80% 80%, var(--p-primary-color) 0%, transparent 50%),
 			radial-gradient(circle at 40% 20%, var(--p-primary-color) 0%, transparent 50%);
 		opacity: 0.7;
 		animation: float 10s ease-in-out infinite;
@@ -247,28 +246,44 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 // RPG Select Button styles
 :deep(.rpg-select-button) {
 	.p-selectbutton {
-		@apply bg-black/30 backdrop-blur-sm border-2 border-primary-500/50 rounded-lg overflow-hidden;
+		background: rgba(0, 0, 0, 0.3);
+		backdrop-filter: blur(4px);
+		border: 2px solid rgba(var(--p-primary-500-rgb), 0.5);
+		border-radius: 0.5rem;
+		overflow: hidden;
 	}
 
 	.p-button {
-		@apply bg-transparent border-0 text-primary-200 font-semibold px-6 py-3 transition-all duration-300;
+		background: transparent;
+		border: 0;
+		color: var(--p-primary-200);
+		font-weight: 600;
+		padding: 0.75rem 1.5rem;
+		transition: all 0.3s ease;
 
 		&:hover {
-			@apply bg-primary-500/20 text-white;
+			background: rgba(var(--p-primary-500-rgb), 0.2);
+			color: white;
 		}
 
 		&.p-highlight {
-			@apply bg-gradient-to-r from-primary-600 to-pink-600 text-white shadow-lg;
+			background: linear-gradient(to right, var(--p-primary-600), var(--p-pink-600));
+			color: white;
+			box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 		}
 	}
 }
 
 // RPG Card styles
 .rpg-card {
-	@apply bg-gray-900/90 backdrop-blur-sm border-2 border-primary-500/30 overflow-hidden;
+	background: rgba(17, 24, 39, 0.9);
+	backdrop-filter: blur(4px);
+	border: 2px solid rgba(var(--p-primary-500-rgb), 0.3);
+	overflow: hidden;
 
 	&:hover {
-		@apply border-primary-400/60 shadow-primary-500/30;
+		border-color: rgba(var(--p-primary-400-rgb), 0.6);
+		box-shadow: 0 0 20px rgba(var(--p-primary-500-rgb), 0.3);
 
 		.card-icon {
 			animation: bounce 0.5s ease-in-out;
@@ -276,15 +291,15 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 	}
 
 	:deep(.p-card-body) {
-		@apply p-0;
+		padding: 0;
 	}
 
 	:deep(.p-card-content) {
-		@apply px-6 py-4;
+		padding: 1.5rem 1.5rem 1rem;
 	}
 
 	:deep(.p-card-footer) {
-		@apply px-6 pb-6;
+		padding: 0 1.5rem 1.5rem;
 	}
 }
 
@@ -320,10 +335,16 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 
 // RPG Button styles
 .rpg-button {
-	@apply border-0 text-white font-bold py-3 transition-all duration-300 shadow-lg;
+	border: 0;
+	color: white;
+	font-weight: bold;
+	padding: 0.75rem 0;
+	transition: all 0.3s ease;
+	box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
 	&:hover {
-		@apply shadow-xl transform -translate-y-0.5;
+		box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+		transform: translateY(-2px);
 	}
 }
 </style>

@@ -299,28 +299,22 @@ onMounted(() => {
 	}
 
 	.viewport {
-		height: 92%;
-		width: 96%;
-		padding: 1%;
-		border-radius: var(--p-border-radius-lg);
+		height: 100%;
+		width: 100%;
+		padding: 0;
+		border-radius: 0;
 		margin: 0 auto;
 		max-width: 1920px;
-		box-shadow:
-			0 6px 12px var-to-rgba(--p-content-background, 0.5),
-			0 8px 24px var-to-rgba(--p-content-background, 0.5);
+		box-shadow: none;
 
-		// Mobile adjustments
-		@include breakpoint-down("sm") {
-			height: 100%;
-			width: 100%;
-			padding: 0;
-			border-radius: 0;
-		}
-
-		// Small tablets
-		@include breakpoint-between("sm", "md") {
-			width: 94%;
-			padding: 0.5%;
+		// Keep max-width on larger screens
+		@include breakpoint-up("xl") {
+			height: 95%;
+			width: 95%;
+			border-radius: var(--p-border-radius-lg);
+			box-shadow:
+				0 6px 12px var-to-rgba(--p-content-background, 0.5),
+				0 8px 24px var-to-rgba(--p-content-background, 0.5);
 		}
 
 		&.opaque {
@@ -328,7 +322,7 @@ onMounted(() => {
 		}
 
 		&.background {
-			background-color: var(--p-content-background);
+			background-color: transparent;
 		}
 
 		// Remove shadow on mobile

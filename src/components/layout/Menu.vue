@@ -28,7 +28,7 @@
 		<!-- Mobile Menu -->
 		<div class="rpg-mobile-menu rpg-mobile-only">
 			<motion.div :initial="{ opacity: 0, y: -10 }" :animate="{ opacity: 1, y: 0 }" :transition="{ duration: 0.3, ease: 'easeOut' }" class="rpg-mobile-header">
-				<span class="rpg-brand"  @click="$router.push({ name: 'home' })">
+				<span class="rpg-brand" @click="$router.push({ name: 'home' })">
 					<i class="pi pi-shield" aria-hidden="true"></i>
 					<span class="rpg-brand-text">Rune RPG</span>
 				</span>
@@ -362,8 +362,12 @@ function handleMobileNavClick(item: MenuItem) {
 	}
 
 	&:hover {
-		transform: scale(1.1);
-		
+		transform: scale(1.3);
+
+		&:deep(.p-button-icon) {
+			color: var(--p-primary-color);
+		}
+
 		&::before {
 			opacity: 0.2;
 			transform: scale(1);

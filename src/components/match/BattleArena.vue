@@ -1,0 +1,553 @@
+<template>
+	<div class="battle-arena">
+		<!-- Battle Background with Gradient -->
+		<div class="battle-background">
+			<div class="gradient-overlay"></div>
+			<div class="atmospheric-effects">
+				<div v-for="i in 15" :key="i" class="particle" :class="`particle-${i}`"></div>
+			</div>
+		</div>
+
+		<!-- Turn Indicator -->
+		<div class="turn-indicator">
+			<h2>Turn {{ currentTurn }}</h2>
+		</div>
+
+		<!-- Control Buttons (Top Right) -->
+		<div class="control-buttons">
+			<Button icon="pi pi-times" class="control-btn" severity="secondary" text rounded @click="$emit('leave-match')" v-tooltip.left="'Leave Match'" />
+		</div>
+
+		<!-- Battle Field -->
+		<div class="battle-field">
+			<!-- Player Card (Left on Desktop, Bottom on Mobile) -->
+			<div class="combatant-area player-area">
+				<Card class="character-card player-card">
+					<template #content>
+						<div class="character-card-content">
+							<div class="character-icon">
+								<i class="pi pi-user"></i>
+							</div>
+							<div class="character-details">
+								<div class="character-header">
+									<span class="character-name">{{ playerName }}</span>
+									<span class="character-level">Lv{{ playerLevel }}</span>
+								</div>
+								<div class="hp-container">
+									<div class="hp-bar">
+										<div class="hp-bar-fill" :style="{ width: playerHpPercentage + '%' }" :class="getHpColorClass(playerHpPercentage)"></div>
+									</div>
+									<div class="hp-text">{{ playerHealth }}/{{ playerMaxHealth }} HP</div>
+								</div>
+							</div>
+						</div>
+					</template>
+				</Card>
+			</div>
+
+			<!-- Enemy Card (Right on Desktop, Top on Mobile) -->
+			<div class="combatant-area enemy-area">
+				<Card class="character-card enemy-card">
+					<template #content>
+						<div class="character-card-content">
+							<div class="character-icon">
+								<i class="pi pi-android"></i>
+							</div>
+							<div class="character-details">
+								<div class="character-header">
+									<span class="character-name">{{ enemyName }}</span>
+									<span class="character-level">Lv{{ enemyLevel }}</span>
+								</div>
+								<div class="hp-container">
+									<div class="hp-bar">
+										<div class="hp-bar-fill" :style="{ width: enemyHpPercentage + '%' }" :class="getHpColorClass(enemyHpPercentage)"></div>
+									</div>
+									<div class="hp-text">{{ enemyHealth }}/{{ enemyMaxHealth }} HP</div>
+								</div>
+							</div>
+						</div>
+					</template>
+				</Card>
+			</div>
+		</div>
+
+		<!-- Action Panel (Bottom Center) -->
+		<div class="action-panel">
+			<div class="action-prompt" v-if="isPlayerTurn && !isProcessingAction">
+				What will {{ playerName }} do?
+			</div>
+			<div class="action-prompt" v-else-if="isEnemyTurn">
+				{{ enemyName }} is thinking...
+			</div>
+			<div class="action-buttons" v-if="isPlayerTurn && !isProcessingAction">
+				<Button label="Attack" icon="pi pi-bolt" severity="danger" class="action-btn attack-btn" :disabled="isProcessingAction" @click="$emit('attack')" />
+				<!-- Future buttons can go here -->
+			</div>
+		</div>
+	</div>
+</template>
+
+<script lang="ts" setup>
+import { computed } from "vue";
+import Button from "primevue/button";
+import Card from "primevue/card";
+
+interface Props {
+	playerName?: string;
+	playerHealth: number;
+	playerMaxHealth: number;
+	playerLevel?: number;
+	enemyName: string;
+	enemyHealth: number;
+	enemyMaxHealth: number;
+	enemyLevel?: number;
+	isPlayerTurn: boolean;
+	isEnemyTurn: boolean;
+	isProcessingAction: boolean;
+	currentTurn?: number;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+	playerName: "You",
+	playerLevel: 50,
+	enemyLevel: 48,
+	currentTurn: 1,
+});
+
+defineEmits<{
+	(e: "attack"): void;
+	(e: "leave-match"): void;
+}>();
+
+const playerHpPercentage = computed(() => {
+	return Math.max(0, Math.min(100, (props.playerHealth / props.playerMaxHealth) * 100));
+});
+
+const enemyHpPercentage = computed(() => {
+	return Math.max(0, Math.min(100, (props.enemyHealth / props.enemyMaxHealth) * 100));
+});
+
+function getHpColorClass(percentage: number): string {
+	if (percentage > 50) return "hp-green";
+	if (percentage > 25) return "hp-yellow";
+	return "hp-red";
+}
+</script>
+
+<style lang="scss" scoped>
+@use "../../assets/css/styles/mixins/breakpoints" as *;
+
+.battle-arena {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	min-height: 600px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+// Background and Effects
+.battle-background {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+
+	.gradient-overlay {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			to bottom,
+			color-mix(in srgb, var(--p-primary-color) 20%, var(--p-surface-100)) 0%,
+			color-mix(in srgb, var(--p-primary-color) 30%, var(--p-surface-200)) 50%,
+			color-mix(in srgb, var(--p-primary-color) 40%, var(--p-surface-300)) 100%
+		);
+		opacity: 0.9;
+	}
+
+	.atmospheric-effects {
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+	}
+}
+
+// Particles for atmosphere
+@for $i from 1 through 15 {
+	.particle-#{$i} {
+		position: absolute;
+		width: #{random(4) + 2}px;
+		height: #{random(4) + 2}px;
+		background: color-mix(in srgb, var(--p-primary-color) 60%, transparent);
+		border-radius: 50%;
+		left: #{random(100)}%;
+		top: #{random(100)}%;
+		animation: float-particle #{random(20) + 20}s linear infinite;
+		animation-delay: #{random(10)}s;
+	}
+}
+
+@keyframes float-particle {
+	from {
+		transform: translateY(0) translateX(0);
+		opacity: 0;
+	}
+	10% {
+		opacity: 0.6;
+	}
+	90% {
+		opacity: 0.6;
+	}
+	to {
+		transform: translateY(-100vh) translateX(#{random(50) - 25}px);
+		opacity: 0;
+	}
+}
+
+// Turn Indicator
+.turn-indicator {
+	position: absolute;
+	top: 20px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 10;
+
+	h2 {
+		margin: 0;
+		padding: 10px 28px;
+		background: var(--p-content-background);
+		color: var(--p-text-color);
+		border-radius: 24px;
+		font-size: 1.25rem;
+		font-weight: 600;
+		border: 2px solid var(--p-surface-border);
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+		backdrop-filter: none;
+		opacity: 1;
+	}
+}
+
+// Control Buttons
+.control-buttons {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	z-index: 10;
+	display: flex;
+	gap: 10px;
+
+	.control-btn {
+		background: var(--p-surface-card);
+		border: 1px solid var(--p-surface-border);
+		color: var(--p-text-color);
+
+		&:hover {
+			background: var(--p-surface-100);
+		}
+	}
+}
+
+// Battle Field
+.battle-field {
+	flex: 1;
+	position: relative;
+	z-index: 1;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	padding: 80px 40px 200px;
+	gap: 60px;
+	align-items: center;
+	justify-items: center;
+
+	@include breakpoint-down("lg") {
+		gap: 40px;
+		padding: 80px 30px 200px;
+	}
+
+	@include breakpoint-down("md") {
+		padding: 60px 20px 180px;
+		gap: 20px;
+	}
+}
+
+// Combatant Areas
+.combatant-area {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+// Character Cards
+.character-card {
+	background: var(--p-content-background);
+	border: 2px solid var(--p-surface-border);
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+	width: 400px;
+	max-width: 100%;
+	backdrop-filter: none;
+	opacity: 1;
+	
+	:deep(.p-card) {
+		background: transparent;
+		box-shadow: none;
+		border: none;
+	}
+	
+	:deep(.p-card-content) {
+		padding: 1.5rem;
+		background: transparent;
+	}
+
+	&.player-card {
+		animation: slideInLeft 0.6s ease-out;
+	}
+
+	&.enemy-card {
+		animation: slideInRight 0.6s ease-out;
+	}
+}
+
+@keyframes slideInLeft {
+	from {
+		opacity: 0;
+		transform: translateX(-50px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes slideInRight {
+	from {
+		opacity: 0;
+		transform: translateX(50px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+.character-card-content {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+
+.character-icon {
+	width: 80px;
+	height: 80px;
+	background: var(--p-surface-50);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	border: 3px solid var(--p-primary-100);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+	i {
+		font-size: 3rem;
+		color: var(--p-primary-color);
+	}
+}
+
+.character-details {
+	flex: 1;
+	min-width: 0;
+}
+
+.character-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 0.5rem;
+	gap: 1rem;
+}
+
+.character-name {
+	font-weight: 700;
+	font-size: 1.25rem;
+	color: var(--p-text-color);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	flex: 1;
+	min-width: 0;
+}
+
+.character-level {
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: var(--p-primary-700);
+	background: var(--p-primary-100);
+	padding: 4px 12px;
+	border-radius: 6px;
+	white-space: nowrap;
+	border: 1px solid var(--p-primary-200);
+	flex-shrink: 0;
+}
+
+.hp-container {
+	width: 100%;
+}
+
+.hp-bar {
+	position: relative;
+	width: 100%;
+	height: 24px;
+	background: var(--p-surface-300);
+	border-radius: 12px;
+	overflow: hidden;
+	border: 2px solid var(--p-surface-border);
+	margin-bottom: 6px;
+	box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+
+	.hp-bar-fill {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 100%;
+		border-radius: 12px;
+		transition: width 0.5s ease, background-color 0.3s ease;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+		&.hp-green {
+			background: linear-gradient(to bottom, #4fc14f, #3ea03e);
+		}
+
+		&.hp-yellow {
+			background: linear-gradient(to bottom, #f0d033, #d4b02d);
+		}
+
+		&.hp-red {
+			background: linear-gradient(to bottom, #f44336, #d32f2f);
+		}
+	}
+}
+
+.hp-text {
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: var(--p-text-color);
+	text-align: right;
+}
+
+// Action Panel
+.action-panel {
+	position: absolute;
+	bottom: 20px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: calc(100% - 40px);
+	max-width: 600px;
+	background: var(--p-content-background);
+	border: 2px solid var(--p-surface-border);
+	border-radius: 12px;
+	padding: 20px;
+	z-index: 5;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+	backdrop-filter: none;
+	opacity: 1;
+
+	@include breakpoint-down("md") {
+		width: calc(100% - 20px);
+		padding: 16px;
+	}
+}
+
+.action-prompt {
+	font-size: 1.1rem;
+	font-weight: 600;
+	color: var(--p-text-color);
+	margin-bottom: 12px;
+	text-align: center;
+}
+
+.action-buttons {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+	gap: 12px;
+
+	.action-btn {
+		padding: 14px 28px;
+		font-size: 1.05rem;
+		font-weight: 600;
+		border-radius: 8px;
+		transition: all 0.2s ease;
+		min-width: 140px;
+
+		&.attack-btn {
+			&:hover:not(:disabled) {
+				transform: translateY(-2px);
+			}
+		}
+
+		&:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+	}
+}
+
+// Mobile Responsiveness
+@include breakpoint-down("sm") {
+	.battle-field {
+		display: flex;
+		flex-direction: column-reverse;
+		padding: 60px 10px 160px;
+		gap: 20px;
+	}
+
+	.combatant-area {
+		width: 100%;
+		display: flex;
+		justify-content: center;
+	}
+
+	.character-card {
+		width: 100%;
+		max-width: 400px;
+		
+		:deep(.p-card-content) {
+			padding: 1rem;
+		}
+	}
+
+	.character-icon {
+		width: 60px;
+		height: 60px;
+
+		i {
+			font-size: 2rem;
+		}
+	}
+
+	.character-name {
+		font-size: 1.1rem;
+	}
+
+	.character-level {
+		font-size: 0.85rem;
+		padding: 3px 8px;
+	}
+
+	.hp-bar {
+		height: 20px;
+	}
+
+	.hp-text {
+		font-size: 0.85rem;
+	}
+
+	.turn-indicator h2 {
+		font-size: 1rem;
+		padding: 6px 16px;
+	}
+
+	.action-panel {
+		bottom: 10px;
+	}
+}
+</style>

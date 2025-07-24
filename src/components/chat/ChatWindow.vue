@@ -1,30 +1,48 @@
 <template>
-	<div
-		class="chat-window"
-		:style="{
-			position: 'fixed',
-			left: `${position.x}px`,
-			top: `${position.y}px`,
-			width: `${size.width}px`,
-			height: `${size.height}px`,
-		}"
-		ref="windowRef">
-		<div class="window-header" @mousedown="startDragging">
-			<div class="window-title">
-				<slot name="title">Window</slot>
+	<div class="chat-container" :class="{ collapsed: isCollapsed }">
+		<!-- Toggle Button -->
+		<Button
+			v-if="collapsible && isCollapsed"
+			class="chat-toggle-btn"
+			:icon="isCollapsed ? 'pi pi-comments' : 'pi pi-times'"
+			severity="secondary"
+			rounded
+			@click="toggleCollapse"
+			v-tooltip.left="isCollapsed ? 'Open Chat' : 'Close Chat'"
+			:badge="isCollapsed && unreadCount > 0 ? String(unreadCount) : undefined"
+			badgeSeverity="danger" />
+		
+		<!-- Chat Window -->
+		<div
+			v-show="!isCollapsed"
+			class="chat-window"
+			:class="{ collapsible: collapsible }"
+			:style="{
+				position: 'fixed',
+				left: `${position.x}px`,
+				top: `${position.y}px`,
+				width: `${size.width}px`,
+				height: `${size.height}px`,
+			}"
+			ref="windowRef">
+			<div class="window-header" @mousedown="startDragging">
+				<div class="window-title">
+					<slot name="title">Window</slot>
+				</div>
+				<div class="window-controls">
+					<slot name="controls"></slot>
+					<Button v-if="collapsible" class="p-button-rounded p-button-text p-button-sm" icon="pi pi-minus" @click.stop="toggleCollapse" title="Minimize" />
+					<Button class="p-button-rounded p-button-text p-button-sm logout-button" icon="pi pi-sign-out" @click.stop="$emit('logout')" title="Logout" />
+				</div>
 			</div>
-			<div class="window-controls">
-				<slot name="controls"></slot>
-				<Button class="p-button-rounded p-button-text p-button-sm logout-button" icon="pi pi-sign-out" @click.stop="$emit('logout')" title="Logout" />
+
+			<div class="window-content">
+				<slot></slot>
 			</div>
-		</div>
 
-		<div class="window-content">
-			<slot></slot>
+			<!-- Resize handles -->
+			<div v-for="handle in ['bottom-right', 'top-right']" :key="handle" :class="['resize-handle', handle]" @mousedown.prevent="startResizing(handle as ResizeHandle)"></div>
 		</div>
-
-		<!-- Resize handles -->
-		<div v-for="handle in ['bottom-right', 'top-right']" :key="handle" :class="['resize-handle', handle]" @mousedown.prevent="startResizing(handle as ResizeHandle)"></div>
 	</div>
 </template>
 
@@ -44,6 +62,7 @@ const props = defineProps<{
 	minWidth?: number;
 	minHeight?: number;
 	containerRef?: HTMLElement | null;
+	collapsible?: boolean;
 }>();
 
 defineEmits<{
@@ -55,6 +74,8 @@ const windowRef = ref<HTMLElement | null>(null);
 const position = useLocalStorage<Position>(`${props.storageKey}-position`, props.initialPosition ?? { x: 20, y: 20 });
 const size = useLocalStorage<Size>(`${props.storageKey}-size`, props.initialSize ?? { width: 600, height: 500 });
 const containerBounds = ref<DOMRect | null>(null);
+const isCollapsed = ref(props.collapsible ? true : false);
+const unreadCount = ref(0);
 
 // State
 const isDragging = ref(false);
@@ -104,6 +125,11 @@ const containerBottom = computed(() => {
 	if (!containerBounds.value) return 0;
 	return window.innerHeight - containerBounds.value.bottom;
 });
+
+// Toggle collapse
+function toggleCollapse() {
+	isCollapsed.value = !isCollapsed.value;
+}
 
 // Dragging functionality
 function startDragging(e: MouseEvent) {
@@ -288,6 +314,47 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.chat-container {
+	position: fixed;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	pointer-events: none;
+	z-index: 1000;
+}
+
+.chat-container > * {
+	pointer-events: auto;
+}
+
+.chat-container.collapsed .chat-window {
+	display: none;
+}
+
+.chat-toggle-btn {
+	position: fixed !important;
+	right: 20px;
+	bottom: 80px;
+	z-index: 1002;
+	background: var(--p-content-background) !important;
+	border: 1px solid var(--p-surface-border) !important;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+	opacity: 1 !important;
+	visibility: visible !important;
+	color: var(--p-primary-color) !important;
+	transition: all 0.2s ease !important;
+	
+	&:hover {
+		background: var(--p-primary-color) !important;
+		color: var(--p-content-background) !important;
+		border-color: var(--p-primary-color) !important;
+	}
+	
+	::v-deep(.p-button-icon) {
+		color: inherit !important;
+	}
+}
+
 .chat-window {
 	font-family: "Arial", sans-serif;
 	min-width: v-bind("`${minWidth()}px`");
@@ -300,8 +367,14 @@ onUnmounted(() => {
 	border-radius: 6px;
 }
 
+
 /* Mobile styles */
 @media (max-width: 1024px) {
+	.chat-toggle-btn {
+		bottom: 20px;
+		right: 20px;
+	}
+	
 	.chat-window {
 		display: none;
 		position: fixed !important;
