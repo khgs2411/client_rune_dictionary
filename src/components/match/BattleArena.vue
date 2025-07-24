@@ -351,6 +351,13 @@ watch(() => props.enemyHealth, (newHealth) => {
 		gap: 20px;
 		align-items: center;
 	}
+	
+	// Smaller screens with limited height
+	@media (max-height: 800px) and (min-width: 576px) {
+		padding-top: 60px;
+		padding-bottom: 140px; // Reduced bottom padding for smaller screens
+		gap: 15px;
+	}
 }
 
 // Combatant Areas
@@ -378,6 +385,36 @@ watch(() => props.enemyHealth, (newHealth) => {
 			}
 		}
 	}
+	
+	// Tablet specific - ensure cards stay within viewport
+	@media (min-width: 768px) and (max-width: 1024px) {
+		&.player-area {
+			padding-bottom: 20px; // Reduced to bring cards closer
+			.character-card {
+				transform: none;
+			}
+		}
+		
+		&.enemy-area {
+			padding-top: 20px; // Reduced to bring cards closer
+			.character-card {
+				transform: none;
+			}
+		}
+	}
+	
+	// Smaller screens (between mobile and desktop) - prevent cutoff
+	@media (min-width: 576px) and (max-width: 1024px) and (max-height: 800px) {
+		&.player-area {
+			padding-bottom: 10px;
+			align-self: center;
+		}
+		
+		&.enemy-area {
+			padding-top: 10px;
+			align-self: center;
+		}
+	}
 }
 
 // Character Cards
@@ -389,6 +426,11 @@ watch(() => props.enemyHealth, (newHealth) => {
 	max-width: 100%;
 	backdrop-filter: none;
 	opacity: 1;
+	
+	// Tablet specific sizing
+	@media (min-width: 768px) and (max-width: 1024px) {
+		width: 350px;
+	}
 	
 	:deep(.p-card) {
 		background: transparent;

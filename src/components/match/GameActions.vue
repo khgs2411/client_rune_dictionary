@@ -6,7 +6,7 @@
 			<div class="action-prompt" v-else-if="isEnemyTurn">{{ enemyName }} is thinking...</div>
 			<div class="action-buttons" v-if="isPlayerTurn && !isProcessingAction">
 				<Button label="Attack" icon="pi pi-bolt" severity="danger" class="action-btn attack-btn" :disabled="isProcessingAction" @click="$emit('attack')" />
-				<!-- Future buttons can go here -->
+				<!-- Future buttons can go here - the panel will auto-expand -->
 			</div>
 
 			<!-- Control Buttons Row -->
@@ -43,75 +43,82 @@ defineEmits<{
 <style lang="scss" scoped>
 @use "../../assets/css/styles/mixins/breakpoints" as *;
 
-// Action Panel
+// Action Panel - Slick and modern with dynamic width
 .action-panel {
 	position: absolute;
-	bottom: 20px;
+	bottom: 12px;
 	left: 50%;
 	transform: translateX(-50%);
-	width: calc(100% - 40px);
-	max-width: 600px;
+	width: auto; // Dynamic width based on content
+	min-width: 280px; // Thinner minimum width for desktop
+	max-width: min(600px, calc(100% - 40px)); // Allow wider for more buttons
 	background: var(--p-content-background);
 	border: 1px solid var(--p-surface-border);
-	border-radius: var(--p-border-radius-lg);
-	padding: 24px;
+	border-radius: 16px; // More modern rounded corners
+	padding: 12px 20px; // Horizontal padding for dynamic sizing
 	z-index: 5;
 	box-shadow:
-		0 2px 4px rgba(0, 0, 0, 0.08),
-		0 4px 16px rgba(0, 0, 0, 0.12);
+		0 1px 3px rgba(0, 0, 0, 0.06),
+		0 2px 8px rgba(0, 0, 0, 0.08);
 	backdrop-filter: none;
 	opacity: 1;
 
 	@include breakpoint-down("md") {
-		width: calc(100% - 20px);
-		padding: 20px;
-		bottom: 16px;
+		width: calc(100% - 20px); // Full width on tablets
+		min-width: unset;
+		padding: 10px 14px;
+		bottom: 10px;
 	}
 
 	@include breakpoint-down("sm") {
-		padding: 16px;
-		bottom: 12px;
+		width: calc(100% - 16px); // Almost full width on mobile
+		padding: 10px 12px;
+		bottom: 8px;
+		border-radius: 12px;
 	}
 }
 
 .action-prompt {
-	font-size: 1.1rem;
-	font-weight: 600;
+	font-size: 0.95rem;
+	font-weight: 500;
 	color: var(--p-text-color);
-	margin-bottom: 16px;
+	margin-bottom: 10px;
 	text-align: center;
-	line-height: 1.4;
+	line-height: 1.2;
 
 	@include breakpoint-down("sm") {
-		font-size: 1rem;
-		margin-bottom: 12px;
+		font-size: 0.9rem;
+		margin-bottom: 8px;
 	}
 }
 
 .action-buttons {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-	gap: 12px;
-	margin-bottom: 20px;
+	display: flex;
+	justify-content: center;
+	gap: 8px;
+	margin-bottom: 12px;
+	flex-wrap: wrap; // Allow wrapping if too many buttons
 
 	@include breakpoint-down("sm") {
-		grid-template-columns: 1fr;
-		gap: 10px;
-		margin-bottom: 16px;
+		gap: 6px;
+		margin-bottom: 10px;
+		width: 100%;
+		flex-direction: column; // Stack vertically on mobile
 	}
 
 	.action-btn {
-		padding: 12px 24px;
-		font-size: 1rem;
+		padding: 8px 16px; // Slightly less horizontal padding
+		font-size: 0.9rem;
 		font-weight: 600;
-		border-radius: var(--p-border-radius);
-		transition: all 0.2s ease;
-		min-width: 140px;
-		height: 48px;
+		border-radius: 10px;
+		transition: all 0.15s ease;
+		min-width: 100px; // Smaller min width for more buttons
+		height: 36px;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		gap: 8px;
+		gap: 6px;
+		white-space: nowrap; // Prevent text wrapping
 
 		&.attack-btn {
 			background: var(--p-red-500);
@@ -121,8 +128,8 @@ defineEmits<{
 			&:hover:not(:disabled) {
 				background: var(--p-red-600);
 				border-color: var(--p-red-600);
-				transform: translateY(-2px);
-				box-shadow: 0 4px 12px rgba(var(--p-red-500-rgb), 0.4);
+				transform: translateY(-1px);
+				box-shadow: 0 2px 6px rgba(var(--p-red-500-rgb), 0.3);
 			}
 
 			&:active:not(:disabled) {
@@ -143,27 +150,27 @@ defineEmits<{
 	}
 }
 
-// Control Buttons Row
+// Control Buttons Row - Compact and modern
 .control-buttons {
 	display: flex;
 	justify-content: center;
-	gap: 12px;
-	padding-top: 16px;
+	gap: 8px;
+	padding-top: 10px;
 	border-top: 1px solid var(--p-surface-border);
 
 	.control-btn {
-		background: var(--p-content-background);
-		border: 1px solid var(--p-primary-color);
-		color: var(--p-text-color);
-		width: 40px;
-		height: 40px;
-		transition: all 0.2s ease;
+		background: transparent;
+		border: 1px solid var(--p-surface-border);
+		color: var(--p-text-muted-color);
+		width: 32px;
+		height: 32px;
+		transition: all 0.15s ease;
 
 		&:hover {
-			// background: var(--p-surface-100);
-			transform: translateY(-2px);
-			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+			background: var(--p-surface-50);
+			border-color: var(--p-primary-200);
 			color: var(--p-primary-color);
+			transform: translateY(-1px);
 		}
 
 		&:active {
@@ -171,20 +178,20 @@ defineEmits<{
 		}
 
 		:deep(.p-button-icon) {
-			font-size: 1.1rem;
+			font-size: 0.9rem;
 		}
 	}
 
 	@include breakpoint-down("sm") {
-		padding-top: 12px;
-		gap: 8px;
+		padding-top: 8px;
+		gap: 6px;
 
 		.control-btn {
-			width: 36px;
-			height: 36px;
+			width: 30px;
+			height: 30px;
 
 			:deep(.p-button-icon) {
-				font-size: 1rem;
+				font-size: 0.85rem;
 			}
 		}
 	}
