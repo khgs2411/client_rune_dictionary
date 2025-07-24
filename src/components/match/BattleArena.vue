@@ -88,9 +88,9 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
 import Button from "primevue/button";
 import Card from "primevue/card";
+import { computed } from "vue";
 
 interface Props {
 	playerName?: string;
@@ -180,8 +180,8 @@ function getHpColorClass(percentage: number): string {
 		height: #{random(4) + 2}px;
 		background: color-mix(in srgb, var(--p-primary-color) 60%, transparent);
 		border-radius: 50%;
-		left: #{random(100)}%;
-		top: #{random(100)}%;
+		left: random(100) * 1%;
+		top: random(100) * 1%;
 		animation: float-particle #{random(20) + 20}s linear infinite;
 		animation-delay: #{random(10)}s;
 	}
@@ -237,7 +237,7 @@ function getHpColorClass(percentage: number): string {
 	gap: 10px;
 
 	.control-btn {
-		background: var(--p-surface-card);
+		background: var(--p-content-background);
 		border: 1px solid var(--p-surface-border);
 		color: var(--p-text-color);
 
@@ -443,17 +443,25 @@ function getHpColorClass(percentage: number): string {
 	width: calc(100% - 40px);
 	max-width: 600px;
 	background: var(--p-content-background);
-	border: 2px solid var(--p-surface-border);
-	border-radius: 12px;
-	padding: 20px;
+	border: 1px solid var(--p-surface-border);
+	border-radius: var(--p-border-radius-lg);
+	padding: 24px;
 	z-index: 5;
-	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+	box-shadow: 
+		0 2px 4px rgba(0, 0, 0, 0.08),
+		0 4px 16px rgba(0, 0, 0, 0.12);
 	backdrop-filter: none;
 	opacity: 1;
 
 	@include breakpoint-down("md") {
 		width: calc(100% - 20px);
+		padding: 20px;
+		bottom: 16px;
+	}
+
+	@include breakpoint-down("sm") {
 		padding: 16px;
+		bottom: 12px;
 	}
 }
 
@@ -461,32 +469,65 @@ function getHpColorClass(percentage: number): string {
 	font-size: 1.1rem;
 	font-weight: 600;
 	color: var(--p-text-color);
-	margin-bottom: 12px;
+	margin-bottom: 16px;
 	text-align: center;
+	line-height: 1.4;
+
+	@include breakpoint-down("sm") {
+		font-size: 1rem;
+		margin-bottom: 12px;
+	}
 }
 
 .action-buttons {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 	gap: 12px;
 
+	@include breakpoint-down("sm") {
+		grid-template-columns: 1fr;
+		gap: 10px;
+	}
+
 	.action-btn {
-		padding: 14px 28px;
-		font-size: 1.05rem;
+		padding: 12px 24px;
+		font-size: 1rem;
 		font-weight: 600;
-		border-radius: 8px;
+		border-radius: var(--p-border-radius);
 		transition: all 0.2s ease;
 		min-width: 140px;
+		height: 48px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
 
 		&.attack-btn {
+			background: var(--p-red-500);
+			border-color: var(--p-red-500);
+			color: white;
+
 			&:hover:not(:disabled) {
+				background: var(--p-red-600);
+				border-color: var(--p-red-600);
 				transform: translateY(-2px);
+				box-shadow: 0 4px 12px rgba(var(--p-red-500-rgb), 0.4);
+			}
+
+			&:active:not(:disabled) {
+				transform: translateY(0);
 			}
 		}
 
 		&:disabled {
 			opacity: 0.6;
 			cursor: not-allowed;
+			transform: none !important;
+		}
+
+		@include breakpoint-down("sm") {
+			width: 100%;
+			min-width: unset;
 		}
 	}
 }
