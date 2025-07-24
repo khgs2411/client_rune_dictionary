@@ -9,8 +9,14 @@
 		</div>
 
 		<!-- Turn Indicator -->
-		<div class="turn-indicator">
-			<h2>Turn {{ currentTurn }}</h2>
+		<div class="turn-indicator" :class="{ 'player-turn': isPlayerTurn, 'enemy-turn': isEnemyTurn }">
+			<div class="turn-badge">
+				<i class="pi" :class="isPlayerTurn ? 'pi-user' : 'pi-android'"></i>
+				<span class="turn-text">
+					{{ isPlayerTurn ? 'Your Turn' : `${enemyName}'s Turn` }}
+				</span>
+				<span class="turn-number">Turn {{ displayTurnNumber }}</span>
+			</div>
 		</div>
 
 		<!-- Control Buttons (Top Right) -->
@@ -22,7 +28,7 @@
 		<div class="battle-field">
 			<!-- Player Card (Left on Desktop, Bottom on Mobile) -->
 			<div class="combatant-area player-area">
-				<Card class="character-card player-card">
+				<Card class="character-card player-card" :class="{ 'taking-damage': playerTakingDamage, 'breathing': true }" :style="{ '--health-percentage': playerHpPercentage, 'animation-delay': playerBreathOffset + 's' }">
 					<template #content>
 						<div class="character-card-content">
 							<div class="character-icon">
@@ -47,7 +53,7 @@
 
 			<!-- Enemy Card (Right on Desktop, Top on Mobile) -->
 			<div class="combatant-area enemy-area">
-				<Card class="character-card enemy-card">
+				<Card class="character-card enemy-card" :class="{ 'taking-damage': enemyTakingDamage, 'breathing': true }" :style="{ '--health-percentage': enemyHpPercentage, 'animation-delay': enemyBreathOffset + 's' }">
 					<template #content>
 						<div class="character-card-content">
 							<div class="character-icon">
@@ -90,7 +96,7 @@
 <script lang="ts" setup>
 import Button from "primevue/button";
 import Card from "primevue/card";
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 
 interface Props {
 	playerName?: string;
@@ -132,6 +138,55 @@ function getHpColorClass(percentage: number): string {
 	if (percentage > 25) return "hp-yellow";
 	return "hp-red";
 }
+
+// Track turn number internally
+const turnNumber = ref(1);
+let lastTurnState = props.isPlayerTurn;
+
+// Watch for turn changes to increment turn number
+watch(() => props.isPlayerTurn, (newVal) => {
+	// If turn changed from enemy to player, increment turn number
+	if (newVal && !lastTurnState) {
+		turnNumber.value++;
+	}
+	lastTurnState = newVal;
+});
+
+// Use computed to ensure reactivity
+const displayTurnNumber = computed(() => turnNumber.value);
+
+// Damage animation states
+const playerTakingDamage = ref(false);
+const enemyTakingDamage = ref(false);
+
+// Random offsets for breathing animation (between -2s and 0s)
+const playerBreathOffset = Math.random() * -2;
+const enemyBreathOffset = Math.random() * -2;
+
+// Track previous health values for damage detection
+let previousPlayerHealth = props.playerHealth;
+let previousEnemyHealth = props.enemyHealth;
+
+// Watch for health changes to trigger damage animations
+watch(() => props.playerHealth, (newHealth) => {
+	if (newHealth < previousPlayerHealth) {
+		playerTakingDamage.value = true;
+		setTimeout(() => {
+			playerTakingDamage.value = false;
+		}, 600); // Animation duration
+	}
+	previousPlayerHealth = newHealth;
+});
+
+watch(() => props.enemyHealth, (newHealth) => {
+	if (newHealth < previousEnemyHealth) {
+		enemyTakingDamage.value = true;
+		setTimeout(() => {
+			enemyTakingDamage.value = false;
+		}, 600); // Animation duration
+	}
+	previousEnemyHealth = newHealth;
+});
 </script>
 
 <style lang="scss" scoped>
@@ -211,19 +266,86 @@ function getHpColorClass(percentage: number): string {
 	left: 50%;
 	transform: translateX(-50%);
 	z-index: 10;
+	transition: all 0.3s ease;
 
-	h2 {
-		margin: 0;
-		padding: 10px 28px;
+	.turn-badge {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 12px 24px;
 		background: var(--p-content-background);
 		color: var(--p-text-color);
-		border-radius: 24px;
-		font-size: 1.25rem;
+		border-radius: 9999px;
+		font-size: 1rem;
 		font-weight: 600;
-		border: 2px solid var(--p-surface-border);
-		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-		backdrop-filter: none;
-		opacity: 1;
+		border: 1px solid var(--p-surface-border);
+		box-shadow: 
+			0 2px 4px rgba(0, 0, 0, 0.05),
+			0 4px 8px rgba(0, 0, 0, 0.1);
+		position: relative;
+		overflow: hidden;
+
+		// Icon styling
+		i {
+			font-size: 1.1rem;
+			opacity: 0.9;
+		}
+
+		// Main turn text
+		.turn-text {
+			font-weight: 600;
+			letter-spacing: 0.025em;
+		}
+
+		// Turn number
+		.turn-number {
+			font-size: 0.85rem;
+			opacity: 0.7;
+			font-weight: 500;
+			padding-left: 12px;
+			border-left: 1px solid var(--p-surface-border);
+			margin-left: 4px;
+		}
+	}
+
+	// Player turn styling
+	&.player-turn {
+		.turn-badge {
+			background: var(--p-content-background);
+			border-color: var(--p-primary-200);
+			box-shadow: 
+				0 0 0 3px color-mix(in srgb, var(--p-primary-color) 10%, transparent),
+				0 2px 4px rgba(0, 0, 0, 0.05),
+				0 4px 8px rgba(0, 0, 0, 0.1);
+
+			i {
+				color: var(--p-primary-color);
+			}
+
+			.turn-text {
+				color: var(--p-primary-700);
+			}
+		}
+	}
+
+	// Enemy turn styling
+	&.enemy-turn {
+		.turn-badge {
+			background: var(--p-content-background);
+			border-color: var(--p-orange-200);
+			box-shadow: 
+				0 0 0 3px color-mix(in srgb, var(--p-orange-500) 10%, transparent),
+				0 2px 4px rgba(0, 0, 0, 0.05),
+				0 4px 8px rgba(0, 0, 0, 0.1);
+
+			i {
+				color: var(--p-orange-500);
+			}
+
+			.turn-text {
+				color: var(--p-orange-700);
+			}
+		}
 	}
 }
 
@@ -255,18 +377,19 @@ function getHpColorClass(percentage: number): string {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	padding: 80px 40px 200px;
-	gap: 60px;
+	gap: 20px;
 	align-items: center;
 	justify-items: center;
 
 	@include breakpoint-down("lg") {
-		gap: 40px;
+		gap: 15px;
 		padding: 80px 30px 200px;
 	}
 
 	@include breakpoint-down("md") {
 		padding: 60px 20px 180px;
 		gap: 20px;
+		align-items: center;
 	}
 }
 
@@ -275,6 +398,26 @@ function getHpColorClass(percentage: number): string {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	position: relative;
+	
+	// Desktop diagonal positioning
+	@include breakpoint-up("md") {
+		&.player-area {
+			align-self: flex-end;
+			padding-bottom: 90px;
+			.character-card {
+				transform: translateX(-10px);
+			}
+		}
+		
+		&.enemy-area {
+			align-self: flex-start;
+			padding-top: 90px;
+			.character-card {
+				transform: translateX(10px);
+			}
+		}
+	}
 }
 
 // Character Cards
@@ -305,6 +448,28 @@ function getHpColorClass(percentage: number): string {
 	&.enemy-card {
 		animation: slideInRight 0.6s ease-out;
 	}
+
+	// Breathing/floating animation - speed based on health
+	&.breathing {
+		animation: breathe var(--breath-duration, 1s) ease-in-out infinite;
+		// Very fast at full health (1s), current speed at 50% (2s), very slow at low health
+		--breath-duration: calc(1s + (100 - var(--health-percentage)) * 0.02s);
+	}
+
+	// Damage animation
+	&.taking-damage {
+		animation: takeDamage 0.6s ease-out !important;
+		
+		&::before {
+			content: "";
+			position: absolute;
+			inset: -2px;
+			background: rgba(255, 0, 0, 0.4);
+			border-radius: inherit;
+			pointer-events: none;
+			animation: damageFlash 0.6s ease-out;
+		}
+	}
 }
 
 @keyframes slideInLeft {
@@ -326,6 +491,63 @@ function getHpColorClass(percentage: number): string {
 	to {
 		opacity: 1;
 		transform: translateX(0);
+	}
+}
+
+// Breathing/floating animation
+@keyframes breathe {
+	0%, 100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-10px);
+	}
+}
+
+// Damage shake animation
+@keyframes takeDamage {
+	0% {
+		transform: rotate(0deg) scale(1);
+	}
+	10% {
+		transform: rotate(-5deg) scale(0.95);
+	}
+	20% {
+		transform: rotate(5deg) scale(0.95);
+	}
+	30% {
+		transform: rotate(-3deg) scale(0.97);
+	}
+	40% {
+		transform: rotate(3deg) scale(0.97);
+	}
+	50% {
+		transform: rotate(-2deg) scale(0.98);
+	}
+	60% {
+		transform: rotate(2deg) scale(0.98);
+	}
+	70% {
+		transform: rotate(-1deg) scale(0.99);
+	}
+	80% {
+		transform: rotate(1deg) scale(0.99);
+	}
+	90%, 100% {
+		transform: rotate(0deg) scale(1);
+	}
+}
+
+// Damage flash animation
+@keyframes damageFlash {
+	0% {
+		opacity: 0;
+	}
+	20% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
 	}
 }
 
@@ -582,9 +804,28 @@ function getHpColorClass(percentage: number): string {
 		font-size: 0.85rem;
 	}
 
-	.turn-indicator h2 {
-		font-size: 1rem;
-		padding: 6px 16px;
+	.turn-indicator {
+		top: 10px;
+
+		.turn-badge {
+			padding: 8px 16px;
+			font-size: 0.9rem;
+			gap: 8px;
+
+			i {
+				font-size: 1rem;
+			}
+
+			.turn-text {
+				font-size: 0.9rem;
+			}
+
+			.turn-number {
+				font-size: 0.8rem;
+				padding-left: 8px;
+				margin-left: 2px;
+			}
+		}
 	}
 
 	.action-panel {

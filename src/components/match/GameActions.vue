@@ -31,7 +31,7 @@ defineEmits<Emits>();
 
 <style lang="scss" scoped>
 .game-actions {
-	background: var(--p-content-background);
+	background: red;
 	border: 1px solid var(--p-content-border-color);
 	border-radius: 8px;
 	padding: 1rem;
