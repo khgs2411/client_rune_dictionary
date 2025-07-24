@@ -1,6 +1,6 @@
 <template>
 	<div class="game-interface">
-		<!-- New Battle Arena -->
+		<!-- Battle Arena for battlefield display -->
 		<BattleArena
 			:player-health="gameState.playerHealth"
 			:player-max-health="gameState.playerMaxHealth"
@@ -9,19 +9,31 @@
 			:enemy-name="enemyName"
 			:is-player-turn="isPlayerTurn"
 			:is-enemy-turn="isEnemyTurn"
+			:is-processing-action="isProcessingAction" />
+		
+		<!-- Game Actions for controls and action buttons -->
+		<GameActions
+			:player-name="playerName"
+			:enemy-name="enemyName"
+			:is-player-turn="isPlayerTurn"
+			:is-enemy-turn="isEnemyTurn"
 			:is-processing-action="isProcessingAction"
 			@attack="$emit('attack')"
-			@leave-match="$emit('leave-match')" />
+			@leave-match="$emit('leave-match')"
+			@open-settings="$emit('open-settings')"
+			@toggle-log="$emit('toggle-log')" />
 	</div>
 </template>
 
 <script lang="ts" setup>
 import { GameState } from "../../stores/match.store";
 import BattleArena from "./BattleArena.vue";
+import GameActions from "./GameActions.vue";
 
 defineProps<{
 	matchTypeLabel: string;
 	matchId: string | null;
+	playerName?: string;
 	enemyName: string;
 	gameState: GameState;
 	isPlayerTurn: boolean;
@@ -37,6 +49,8 @@ defineProps<{
 defineEmits<{
 	(e: "attack"): void;
 	(e: "leave-match"): void;
+	(e: "open-settings"): void;
+	(e: "toggle-log"): void;
 }>();
 </script>
 

@@ -15,6 +15,7 @@
 					v-if="inMatch"
 					:match-type-label="getMatchTypeLabel()"
 					:match-id="match$.store.currentMatchId"
+					:player-name="'You'"
 					:enemy-name="getEnemyName()"
 					:game-state="match$.store.gameState"
 					:is-player-turn="isPlayerTurn"
@@ -22,7 +23,9 @@
 					:is-processing-action="isProcessingAction"
 					:game-log="gameLog"
 					@leave-match="handleReturnToLobby"
-					@attack="perfornAction('attack')" />
+					@attack="perfornAction('attack')"
+					@open-settings="handleOpenSettings"
+					@toggle-log="handleToggleLog" />
 			</div>
 		</div>
 	</div>
@@ -262,6 +265,16 @@ async function handleRematch() {
 
 function handleReturnToLobby() {
 	match$.returnToLobby();
+}
+
+function handleOpenSettings() {
+	// TODO: Implement settings modal
+	console.log("Open settings");
+}
+
+function handleToggleLog() {
+	// TODO: Implement combat log toggle
+	console.log("Toggle combat log");
 }
 
 onMounted(() => {
