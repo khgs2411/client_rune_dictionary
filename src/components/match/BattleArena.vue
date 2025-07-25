@@ -24,7 +24,15 @@
 		<div class="battle-field">
 			<!-- Player Card (Left on Desktop, Bottom on Mobile) -->
 			<div class="combatant-area player-area">
-				<Card class="character-card player-card" :class="{ 'taking-damage': playerTakingDamage, 'breathing': true }" :style="{ '--health-percentage': playerHpPercentage, 'animation-delay': playerBreathOffset + 's' }">
+				<!-- Floating damage/heal numbers -->
+				<TransitionGroup name="damage-number">
+					<div v-for="number in playerDamageNumbers" :key="number.id" 
+						class="damage-number" 
+						:class="{ 'heal-number': number.isHeal }">
+						{{ number.isHeal ? '+' : '-' }}{{ Math.abs(number.value) }}
+					</div>
+				</TransitionGroup>
+				<Card class="character-card player-card" :class="{ 'taking-damage': playerTakingDamage, 'healing': playerHealing, 'breathing': true }" :style="{ '--health-percentage': playerHpPercentage, 'animation-delay': playerBreathOffset + 's' }">
 					<template #content>
 						<div class="character-card-content">
 							<div class="character-icon">
@@ -37,7 +45,10 @@
 								</div>
 								<div class="hp-container">
 									<div class="hp-bar">
-										<div class="hp-bar-fill" :style="{ width: playerHpPercentage + '%' }" :class="getHpColorClass(playerHpPercentage)"></div>
+										<div class="hp-bar-fill" 
+											:style="{ width: playerHpPercentage + '%' }" 
+											:class="[getHpColorClass(playerHpPercentage), { healing: playerHealing }]">
+										</div>
 									</div>
 									<div class="hp-text">{{ playerHealth }}/{{ playerMaxHealth }} HP</div>
 								</div>
@@ -49,7 +60,15 @@
 
 			<!-- Enemy Card (Right on Desktop, Top on Mobile) -->
 			<div class="combatant-area enemy-area">
-				<Card class="character-card enemy-card" :class="{ 'taking-damage': enemyTakingDamage, 'breathing': true }" :style="{ '--health-percentage': enemyHpPercentage, 'animation-delay': enemyBreathOffset + 's' }">
+				<!-- Floating damage/heal numbers -->
+				<TransitionGroup name="damage-number">
+					<div v-for="number in enemyDamageNumbers" :key="number.id" 
+						class="damage-number" 
+						:class="{ 'heal-number': number.isHeal }">
+						{{ number.isHeal ? '+' : '-' }}{{ Math.abs(number.value) }}
+					</div>
+				</TransitionGroup>
+				<Card class="character-card enemy-card" :class="{ 'taking-damage': enemyTakingDamage, 'healing': enemyHealing, 'breathing': true }" :style="{ '--health-percentage': enemyHpPercentage, 'animation-delay': enemyBreathOffset + 's' }">
 					<template #content>
 						<div class="character-card-content">
 							<div class="character-icon">
@@ -62,7 +81,10 @@
 								</div>
 								<div class="hp-container">
 									<div class="hp-bar">
-										<div class="hp-bar-fill" :style="{ width: enemyHpPercentage + '%' }" :class="getHpColorClass(enemyHpPercentage)"></div>
+										<div class="hp-bar-fill" 
+											:style="{ width: enemyHpPercentage + '%' }" 
+											:class="[getHpColorClass(enemyHpPercentage), { healing: enemyHealing }]">
+										</div>
 									</div>
 									<div class="hp-text">{{ enemyHealth }}/{{ enemyMaxHealth }} HP</div>
 								</div>
@@ -138,31 +160,92 @@ const displayTurnNumber = computed(() => turnNumber.value);
 const playerTakingDamage = ref(false);
 const enemyTakingDamage = ref(false);
 
+// Healing animation states
+const playerHealing = ref(false);
+const enemyHealing = ref(false);
+
+// Damage numbers tracking
+interface DamageNumber {
+	id: number;
+	value: number;
+	isHeal: boolean;
+}
+
+const playerDamageNumbers = ref<DamageNumber[]>([]);
+const enemyDamageNumbers = ref<DamageNumber[]>([]);
+let damageNumberId = 0;
+
 // Random offsets for breathing animation (between -2s and 0s)
 const playerBreathOffset = Math.random() * -2;
 const enemyBreathOffset = Math.random() * -2;
 
-// Track previous health values for damage detection
+// Track previous health values for damage/heal detection
 let previousPlayerHealth = props.playerHealth;
 let previousEnemyHealth = props.enemyHealth;
 
-// Watch for health changes to trigger damage animations
-watch(() => props.playerHealth, (newHealth) => {
-	if (newHealth < previousPlayerHealth) {
-		playerTakingDamage.value = true;
+// Function to show damage/heal numbers
+function showDamageNumber(value: number, isPlayer: boolean) {
+	const number: DamageNumber = {
+		id: damageNumberId++,
+		value: value,
+		isHeal: value > 0
+	};
+	
+	if (isPlayer) {
+		playerDamageNumbers.value.push(number);
+		// Remove after animation completes
 		setTimeout(() => {
-			playerTakingDamage.value = false;
-		}, 600); // Animation duration
+			playerDamageNumbers.value = playerDamageNumbers.value.filter(n => n.id !== number.id);
+		}, 1500);
+	} else {
+		enemyDamageNumbers.value.push(number);
+		setTimeout(() => {
+			enemyDamageNumbers.value = enemyDamageNumbers.value.filter(n => n.id !== number.id);
+		}, 1500);
+	}
+}
+
+// Watch for health changes to trigger damage/heal animations
+watch(() => props.playerHealth, (newHealth) => {
+	const healthDiff = newHealth - previousPlayerHealth;
+	if (healthDiff !== 0) {
+		showDamageNumber(healthDiff, true);
+		
+		if (newHealth < previousPlayerHealth) {
+			// Taking damage
+			playerTakingDamage.value = true;
+			setTimeout(() => {
+				playerTakingDamage.value = false;
+			}, 600); // Animation duration
+		} else if (newHealth > previousPlayerHealth) {
+			// Healing
+			playerHealing.value = true;
+			setTimeout(() => {
+				playerHealing.value = false;
+			}, 600); // Animation duration
+		}
 	}
 	previousPlayerHealth = newHealth;
 });
 
 watch(() => props.enemyHealth, (newHealth) => {
-	if (newHealth < previousEnemyHealth) {
-		enemyTakingDamage.value = true;
-		setTimeout(() => {
-			enemyTakingDamage.value = false;
-		}, 600); // Animation duration
+	const healthDiff = newHealth - previousEnemyHealth;
+	if (healthDiff !== 0) {
+		showDamageNumber(healthDiff, false);
+		
+		if (newHealth < previousEnemyHealth) {
+			// Taking damage
+			enemyTakingDamage.value = true;
+			setTimeout(() => {
+				enemyTakingDamage.value = false;
+			}, 600); // Animation duration
+		} else if (newHealth > previousEnemyHealth) {
+			// Healing
+			enemyHealing.value = true;
+			setTimeout(() => {
+				enemyHealing.value = false;
+			}, 600); // Animation duration
+		}
 	}
 	previousEnemyHealth = newHealth;
 });
@@ -360,6 +443,52 @@ watch(() => props.enemyHealth, (newHealth) => {
 	}
 }
 
+// Damage/Heal Numbers
+.damage-number {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-size: 2.5rem;
+	font-weight: 900;
+	color: #ff4444;
+	text-shadow: 
+		2px 2px 0 rgba(0, 0, 0, 0.5),
+		-1px -1px 0 rgba(0, 0, 0, 0.5),
+		1px -1px 0 rgba(0, 0, 0, 0.5),
+		-1px 1px 0 rgba(0, 0, 0, 0.5);
+	pointer-events: none;
+	z-index: 100;
+	
+	&.heal-number {
+		color: #44ff44;
+	}
+}
+
+// Damage number animation transitions
+.damage-number-enter-active {
+	transition: all 1.5s ease-out;
+}
+
+.damage-number-leave-active {
+	transition: all 0.3s ease-out;
+}
+
+.damage-number-enter-from {
+	opacity: 0;
+	transform: translate(-50%, -30%);
+}
+
+.damage-number-enter-to {
+	opacity: 1;
+	transform: translate(-50%, -100%);
+}
+
+.damage-number-leave-to {
+	opacity: 0;
+	transform: translate(-50%, -120%);
+}
+
 // Combatant Areas
 .combatant-area {
 	display: flex;
@@ -470,6 +599,21 @@ watch(() => props.enemyHealth, (newHealth) => {
 			border-radius: inherit;
 			pointer-events: none;
 			animation: damageFlash 0.6s ease-out;
+			z-index: 1;
+		}
+	}
+	
+	// Healing animation - green glow
+	&.healing {
+		&::after {
+			content: "";
+			position: absolute;
+			inset: -4px;
+			background: radial-gradient(ellipse at center, rgba(68, 255, 68, 0.4) 0%, transparent 70%);
+			border-radius: inherit;
+			pointer-events: none;
+			animation: healGlow 0.8s ease-out;
+			z-index: 1;
 		}
 	}
 }
@@ -550,6 +694,22 @@ watch(() => props.enemyHealth, (newHealth) => {
 	}
 	100% {
 		opacity: 0;
+	}
+}
+
+// Healing glow animation
+@keyframes healGlow {
+	0% {
+		opacity: 0;
+		transform: scale(0.8);
+	}
+	50% {
+		opacity: 1;
+		transform: scale(1.1);
+	}
+	100% {
+		opacity: 0;
+		transform: scale(1.2);
 	}
 }
 
@@ -636,6 +796,30 @@ watch(() => props.enemyHealth, (newHealth) => {
 		border-radius: 12px;
 		transition: width 0.5s ease, background-color 0.3s ease;
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		position: relative;
+		overflow: hidden;
+
+		// Shimmer effect on heal
+		&::after {
+			content: "";
+			position: absolute;
+			top: -2px;
+			left: -100%;
+			width: 100%;
+			height: calc(100% + 4px);
+			background: linear-gradient(
+				90deg,
+				transparent,
+				rgba(255, 255, 255, 0.4) 50%,
+				transparent
+			);
+			transform: skewX(-20deg);
+			transition: left 0.6s ease;
+		}
+
+		&.healing::after {
+			left: 100%;
+		}
 
 		&.hp-green {
 			background: linear-gradient(to bottom, #4fc14f, #3ea03e);
@@ -647,7 +831,21 @@ watch(() => props.enemyHealth, (newHealth) => {
 
 		&.hp-red {
 			background: linear-gradient(to bottom, #f44336, #d32f2f);
+			// Pulse animation for critical health
+			animation: criticalPulse 1.5s ease-in-out infinite;
 		}
+	}
+}
+
+// Critical health pulse animation
+@keyframes criticalPulse {
+	0%, 100% {
+		filter: brightness(1);
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	}
+	50% {
+		filter: brightness(1.2);
+		box-shadow: 0 2px 8px rgba(244, 67, 54, 0.6);
 	}
 }
 
