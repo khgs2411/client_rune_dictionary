@@ -44,7 +44,7 @@
 							<p class="text-primary-400/80 text-center italic">{{ card.subtitle }}</p>
 						</template>
 						<template #content>
-							<p class="text-gray-300 text-center h-20 flex items-center justify-center">{{ card.content }}</p>
+							<p class="text-color text-center h-20 flex items-center justify-center">{{ card.content }}</p>
 						</template>
 						<template #footer>
 							<Button :label="getActionLabel(card.title)" icon="pi pi-arrow-right" iconPos="right" class="w-full rpg-button" :class="getButtonClass(card.title)" />
@@ -269,14 +269,16 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 		&.p-highlight {
 			background: linear-gradient(to right, var(--p-primary-600), var(--p-pink-600));
 			color: white;
-			box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+			box-shadow:
+				0 10px 15px -3px rgba(0, 0, 0, 0.1),
+				0 4px 6px -2px rgba(0, 0, 0, 0.05);
 		}
 	}
 }
 
 // RPG Card styles
 .rpg-card {
-	background: rgba(17, 24, 39, 0.9);
+	// background: rgba(17, 24, 39, 0.9);
 	backdrop-filter: blur(4px);
 	border: 2px solid rgba(var(--p-primary-500-rgb), 0.3);
 	overflow: hidden;
@@ -290,12 +292,16 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 		}
 	}
 
-	:deep(.p-card-body) {
-		padding: 0;
+	:deep(.p-card-header) {
+		.card-image {
+			border-radius: 8px;
+		}
 	}
 
-	:deep(.p-card-content) {
-		padding: 1.5rem 1.5rem 1rem;
+	:deep(.p-card-body) {
+		box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+
+		padding: 0.75rem 0 0;
 	}
 
 	:deep(.p-card-footer) {
@@ -336,14 +342,18 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 // RPG Button styles
 .rpg-button {
 	border: 0;
-	color: white;
+	color: var(--p-text-color);
 	font-weight: bold;
 	padding: 0.75rem 0;
 	transition: all 0.3s ease;
-	box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+	box-shadow:
+		0 10px 15px -3px rgba(0, 0, 0, 0.1),
+		0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
 	&:hover {
-		box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+		box-shadow:
+			0 20px 25px -5px rgba(0, 0, 0, 0.1),
+			0 10px 10px -5px rgba(0, 0, 0, 0.04);
 		transform: translateY(-2px);
 	}
 }

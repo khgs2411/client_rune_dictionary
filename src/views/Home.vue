@@ -35,7 +35,7 @@
 								</h3>
 							</template>
 							<template #content>
-								<p class="text-gray-300">Master the ancient knowledge of runes. Create, edit, and combine powerful runic abilities.</p>
+								<p class="text-color">Master the ancient knowledge of runes. Create, edit, and combine powerful runic abilities.</p>
 							</template>
 							<template #footer>
 								<Button label="Explore Runes" icon="pi pi-arrow-right" class="w-full bg-purple-600/80 hover:bg-purple-600 border-0 transition-colors" @click="$router.push('/dictionary')" />
@@ -63,7 +63,7 @@
 								</h3>
 							</template>
 							<template #content>
-								<p class="text-gray-300">Test your skills in epic turn-based combat. Challenge opponents and rise through the ranks.</p>
+								<p class="text-color">Test your skills in epic turn-based combat. Challenge opponents and rise through the ranks.</p>
 							</template>
 							<template #footer>
 								<Button label="Enter Battle" icon="pi pi-arrow-right" class="w-full bg-red-600/80 hover:bg-red-600 border-0 transition-colors" @click="$router.push('/match')" />
@@ -91,7 +91,7 @@
 								</h3>
 							</template>
 							<template #content>
-								<p class="text-gray-300">Track your progress, achievements, and battle statistics. Become a legendary runemaster.</p>
+								<p class="text-color">Track your progress, achievements, and battle statistics. Become a legendary runemaster.</p>
 							</template>
 							<template #footer>
 								<Button label="View Profile" icon="pi pi-arrow-right" class="w-full bg-blue-600/80 hover:bg-blue-600 border-0 transition-colors" @click="$router.push('/profile')" />
