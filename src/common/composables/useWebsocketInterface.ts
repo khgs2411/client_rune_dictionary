@@ -14,6 +14,10 @@ export type WebsocketClient = UseWebSocketReturn<WebsocketStructuredMessage>;
 const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages: Ref<WebsocketStructuredMessage[]>): UseWebSocketOptions => {
 	const eventHandler: I_WebsocketEventHandlerInterface = useWebsocketEventHandler();
 
+	// Track if this is a development hot reload reconnection
+	const isHotReloadReconnect = ref(false);
+	const lastDisconnectTime = ref<number>(0);
+
 	const heartbeatOptions: Ref<Heartbeat> = ref({
 		interval: PING_PONG_INTERVAL * 1000,
 		pongTimeout: PING_PONG_INTERVAL * 1000,
@@ -21,8 +25,8 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 	});
 
 	const autoReconnectOptions: Ref<AutoReconnect> = ref({
-		retries: 1,
-		delay: 1000,
+		retries: 10, // More retries in dev mode
+		delay: 500, // Faster reconnect in dev
 		onFailed: handleReconnectFailed,
 	});
 
@@ -53,29 +57,47 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 		logMessage("Connected", ws);
 
 		const clientName = client.value?.name || "Guest";
+		
+		// Check if this is a hot reload reconnect (within 2 seconds of disconnect)
+		const now = Date.now();
+		const timeSinceDisconnect = now - lastDisconnectTime.value;
+		isHotReloadReconnect.value = import.meta.env.DEV && timeSinceDisconnect < 2000;
 
-		messages.value.push({
-			type: "system",
-			content: {
-				message: `Connected to chat server as ${clientName}`,
-			},
-			timestamp: new Date().toISOString(),
-		});
+		if (!isHotReloadReconnect.value) {
+			// Only show connection message if not a hot reload
+			messages.value.push({
+				type: "system",
+				content: {
+					message: `Connected to chat server as ${clientName}`,
+				},
+				timestamp: new Date().toISOString(),
+			});
+		} else {
+			// Log hot reload reconnection for debugging
+			console.log('[Hot Reload] Reconnected to WebSocket server');
+		}
 	}
 
 	function handleDisconnected(ws: WebSocket, event: CloseEvent) {
 		Lib.Log(`[${ws.url}] - Disconnected!`, ws.readyState, event);
-		messages.value.push({
-			type: "system",
-			content: {
-				message: `Disconnected from chat server (code: ${event.code})`,
-				client: {
-					id: client.value?.id || "Guest",
-					name: "Guest",
+		
+		// Track disconnect time for hot reload detection
+		lastDisconnectTime.value = Date.now();
+		
+		// In dev mode, suppress disconnect messages for expected hot reload disconnects
+		if (!import.meta.env.DEV || event.code !== 1006) {
+			messages.value.push({
+				type: "system",
+				content: {
+					message: `Disconnected from chat server (code: ${event.code})`,
+					client: {
+						id: client.value?.id || "Guest",
+						name: "Guest",
+					},
 				},
-			},
-			timestamp: new Date().toISOString(),
-		});
+				timestamp: new Date().toISOString(),
+			});
+		}
 	}
 
 	function handleError(ws: WebSocket, event: Event) {
