@@ -110,7 +110,7 @@ import { Button } from "primevue";
 
 <style lang="scss" scoped>
 @use "sass:math";
-@use "../../assets/css/styles/mixins/breakpoints" as *;
+@use "../../assets/css/styles/mixins/_breakpoints" as *;
 
 .hero-section {
 	position: relative;

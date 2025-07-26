@@ -49,7 +49,7 @@ const customStyle = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-@import "../../assets/css/styles/mixins/breakpoints";
+@import "../../assets/css/styles/mixins/_breakpoints";
 
 .responsive-grid-component {
 	display: grid;

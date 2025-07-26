@@ -51,7 +51,7 @@ function handleMatchType(card: MatchCard) {
 </script>
 
 <style lang="scss" scoped>
-@use "../../assets/css/styles/mixins/breakpoints" as *;
+@use "../../assets/css/styles/mixins/_breakpoints" as *;
 
 .match-lobby {
 	display: flex;

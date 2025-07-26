@@ -21,7 +21,7 @@
 					<Button label="Attack" icon="pi pi-bolt" severity="danger" class="action-btn attack-btn" :disabled="isProcessingAction" @click="$emit('attack')" />
 					<Button label="Defend" icon="pi pi-shield" severity="info" class="action-btn" :disabled="isProcessingAction" />
 					<Button label="Item" icon="pi pi-box" severity="success" class="action-btn" :disabled="isProcessingAction" />
-					<Button label="Run" icon="pi pi-directions" severity="warning" class="action-btn" :disabled="isProcessingAction" />
+					<Button label="Run" icon="pi pi-directions" severity="warning" class="action-btn" :disabled="isProcessingAction" @click="$emit('leave-match')"/>
 				</div>
 
 				<!-- Control Buttons Row -->
@@ -81,7 +81,7 @@ const toggleExpanded = () => {
 </script>
 
 <style lang="scss" scoped>
-@use "../../assets/css/styles/mixins/breakpoints" as *;
+@use "../../assets/css/styles/mixins/_breakpoints" as *;
 
 // Action Panel - Slick and modern with dynamic width
 .action-panel {

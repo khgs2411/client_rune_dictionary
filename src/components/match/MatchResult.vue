@@ -143,6 +143,7 @@ function formatDuration(seconds: number): string {
 
 <style lang="scss" scoped>
 .match-result-screen {
+
 	overflow-y: auto;
 	max-height: 100%;
 	width: fit-content;
@@ -156,7 +157,8 @@ function formatDuration(seconds: number): string {
 	border-radius: 8px;
 	padding: 2rem;
 	text-align: center;
-	width: 600px;
+	width: 100%;
+	max-width: 600px;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -377,19 +379,172 @@ function formatDuration(seconds: number): string {
 	}
 }
 
+// Mobile responsive design
 @media (max-width: 768px) {
+	.match-result-screen {
+		padding: 0.5rem;
+	}
+
+	.result-container {
+		padding: 1.5rem;
+		max-width: 100%;
+		margin: 0 auto;
+	}
+
+	.result-header {
+		margin-bottom: 1.5rem;
+
+		.result-icon {
+			width: 70px;
+			height: 70px;
+			font-size: 1.75rem;
+		}
+
+		.result-title {
+			font-size: 1.75rem;
+		}
+
+		.result-subtitle {
+			font-size: 1rem;
+		}
+	}
+
+	.result-stats {
+		margin-bottom: 1.5rem;
+
+		.stat-row {
+			padding: 0.5rem 0;
+			font-size: 0.95rem;
+		}
+	}
+
+	.session-stats {
+		margin-bottom: 1.5rem;
+
+		h3 {
+			font-size: 1.2rem;
+			margin-bottom: 0.75rem;
+		}
+
+		.stats-grid {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 0.75rem;
+
+			.stat-item {
+				padding: 0.75rem;
+
+				.stat-number {
+					font-size: 1.25rem;
+				}
+
+				.stat-text {
+					font-size: 0.75rem;
+				}
+			}
+		}
+	}
+
 	.result-actions {
 		flex-direction: column;
 		align-items: center;
+		gap: 0.75rem;
 
 		.rematch-button,
 		.lobby-button {
 			width: 100%;
+			max-width: 300px;
+		}
+	}
+}
+
+// Small mobile devices
+@media (max-width: 480px) {
+	.match-result-screen {
+		padding: 0.25rem;
+	}
+
+	.result-container {
+		padding: 1rem;
+		border-radius: 6px;
+	}
+
+	.result-header {
+		margin-bottom: 1rem;
+
+		.result-icon {
+			width: 60px;
+			height: 60px;
+			font-size: 1.5rem;
+			margin-bottom: 0.75rem;
+		}
+
+		.result-title {
+			font-size: 1.5rem;
+			margin-bottom: 0.25rem;
+		}
+
+		.result-subtitle {
+			font-size: 0.9rem;
 		}
 	}
 
-	.stats-grid {
-		grid-template-columns: repeat(2, 1fr);
+	.result-stats {
+		margin-bottom: 1rem;
+
+		.stat-row {
+			padding: 0.4rem 0;
+			font-size: 0.9rem;
+
+			.stat-label {
+				font-size: 0.85rem;
+			}
+
+			.stat-value {
+				font-size: 0.9rem;
+			}
+		}
+	}
+
+	.session-stats {
+		margin-bottom: 1rem;
+
+		h3 {
+			font-size: 1.1rem;
+			margin-bottom: 0.5rem;
+		}
+
+		.stats-grid {
+			gap: 0.5rem;
+
+			.stat-item {
+				padding: 0.5rem;
+				border-radius: 4px;
+
+				.stat-number {
+					font-size: 1.1rem;
+					margin-bottom: 0.15rem;
+				}
+
+				.stat-text {
+					font-size: 0.7rem;
+				}
+			}
+		}
+	}
+
+	.result-actions {
+		margin-top: 1rem;
+		gap: 0.5rem;
+
+		.rematch-button,
+		.lobby-button {
+			padding: 0.6rem 1rem;
+			font-size: 0.9rem;
+
+			i {
+				margin-right: 0.4rem;
+			}
+		}
 	}
 } 
 </style>

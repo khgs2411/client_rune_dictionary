@@ -287,7 +287,7 @@ onMounted(() => {
 <style lang="scss" scoped>
 @use "../assets/css/common.scss" as *;
 @use "../assets/css/variables.scss" as *;
-@use "../assets/css/styles/mixins/breakpoints" as *;
+@use "../assets/css/styles/mixins/_breakpoints" as *;
 
 .match {
 	background-image: var(--match-bg-url);

@@ -252,7 +252,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 </script>
 
 <style lang="scss" scoped>
-@use "../../assets/css/styles/mixins/breakpoints" as *;
+@use "../../assets/css/styles/mixins/_breakpoints" as *;
 
 .battle-arena {
 	position: relative;

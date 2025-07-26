@@ -55,7 +55,7 @@ defineEmits<{
 </script>
 
 <style lang="scss" scoped>
-@use "../../assets/css/styles/mixins/breakpoints" as *;
+@use "../../assets/css/styles/mixins/_breakpoints" as *;
 
 .game-interface {
 	width: 100%;

@@ -169,8 +169,8 @@ function handleMobileNavClick(item: MenuItem) {
 </script>
 
 <style lang="scss" scoped>
-@use "../../assets/css/styles/mixins/breakpoints" as *;
-@use "../../assets/css/styles/mixins/utilities" as *;
+@use "../../assets/css/styles/mixins/_breakpoints" as *;
+@use "../../assets/css/styles/mixins/_utilities" as *;
 
 // RPG Brand styling
 .rpg-brand {

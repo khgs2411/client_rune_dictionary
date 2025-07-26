@@ -261,8 +261,8 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@use "../../assets/css/styles/mixins/breakpoints" as *;
-@use "../../assets/css/styles/mixins/utilities" as *;
+@use "../../assets/css/styles/mixins/_breakpoints" as *;
+@use "../../assets/css/styles/mixins/_utilities" as *;
 
 .animation-showcase {
 	padding: 2rem 0;
