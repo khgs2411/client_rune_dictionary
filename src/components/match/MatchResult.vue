@@ -143,21 +143,20 @@ function formatDuration(seconds: number): string {
 
 <style lang="scss" scoped>
 .match-result-screen {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	min-height: 80vh;
-	padding: 2rem;
+	overflow-y: auto;
+	max-height: 100%;
+	width: fit-content;
+	border-radius: 8px;
+	padding:1rem;
 }
 
 .result-container {
 	background: var(--p-content-background);
-	border: 1px solid var(--p-content-border-color);
+	border: 1px solid var(--p-primary-color);
 	border-radius: 8px;
 	padding: 2rem;
 	text-align: center;
-	max-width: 600px;
-	width: 100%;
+	width: 600px;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -302,6 +301,82 @@ function formatDuration(seconds: number): string {
 	}
 }
 
+// Landscape mode adjustments
+@media (orientation: landscape) and (max-height: 600px) {
+	.match-result-screen {
+		padding: 0.5rem;
+	}
+
+	.result-container {
+		padding: 1rem;
+		max-width: 500px;
+	}
+
+	.result-header {
+		margin-bottom: 1rem;
+
+		.result-icon {
+			width: 60px;
+			height: 60px;
+			font-size: 1.5rem;
+			margin-bottom: 0.5rem;
+		}
+
+		.result-title {
+			font-size: 1.5rem;
+			margin-bottom: 0.25rem;
+		}
+
+		.result-subtitle {
+			font-size: 1rem;
+		}
+	}
+
+	.result-stats {
+		margin-bottom: 1rem;
+
+		.stat-row {
+			padding: 0.25rem 0;
+		}
+	}
+
+	.session-stats {
+		margin-bottom: 1rem;
+
+		h3 {
+			margin-bottom: 0.5rem;
+			font-size: 1.1rem;
+		}
+
+		.stats-grid {
+			gap: 0.5rem;
+
+			.stat-item {
+				padding: 0.5rem;
+
+				.stat-number {
+					font-size: 1.2rem;
+				}
+
+				.stat-text {
+					font-size: 0.75rem;
+				}
+			}
+		}
+	}
+
+	.result-actions {
+		margin-top: 1rem;
+		gap: 0.5rem;
+
+		.rematch-button,
+		.lobby-button {
+			padding: 0.5rem 1rem;
+			font-size: 0.9rem;
+		}
+	}
+}
+
 @media (max-width: 768px) {
 	.result-actions {
 		flex-direction: column;
@@ -316,5 +391,5 @@ function formatDuration(seconds: number): string {
 	.stats-grid {
 		grid-template-columns: repeat(2, 1fr);
 	}
-}
+} 
 </style>

@@ -317,47 +317,10 @@ onMounted(() => {
 		padding: 0;
 		border-radius: 0;
 		margin: 0 auto;
-		max-width: 1920px;
 		box-shadow: none;
 
-		// Keep max-width on larger screens
-		@include breakpoint-up("xl") {
-			height: 95%;
-			width: 95%;
-			border-radius: var(--p-border-radius-lg);
-			box-shadow:
-				0 6px 12px var-to-rgba(--p-content-background, 0.5),
-				0 8px 24px var-to-rgba(--p-content-background, 0.5);
-		}
-
-		&.opaque {
-			background-color: var-to-rgba(--p-content-background, 0.5);
-		}
-
-		&.background {
-			background-color: transparent;
-		}
-
-		// Remove shadow on mobile
-		@include breakpoint-down("sm") {
-			box-shadow: none;
-		}
 	}
 
-}
-
-@media screen and (min-width: 1024px) and (min-height: 768px) and (orientation: landscape) {
-	.viewport {
-		min-width: 922px;
-		min-height: 622px;
-	}
-}
-
-@media screen and (min-width: 768px) and (min-height: 1024px) and (orientation: portrait) {
-	.viewport {
-		min-height: 922px;
-		min-width: 622px;
-	}
 }
 
 .content {
