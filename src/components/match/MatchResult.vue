@@ -1,6 +1,6 @@
 <template>
 	<div class="match-result-screen">
-		<div class="result-container">
+		<div class="result-container" :class="getResultIconClass()">
 			<div class="result-header">
 				<div class="result-icon" :class="getResultIconClass()">
 					<i :class="getResultIcon()"></i>
@@ -89,16 +89,7 @@ defineEmits<Emits>();
 
 function getResultIconClass() {
 	const result = props.matchResult?.result;
-	switch (result) {
-		case "victory":
-			return "success";
-		case "defeat":
-			return "danger";
-		case "draw":
-			return "warning";
-		default:
-			return "info";
-	}
+	return result || "disconnect";
 }
 
 function getResultIcon() {
@@ -183,24 +174,28 @@ function formatDuration(seconds: number): string {
 		margin: 0 auto 1rem;
 		font-size: 2rem;
 
-		&.success {
+		&.victory {
 			background: var(--p-green-100);
-			color: var(--p-green-500);
+			color: var(--p-green-600);
+			border: 3px solid var(--p-green-200);
 		}
 
-		&.danger {
+		&.defeat {
 			background: var(--p-red-100);
-			color: var(--p-red-500);
+			color: var(--p-red-600);
+			border: 3px solid var(--p-red-200);
 		}
 
-		&.warning {
-			background: var(--p-yellow-100);
-			color: var(--p-yellow-500);
+		&.draw {
+			background: var(--p-orange-100);
+			color: var(--p-orange-600);
+			border: 3px solid var(--p-orange-200);
 		}
 
-		&.info {
-			background: var(--p-blue-100);
-			color: var(--p-blue-500);
+		&.disconnect {
+			background: var(--p-surface-100);
+			color: var(--p-surface-600);
+			border: 3px solid var(--p-surface-200);
 		}
 	}
 
@@ -208,6 +203,18 @@ function formatDuration(seconds: number): string {
 		font-size: 2rem;
 		margin-bottom: 0.5rem;
 		color: var(--p-text-color);
+
+		.victory & {
+			color: var(--p-green-400);
+		}
+
+		.defeat & {
+			color: var(--p-red-400);
+		}
+
+		.draw & {
+			color: var(--p-orange-400);
+		}
 	}
 
 	.result-subtitle {
@@ -224,7 +231,7 @@ function formatDuration(seconds: number): string {
 		display: flex;
 		justify-content: space-between;
 		padding: 0.5rem 0;
-		border-bottom: 1px solid var(--p-surface-border);
+		border-bottom: 1px solid var(--p-surface-200);
 
 		&:last-child {
 			border-bottom: none;
@@ -237,7 +244,7 @@ function formatDuration(seconds: number): string {
 
 		.stat-value {
 			font-weight: 600;
-			color: var(--p-text-color);
+			color: var(--p-primary-color);
 		}
 	}
 }
@@ -258,7 +265,8 @@ function formatDuration(seconds: number): string {
 		.stat-item {
 			text-align: center;
 			padding: 1rem;
-			background: var(--p-surface-800);
+			background: var(--p-content-background);
+			border: 1px solid var(--p-surface-200);
 			border-radius: 6px;
 
 			.stat-number {
@@ -273,7 +281,7 @@ function formatDuration(seconds: number): string {
 				font-size: 0.875rem;
 				color: var(--p-text-muted-color);
 				text-transform: uppercase;
-				letter-spacing: 0.5px;
+				letter-spacing: 0.05em;
 			}
 		}
 	}
@@ -287,6 +295,10 @@ function formatDuration(seconds: number): string {
 	.rematch-button,
 	.lobby-button {
 		min-width: 140px;
+
+		i {
+			margin-right: 0.5rem;
+		}
 	}
 }
 
