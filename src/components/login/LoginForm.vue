@@ -25,7 +25,7 @@
 						<Password
 							id="password"
 							v-model="password"
-							placeholder="Enter password"
+							placeholder="Enter API Key"
 							:feedback="false"
 							:toggleMask="true"
 							class="w-full"
@@ -44,13 +44,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import InputText from "primevue/inputtext";
-import Password from "primevue/password";
 import Button from "primevue/button";
 import Card from "primevue/card";
 import InputGroup from "primevue/inputgroup";
 import InputGroupAddon from "primevue/inputgroupaddon";
+import InputText from "primevue/inputtext";
+import Password from "primevue/password";
+import { ref } from "vue";
 
 const props = defineProps({
 	title: {

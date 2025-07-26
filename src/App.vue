@@ -8,16 +8,20 @@
 </template>
 
 <script setup lang="ts">
-import { RouterView, useRoute } from "vue-router";
-import { computed } from "vue";
+import { useRxjs } from "topsyde-utils";
+import { computed, useTemplateRef } from "vue";
+import { RouterView, useRoute, useRouter } from "vue-router";
+import WebsocketConnection from "./components/application/WebsocketConnection.vue";
 import Layout from "./components/layout/Layout.vue";
 import ConnectionDiagnostic from "./components/utilities/connection/ConnectionDiagnostic.vue";
-import { useTemplateRef } from "vue";
-import WebsocketConnection from "./components/application/WebsocketConnection.vue";
 
 const viewportRef = useTemplateRef("viewportRef");
 const route = useRoute();
+const router = useRouter();
 const showWebsocketConnection = computed(() => !["login", "home"].includes(route.name as string));
+useRxjs("system", {
+	disconnected: () => router.push({ name: "home" }),
+});
 </script>
 
 <style lang="scss" scoped>

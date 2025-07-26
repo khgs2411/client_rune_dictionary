@@ -1,5 +1,5 @@
 import { UseWebSocketOptions, UseWebSocketReturn } from "@vueuse/core";
-import { Lib, WebsocketEntityData, WebsocketStructuredMessage } from "topsyde-utils";
+import { Lib, Rxjs, WebsocketEntityData, WebsocketStructuredMessage } from "topsyde-utils";
 import { ref, Ref } from "vue";
 import { AutoReconnect, Heartbeat } from "../types/websocket.types";
 import useWSM, { I_UseWSM } from "./useWSM";
@@ -15,7 +15,6 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 	const eventHandler: I_WebsocketEventHandlerInterface = useWebsocketEventHandler();
 
 	// Track if this is a development hot reload reconnection
-	const isHotReloadReconnect = ref(false);
 	const lastDisconnectTime = ref<number>(0);
 
 	const heartbeatOptions: Ref<Heartbeat> = ref({
@@ -56,33 +55,28 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 	function handleConnected(ws: WebSocket) {
 		logMessage("Connected", ws);
 
-		const clientName = client.value?.name || "Guest";
-		
-		// Check if this is a hot reload reconnect (within 2 seconds of disconnect)
-		const now = Date.now();
-		const timeSinceDisconnect = now - lastDisconnectTime.value;
-		isHotReloadReconnect.value = import.meta.env.DEV && timeSinceDisconnect < 2000;
 
-		if (!isHotReloadReconnect.value) {
-			// Only show connection message if not a hot reload
-			messages.value.push({
-				type: "system",
-				content: {
-					message: `Connected to chat server as ${clientName}`,
-				},
-				timestamp: new Date().toISOString(),
-			});
-		} else {
-			// Log hot reload reconnection for debugging
-			console.log('[Hot Reload] Reconnected to WebSocket server');
-		}
+		const clientName = client.value?.name || "Guest";
+
+		messages.value.push({
+			type: "system",
+			content: {
+				message: `Connected to chat server as ${clientName}`,
+			},
+			timestamp: new Date().toISOString(),
+		});
 	}
 
 	function handleDisconnected(ws: WebSocket, event: CloseEvent) {
+		console.clear();
 		Lib.Log(`[${ws.url}] - Disconnected!`, ws.readyState, event);
-		
+
 		// Track disconnect time for hot reload detection
 		lastDisconnectTime.value = Date.now();
+		Rxjs.Next('system', {
+			cta: 'disconnected',
+			data: {}
+		})
 		
 		// In dev mode, suppress disconnect messages for expected hot reload disconnects
 		if (!import.meta.env.DEV || event.code !== 1006) {
@@ -97,6 +91,7 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 				},
 				timestamp: new Date().toISOString(),
 			});
+			
 		}
 	}
 
