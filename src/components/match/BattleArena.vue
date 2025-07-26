@@ -253,6 +253,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 
 <style lang="scss" scoped>
 @use "../../assets/css/styles/mixins/_breakpoints" as *;
+@use "sass:math";
 
 .battle-arena {
 	position: relative;
@@ -293,14 +294,14 @@ watch(() => props.enemyHealth, (newHealth) => {
 @for $i from 1 through 15 {
 	.particle-#{$i} {
 		position: absolute;
-		width: #{random(4) + 2}px;
-		height: #{random(4) + 2}px;
+		width: #{math.random(4) + 2}px;
+		height: #{math.random(4) + 2}px;
 		background: color-mix(in srgb, var(--p-primary-color) 60%, transparent);
 		border-radius: 50%;
-		left: random(100) * 1%;
-		top: random(100) * 1%;
-		animation: float-particle #{random(20) + 20}s linear infinite;
-		animation-delay: #{random(10)}s;
+		left: math.random(100) * 1%;
+		top: math.random(100) * 1%;
+		animation: float-particle #{math.random(20) + 20}s linear infinite;
+		animation-delay: #{math.random(10)}s;
 	}
 }
 
@@ -316,7 +317,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 		opacity: 0.6;
 	}
 	to {
-		transform: translateY(-100vh) translateX(#{random(50) - 25}px);
+		transform: translateY(-100vh) translateX(#{math.random(50) - 25}px);
 		opacity: 0;
 	}
 }

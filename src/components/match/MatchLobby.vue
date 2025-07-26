@@ -54,9 +54,6 @@ function handleMatchType(card: MatchCard) {
 @use "../../assets/css/styles/mixins/_breakpoints" as *;
 
 .match-lobby {
-	display: flex;
-	justify-content: center;
-	align-items: center;
 	height: 100%;
 	width: 100%;
 	padding: 1rem;
@@ -72,6 +69,7 @@ function handleMatchType(card: MatchCard) {
 }
 
 .match-card-wrapper {
+	height:100%;
 	width: 100%;
 	display: flex;
 	justify-content: center;

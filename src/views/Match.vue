@@ -64,21 +64,21 @@ useRxjs("match", {
 
 const matchCards = ref<MatchCard[]>([
 	{
-		type: "pvp",
-		title: "Player versus Player",
-		subtitle: "Challenge other players to a duel",
-		content: "Test your skills against other players in real-time combat using your runeabilities.",
-		wip: true,
-		disabled: true,
-		loading: false,
-	},
-	{
 		type: "pve",
 		title: "Player versus Environment",
 		subtitle: "Challenge the environment",
 		content: "Face off against AI-controlled opponents and test your strategies.",
 		wip: false,
 		disabled: false,
+		loading: false,
+	},
+	{
+		type: "pvp",
+		title: "Player versus Player",
+		subtitle: "Challenge other players to a duel",
+		content: "Test your skills against other players in real-time combat using your runeabilities.",
+		wip: true,
+		disabled: true,
 		loading: false,
 	},
 ]);
@@ -318,9 +318,7 @@ onMounted(() => {
 		border-radius: 0;
 		margin: 0 auto;
 		box-shadow: none;
-
 	}
-
 }
 
 .content {
@@ -331,5 +329,4 @@ onMounted(() => {
 	width: 100%;
 	padding: 0;
 }
-
 </style>
