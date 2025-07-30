@@ -64,11 +64,9 @@ const useAuth = () => {
 			store.setAuthorized(true);
 
 			utils.toast.success("Login successful", "center");
+			loading.value = false;
 			router.push("/match");
 
-			setTimeout(() => {
-				loading.value = false;
-			}, 1001);
 		} catch (e) {
 			loading.value = false;
 			store.setAuthorized(false);
