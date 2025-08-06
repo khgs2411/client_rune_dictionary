@@ -93,26 +93,25 @@ import { motion } from "motion-v";
 import { Menubar } from "primevue";
 import Button from "primevue/button";
 import Drawer from "primevue/drawer";
-import { MenuItem } from "primevue/menuitem";
 import { computed, ComputedRef, ref } from "vue";
 import { useRouter } from "vue-router";
 import useAuth from "../../common/composables/useAuth";
 import { useSettingsStore } from "../../stores/settings.store";
 
-/* interface MenuItem {
+/* interface Record<string, any> {
 	label?: string | undefined;
 	icon?: string | undefined;
-	command?: (event: { originalEvent: Event; item: MenuItem; [key: string]: any }) => void;
+	command?: (event: { originalEvent: Event; item: Record<string, any>; [key: string]: Record<string, any> }) => void;
 	url?: string | undefined;
-	items?: MenuItem[] | undefined;
-	disabled?: boolean | ((...args: any) => boolean) | undefined;
-	visible?: boolean | ((...args: any) => boolean) | undefined;
+	items?: Record<string, any>[] | undefined;
+	disabled?: boolean | ((...args: Record<string, any>) => boolean) | undefined;
+	visible?: boolean | ((...args: Record<string, any>) => boolean) | undefined;
 	target?: string | undefined;
 	separator?: boolean | undefined;
-	style?: any;
-	class?: any;
+	style?: Record<string, any>;
+	class?: Record<string, any>;
 	key?: string | undefined;
-	[key: string]: any;
+	[key: string]: Record<string, any>;
 } */
 
 const store = useSettingsStore();
@@ -120,7 +119,7 @@ const auth = useAuth();
 const router = useRouter();
 const mobileMenuVisible = ref(false);
 
-const items: ComputedRef<MenuItem[]> = computed(() => [
+const items: ComputedRef<Record<string, any>[]> = computed(() => [
 	{
 		label: "Match",
 		icon: "pi pi-fw pi-users",
@@ -160,7 +159,7 @@ function toggleMobileMenu() {
 	mobileMenuVisible.value = !mobileMenuVisible.value;
 }
 
-function handleMobileNavClick(item: MenuItem) {
+function handleMobileNavClick(item: Record<string, any>) {
 	if (item.command) {
 		item.command({ originalEvent: new Event("click"), item });
 	}

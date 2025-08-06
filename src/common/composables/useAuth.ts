@@ -34,8 +34,8 @@ const useAuth = () => {
 	}
 
 	async function performHandshake(username: string, password: string, api_key: string) {
-		const handshakeApi = new AuthAPI("api", import.meta.env.VITE_HOST);
-		const handshakeRes = await handshakeApi.handshake(username, password, api_key);
+		const api = new AuthAPI("api", import.meta.env.VITE_HOST);
+		const handshakeRes = await api.handshake(username, password, api_key);
 		return handshakeRes;
 	}
 
