@@ -98,7 +98,7 @@ import { useRouter } from "vue-router";
 import useAuth from "../../common/composables/useAuth";
 import { useSettingsStore } from "../../stores/settings.store";
 
-/* interface Record<string, any> {
+/* interface MenuItem {
 	label?: string | undefined;
 	icon?: string | undefined;
 	command?: (event: { originalEvent: Event; item: Record<string, any>; [key: string]: Record<string, any> }) => void;

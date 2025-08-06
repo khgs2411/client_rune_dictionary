@@ -1,6 +1,6 @@
-﻿import { createWebHistory, createRouter, RouteLocationNormalizedGeneric, NavigationGuardNext } from "vue-router";
-import routes from "./routes.ts";
+﻿import { createRouter, createWebHistory, NavigationGuardNext, RouteLocationNormalizedGeneric } from "vue-router";
 import { useAuthStore } from "../stores/auth.store";
+import routes from "./routes.ts";
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -17,14 +17,9 @@ function checkIsAuthorized(to: RouteLocationNormalizedGeneric, next: NavigationG
 		next({ name: "app" });
 	} else if (!publicRoutes.includes(to.name as string) && !isAuthorized) {
 		//? If the user is not authorized and tries to access any protected page, redirect to the login page
-		authStore.loading = true;
 		next({ name: "login" });
-		setTimeout(() => {
-			authStore.loading = false;
-		}, 1000);
 	} else {
 		//? Otherwise, allow the navigation
-		authStore.loading = false;
 		next();
 	}
 }

@@ -8,6 +8,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
+import { onMounted } from "vue";
 import useAuth from "../common/composables/useAuth";
 import LoginForm from "../components/login/LoginForm.vue";
 import { useAuthStore } from "../stores/auth.store";
@@ -19,6 +20,10 @@ const auth$ = useAuth();
 async function submit(credentials: { username: string; password: string }) {
 	await auth$.login(credentials);
 }
+
+onMounted(()=>{
+	console.log('onMounted')
+})
 </script>
 
 <style scoped lang="scss">

@@ -8,7 +8,8 @@ import useUtils from "./useUtils";
 
 const useAuth = () => {
 	const store = useAuthStore();
-	const { loading, username, password } = storeToRefs(store);
+	const { username, password } = storeToRefs(store);
+	const loading = computed(() => store.loading);
 	const api_key = computed(() => import.meta.env.VITE_API_KEY);
 	const router = useRouter();
 	const utils = useUtils();
@@ -41,7 +42,7 @@ const useAuth = () => {
 
 	async function login(credentials: { username: string; password: string }) {
 		try {
-			loading.value = true;
+			store.setLoading(true);
 			username.value = credentials.username;
 			password.value = credentials.password;
 
@@ -63,12 +64,13 @@ const useAuth = () => {
 
 			store.setAuthorized(true);
 
+			store.setLoading( false);
+
 			utils.toast.success("Login successful", "center");
-			loading.value = false;
 			router.push("/match");
 
 		} catch (e) {
-			loading.value = false;
+			store.setLoading(false);
 			store.setAuthorized(false);
 			store.setClient(null);
 			utils.toast.error("Failed to login or connect to chat. Please check your credentials.");

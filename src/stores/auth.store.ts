@@ -1,5 +1,5 @@
 import { useLocalStorage } from "@vueuse/core";
-import { defineStore, acceptHMRUpdate } from "pinia";
+import { acceptHMRUpdate, defineStore } from "pinia";
 import { WebsocketEntityData } from "topsyde-utils";
 import { computed, ref } from "vue";
 
@@ -8,7 +8,7 @@ export const useAuthStore = defineStore(
 	() => {
 		const username = useLocalStorage("username", "");
 		const password = ref(import.meta.env.VITE_API_KEY);
-		const loading = ref(true);
+		const _loading = ref(false);
 		const _authorized = useLocalStorage("authorized", false);
 		const _client = ref<WebsocketEntityData | null>(null);
 
@@ -23,6 +23,12 @@ export const useAuthStore = defineStore(
 			_client.value = value;
 		}
 
+		function setLoading(value: boolean) {
+			_loading.value = value;
+		}
+
+		const loading = computed(() => _loading.value);
+
 		return {
 			username,
 			password,
@@ -31,6 +37,7 @@ export const useAuthStore = defineStore(
 			client,
 			setAuthorized,
 			setClient,
+			setLoading,
 		};
 	},
 	/* {
