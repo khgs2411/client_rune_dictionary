@@ -158,9 +158,9 @@
 import { motion } from "motion-v";
 import Button from "primevue/button";
 import { computed, onMounted, ref, toValue } from "vue";
-import { useAnimationPerformance, type AnimationCategory } from "../../composables/useAnimationPerformance";
-import { useEntranceAnimation, useHoverAnimation, useLoadingAnimation, useStaggerAnimation } from "../../composables/useAnimations";
-import { useReducedMotion } from "../../composables/useReducedMotion";
+import { useAnimationPerformance, type AnimationCategory } from "../../composables/animation/useAnimationPerformance";
+import { useEntranceAnimation, useHoverAnimation, useLoadingAnimation, useStaggerAnimation } from "../../composables/animation/useAnimations";
+import { useReducedMotion } from "../../composables/animation/useReducedMotion";
 
 // Performance and motion state
 const { currentFps, createAnimationConfig, getPerformanceStats: performanceStats, BUDGETS } = useAnimationPerformance();

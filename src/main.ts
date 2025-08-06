@@ -47,7 +47,7 @@ import "./style.css";
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
-const app = createApp(App)
+createApp(App)
 	.use(router)
 	.use(pinia)
 	.use(PrimeVue, {

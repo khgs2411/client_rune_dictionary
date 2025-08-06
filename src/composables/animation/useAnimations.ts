@@ -3,14 +3,13 @@
  * Provides common animation patterns with performance budgets and reduced motion support
  */
 
-import { ref, computed, onMounted, onUnmounted, unref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useAnimationPerformance, type AnimationCategory } from './useAnimationPerformance';
 
 const { 
   prefersReducedMotion, 
   shouldAnimate, 
   createAnimationConfig, 
-  getOptimalDuration 
 } = useAnimationPerformance();
 
 /**

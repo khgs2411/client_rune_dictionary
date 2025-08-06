@@ -147,9 +147,9 @@ function toggleTheme() {
 	store.setDarkMode(!darkMode.value);
 }
 
-function setDarkMode(value: boolean) {
+/* function setDarkMode(value: boolean) {
 	store.setDarkMode(value);
-}
+} */
 
 function onSettingsBtn() {
 	store.setVisible(!store.visible);
