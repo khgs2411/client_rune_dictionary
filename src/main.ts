@@ -1,18 +1,17 @@
-import { createApp } from "vue";
-import "./style.css";
-import "./assets/css/style.scss";
-import "primeicons/primeicons.css";
-import App from "./App.vue";
-import { initializeCSSOptimizations } from "./utils/css-optimization";
-import router from "./router/router.ts";
-import PrimeVue from "primevue/config";
 import Aura from "@primevue/themes/aura";
-import { Tooltip } from "primevue";
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
+import "primeicons/primeicons.css";
+import { Tooltip } from "primevue";
+import PrimeVue from "primevue/config";
 import Ripple from "primevue/ripple";
 import ToastService from "primevue/toastservice";
+import { createApp } from "vue";
+import App from "./App.vue";
+import "./assets/css/style.scss";
 import DebugDirective from "./directives/debug.directive.ts";
+import router from "./router/router.ts";
+import "./style.css";
 
 // @version: 0.3.3 - This comment is auto-updated by deploy script
 
@@ -68,8 +67,6 @@ const app = createApp(App)
 	.directive("debug", DebugDirective)
 	.mount("#app");
 
-// Initialize CSS optimizations after app mount
-initializeCSSOptimizations();
 
 // Make router available globally for CSS optimization
 window.router = router;
