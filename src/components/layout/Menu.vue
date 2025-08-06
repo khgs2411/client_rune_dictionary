@@ -138,7 +138,7 @@ const items: ComputedRef<Record<string, any>[]> = computed(() => [
 		label: "Damage Calculator",
 		icon: "pi pi-fw pi-calculator",
 		command: () => router.push("/damage-calculator"),
-		visible: auth.authorized.value,
+		visible: true,
 		class: router.currentRoute.value.name === "damage-calculator" ? "p-menubar-item-active" : "",
 	},
 	{
@@ -259,7 +259,8 @@ function handleMobileNavClick(item: Record<string, any>) {
 
 				.p-menubar-item-icon {
 					transform: scale(1.1);
-					color: var(--p-text-color);
+					color: var(--p-primary-color) !important;
+					opacity: 1;
 				}
 
 				.p-menubar-item-label {
@@ -280,7 +281,8 @@ function handleMobileNavClick(item: Record<string, any>) {
 				color: var(--p-primary-700);
 
 				.p-menubar-item-icon {
-					color: var(--p-primary-700);
+					color: var(--p-primary-color);
+					opacity: 1;
 				}
 
 				&:hover {
@@ -291,7 +293,8 @@ function handleMobileNavClick(item: Record<string, any>) {
 		}
 
 		.p-menubar-item-icon {
-			color: var(--p-primary-color);
+			color: var(--p-text-color);
+			opacity: 0.7;
 			font-size: 1rem;
 			transition: all 0.2s ease;
 		}
@@ -356,6 +359,15 @@ function handleMobileNavClick(item: Record<string, any>) {
 	border-radius: 50%;
 	transition: all 0.2s ease;
 	position: relative;
+	background: var(--p-content-background);
+	border: 1px solid var(--p-content-border-color);
+
+	// Ensure icon visibility in both themes
+	&:deep(.p-button-icon) {
+		color: var(--p-text-color);
+		opacity: 0.7;
+		transition: all 0.2s ease;
+	}
 
 	&::before {
 		content: "";
@@ -371,9 +383,12 @@ function handleMobileNavClick(item: Record<string, any>) {
 
 	&:hover {
 		transform: scale(1.3);
+		background: var(--p-content-background);
+		border-color: var(--p-primary-color);
 
 		&:deep(.p-button-icon) {
 			color: var(--p-primary-color);
+			opacity: 1;
 		}
 
 		&::before {

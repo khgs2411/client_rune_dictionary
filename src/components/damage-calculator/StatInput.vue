@@ -8,7 +8,7 @@
         +{{ Math.round(equipmentBonus * 100) }}%
       </Badge>
     </div>
-    <div class="relative">
+    <div class="flex items-center gap-2">
       <Input 
         :id="inputId"
         type="number"
@@ -16,13 +16,13 @@
         @update:model-value="handleInput"
         :min="min"
         :max="max"
-        class="pr-16"
+        class="flex-1"
       />
       <div 
         v-if="totalValue !== modelValue" 
-        class="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground"
+        class="text-xs text-muted-foreground font-medium min-w-[3rem] text-right"
       >
-        → {{ totalValue }}
+        = {{ totalValue }}
       </div>
     </div>
     <div 

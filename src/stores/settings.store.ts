@@ -1,9 +1,9 @@
-import { updatePrimaryPalette } from "@primevue/themes";
 import { acceptHMRUpdate, defineStore } from "pinia";
 import { computed, Ref, ref, watch } from "vue";
 import { COLOR_PRESETS } from "../common/consts/app.consts";
 import { useLocalStorage } from "@vueuse/core";
 import { enableThemeTransition } from "../utils/theme-utils";
+import { colorSystem, type ThemeName } from "../utils/color-system";
 export type Theme = keyof typeof COLOR_PRESETS;
 export type ThemeData = { name: string; variable: string; value: any };
 export type CurrentThemeData = ThemeData & { group: string | undefined };
@@ -31,20 +31,9 @@ export const useSettingsStore = defineStore(
 			// Enable smooth transition
 			enableThemeTransition();
 
-			// Update theme colors
-			updatePrimaryPalette({
-				50: `{${theme}.50}`,
-				100: `{${theme}.100}`,
-				200: `{${theme}.200}`,
-				300: `{${theme}.300}`,
-				400: `{${theme}.400}`,
-				500: `{${theme}.500}`,
-				600: `{${theme}.600}`,
-				700: `{${theme}.700}`,
-				800: `{${theme}.800}`,
-				900: `{${theme}.900}`,
-				950: `{${theme}.950}`,
-			});
+			// Use centralized color system - SINGLE SOURCE OF TRUTH
+			// This now handles PrimeVue palette updates internally
+			colorSystem.applyTheme(theme as ThemeName, _darkMode.value ? 'dark' : 'light');
 		}
 
 		function setDarkMode(value: boolean) {
@@ -61,6 +50,10 @@ export const useSettingsStore = defineStore(
 			() => _darkMode.value,
 			(value) => {
 				document.documentElement.classList.toggle("dark", value);
+				// Use centralized color system when dark mode changes
+				if (_currentTheme.value.group) {
+					colorSystem.applyTheme(_currentTheme.value.group as ThemeName, value ? 'dark' : 'light');
+				}
 			},
 			{
 				immediate: true,

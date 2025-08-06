@@ -16,6 +16,7 @@ export interface StatBlock {
   special_attack: number;
   special_defense: number;
   speed: number;
+  tempo: number;
 }
 
 export interface Equipment {
@@ -37,6 +38,8 @@ export interface CombatMetrics {
   hitChance: number;
   dps: number;
   speedModifier: number;
+  tempoModifier: number;
+  effectiveSpeed: number;
   attackType: 'physical' | 'magical';
 }
 
@@ -103,6 +106,16 @@ export const DAMAGE_CONSTANTS = {
     EQUIPMENT_SCALING: 0.75
   },
 
+  // TEMPO System Constants
+  TEMPO: {
+    NEUTRAL_TEMPO: 100,
+    MIN_TEMPO: 25,
+    MAX_TEMPO: 200,
+    EFFECTIVENESS_CURVE_STEEPNESS: 0.002, // Controls how aggressive the curve is
+    FREQUENCY_MULTIPLIER: 1.0, // How much tempo affects action frequency
+    DAMAGE_MULTIPLIER: 1.0 // How much tempo affects damage effectiveness
+  },
+
   // Global Constants
   GLOBAL: {
     MINIMUM_DAMAGE: 1,
@@ -111,14 +124,51 @@ export const DAMAGE_CONSTANTS = {
   }
 };
 
-export type DamageFormulaType = 'osrs' | 'linear' | 'power' | 'difference' | 'speed-conscious';
+export type DamageFormulaType = 'osrs' | 'linear' | 'power' | 'difference' | 'speed-conscious' | 'tempo-separated';
 
-export function useDamageCalculations() {
+export function useDamageCalculations(constants?: typeof DAMAGE_CONSTANTS) {
+  // Use provided constants or fallback to default
+  const activeConstants = constants || DAMAGE_CONSTANTS;
+  
   // Reactive state for calculation parameters
   const state = reactive({
     selectedFormula: 'osrs' as DamageFormulaType,
-    customConstants: { ...DAMAGE_CONSTANTS },
+    customConstants: { ...activeConstants },
   });
+
+  // TEMPO calculation functions
+  const calculateTempoEffectiveness = (tempo: number): number => {
+    const NEUTRAL_TEMPO = 100;
+    const EFFECTIVENESS_CURVE_STEEPNESS = 0.002;
+    const DAMAGE_MULTIPLIER = 1.0;
+    
+    const tempoDeviation = tempo - NEUTRAL_TEMPO;
+    
+    // Effectiveness curve: lower tempo = more effective, higher tempo = less effective
+    // Using exponential decay for smooth curve
+    const effectiveness = 1 - (tempoDeviation * EFFECTIVENESS_CURVE_STEEPNESS * DAMAGE_MULTIPLIER);
+    return Math.max(0.25, Math.min(1.75, effectiveness)); // Clamp between 25% and 175%
+  };
+
+  const calculateTempoFrequency = (speed: number, tempo: number): number => {
+    const NEUTRAL_TEMPO = 100;
+    const FREQUENCY_MULTIPLIER = 1.0;
+    
+    // Base frequency from speed, modified by tempo
+    const tempoFrequencyMultiplier = tempo / NEUTRAL_TEMPO;
+    return speed * tempoFrequencyMultiplier * FREQUENCY_MULTIPLIER;
+  };
+
+  const getTempoModifiers = (speed: number, tempo: number) => {
+    const effectiveness = calculateTempoEffectiveness(tempo);
+    const effectiveSpeed = calculateTempoFrequency(speed, tempo);
+    
+    return {
+      tempoModifier: effectiveness,
+      effectiveSpeed,
+      speedModifier: 1.0 // Keep original speed modifier for backwards compatibility
+    };
+  };
 
   // Formula implementations
   const formulas = {
@@ -127,7 +177,7 @@ export function useDamageCalculations() {
       const defenseStat = isPhysical ? defender.defense : defender.special_defense;
       const equipmentBonus = isPhysical ? equipment.strength : equipment.magic_damage;
 
-      const { OSRS, GLOBAL } = state.customConstants;
+      const { OSRS, GLOBAL } = activeConstants;
 
       const effectiveAttack = attackStat + OSRS.EFFECTIVE_LEVEL_BONUS;
       const maxHit = Math.floor(
@@ -153,7 +203,7 @@ export function useDamageCalculations() {
       const defenseStat = isPhysical ? defender.defense : defender.special_defense;
       const equipmentBonus = isPhysical ? equipment.strength : equipment.magic_damage;
 
-      const { LINEAR, GLOBAL } = state.customConstants;
+      const { LINEAR, GLOBAL } = activeConstants;
 
       const baseDamage = (attackStat + equipmentBonus) / LINEAR.DAMAGE_DIVISOR;
       const mitigation = LINEAR.DEFENSE_BASE / (LINEAR.DEFENSE_BASE + defenseStat);
@@ -174,7 +224,7 @@ export function useDamageCalculations() {
       const defenseStat = isPhysical ? defender.defense : defender.special_defense;
       const equipmentBonus = isPhysical ? equipment.strength : equipment.magic_damage;
 
-      const { POWER, GLOBAL } = state.customConstants;
+      const { POWER, GLOBAL } = activeConstants;
 
       const attackPower = Math.pow(attackStat + equipmentBonus, POWER.ATTACK_EXPONENT) / POWER.DAMAGE_DIVISOR;
       const defenseMultiplier = POWER.DEFENSE_BASE / (POWER.DEFENSE_BASE + defenseStat);
@@ -195,7 +245,7 @@ export function useDamageCalculations() {
       const defenseStat = isPhysical ? defender.defense : defender.special_defense;
       const equipmentBonus = isPhysical ? equipment.strength : equipment.magic_damage;
 
-      const { DIFFERENCE, GLOBAL } = state.customConstants;
+      const { DIFFERENCE, GLOBAL } = activeConstants;
 
       const totalAttack = attackStat + equipmentBonus;
       const difference = totalAttack - (defenseStat * DIFFERENCE.DEFENSE_EFFECTIVENESS);
@@ -218,7 +268,7 @@ export function useDamageCalculations() {
       const equipmentBonus = isPhysical ? equipment.strength : equipment.magic_damage;
       const speed = attacker.speed || 40;
 
-      const { SPEED, GLOBAL } = state.customConstants;
+      const { SPEED, GLOBAL } = activeConstants;
 
       // Calculate speed modifier
       let speedModifier = 1.0;
@@ -249,6 +299,40 @@ export function useDamageCalculations() {
         formula: "Speed-Conscious",
         speedModifier
       };
+    },
+
+    'tempo-separated': (attacker: StatBlock, defender: StatBlock, equipment: Equipment, isPhysical: boolean = true): DamageResult => {
+      const attackStat = isPhysical ? attacker.attack : attacker.special_attack;
+      const defenseStat = isPhysical ? defender.defense : defender.special_defense;
+      const equipmentBonus = isPhysical ? equipment.strength : equipment.magic_damage;
+      const speed = attacker.speed || 40;
+      const tempo = attacker.tempo || 100;
+
+      const { SPEED, GLOBAL } = activeConstants;
+
+      // Get tempo modifiers (effectiveness and frequency)
+      const { tempoModifier } = getTempoModifiers(speed, tempo);
+
+      // Apply tempo effectiveness to attack stats (not speed penalties)
+      const effectiveAttack = (attackStat + (equipmentBonus * SPEED.EQUIPMENT_SCALING)) * tempoModifier;
+      const basePower = effectiveAttack / SPEED.BASE_DIVISOR;
+      const defenseMitigation = SPEED.DEFENSE_BASE / (SPEED.DEFENSE_BASE + (defenseStat * SPEED.DEFENSE_EFFECTIVENESS));
+      const damage = Math.floor(basePower * defenseMitigation);
+
+      // Higher effectiveness (lower tempo) gives more consistent damage
+      const consistencyBonus = tempo < 100 ? (100 - tempo) * 0.001 : 0;
+      const minRatio = Math.min(0.9, SPEED.MIN_DAMAGE_RATIO + consistencyBonus);
+
+      const minDamage = Math.max(GLOBAL.MINIMUM_DAMAGE, Math.floor(damage * minRatio));
+      const maxDamage = Math.max(GLOBAL.MINIMUM_DAMAGE, damage);
+      
+      return {
+        min: minDamage,
+        max: maxDamage,
+        average: (minDamage + maxDamage) / 2,
+        formula: "Tempo-Separated",
+        speedModifier: tempoModifier
+      };
     }
   };
 
@@ -257,7 +341,7 @@ export function useDamageCalculations() {
     const attackStat = isPhysical ? attacker.attack : attacker.special_attack;
     const defenseStat = isPhysical ? defender.defense : defender.special_defense;
 
-    const { OSRS, GLOBAL } = state.customConstants;
+    const { OSRS, GLOBAL } = activeConstants;
 
     const attackRoll = (attackStat + OSRS.EFFECTIVE_LEVEL_BONUS) * (equipment.accuracy + OSRS.EQUIPMENT_BASE_MULTIPLIER);
     const defenseRoll = (defenseStat + OSRS.EFFECTIVE_LEVEL_BONUS) * OSRS.EQUIPMENT_BASE_MULTIPLIER;
@@ -271,15 +355,22 @@ export function useDamageCalculations() {
     return formulas[state.selectedFormula](attacker, defender, equipment, isPhysical);
   };
 
-  // Calculate DPS (damage per second) based on speed
-  const calculateDPS = (damage: DamageResult, hitChance: number, speed: number): number => {
+  // Calculate DPS (damage per second) based on speed and tempo
+  const calculateDPS = (damage: DamageResult, hitChance: number, speed: number, tempo?: number): number => {
     const avgDamage = (damage.min + damage.max) / 2;
     const effectiveDamage = avgDamage * hitChance;
+    
+    // If tempo is provided, use effective speed calculation
+    let effectiveSpeed = speed;
+    if (tempo !== undefined) {
+      const { effectiveSpeed: calculatedEffectiveSpeed } = getTempoModifiers(speed, tempo);
+      effectiveSpeed = calculatedEffectiveSpeed;
+    }
     
     // Speed affects attack rate: higher speed = more attacks per second
     // Base attack rate: 1 attack per 2 seconds at speed 40
     const baseAttackDelay = 2; // seconds
-    const speedMultiplier = speed / 40;
+    const speedMultiplier = effectiveSpeed / 40;
     const attacksPerSecond = speedMultiplier / baseAttackDelay;
     
     return effectiveDamage * attacksPerSecond;
@@ -295,7 +386,12 @@ export function useDamageCalculations() {
     const isPhysical = shouldUsePhysicalAttack(attacker);
     const damage = calculateDamage(attacker, defender, equipment, isPhysical);
     const hitChance = calculateHitChance(attacker, defender, equipment, isPhysical);
-    const dps = calculateDPS(damage, hitChance, attacker.speed);
+    
+    // Calculate tempo modifiers if tempo is present
+    const tempo = attacker.tempo || 100;
+    const { tempoModifier, effectiveSpeed } = getTempoModifiers(attacker.speed, tempo);
+    
+    const dps = calculateDPS(damage, hitChance, attacker.speed, tempo);
     const speedModifier = damage.speedModifier || 1;
 
     return {
@@ -303,6 +399,8 @@ export function useDamageCalculations() {
       hitChance,
       dps,
       speedModifier,
+      tempoModifier,
+      effectiveSpeed,
       attackType: isPhysical ? 'physical' : 'magical'
     };
   };
@@ -314,7 +412,7 @@ export function useDamageCalculations() {
 
   // Reset constants to defaults
   const resetConstants = () => {
-    state.customConstants = { ...DAMAGE_CONSTANTS };
+    state.customConstants = { ...activeConstants };
   };
 
   // Get all available formulas
@@ -323,7 +421,8 @@ export function useDamageCalculations() {
     { value: 'linear', label: 'Linear Hybrid', description: 'Simple calculation with high consistency' },
     { value: 'power', label: 'Power Curve', description: 'Slight exponential scaling for late game' },
     { value: 'difference', label: 'Difference-Based', description: 'Classic RPG style (Attack - Defense)' },
-    { value: 'speed-conscious', label: 'Speed-Conscious', description: 'Implements speed trade-off mechanic' }
+    { value: 'speed-conscious', label: 'Speed-Conscious', description: 'Implements speed trade-off mechanic' },
+    { value: 'tempo-separated', label: 'TEMPO-Separated', description: 'Speed for frequency, TEMPO for effectiveness trade-offs' }
   ]);
 
   return {
@@ -332,7 +431,7 @@ export function useDamageCalculations() {
     
     // Constants
     EQUIPMENT_TIERS,
-    DAMAGE_CONSTANTS,
+    DAMAGE_CONSTANTS: computed(() => activeConstants),
     
     // Core functions
     calculateDamage,

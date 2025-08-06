@@ -9,18 +9,31 @@
 
 <script setup lang="ts">
 import { useRxjs } from "topsyde-utils";
-import { computed, useTemplateRef } from "vue";
+import { computed, onMounted, useTemplateRef } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import WebsocketConnection from "./components/application/WebsocketConnection.vue";
 import Layout from "./components/layout/Layout.vue";
 import ConnectionDiagnostic from "./components/utilities/connection/ConnectionDiagnostic.vue";
+import { useSettingsStore } from "./stores/settings.store";
+import { colorSystem } from "./utils/color-system";
 
 const viewportRef = useTemplateRef("viewportRef");
 const route = useRoute();
 const router = useRouter();
+const settingsStore = useSettingsStore();
 const showWebsocketConnection = computed(() => !["login", "home"].includes(route.name as string));
+
 useRxjs("system", {
 	disconnected: () => router.push({ name: "home" }),
+});
+
+// Initialize color system on mount
+onMounted(() => {
+	// Apply default theme if none is set
+	if (!settingsStore.currentTheme.group) {
+		// Apply neutral theme as default
+		colorSystem.applyTheme('neutral', settingsStore.darkMode ? 'dark' : 'light');
+	}
 });
 </script>
 

@@ -246,9 +246,9 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 // RPG Select Button styles
 :deep(.rpg-select-button) {
 	.p-selectbutton {
-		background: rgba(0, 0, 0, 0.3);
+		background: oklch(0 0 0 / 0.3);
 		backdrop-filter: blur(4px);
-		border: 2px solid rgba(var(--p-primary-500-rgb), 0.5);
+		border: 2px solid oklch(from var(--p-primary-color) l c h / 0.5);
 		border-radius: 0.5rem;
 		overflow: hidden;
 	}
@@ -262,7 +262,7 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 		transition: all 0.3s ease;
 
 		&:hover {
-			background: rgba(var(--p-primary-500-rgb), 0.2);
+			background: oklch(from var(--p-primary-color) l c h / 0.2);
 			color: white;
 		}
 
@@ -270,8 +270,8 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 			background: linear-gradient(to right, var(--p-primary-600), var(--p-pink-600));
 			color: white;
 			box-shadow:
-				0 10px 15px -3px rgba(0, 0, 0, 0.1),
-				0 4px 6px -2px rgba(0, 0, 0, 0.05);
+				0 10px 15px -3px oklch(0 0 0 / 0.1),
+				0 4px 6px -2px oklch(0 0 0 / 0.05);
 		}
 	}
 }
@@ -280,12 +280,12 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 .rpg-card {
 	// background: rgba(17, 24, 39, 0.9);
 	backdrop-filter: blur(4px);
-	border: 2px solid rgba(var(--p-primary-500-rgb), 0.3);
+	border: 2px solid oklch(from var(--p-primary-color) l c h / 0.3);
 	overflow: hidden;
 
 	&:hover {
-		border-color: rgba(var(--p-primary-400-rgb), 0.6);
-		box-shadow: 0 0 20px rgba(var(--p-primary-500-rgb), 0.3);
+		border-color: oklch(from var(--p-primary-color) l c h / 0.6);
+		box-shadow: 0 0 20px oklch(from var(--p-primary-color) l c h / 0.3);
 
 		.card-icon {
 			animation: bounce 0.5s ease-in-out;
@@ -299,7 +299,7 @@ const cards = ref(<{ [key: string]: { title: string; subtitle: string; content: 
 	}
 
 	:deep(.p-card-body) {
-		box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 -4px 6px oklch(0 0 0 / 0.1);
 
 		padding: 0.75rem 0 0;
 	}

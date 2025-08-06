@@ -39,20 +39,14 @@
 
 			<!-- Call to action -->
 			<div class="hero-cta flex flex-col sm:flex-row gap-4 justify-center">
-				<motion.div
-					:initial="{ opacity: 0, x: -30 }"
-					:animate="{ opacity: 1, x: 0 }"
-					:transition="{ duration: 0.6, ease: 'easeOut', delay: 0.7 }">
+				<motion.div :initial="{ opacity: 0, x: -30 }" :animate="{ opacity: 1, x: 0 }" :transition="{ duration: 0.6, ease: 'easeOut', delay: 0.7 }">
 					<Button
 						label="Begin Adventure"
 						icon="pi pi-play"
 						class="p-button-lg p-button-rounded bg-gradient-to-r from-purple-600 to-blue-600 border-0 text-white font-semibold px-8 py-3 hover:scale-105 transition-transform duration-300 shadow-xl"
 						@click="$router.push('/dictionary')" />
 				</motion.div>
-				<motion.div
-					:initial="{ opacity: 0, x: 30 }"
-					:animate="{ opacity: 1, x: 0 }"
-					:transition="{ duration: 0.6, ease: 'easeOut', delay: 0.8 }">
+				<motion.div :initial="{ opacity: 0, x: 30 }" :animate="{ opacity: 1, x: 0 }" :transition="{ duration: 0.6, ease: 'easeOut', delay: 0.8 }">
 					<Button
 						label="Enter Arena"
 						icon="pi pi-bolt"
@@ -120,12 +114,7 @@ import { Button } from "primevue";
 
 // Gradient background with primary color
 .hero-gradient {
-	background: linear-gradient(135deg, 
-		var(--p-primary-900) 0%, 
-		var(--p-primary-800) 25%, 
-		var(--p-primary-700) 50%, 
-		var(--p-primary-800) 75%, 
-		var(--p-primary-900) 100%);
+	background: linear-gradient(135deg, var(--p-primary-900) 0%, var(--p-primary-800) 25%, var(--p-primary-700) 50%, var(--p-primary-800) 75%, var(--p-primary-900) 100%);
 	opacity: 0.9;
 }
 
@@ -161,7 +150,8 @@ import { Button } from "primevue";
 }
 
 @keyframes wave-motion {
-	0%, 100% {
+	0%,
+	100% {
 		transform: translateY(0) rotateZ(0deg) scaleY(1);
 	}
 	25% {
@@ -262,17 +252,19 @@ import { Button } from "primevue";
 
 // Enter Arena button styling
 .enter-arena-btn {
-	border: 2px solid rgba(255, 255, 255, 0.8);
-	color: var(--p-surface-50);
-	background: rgba(0, 0, 0, 0.3);
+	border: 2px solid var(--p-content-background);
+	color: var(--p-content-background);
+	background: transparent;
 	backdrop-filter: blur(10px);
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-	
+	box-shadow: 0 4px 12px oklch(0 0 0 / 0.3);
+
 	&:hover {
-		background: rgba(0, 0, 0, 0.5);
-		border-color: var(--p-surface-50);
-		color: var(--p-surface-50);
-		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+		background: var(--p-primary-color);
+		// border-color: var(--p-primary-color);
+		// color: var(--p-primary-color);
+		border: 2px solid var(--p-content-background);
+		color: var(--p-content-background);
+		box-shadow: 0 6px 20px oklch(0 0 0 / 0.4);
 	}
 }
 

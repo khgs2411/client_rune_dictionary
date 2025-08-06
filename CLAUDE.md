@@ -2,149 +2,298 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Context
+
+This is the **Client Application** for Rune RPG - a turn-based RPG game with real-time matchmaking, part of a multi-service architecture:
+
+1. **Client Application** (this project) - Vue 3 frontend with real-time WebSocket combat
+2. **Dictionary Server** (`../server_rune_dictionary/`) - DigitalOcean serverless API for game data
+3. **Matchmaking Server** (`../server_rune_matchmaking/`) - Real-time WebSocket server for combat and matchmaking
+4. **Deployment Server** (`../server_rune_deployment/`) - Oracle Cloud deployment automation
+
 ## Development Commands
 
-**Development Server:**
+```bash
+# Development
+bun run dev              # Start Vite dev server on port 8080
+bun run serve            # Alias for dev
 
-- `bun run dev` or `bun run serve` - Start Vite dev server on port 8080
+# Build & Production
+bun run build            # TypeScript check + production build
+bun run build:test       # Test build process
+bun run build:cleanup    # Clean up build artifacts
+bun run preview          # Preview production build locally
 
-**Build & Deploy:**
+# Deployment
+bun run deploy           # Deploy to GitHub Pages
 
-- `bun run build` - TypeScript check + Vite production build
-- `bun run build:test` - Run test build script
-- `bun run build:cleanup` - Clean up build artifacts
-- `bun run deploy` - Deploy to GitHub Pages
-- `bun run preview` - Preview production build locally
+# Code Quality
+bun run format           # Format code with Prettier
+bun run prettier         # Alias for format
+bun run format:check     # Check code formatting
 
-**Code Formatting:**
-
-- `bun run format` or `bun run prettier` - Format code with Prettier
-- `bun run format:check` - Check code formatting
-
-**UI Testing:**
-
-- Use Playwright MCP for visual verification of UI changes
+# UI Testing
+# Use Playwright MCP for visual verification of UI changes
+```
 
 ## Architecture Overview
 
-This is a Vue 3 + TypeScript + Vite application that serves as a client for a rune dictionary with real-time websocket communication.
-
 ### Core Technology Stack
 
-- **Frontend Framework:** Vue 3 with Composition API (`<script setup>`)
-- **UI Library:** PrimeVue with Aura theme
-- **Styling:** SCSS + Tailwind CSS + PrimeUI
-- **Animation:** v-motion for complex animations
-- **State Management:** Pinia with persisted state
-- **Routing:** Vue Router
-- **Build Tool:** Vite
-- **WebSocket:** Custom implementation using `topsyde-utils` library
-- **Package Manager:** Bun (use instead of npm)
+- **Framework**: Vue 3.5.13 with Composition API (`<script setup>`)
+- **Build Tool**: Vite 6.2.2 with TypeScript 5.6.3
+- **UI Library**: PrimeVue 4.3.2 with Aura theme
+- **Styling**: SCSS + Tailwind CSS v4 + PrimeUI integration
+- **Animation**: motion-v (v-motion) for complex animations
+- **State Management**: Pinia with persistence (pinia-plugin-persistedstate)
+- **Routing**: Vue Router 4.5.0
+- **WebSocket**: Custom implementation using `topsyde-utils` library
+- **HTTP Client**: Axios for API calls
+- **Package Manager**: Bun (use instead of npm)
 
 ### Application Structure
 
-**Key Application Flow:**
+#### Routes & Navigation
 
-1. Users start at login (`/login`) - default route redirect
-2. After authentication, access main dictionary (`/app`) or match view (`/match`)
-3. WebSocket connection established for all routes except login
-4. Real-time chat and game communication via WebSocket
+1. `/login` - Authentication entry point (default redirect)
+2. `/app` - Main dictionary interface (requires auth)
+3. `/match` - Real-time combat interface (requires auth)
+4. `/` - Home/landing page
 
-**State Management:**
+#### State Management (Pinia Stores)
 
-- `authStore` - User authentication, client data, authorization status
-- `settingsStore` - User preferences and configuration
-- `miscStore` - General application state
+- **authStore** - User authentication, client data, authorization status
+- **settingsStore** - User preferences and configuration
+- **miscStore** - General application state
+- **matchStore** - Match-specific game state
 
-**WebSocket Architecture:**
+#### WebSocket Architecture
 
-- `useWebsocketInterface` - Core WebSocket connection handling
-- `useWebsocketLogic` - Message processing and business logic
-- `useWSM` - WebSocket message utilities
+- **useWebsocketInterface** - Core WebSocket connection handling
+- **useWebsocketLogic** - Message processing and business logic
+- **useWebsocketEventHandler** - Event routing and handling
+- **useWebsocketEmitter** - Outbound message handling
+- **useWSM** - WebSocket message utilities
 - Auto-reconnection with heartbeat (20s ping/pong intervals)
 - Structured message handling for chat and game actions
 
-**Component Organization:**
+#### Component Organization
 
-- `views/` - Main route components (Dictionary, Login, Match)
-- `components/application/` - Core app components (Chat, WebsocketConnection)
-- `components/layout/` - Layout structure (Layout, Menu, Settings)
-- `composables/` - Reusable composition functions for auth, websockets, utilities
+```
+src/
+├── views/              # Route components
+│   ├── Dictionary.vue  # Main app interface
+│   ├── Login.vue       # Authentication
+│   ├── Match.vue       # Combat interface
+│   └── Home.vue        # Landing page
+├── components/
+│   ├── application/    # Core app components
+│   │   └── WebsocketConnection.vue
+│   ├── chat/           # Chat system
+│   │   ├── Chat.vue
+│   │   ├── ChatMessage.vue
+│   │   └── ChatWindow.vue
+│   ├── match/          # Game combat components
+│   │   ├── BattleArena.vue
+│   │   ├── GameActions.vue
+│   │   ├── GameInterface.vue
+│   │   ├── GameLog.vue
+│   │   ├── MatchLobby.vue
+│   │   └── MatchResult.vue
+│   ├── layout/         # Layout components
+│   │   ├── Layout.vue
+│   │   ├── Menu.vue
+│   │   ├── Settings.vue
+│   │   └── ResponsiveContainer.vue
+│   └── utilities/      # Utility components
+│       ├── Loading.vue
+│       ├── Prompt.vue
+│       └── Toast.vue
+├── composables/        # Reusable composition functions
+├── api/                # API layer
+├── stores/             # Pinia stores
+└── assets/             # Styles and static assets
+```
 
-### Configuration Notes
+### Configuration
 
-**Environment Variables:**
+#### Environment Variables
 
-- `VITE_WS_HOST` - WebSocket server URL (defaults to wss://topsyde-gaming.duckdns.org:3000)
+- `VITE_WS_HOST` - WebSocket server URL (default: wss://topsyde-gaming.duckdns.org:3000)
 - `VITE_API_KEY` - API authentication key
 
-**Version Management:**
+#### Build Configuration
 
-- App includes auto-refresh mechanism when version changes (see main.ts:19-45)
-- Version comment in main.ts is auto-updated by deploy script
+- Development base path: `/`
+- Production base path: `/client_rune_dictionary/`
+- Dev server port: 8080
+- WebSocket proxy: `/ws` (development only)
+- TypeScript: Strict mode with Vue 3 SFC support
+- SCSS: Modern compiler API
+- Build output: Optimized chunks with content hashing
 
-**Build Configuration:**
+#### Version Management
 
-- Base path changes between dev (`/`) and production (`/client_rune_dictionary/`)
-- WebSocket proxy at `/ws` for development
-- TypeScript strict mode with Vue 3 SFC support
+- Auto-refresh mechanism when version changes (see main.ts:19-45)
+- Version comment in main.ts auto-updated by deploy script
+- Current version: 0.3.5
 
 ## Development Best Practices
 
-### General Behavior
-- **Don't always agree**: If a solution is not good, do not agree with it. Instead, provide a better alternative or ask for clarification on the requirements
-- **Context Awareness**: Always consider the context of the code being modified. If a file has been recently edited, focus on enhancing or fixing that code rather than suggesting deletions or major rewrites
-- **Avoid Deletions**: Do not suggest code that has been deleted. Focus on enhancing existing code or adding new features without removing functionality
-- **Respect Existing Structure**: Maintain the existing structure and organization of files. Do not suggest moving files or changing their locations unless absolutely necessary
+### Core Principles
 
-### Game Design & Abstraction
-- Changed phrasing from "npc" to "enemy" - recognizing that in game mechanics, a match is a match, and the opponent is the opponent regardless of whether it's PvP or PvE
-- The key difference is only the endpoint accessed for a match and who controls the target
-- This layer of abstraction is important for maintaining consistent game logic and design principles
+- **Context7 MCP**: Always use for 3rd party library documentation
+- **Critical Thinking**: Don't automatically agree - provide better alternatives when solutions aren't optimal
+- **Context Awareness**: Consider recent edits, enhance rather than delete
+- **Respect Structure**: Maintain existing file organization unless absolutely necessary
+- **Consolidation**: Prefer modifying existing components over creating new ones
+- **Single Responsibility**: Keep components focused on one task
+- **User Feedback**: Listen and iterate based on specific requirements
 
-### CSS & Design Principles
-- Use `background: var(--p-content-background)` and `color: var(--p-text-color)` as standard for theming
-- Always use PrimeVue theme variables for consistent theming across components
-- NEVER use `--p-surface-card` for backgrounds, as it is not a valid color from the theme
+### Package Management
 
-### Vue Composition Insights
-- Composables are not singleton in Vue3, they work as reference to the instance of the composable, same as a class
-- They are basically a smart javascript closure
+- **ALWAYS use `bun` instead of `npm`** for all operations
+- Install: `bun add [package]`
+- Install dev: `bun add -d [package]`
+- Run scripts: `bun run [script]`
 
-### Tailwind CSS Best Practices
-- Use responsive breakpoints: `md:`, `lg:` prefixes for responsive design (tested at 375px, 768px, 1920px)
-- Combine with custom CSS for complex animations beyond Tailwind's built-in classes
-- Use `will-change` property for elements that will animate to optimize rendering
+### CSS & Theming
 
-### v-motion Animation Implementation
-- **Import Pattern**: Use `import { motion } from "motion-v"` - NOT as a Vue plugin
-- **Component Usage**: Replace HTML elements with `<motion.div>`, `<motion.h1>`, etc.
-- **Animation Properties**:
-  - `:initial` - Starting state (opacity: 0, scale: 0.8, y: 50)
-  - `:animate` - End state (opacity: 1, scale: 1, y: 0)
-  - `:whileInView` - Scroll-triggered animations with `{ once: true }`
-  - `:transition` - Spring physics: `{ type: 'spring', stiffness: 100, damping: 15, mass: 1 }`
-- **Performance**: Use transform-based animations (translateY, scale) for 60fps performance
-- **Accessibility**: Implement `prefers-reduced-motion` support with reduced animation durations
-- **Staggered Animations**: Use `delay` property for sequential entrance effects
+#### PrimeVue Theme Variables (REQUIRED)
+```scss
+// Backgrounds
+background: var(--p-content-background);
 
-### Component Modification Best Practices
-- **Consolidation Over Creation**: When implementing new features, always prefer modifying existing components rather than creating new ones. This maintains consistency and prevents component proliferation
-- **Single Responsibility Principle**: Each component should have a single responsibility. If a component is doing too much, consider breaking it down into smaller, reusable components. This is more important than Consolidation
-- **User Feedback Integration**: Listen carefully to user feedback and iterate based on their specific requirements. If a solution is "NOT good", understand why and pivot accordingly
-- **Thorough Testing**: Always test functionality comprehensively:
-  - Use Playwright MCP to verify UI changes visually
-  - Test all interactive features (drag, resize, collapse/expand)
-  - Simulate user interactions programmatically to ensure features work
-- **Incremental Problem Solving**: Address issues one at a time:
-  - First ensure basic functionality works
-  - Then refine based on user feedback
-  - Finally, polish with proper styling and behavior
+// Text
+color: var(--p-text-color);
 
-### Development Environment Management
-- If you need to start, restart or close the client or server dev environment, ask the user
+// Borders
+border-color: var(--p-content-border-color);
 
-### PrimeVue Integration Lessons
-- PrimeVue CSS Variables: Use `--p-content-background` and `--p-text-color` for consistent theming
-- Component styling: PrimeVue components work well with Tailwind utilities for spacing, colors, and layout
-- Dark mode: PrimeVue's built-in dark mode variables integrate seamlessly with custom CSS
+// Primary colors
+var(--p-primary-color)
+var(--p-primary-contrast-color)
+
+// NEVER use --p-surface-card (not valid)
+```
+
+#### Tailwind Integration
+- Responsive breakpoints: `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1280px)
+- Test at: 375px (mobile), 768px (tablet), 1920px (desktop)
+- Combine with PrimeVue utilities for spacing and layout
+- Use `will-change` for animated elements
+
+### Animation with motion-v
+
+#### Import Pattern
+```javascript
+import { motion } from "motion-v"  // NOT as Vue plugin
+```
+
+#### Component Usage
+```vue
+<motion.div
+  :initial="{ opacity: 0, scale: 0.8, y: 50 }"
+  :animate="{ opacity: 1, scale: 1, y: 0 }"
+  :whileInView="{ opacity: 1, once: true }"
+  :transition="{ 
+    type: 'spring', 
+    stiffness: 100, 
+    damping: 15, 
+    mass: 1 
+  }"
+/>
+```
+
+#### Performance Guidelines
+- Use transform-based animations (translateY, scale) for 60fps
+- Implement `prefers-reduced-motion` support
+- Use `delay` for staggered entrance effects
+
+### Vue 3 Composition API
+
+- Composables are NOT singletons - they're smart closures
+- Each instance maintains its own state
+- Use `<script setup>` syntax for all components
+- Leverage TypeScript for type safety
+
+### WebSocket Implementation
+
+- Connection managed globally via composables
+- Auto-reconnection built-in
+- Heartbeat mechanism prevents timeouts
+- Message structure follows defined types in `websocket.types.ts`
+
+### Testing & Verification
+
+- **Always use Playwright MCP** for UI verification
+- Test responsive behavior at key breakpoints
+- Verify animations and interactions
+- Check dark/light theme compatibility
+
+### Game Design Patterns
+
+- Use "enemy" instead of "npc" for consistency
+- Match is match regardless of PvP or PvE
+- Only difference is endpoint and control mechanism
+- Maintain abstraction for flexible game logic
+
+### Component Development Workflow
+
+1. **Check existing components first**
+2. **Enhance rather than replace**
+3. **Test thoroughly with Playwright**
+4. **Iterate based on feedback**
+5. **Polish with proper theming**
+
+### Development Environment
+
+- Ask user before starting/stopping dev servers
+- Default dev server runs on port 8080
+- WebSocket connects to configured server
+- Hot reload enabled for rapid development
+
+## Task Master Integration
+
+This project includes Task Master AI for task management. Key commands:
+
+```bash
+# View tasks
+task-master list
+task-master next
+task-master show <id>
+
+# Update tasks
+task-master set-status --id=<id> --status=done
+task-master add-task --prompt="description"
+task-master update-task --id=<id> --prompt="changes"
+```
+
+See parent `.taskmaster/` directory for full task configuration.
+
+## Common Issues & Solutions
+
+### WebSocket Connection
+- Check `VITE_WS_HOST` environment variable
+- Verify server is running
+- Check browser console for connection errors
+
+### Build Issues
+- Run `bun install` to ensure dependencies
+- Clear `node_modules` and reinstall if needed
+- Check TypeScript errors with `vue-tsc`
+
+### Styling Issues
+- Verify PrimeVue theme variables
+- Check Tailwind configuration
+- Ensure SCSS modern compiler is used
+
+## Important Reminders
+
+- Do what's asked; nothing more, nothing less
+- Never create files unless absolutely necessary
+- Always prefer editing existing files
+- Never proactively create documentation unless requested
+- Use Playwright MCP for UI verification
+- Always use bun, never npm
+- Respect existing patterns and conventions

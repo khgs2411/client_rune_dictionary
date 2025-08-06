@@ -1,6 +1,6 @@
 import { useLocalStorage } from "@vueuse/core";
 import { acceptHMRUpdate, defineStore } from "pinia";
-import { computed, ref, watch } from "vue";
+import { computed, watch } from "vue";
 import {
   EQUIPMENT_TIERS,
   useDamageCalculations,
@@ -9,6 +9,76 @@ import {
   type Equipment,
   type StatBlock
 } from "../composables/useDamageCalculations";
+
+// Damage formula configuration constants - centralized in store
+export const DEFAULT_DAMAGE_CONSTANTS = {
+  // OSRS Formula Constants
+  OSRS: {
+    EFFECTIVE_LEVEL_BONUS: 8,
+    EQUIPMENT_BASE_MULTIPLIER: 64,
+    DAMAGE_MULTIPLIER: 320,
+    DAMAGE_DIVISOR: 640,
+    MAX_DEFENSE_REDUCTION: 0.75,
+    DEFENSE_SCALING_FACTOR: 200,
+    MIN_DAMAGE_RATIO: 0.5
+  },
+
+  // Linear Formula Constants
+  LINEAR: {
+    DAMAGE_DIVISOR: 10,
+    DEFENSE_BASE: 100,
+    MIN_DAMAGE_RATIO: 0.8
+  },
+
+  // Power Curve Constants
+  POWER: {
+    ATTACK_EXPONENT: 1.2,
+    DAMAGE_DIVISOR: 20,
+    DEFENSE_BASE: 50,
+    MIN_DAMAGE_RATIO: 0.7
+  },
+
+  // Difference Formula Constants
+  DIFFERENCE: {
+    DEFENSE_EFFECTIVENESS: 0.5,
+    MIN_DAMAGE_MULTIPLIER: 0.1,
+    FINAL_DIVISOR: 5,
+    MIN_DAMAGE_RATIO: 0.6
+  },
+
+  // Speed-Conscious Constants
+  SPEED: {
+    NEUTRAL_SPEED: 40,
+    PENALTY_THRESHOLD: 50,
+    BONUS_THRESHOLD: 30,
+    MAX_PENALTY: 0.5,
+    MAX_BONUS: 0.3,
+    PENALTY_SCALING: 30,
+    BONUS_SCALING: 20,
+    BASE_DIVISOR: 8,
+    DEFENSE_EFFECTIVENESS: 0.7,
+    DEFENSE_BASE: 80,
+    MIN_DAMAGE_RATIO: 0.65,
+    EQUIPMENT_SCALING: 0.75
+  },
+
+  // TEMPO System Constants
+  TEMPO: {
+    NEUTRAL_TEMPO: 100,
+    MIN_TEMPO: 25,
+    MAX_TEMPO: 200,
+    EFFECTIVENESS_CURVE_STEEPNESS: 0.002, // Controls how aggressive the curve is
+    FREQUENCY_MULTIPLIER: 1.0, // How much tempo affects action frequency
+    DAMAGE_MULTIPLIER: 1.0 // How much tempo affects damage effectiveness
+  },
+
+  // Global Constants
+  GLOBAL: {
+    MINIMUM_DAMAGE: 1,
+    HIT_CHANCE_MIN: 0.05,
+    HIT_CHANCE_MAX: 0.95
+  }
+};
 
 // Interfaces
 export interface DamageCalculatorPreset {
@@ -28,17 +98,21 @@ export interface FormulaResult {
   hitChance: number;
   dps: number;
   speedModifier: number;
+  tempoModifier?: number;
+  effectiveSpeed?: number;
   attackType: 'physical' | 'magical';
 }
 
 export const useDamageCalculatorStore = defineStore(
   "damageCalculatorStore",
   () => {
-    // Import damage calculations composable
-    const damageCalc = useDamageCalculations();
-
     // State
-    const _playerStats = ref<StatBlock>({
+    const _damageConstants = useLocalStorage<typeof DEFAULT_DAMAGE_CONSTANTS>(
+      "_damageConstants",
+      () => JSON.parse(JSON.stringify(DEFAULT_DAMAGE_CONSTANTS)) // Deep clone to avoid reference issues
+    );
+
+    const _playerStats = useLocalStorage<StatBlock>('_playerStats', {
       name: "Player",
       level: 50,
       hp: 100,
@@ -46,10 +120,11 @@ export const useDamageCalculatorStore = defineStore(
       defense: 50,
       special_attack: 50,
       special_defense: 50,
-      speed: 50
+      speed: 50,
+      tempo: 100
     });
 
-    const _enemyStats = ref<StatBlock>({
+    const _enemyStats = useLocalStorage<StatBlock>('_enemyStats', {
       name: "Enemy",
       level: 50,
       hp: 100,
@@ -57,17 +132,19 @@ export const useDamageCalculatorStore = defineStore(
       defense: 50,
       special_attack: 50,
       special_defense: 50,
-      speed: 50
+      speed: 50,
+      tempo: 100
     });
 
-    const _playerEquipment = ref<string>("none");
-    const _enemyEquipment = ref<string>("none");
-    const _activeFormulas = ref<DamageFormulaType[]>(["osrs"]);
+    const _playerEquipment = useLocalStorage<string>("_playerEquipment", 'none');
+    const _enemyEquipment = useLocalStorage<string>("_enemyEquipment", 'none');
+    const _activeFormulas = useLocalStorage<DamageFormulaType[]>('_activeFormulas', ["osrs"]);
     const _presets = useLocalStorage<DamageCalculatorPreset[]>("damageCalculatorPresets", []);
-    const _autoCalculate = ref(true);
-    const _results = ref<FormulaResult[]>([]);
+    const _autoCalculate = useLocalStorage('_autoCalculate', true);
+    const _results = useLocalStorage<FormulaResult[]>('_results', []);
 
     // Computed - Direct ref access for better performance
+    const damageConstants = computed(() => _damageConstants.value);
     const playerStats = computed(() => _playerStats.value);
     const enemyStats = computed(() => _enemyStats.value);
     const playerEquipment = computed(() => _playerEquipment.value);
@@ -110,6 +187,7 @@ export const useDamageCalculatorStore = defineStore(
         special_attack: Math.floor(stats.special_attack * bonus),
         special_defense: Math.floor(stats.special_defense * bonus),
         speed: stats.speed, // Speed not affected by equipment
+        tempo: stats.tempo, // Tempo not affected by basic equipment
       };
     });
 
@@ -125,6 +203,7 @@ export const useDamageCalculatorStore = defineStore(
         special_attack: Math.floor(stats.special_attack * bonus),
         special_defense: Math.floor(stats.special_defense * bonus),
         speed: stats.speed, // Speed not affected by equipment
+        tempo: stats.tempo, // Tempo not affected by basic equipment
       };
     });
 
@@ -175,7 +254,8 @@ export const useDamageCalculatorStore = defineStore(
         defense: 50,
         special_attack: 50,
         special_defense: 50,
-        speed: 50
+        speed: 50,
+        tempo: 100
       };
 
       if (target === 'player' || target === 'both') {
@@ -189,7 +269,8 @@ export const useDamageCalculatorStore = defineStore(
     }
 
     function calculateResults() {
-      // Update selected formula in damage calculations
+      // Create damage calculations with reactive constants from store
+      const damageCalc = useDamageCalculations(_damageConstants.value);
       const results: FormulaResult[] = [];
 
       for (const formula of _activeFormulas.value) {
@@ -206,6 +287,8 @@ export const useDamageCalculatorStore = defineStore(
           hitChance: metrics.hitChance,
           dps: metrics.dps,
           speedModifier: metrics.speedModifier,
+          tempoModifier: metrics.tempoModifier,
+          effectiveSpeed: metrics.effectiveSpeed,
           attackType: metrics.attackType
         });
       }
@@ -221,6 +304,43 @@ export const useDamageCalculatorStore = defineStore(
       _autoCalculate.value = value;
       if (value) {
         calculateResults();
+      }
+    }
+
+    // Constants management
+    function updateConstants(newConstants: Partial<typeof DEFAULT_DAMAGE_CONSTANTS>) {
+      _damageConstants.value = { ..._damageConstants.value, ...newConstants };
+    }
+
+    function resetConstants() {
+      _damageConstants.value = JSON.parse(JSON.stringify(DEFAULT_DAMAGE_CONSTANTS));
+    }
+
+    function updateFormulaConstants(formula: DamageFormulaType, constants: Record<string, number>) {
+      const formulaKey = getFormulaConstantKey(formula);
+      if (!formulaKey) return;
+
+      _damageConstants.value = {
+        ..._damageConstants.value,
+        [formulaKey]: { ..._damageConstants.value[formulaKey as keyof typeof _damageConstants.value], ...constants }
+      };
+    }
+
+    function updateGlobalConstants(constants: Partial<typeof DEFAULT_DAMAGE_CONSTANTS.GLOBAL>) {
+      _damageConstants.value = {
+        ..._damageConstants.value,
+        GLOBAL: { ..._damageConstants.value.GLOBAL, ...constants }
+      };
+    }
+
+    function getFormulaConstantKey(formula: DamageFormulaType): string | null {
+      switch (formula) {
+        case "osrs": return "OSRS";
+        case "linear": return "LINEAR";
+        case "power": return "POWER";
+        case "difference": return "DIFFERENCE";
+        case "speed-conscious": return "SPEED";
+        default: return null;
       }
     }
 
@@ -268,8 +388,8 @@ export const useDamageCalculatorStore = defineStore(
         const imported = JSON.parse(jsonString);
         if (Array.isArray(imported)) {
           // Validate preset structure
-          const validPresets = imported.filter(p => 
-            p.id && p.name && p.playerStats && p.enemyStats && 
+          const validPresets = imported.filter(p =>
+            p.id && p.name && p.playerStats && p.enemyStats &&
             p.playerEquipment && p.enemyEquipment && p.activeFormulas
           );
           _presets.value = [..._presets.value, ...validPresets];
@@ -281,14 +401,14 @@ export const useDamageCalculatorStore = defineStore(
 
     // Performance-optimized auto-calculation with improved debouncing
     let calculateTimeout: any = null;
-    
+
     function debouncedCalculate() {
       if (!_autoCalculate.value) return;
-      
+
       if (calculateTimeout) {
         clearTimeout(calculateTimeout);
       }
-      
+
       // Reduced debounce time for more responsive UI
       calculateTimeout = setTimeout(() => {
         calculateResults();
@@ -299,7 +419,8 @@ export const useDamageCalculatorStore = defineStore(
     watch(_playerEquipment, debouncedCalculate);
     watch(_enemyEquipment, debouncedCalculate);
     watch(_activeFormulas, debouncedCalculate, { deep: false });
-    
+    watch(_damageConstants, debouncedCalculate, { deep: true });
+
     // Deep watch only stats that need it, with reduced frequency
     watch(_playerStats, debouncedCalculate, { deep: true, flush: 'post' });
     watch(_enemyStats, debouncedCalculate, { deep: true, flush: 'post' });
@@ -311,6 +432,7 @@ export const useDamageCalculatorStore = defineStore(
 
     return {
       // State
+      damageConstants,
       playerStats,
       enemyStats,
       playerEquipment,
@@ -340,6 +462,16 @@ export const useDamageCalculatorStore = defineStore(
       clearResults,
       setAutoCalculate,
 
+      // Constants management
+      updateConstants,
+      resetConstants,
+      updateFormulaConstants,
+      updateGlobalConstants,
+      getFormulaConstantKey,
+
+      // Constants reference
+      DEFAULT_DAMAGE_CONSTANTS,
+
       // Preset management
       savePreset,
       loadPreset,
@@ -347,7 +479,7 @@ export const useDamageCalculatorStore = defineStore(
       exportPresets,
       importPresets,
     };
-  }
+  },
 );
 
 if (import.meta.hot) {

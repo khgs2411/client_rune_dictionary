@@ -21,7 +21,7 @@
     </div>
 
     <!-- Detailed Metrics Grid -->
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-1 gap-3">
       <div 
         v-for="result in results" 
         :key="result.formula"
@@ -100,10 +100,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
-import type { FormulaResult } from '@/stores/damageCalculator.store';
 import type { StatBlock } from '@/composables/useDamageCalculations';
+import type { FormulaResult } from '@/stores/damageCalculator.store';
+import { computed } from 'vue';
 
 interface Props {
   results: FormulaResult[];

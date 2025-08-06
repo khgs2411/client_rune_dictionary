@@ -143,7 +143,7 @@ onUnmounted(() => {
 	align-items: center;
 	justify-content: center;
 	z-index: 9999;
-	background-color: rgba(0, 0, 0, 0.5);
+	background-color: oklch(0 0 0 / 0.5);
 }
 
 .prompt-window {

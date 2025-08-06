@@ -196,10 +196,10 @@ const toggleExpanded = () => {
 	}
 	
 	&:hover {
-		background: rgba(255, 255, 255, 0.2);
-		border-color: rgba(255, 255, 255, 0.5);
+		background: oklch(from var(--foreground) l c h / 0.2);
+		border-color: oklch(from var(--foreground) l c h / 0.5);
 		transform: translateY(-50%) scale(1.05);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 4px 12px oklch(0 0 0 / 0.2);
 		animation-play-state: paused;
 		
 		i {
@@ -216,11 +216,11 @@ const toggleExpanded = () => {
 @keyframes pulse-glow {
 	0%, 100% {
 		transform: translateY(-50%);
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), 0 0 0 0 rgba(255, 255, 255, 0.3);
+		box-shadow: 0 2px 8px oklch(0 0 0 / 0.1), 0 0 0 0 oklch(from var(--foreground) l c h / 0.3);
 	}
 	50% {
 		transform: translateY(-50%) translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 4px rgba(255, 255, 255, 0.1);
+		box-shadow: 0 4px 12px oklch(0 0 0 / 0.15), 0 0 0 4px oklch(from var(--foreground) l c h / 0.1);
 	}
 }
 

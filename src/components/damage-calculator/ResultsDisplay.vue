@@ -21,16 +21,18 @@
       </CardContent>
     </Card>
 
-    <!-- Speed Modifiers -->
+    <!-- Speed & TEMPO Modifiers -->
     <Card v-if="results.length > 0">
       <CardHeader>
-        <CardTitle>Speed Effects</CardTitle>
-        <CardDescription>Speed-based damage modifications</CardDescription>
+        <CardTitle>Speed & TEMPO Effects</CardTitle>
+        <CardDescription>Speed frequency and TEMPO effectiveness modifications</CardDescription>
       </CardHeader>
       <CardContent>
         <SpeedModifiers 
           :player-speed="store.playerStats.speed"
+          :player-tempo="store.playerStats.tempo"
           :enemy-speed="store.enemyStats.speed"
+          :enemy-tempo="store.enemyStats.tempo"
           :results="results"
         />
       </CardContent>

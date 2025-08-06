@@ -55,7 +55,7 @@
 					<i class="pi pi-refresh"></i>
 					Rematch
 				</Button>
-				<Button @click="$emit('returnToLobby')" :disabled="isLoading" severity="secondary" size="large" class="lobby-button">
+				<Button @click="$emit('returnToLobby')" :disabled="isLoading"  size="large" class="lobby-button">
 					<i class="pi pi-home"></i>
 					Return to Lobby
 				</Button>

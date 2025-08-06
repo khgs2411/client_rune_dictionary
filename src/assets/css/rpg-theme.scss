@@ -4,18 +4,18 @@
 
 // RPG-specific color palette that complements PrimeVue
 :root {
-	// RPG theme colors
-	--rpg-mystic: #8445ff;
-	--rpg-mystic-light: #9f75ff;
-	--rpg-mystic-dark: #6b1ce6;
+	// RPG theme colors - using color system variables
+	--rpg-mystic: var(--primary);
+	--rpg-mystic-light: oklch(from var(--primary) calc(l + 0.1) c h);
+	--rpg-mystic-dark: oklch(from var(--primary) calc(l - 0.1) c h);
 
-	--rpg-parchment: #f0e9dc;
-	--rpg-parchment-light: #f8f5f0;
-	--rpg-parchment-dark: #d6bc9a;
+	--rpg-parchment: var(--accent);
+	--rpg-parchment-light: oklch(from var(--accent) calc(l + 0.05) c h);
+	--rpg-parchment-dark: oklch(from var(--accent) calc(l - 0.1) c h);
 
-	--rpg-blood: #dc2626;
-	--rpg-blood-light: #f87171;
-	--rpg-blood-dark: #991b1b;
+	--rpg-blood: var(--destructive);
+	--rpg-blood-light: oklch(from var(--destructive) calc(l + 0.1) c h);
+	--rpg-blood-dark: oklch(from var(--destructive) calc(l - 0.1) c h);
 
 	// Animation performance budgets
 	--animation-critical: 100ms;
@@ -27,14 +27,14 @@
 	--ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
 	// RPG-specific shadows
-	--shadow-glow: 0 0 20px rgba(132, 69, 255, 0.3);
-	--shadow-glow-strong: 0 0 40px rgba(132, 69, 255, 0.5);
+	--shadow-glow: 0 0 20px oklch(from var(--primary) l c h / 0.3);
+	--shadow-glow-strong: 0 0 40px oklch(from var(--primary) l c h / 0.5);
 }
 
 // Dark mode adjustments
 .dark {
-	--shadow-glow: 0 0 20px rgba(159, 117, 255, 0.4);
-	--shadow-glow-strong: 0 0 40px rgba(159, 117, 255, 0.6);
+	--shadow-glow: 0 0 20px oklch(from var(--primary) l c h / 0.4);
+	--shadow-glow-strong: 0 0 40px oklch(from var(--primary) l c h / 0.6);
 }
 
 // Smooth theme transitions

@@ -452,7 +452,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 	transform: translate(-50%, -50%);
 	font-size: 2.5rem;
 	font-weight: 900;
-	color: #ff4444;
+	color: var(--destructive);
 	text-shadow: 
 		2px 2px 0 rgba(0, 0, 0, 0.5),
 		-1px -1px 0 rgba(0, 0, 0, 0.5),
@@ -462,7 +462,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 	z-index: 100;
 	
 	&.heal-number {
-		color: #44ff44;
+		color: var(--primary);
 	}
 }
 
@@ -596,7 +596,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 			content: "";
 			position: absolute;
 			inset: -2px;
-			background: rgba(255, 0, 0, 0.4);
+			background: oklch(from var(--destructive) l c h / 0.4);
 			border-radius: inherit;
 			pointer-events: none;
 			animation: damageFlash 0.6s ease-out;
@@ -610,7 +610,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 			content: "";
 			position: absolute;
 			inset: -4px;
-			background: radial-gradient(ellipse at center, rgba(68, 255, 68, 0.4) 0%, transparent 70%);
+			background: radial-gradient(ellipse at center, oklch(from var(--primary) l c h / 0.4) 0%, transparent 70%);
 			border-radius: inherit;
 			pointer-events: none;
 			animation: healGlow 0.8s ease-out;
@@ -723,18 +723,19 @@ watch(() => props.enemyHealth, (newHealth) => {
 .character-icon {
 	width: 80px;
 	height: 80px;
-	background: var(--p-surface-50);
+	background: var(--p-content-background);
 	border-radius: 50%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-	border: 3px solid var(--p-primary-100);
+	border: 3px solid var(--p-primary-color);
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
 	i {
 		font-size: 3rem;
 		color: var(--p-primary-color);
+		opacity: 0.8;
 	}
 }
 
@@ -823,15 +824,15 @@ watch(() => props.enemyHealth, (newHealth) => {
 		}
 
 		&.hp-green {
-			background: linear-gradient(to bottom, #4fc14f, #3ea03e);
+			background: linear-gradient(to bottom, var(--p-green-500), var(--p-green-600));
 		}
 
 		&.hp-yellow {
-			background: linear-gradient(to bottom, #f0d033, #d4b02d);
+			background: linear-gradient(to bottom, var(--p-yellow-500), var(--p-yellow-600));
 		}
 
 		&.hp-red {
-			background: linear-gradient(to bottom, #f44336, #d32f2f);
+			background: linear-gradient(to bottom, var(--p-red-500), var(--p-red-600));
 			// Pulse animation for critical health
 			animation: criticalPulse 1.5s ease-in-out infinite;
 		}
@@ -846,7 +847,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 	}
 	50% {
 		filter: brightness(1.2);
-		box-shadow: 0 2px 8px rgba(244, 67, 54, 0.6);
+		box-shadow: 0 2px 8px var(--p-red-500);
 	}
 }
 
