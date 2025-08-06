@@ -66,7 +66,7 @@ const useAuth = () => {
 
 			store.setLoading( false);
 
-			utils.toast.success("Login successful", "center");
+			utils.toast.success("Login successful", "top-center");
 			router.push("/home");
 
 		} catch (e) {
