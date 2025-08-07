@@ -433,7 +433,9 @@ export class ColorSystem {
 	/**
 	 * Map to other UI libraries as needed
 	 */
-	private mapToOtherLibraries(colors: Record<string, string>): void {
+	private mapToOtherLibraries(colors: Record<string, string>) {
+		const _colors = colors;
+		return _colors;
 		// Future library mappings go here
 		// For example, if we add Material UI, Ant Design, etc.
 	}

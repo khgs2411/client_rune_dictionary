@@ -47,10 +47,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { motion } from 'motion-v';
 import type { Equipment } from '@/composables/useDamageCalculations';
-import { EQUIPMENT_TIERS } from '@/composables/useDamageCalculations';
+import { motion } from 'motion-v';
+import { computed } from 'vue';
 
 // Props
 interface Props {

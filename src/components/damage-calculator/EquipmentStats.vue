@@ -2,8 +2,8 @@
   <div class="text-sm">
     <!-- Equipment Tier -->
     <div class="flex items-center gap-2 mb-3" :class="tierClasses">
-      <span class="text-lg">{{ getEquipmentIcon(equipment) }}</span>
-      <span class="text-sm">{{ getTierName(equipment) }}</span>
+      <span class="text-lg">{{ getEquipmentIcon() }}</span>
+      <span class="text-sm">{{ getTierName() }}</span>
     </div>
 
     <!-- Individual Stats -->
@@ -39,9 +39,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
 import type { Equipment } from '@/composables/useDamageCalculations';
 import { EQUIPMENT_TIERS } from '@/composables/useDamageCalculations';
+import { computed } from 'vue';
 
 // Props
 interface Props {
@@ -80,7 +80,7 @@ const bonusClasses = computed(() => [
 ]);
 
 // Methods
-const getEquipmentIcon = (equipment: Equipment): string => {
+const getEquipmentIcon = (): string => {
   const tier = tierMap.value;
   const icons: Record<string, string> = {
     none: '🚫',
@@ -94,7 +94,7 @@ const getEquipmentIcon = (equipment: Equipment): string => {
   return icons[tier] || '❓';
 };
 
-const getTierName = (equipment: Equipment): string => {
+const getTierName = (): string => {
   const tier = tierMap.value;
   return tier.charAt(0).toUpperCase() + tier.slice(1);
 };
