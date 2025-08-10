@@ -1,5 +1,5 @@
 import { UseWebSocketOptions, UseWebSocketReturn } from "@vueuse/core";
-import { Lib, Rxjs, WebsocketEntityData, WebsocketStructuredMessage } from "topsyde-utils";
+import { E_WebsocketMessageType, Lib, Rxjs, WebsocketEntityData, WebsocketStructuredMessage } from "topsyde-utils";
 import { ref, Ref } from "vue";
 import { AutoReconnect, Heartbeat } from "../types/websocket.types";
 import useWSM, { I_UseWSM } from "./useWSM";
@@ -33,7 +33,7 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 		try {
 			const data: WebsocketStructuredMessage = JSON.parse(event.data);
 			const wsm$ = useWSM(data);
-
+			if (wsm$.type.value == E_WebsocketMessageType.PONG) return;
 			if (wsm$.isMessage.value) onMessageReceived(ws, event, wsm$);
 			else onActionReceived(ws, event, wsm$);
 		} catch (err) {
@@ -55,7 +55,6 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 	function handleConnected(ws: WebSocket) {
 		logMessage("Connected", ws);
 
-
 		const clientName = client.value?.name || "Guest";
 
 		messages.value.push({
@@ -73,11 +72,11 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 
 		// Track disconnect time for hot reload detection
 		lastDisconnectTime.value = Date.now();
-		Rxjs.Next('system', {
-			cta: 'disconnected',
-			data: {}
-		})
-		
+		Rxjs.Next("system", {
+			cta: "disconnected",
+			data: {},
+		});
+
 		// In dev mode, suppress disconnect messages for expected hot reload disconnects
 		if (!import.meta.env.DEV || event.code !== 1006) {
 			messages.value.push({
@@ -91,7 +90,6 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 				},
 				timestamp: new Date().toISOString(),
 			});
-			
 		}
 	}
 
