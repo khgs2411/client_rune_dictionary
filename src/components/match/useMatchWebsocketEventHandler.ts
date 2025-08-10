@@ -1,4 +1,4 @@
-import { Guards, NamespaceActions, Rxjs, WebsocketStructuredMessage } from "topsyde-utils";
+import { Guards, Lib, NamespaceActions, Rxjs, WebsocketStructuredMessage } from "topsyde-utils";
 import useAuth from "../../common/composables/useAuth";
 import usePrompt, { PromptChoice, PromptData } from "../../common/composables/usePrompt";
 import useUtils from "../../common/composables/useUtils";
@@ -22,7 +22,7 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 	function outputEvents(ws: WebsocketClient): NamespaceActions {
 		return {
 			"match.action": (data) => {
-				console.log("Attack action received:", data);
+				Lib.Log("Attack action received:", data);
 				if (Guards.IsNil(store.currentChannelId)) {
 					throw new Error("Cannot send action: No current channel ID");
 				}
@@ -56,13 +56,13 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 			metadata: wsm$.data,
 			callback: (choice: PromptChoice, data: PromptData<WebsocketStructuredMessage>) => {
 				if (!data.metadata) return;
-				console.log(choice, data.metadata);
+				Lib.Log(choice, data.metadata);
 			},
 		});
 	}
 
 	function onGameEvent(wsm$: I_UseWSM) {
-		console.log("Received game event:", wsm$.data);
+		Lib.Log("Received game event:", wsm$.data);
 
 		// Handle different game event types
 		switch (wsm$.data?.type) {
@@ -85,16 +85,24 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 			case "match.error":
 				handleMatchError(wsm$.data);
 				break;
+			case "match.state.update":
+				handleMatchStateUpdate(wsm$.data);
+				break;
 			default:
-				console.log("Unknown game event type:", wsm$.data?.type);
+				Lib.Log("Unknown game event type:", wsm$.data?.type);
 		}
+	}
+
+	function handleMatchStateUpdate(data: any) {
+		Lib.LogObject(data);
+		//todo: handle the match state update here, update the ui elements
 	}
 
 	/**
 	 * Handle damage dealt events from server
 	 */
 	function handleDamageDealt(data: any) {
-		console.log("Damage dealt:", data);
+		Lib.Log("Damage dealt:", data);
 
 		const { attackerId, targetId, damage, message } = data.content || data;
 		const currentUserId = auth$.client.value?.id;
@@ -109,14 +117,14 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 		const logType = attackerId === currentUserId ? "player" : "enemy";
 		Rxjs.Next("match", { cta: "onLogEntry", data: { type: logType, message } });
 
-		console.log(`${attackerId} dealt ${damage} damage to ${targetId}`);
+		Lib.Log(`${attackerId} dealt ${damage} damage to ${targetId}`);
 	}
 
 	/**
 	 * Handle health update events from server
 	 */
 	function handleHealthUpdate(data: any) {
-		console.log("Health update:", data);
+		Lib.Log("Health update:", data);
 
 		const { entityId, health, maxHealth } = data.content || data;
 		const currentUserId = auth$.client.value?.id;
@@ -134,14 +142,14 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 			Rxjs.Next("match", { cta: "onLogEntry", data: { type: "enemy", message: "Health updated" } });
 		}
 
-		console.log(`Health updated for ${entityId}: ${health}/${maxHealth}`);
+		Lib.Log(`Health updated for ${entityId}: ${health}/${maxHealth}`);
 	}
 
 	/**
 	 * Handle turn start events from server
 	 */
 	function handleTurnStart(data: any) {
-		console.log("Turn start:", data);
+		Lib.Log("Turn start:", data);
 
 		const { entityId, turnNumber } = data.content || data;
 		const currentUserId = auth$.client.value?.id;
@@ -159,26 +167,26 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 			Rxjs.Next("match", { cta: "onEnemyTurn", data: {} });
 		}
 
-		console.log(`Turn ${turnNumber} started for ${entityId}(${currentUserId})`);
+		Lib.Log(`Turn ${turnNumber} started for ${entityId}(${currentUserId})`);
 	}
 
 	/**
 	 * Handle turn end events from server
 	 */
 	function handleTurnEnd(data: any) {
-		console.log("Turn end:", data);
+		Lib.Log("Turn end:", data);
 
 		const { entityId, turnNumber } = data.content || data;
 		// Could add turn end animations or effects here
 
-		console.log(`Turn ${turnNumber} ended for ${entityId}`);
+		Lib.Log(`Turn ${turnNumber} ended for ${entityId}`);
 	}
 
 	/**
 	 * Handle victory events from server
 	 */
 	function handleVictory(data: any) {
-		console.log("Victory event:", data);
+		Lib.Log("Victory event:", data);
 
 		const { result, winnerId, message } = data.content || data;
 		const currentUserId = auth$.client.value?.id;
@@ -198,14 +206,14 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 			message,
 		});
 
-		console.log(`Victory: ${result}, Winner: ${winnerId}`);
+		Lib.Log(`Victory: ${result}, Winner: ${winnerId}`);
 	}
 
 	/**
 	 * Handle match error events from server
 	 */
 	function handleMatchError(data: any) {
-		console.log("Match error:", data);
+		Lib.Log("Match error:", data);
 
 		const { error, entityId } = data.content || data;
 		const currentUserId = auth$.client.value?.id;
@@ -222,7 +230,7 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 	 * Handle match end events
 	 */
 	function handleMatchEnd(data: any) {
-		console.log("Match ended:", data);
+		Lib.Log("Match ended:", data);
 
 		// Calculate match duration
 		const startTime = store.gameState.matchStartTime;
@@ -261,7 +269,7 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 			utils.toast.info(resultMessage, "bottom-right");
 		}
 
-		console.log("Match result:", matchResult);
+		Lib.Log("Match result:", matchResult);
 	}
 
 	/**
@@ -303,7 +311,7 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 	async function saveMatchResult(result: MatchResult) {
 		try {
 			// TODO: Integrate with MongoDB to save match statistics
-			console.log("Saving match result to database:", result);
+			Lib.Log("Saving match result to database:", result);
 
 			// This will be implemented when backend MongoDB integration is ready
 			// await api.saveMatchResult(auth$.client.value.id, result);
