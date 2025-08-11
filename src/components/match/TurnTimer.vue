@@ -9,7 +9,7 @@
 			</div>
 			
 			<!-- ATB Timer Bar -->
-			<div class="atb-timer-bar">
+			<div class="atb-timer-bar" :class="{ 'heartbeat': isActive && !isExpired }">
 				<!-- Background Bar -->
 				<div class="atb-timer-background"></div>
 				
@@ -43,14 +43,57 @@
 		
 		<!-- Warning Pulse Background -->
 		<div v-if="isWarning || isCritical" class="atb-timer-pulse"></div>
+		
+		<!-- Sparkle effects for different states -->
+		<SparkleEffect
+			v-if="isActive && !isExpired && !isCritical"
+			:count="8"
+			:types="['dot', 'star']"
+			:pattern="'stream'"
+			:color="progressColor"
+			:speed="1.5"
+			:size-range="{ min: 2, max: 5 }"
+			:glow="true"
+			:density="6"
+			:sync-with-timer="true"
+		/>
+		
+		<!-- Critical state sparkles -->
+		<SparkleEffect
+			v-if="isCritical && !isExpired"
+			:count="15"
+			:types="['star', 'diamond', 'streak']"
+			:pattern="'burst'"
+			:color="colorSystem.getColor('destructive')"
+			:speed="2"
+			:size-range="{ min: 3, max: 8 }"
+			:glow="true"
+			:density="8"
+			:continuous="true"
+			:sync-with-timer="true"
+		/>
+		
+		<!-- Expired celebration -->
+		<SparkleEffect
+			v-if="isExpired"
+			:count="20"
+			:types="['star', 'diamond']"
+			:pattern="'pulse'"
+			:color="'oklch(0.969 0.188 70.08)'"
+			:speed="3"
+			:size-range="{ min: 4, max: 10 }"
+			:glow="true"
+			:density="10"
+			:sync-with-timer="true"
+		/>
 	</div>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
-import { motion } from 'motion-v';
+import { computed, ref, watch } from 'vue';
 import { colorSystem } from '../../utils/color-system';
 import { getCSSVariable, rpgTokens } from '../../utils/theme-utils';
+import SparkleEffect from '../effects/SparkleEffect.vue';
 
 interface Props {
 	/** Current time remaining in milliseconds */
@@ -76,8 +119,7 @@ const props = withDefaults(defineProps<Props>(), {
 	size: 'md',
 });
 
-// Refs
-const timerElement = ref<HTMLElement>();
+// No refs needed - all animations are CSS-based
 
 // Computed values for ATB-style depleting bar
 const remainingPercentage = computed(() => {
@@ -142,64 +184,13 @@ const timerIcon = computed(() => {
 	return 'pi-hourglass';
 });
 
-// Animation and effects
-watch(isCritical, (newValue) => {
-	if (newValue && timerElement.value) {
-		// Trigger critical animation
-		motion(timerElement.value, {
-			scale: [1, 1.05, 1],
-			transition: { duration: 0.333, ease: 'easeOut' } // Match WebSocket timing
-		});
-	}
-});
+// State changes trigger CSS animations automatically through class changes
 
-watch(isExpired, (newValue) => {
-	if (newValue && timerElement.value) {
-		// Trigger completion animation
-		motion(timerElement.value, {
-			scale: [1, 1.1, 0.95, 1],
-			transition: { duration: 0.666, ease: 'backOut' } // 2x 333ms for completion
-		});
-	}
-});
+// CSS animations handle all visual transitions
 
-// Pulse effect for critical state
-const pulseAnimation = ref<any>();
+// Pulse effects are handled by CSS animations
 
-watch(isCritical, (newValue) => {
-	if (newValue && timerElement.value) {
-		pulseAnimation.value = motion(timerElement.value, {
-			boxShadow: [
-				`0 0 0 0 ${colorSystem.getColor('destructive')}40`,
-				`0 0 0 20px ${colorSystem.getColor('destructive')}00`,
-			],
-			transition: {
-				duration: 0.999, // 3x 333ms
-				repeat: Infinity,
-				ease: 'easeOut'
-			}
-		});
-	} else if (pulseAnimation.value) {
-		pulseAnimation.value.stop();
-	}
-});
-
-onMounted(() => {
-	// Initial entrance animation
-	if (timerElement.value) {
-		motion(timerElement.value, {
-			scale: [0.8, 1],
-			opacity: [0, 1],
-			transition: { duration: 0.333, ease: 'backOut' } // Perfect WebSocket sync
-		});
-	}
-});
-
-onUnmounted(() => {
-	if (pulseAnimation.value) {
-		pulseAnimation.value.stop();
-	}
-});
+// Component lifecycle hooks not needed for CSS animations
 </script>
 
 <style lang="scss" scoped>
@@ -361,7 +352,7 @@ onUnmounted(() => {
 	}
 }
 
-// Inner glow effect
+// Inner glow effect with animation
 .atb-timer-glow {
 	position: absolute;
 	top: 0;
@@ -374,6 +365,16 @@ onUnmounted(() => {
 		transparent
 	);
 	border-radius: 6px 6px 0 0;
+	animation: glow-shimmer 2.664s ease-in-out infinite; // 8x 333ms
+}
+
+@keyframes glow-shimmer {
+	0%, 100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.7;
+	}
 }
 
 // Segmented lines (like FF/Chrono Trigger)
@@ -479,6 +480,21 @@ onUnmounted(() => {
 	}
 }
 
+// Heartbeat animation for active timer
+@keyframes heartbeat {
+	0%, 100% {
+		transform: scaleY(1);
+	}
+	50% {
+		transform: scaleY(1.02);
+	}
+}
+
+.atb-timer-bar.heartbeat {
+	animation: heartbeat 1.332s ease-in-out infinite; // 4x 333ms
+	transform-origin: center;
+}
+
 // Animations
 @keyframes critical-glow {
 	0%, 100% {
@@ -566,6 +582,45 @@ onUnmounted(() => {
 	}
 }
 
+// Sparkle effects
+.sparkle-container {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	overflow: hidden;
+}
+
+.sparkle {
+	position: absolute;
+	width: 4px;
+	height: 4px;
+	background: radial-gradient(circle, rgba(255, 255, 255, 0.9), transparent);
+	border-radius: 50%;
+	animation: sparkle-move 2.664s linear infinite; // 8x 333ms
+}
+
+@keyframes sparkle-move {
+	0% {
+		left: -4px;
+		top: 50%;
+		opacity: 0;
+		transform: translateY(-50%) scale(0);
+	}
+	10% {
+		opacity: 1;
+		transform: translateY(-50%) scale(1);
+	}
+	90% {
+		opacity: 1;
+		transform: translateY(-50%) scale(1);
+	}
+	100% {
+		left: calc(100% + 4px);
+		opacity: 0;
+		transform: translateY(-50%) scale(0);
+	}
+}
+
 // Small mobile (below 640px)
 @include breakpoint-down("sm") {
 	.atb-timer {
@@ -604,7 +659,7 @@ onUnmounted(() => {
 // Reduced motion support
 @media (prefers-reduced-motion: reduce) {
 	.atb-timer-fill {
-		transition: width 0.333s linear !important; // Still sync with WebSocket, but linear
+		transition: width 0.333s cubic-bezier(0.4, 0, 0.6, 1) !important; // Smooth easing
 	}
 	
 	.timer-critical .atb-timer-fill,
