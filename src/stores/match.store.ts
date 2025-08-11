@@ -19,6 +19,7 @@ export interface GameState {
 	currentTurn: "player" | "enemy";
 	actionsPerformed: number;
 	matchStartTime: Date | null;
+	turnCounter:number;
 }
 
 export const useMatchStore = defineStore(
@@ -39,6 +40,7 @@ export const useMatchStore = defineStore(
 			currentTurn: "player",
 			actionsPerformed: 0,
 			matchStartTime: null,
+			turnCounter: 0,
 		});
 
 		// Match history for this session
