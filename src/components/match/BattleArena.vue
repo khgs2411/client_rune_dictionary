@@ -982,15 +982,13 @@ watch(() => props.enemyHealth, (newHealth) => {
 	justify-content: center;
 	align-items: center;
 	width: 100%;
-	max-width: 300px; // Match timer component max-width
+	// Remove max-width since timer component now has fixed width
 	
 	@include breakpoint-down("md") {
-		max-width: 260px;
 		margin-top: 6px;
 	}
 	
 	@include breakpoint-down("sm") {
-		max-width: 100%;
 		margin-top: 8px;
 	}
 }

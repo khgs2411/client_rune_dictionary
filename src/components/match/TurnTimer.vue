@@ -205,16 +205,15 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 @use "../../assets/css/styles/mixins/_breakpoints" as *;
 
-// ATB Timer Container
+// ATB Timer Container - Fixed width for consistency
 .atb-timer {
 	position: relative;
 	display: block;
-	width: 100%;
-	max-width: 300px;
+	// Fixed width for all screen sizes
+	width: 280px; // Default desktop width
 	
-	// Size variants
+	// Size variants are now ignored for width, only affect height/font
 	&.timer-sm {
-		max-width: 240px;
 		.atb-timer-bar {
 			height: 12px;
 		}
@@ -227,7 +226,6 @@ onUnmounted(() => {
 	}
 	
 	&.timer-lg {
-		max-width: 360px;
 		.atb-timer-bar {
 			height: 20px;
 		}
@@ -243,6 +241,9 @@ onUnmounted(() => {
 .atb-timer-container {
 	position: relative;
 	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center; // Center the fixed-width timer
 }
 
 // ATB Timer Label (above bar)
@@ -257,7 +258,7 @@ onUnmounted(() => {
 .timer-text {
 	font-size: 0.7rem;
 	font-weight: 600;
-	color: var(--foreground);
+	color: var(--p-text-color);
 	text-transform: uppercase;
 	letter-spacing: 0.1em;
 	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -275,7 +276,7 @@ onUnmounted(() => {
 .timer-seconds {
 	font-size: 0.8rem;
 	font-weight: 700;
-	color: var(--muted-foreground);
+	color: var(--p-text-muted-color);
 	font-variant-numeric: tabular-nums;
 	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 	
@@ -300,7 +301,7 @@ onUnmounted(() => {
 		rgba(0, 0, 0, 0.3),
 		rgba(0, 0, 0, 0.1)
 	);
-	border: 2px solid var(--border);
+	border: 2px solid var(--p-content-border-color);
 	box-shadow: 
 		inset 0 2px 4px rgba(0, 0, 0, 0.3),
 		0 2px 4px rgba(0, 0, 0, 0.1);
@@ -312,7 +313,7 @@ onUnmounted(() => {
 	inset: 0;
 	background: 
 		linear-gradient(45deg, transparent 25%, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.05) 50%, transparent 50%, transparent 75%, rgba(255, 255, 255, 0.05) 75%),
-		linear-gradient(to bottom, var(--muted), var(--muted-foreground));
+		linear-gradient(to bottom, var(--p-surface-300), var(--p-surface-400));
 	background-size: 8px 8px, 100% 100%;
 	opacity: 0.3;
 }
@@ -325,13 +326,13 @@ onUnmounted(() => {
 	height: 100%;
 	background: linear-gradient(
 		to bottom,
-		var(--primary),
-		oklch(from var(--primary) calc(l - 0.1) c h)
+		var(--p-primary-color),
+		oklch(from var(--p-primary-color) calc(l - 0.1) c h)
 	);
 	border-radius: 6px;
 	box-shadow: 
 		inset 0 1px 0 rgba(255, 255, 255, 0.3),
-		0 0 8px oklch(from var(--primary) l c h / 0.5);
+		0 0 8px oklch(from var(--p-primary-color) l c h / 0.5);
 	overflow: hidden;
 	
 	// Color transitions
@@ -399,8 +400,8 @@ onUnmounted(() => {
 	transform: translateY(-50%);
 	width: 20px;
 	height: 20px;
-	background: var(--card);
-	border: 2px solid var(--border);
+	background: var(--p-content-background);
+	border: 2px solid var(--p-content-border-color);
 	border-radius: 50%;
 	display: flex;
 	align-items: center;
@@ -409,7 +410,7 @@ onUnmounted(() => {
 	
 	i {
 		font-size: 0.7rem;
-		color: var(--foreground);
+		color: var(--p-text-color);
 	}
 	
 	.timer-warning & {
@@ -453,7 +454,7 @@ onUnmounted(() => {
 	border-radius: 12px;
 	background: radial-gradient(
 		ellipse,
-		var(--primary) 0%,
+		var(--p-primary-color) 0%,
 		transparent 70%
 	);
 	opacity: 0.2;
@@ -533,10 +534,17 @@ onUnmounted(() => {
 	}
 }
 
-// Mobile optimizations
-@include breakpoint-down("sm") {
+// Tablet optimizations (768px - 1023px)
+@include breakpoint-between("md", "lg") {
 	.atb-timer {
-		max-width: 100%;
+		width: 260px; // Slightly smaller for tablets
+	}
+}
+
+// Mobile optimizations (below 768px)
+@include breakpoint-down("md") {
+	.atb-timer {
+		width: 240px; // Compact width for mobile
 	}
 	
 	.timer-text,
@@ -558,10 +566,26 @@ onUnmounted(() => {
 	}
 }
 
+// Small mobile (below 640px)
+@include breakpoint-down("sm") {
+	.atb-timer {
+		width: 220px; // Even more compact for small phones
+	}
+	
+	.timer-text,
+	.timer-seconds {
+		font-size: 0.6rem;
+	}
+	
+	.atb-timer-bar {
+		height: 12px;
+	}
+}
+
 // Dark mode enhancements
 @media (prefers-color-scheme: dark) {
 	.atb-timer-bar {
-		border-color: oklch(from var(--border) l c h / 0.5);
+		border-color: oklch(from var(--p-content-border-color) l c h / 0.5);
 		box-shadow: 
 			inset 0 2px 4px rgba(0, 0, 0, 0.5),
 			0 2px 8px rgba(0, 0, 0, 0.3);
