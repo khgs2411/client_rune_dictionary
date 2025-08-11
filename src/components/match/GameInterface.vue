@@ -9,7 +9,10 @@
 			:enemy-name="enemyName"
 			:is-player-turn="isPlayerTurn"
 			:is-enemy-turn="isEnemyTurn"
-			:is-processing-action="isProcessingAction" />
+			:is-processing-action="isProcessingAction"
+			:timer-remaining="timerRemaining"
+			:timer-duration="timerDuration"
+			:timer-active="timerActive" />
 		
 		<!-- Game Actions for controls and action buttons -->
 		<GameActions
@@ -44,6 +47,10 @@ defineProps<{
 		message: string;
 		timestamp: Date;
 	}>;
+	// Timer props
+	timerRemaining?: number;
+	timerDuration?: number;
+	timerActive?: boolean;
 }>();
 
 defineEmits<{

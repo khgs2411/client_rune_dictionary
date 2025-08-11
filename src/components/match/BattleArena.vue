@@ -8,7 +8,7 @@
 			</div>
 		</div>
 
-		<!-- Turn Indicator -->
+		<!-- Turn Indicator with Timer -->
 		<div class="turn-indicator" :class="{ 'player-turn': isPlayerTurn, 'enemy-turn': isEnemyTurn }">
 			<div class="turn-badge">
 				<i class="pi" :class="isPlayerTurn ? 'pi-user' : 'pi-android'"></i>
@@ -16,6 +16,17 @@
 					{{ isPlayerTurn ? 'Your Turn' : `${enemyName}'s Turn` }}
 				</span>
 				<span class="turn-number">Turn {{ displayTurnNumber }}</span>
+			</div>
+			
+			<!-- ATB Turn Timer -->
+			<div class="turn-timer-container">
+				<TurnTimer
+					:time-remaining="timerRemaining"
+					:duration="timerDuration"
+					:is-active="timerActive"
+					:size="isMobile ? 'sm' : 'md'"
+					:label="timerLabel"
+				/>
 			</div>
 		</div>
 
@@ -101,6 +112,7 @@
 <script lang="ts" setup>
 import Card from "primevue/card";
 import { computed, ref, watch } from "vue";
+import TurnTimer from "./TurnTimer.vue";
 
 interface Props {
 	playerName?: string;
@@ -115,6 +127,10 @@ interface Props {
 	isEnemyTurn: boolean;
 	isProcessingAction: boolean;
 	currentTurn?: number;
+	// Timer props
+	timerRemaining?: number;
+	timerDuration?: number;
+	timerActive?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -122,6 +138,10 @@ const props = withDefaults(defineProps<Props>(), {
 	playerLevel: 50,
 	enemyLevel: 48,
 	currentTurn: 1,
+	// Timer defaults
+	timerRemaining: 5000,
+	timerDuration: 5000,
+	timerActive: false,
 });
 
 // No emits needed anymore - moved to GameActions component
@@ -155,6 +175,20 @@ watch(() => props.isPlayerTurn, (newVal) => {
 
 // Use computed to ensure reactivity
 const displayTurnNumber = computed(() => turnNumber.value);
+
+// Mobile detection
+const isMobile = ref(window.innerWidth <= 768);
+window.addEventListener('resize', () => {
+	isMobile.value = window.innerWidth <= 768;
+});
+
+// Timer computed properties
+const timerLabel = computed(() => {
+	if (!props.timerActive) return '';
+	if (props.timerRemaining <= 1000) return 'Now!';
+	if (props.isProcessingAction) return 'Wait';
+	return '';
+});
 
 // Damage animation states
 const playerTakingDamage = ref(false);
@@ -330,6 +364,10 @@ watch(() => props.enemyHealth, (newHealth) => {
 	transform: translateX(-50%);
 	z-index: 10;
 	transition: all 0.3s ease;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
 
 	.turn-badge {
 		display: flex;
@@ -935,6 +973,25 @@ watch(() => props.enemyHealth, (newHealth) => {
 
 	.action-panel {
 		bottom: 10px;
+	}
+}
+
+// ATB Turn Timer Container
+.turn-timer-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	max-width: 300px; // Match timer component max-width
+	
+	@include breakpoint-down("md") {
+		max-width: 260px;
+		margin-top: 6px;
+	}
+	
+	@include breakpoint-down("sm") {
+		max-width: 100%;
+		margin-top: 8px;
 	}
 }
 </style>

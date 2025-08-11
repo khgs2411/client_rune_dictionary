@@ -22,6 +22,9 @@
 					:is-enemy-turn="isEnemyTurn"
 					:is-processing-action="isProcessingAction"
 					:game-log="gameLog"
+					:timer-remaining="timerRemaining"
+					:timer-duration="timerDuration"
+					:timer-active="timerActive"
 					@leave-match="handleReturnToLobby"
 					@attack="perfornAction('attack')"
 					@open-settings="handleOpenSettings"
@@ -56,10 +59,17 @@ const isProcessingAction = ref(false);
 const gameLog = ref<Array<{ type: string; message: string; timestamp: Date }>>([]);
 const currentMatchType = ref<MatchType | null>(null);
 
+// Timer state - placeholder values for now, will be connected to WebSocket events
+const timerRemaining = ref(5000); // 5 seconds in milliseconds
+const timerDuration = ref(5000);
+const timerActive = ref(false);
+
 useRxjs("match", {
 	onPlayerTurn: switchToPlayerTurn,
 	onEnemyTurn: switchToEnemyTurn,
 	onLogEntry: addLogEntry,
+	onTimerUpdate: updateTimer,
+	onTimerExpired: handleTimerExpired,
 });
 
 const matchCards = ref<MatchCard[]>([
@@ -126,11 +136,16 @@ function initializeGameState() {
 	isProcessingAction.value = false;
 	gameLog.value = [];
 
+	// Initialize timer state
+	timerRemaining.value = 5000;
+	timerDuration.value = 5000;
+	timerActive.value = false; // Will be activated by server events
+
 	// Set up callbacks for server event integration
 	console.log("Set up callbacks for server event integration");
 
 	// Add initial log entry
-	addLogEntry({ type: "system", message: "Match started! It's your turn." });
+	addLogEntry({ type: "system", message: "Match started! Waiting for server to start first turn..." });
 }
 
 /**
@@ -185,23 +200,57 @@ async function perfornAction(type: string) {
 	// Note: isProcessingAction.value will be set to false when server responds with turn events
 }
 
-/**
- * Switch to enemy turn - Now controlled by server events
- */
-function switchToEnemyTurn() {
-	isPlayerTurn.value = false;
-	isEnemyTurn.value = true;
-	addLogEntry({ type: "system", message: `${getEnemyName()}'s turn...` });
-}
 
 /**
  * Switch to player turn - Now controlled by server events
  */
-function switchToPlayerTurn() {
+function switchToPlayerTurn(data?: { turnNumber?: number }) {
 	isPlayerTurn.value = true;
 	isEnemyTurn.value = false;
 	isProcessingAction.value = false; // Reset processing state when it's player's turn
-	addLogEntry({ type: "system", message: "Your turn!" });
+	timerActive.value = true; // Activate timer when turn starts
+	
+	const turnMsg = data?.turnNumber ? `Your turn! (Turn ${data.turnNumber})` : "Your turn!";
+	addLogEntry({ type: "system", message: turnMsg });
+}
+
+/**
+ * Switch to enemy turn - Now controlled by server events
+ */
+function switchToEnemyTurn(data?: { turnNumber?: number }) {
+	isPlayerTurn.value = false;
+	isEnemyTurn.value = true;
+	timerActive.value = true; // Keep timer active for enemy turns too (for UI consistency)
+	
+	const turnMsg = data?.turnNumber ? `${getEnemyName()}'s turn... (Turn ${data.turnNumber})` : `${getEnemyName()}'s turn...`;
+	addLogEntry({ type: "system", message: turnMsg });
+}
+
+/**
+ * Timer event handlers - Connected to WebSocket events from handleMatchStateUpdate
+ */
+function updateTimer(data: { remaining: number; elapsed: number; percentage: number; duration: number }) {
+	// Validate timer data
+	if (typeof data.remaining !== 'number' || typeof data.duration !== 'number') {
+		console.warn('Invalid timer update data:', data);
+		return;
+	}
+	
+	timerRemaining.value = Math.max(0, data.remaining);
+	timerDuration.value = data.duration;
+	
+	// Ensure timer is active if we're receiving updates
+	if (!timerActive.value && data.remaining > 0) {
+		timerActive.value = true;
+	}
+}
+
+function handleTimerExpired(data?: { turnNumber?: number; entityId?: string }) {
+	timerActive.value = false;
+	timerRemaining.value = 0;
+	
+	const turnMsg = data?.turnNumber ? `Turn ${data.turnNumber}` : "Current turn";
+	addLogEntry({ type: "system", message: `${turnMsg}: Time's up! Automatic PASS action.` });
 }
 
 // Note: Match end is now handled exclusively by server authority

@@ -95,7 +95,111 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 
 	function handleMatchStateUpdate(data: any) {
 		Lib.LogObject(data);
-		//todo: handle the match state update here, update the ui elements
+		
+		// Validate input data structure
+		if (!data || typeof data !== 'object') {
+			console.warn('Invalid match state update data:', data);
+			return;
+		}
+
+		const content = data.content;
+		if (!content || typeof content !== 'object') {
+			console.warn('Invalid match state update content:', content);
+			return;
+		}
+
+		const gameState = content.gameState;
+		if (!gameState || typeof gameState !== 'object') {
+			console.warn('Invalid game state in match update:', gameState);
+			return;
+		}
+
+		// Handle turn updates
+		if (gameState.currentTurnEntityId && gameState.turnCounter) {
+			const currentUserId = auth$.client.value?.id;
+			
+			// Update game state turn counter
+			if (typeof gameState.turnCounter === 'number') {
+				store.gameState.turnCounter = gameState.turnCounter;
+			}
+
+			// Dispatch turn events based on entity
+			if (gameState.currentTurnEntityId === currentUserId) {
+				// It's the player's turn
+				Rxjs.Next("match", { 
+					cta: "onPlayerTurn", 
+					data: { turnNumber: gameState.turnCounter } 
+				});
+			} else {
+				// It's the enemy's turn
+				Rxjs.Next("match", { 
+					cta: "onEnemyTurn", 
+					data: { turnNumber: gameState.turnCounter } 
+				});
+			}
+		}
+
+		// Handle timer updates
+		if (gameState.timer && typeof gameState.timer === 'object') {
+			const timer = gameState.timer;
+			
+			// Validate timer properties
+			if (typeof timer.remaining === 'number' && 
+			    typeof timer.elapsed === 'number' && 
+			    typeof timer.percentage === 'number' && 
+			    typeof timer.duration === 'number') {
+				
+				// Dispatch timer update event
+				Rxjs.Next("match", {
+					cta: "onTimerUpdate",
+					data: {
+						remaining: Math.max(0, timer.remaining),
+						elapsed: timer.elapsed,
+						percentage: Math.max(0, Math.min(100, timer.percentage)),
+						duration: timer.duration
+					}
+				});
+
+				// If timer has expired (remaining <= 0), dispatch timer expired event
+				if (timer.remaining <= 0) {
+					Rxjs.Next("match", {
+						cta: "onTimerExpired",
+						data: {
+							turnNumber: gameState.turnCounter || 0,
+							entityId: gameState.currentTurnEntityId
+						}
+					});
+				}
+			} else {
+				console.warn('Invalid timer data in match state update:', timer);
+			}
+		}
+
+		// Handle other game state updates (health, etc.)
+		if (gameState.entities && Array.isArray(gameState.entities)) {
+			const currentUserId = auth$.client.value?.id;
+			
+			gameState.entities.forEach((entity: any) => {
+				if (entity && typeof entity === 'object' && entity.id) {
+					if (entity.id === currentUserId) {
+						// Update player health if provided
+						if (typeof entity.health === 'number' && typeof entity.maxHealth === 'number') {
+							store.gameState.playerHealth = entity.health;
+							store.gameState.playerMaxHealth = entity.maxHealth;
+						}
+					} else {
+						// Update enemy health if provided
+						if (typeof entity.health === 'number' && typeof entity.maxHealth === 'number') {
+							store.gameState.enemyHealth = entity.health;
+							store.gameState.enemyMaxHealth = entity.maxHealth;
+						}
+					}
+				}
+			});
+		}
+
+		// Log successful processing
+		Lib.Log(`Match state updated - Turn: ${gameState.turnCounter}, Timer: ${gameState.timer?.remaining}ms remaining`);
 	}
 
 	/**
