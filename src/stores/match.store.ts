@@ -19,7 +19,7 @@ export interface GameState {
 	currentTurn: "player" | "enemy";
 	actionsPerformed: number;
 	matchStartTime: Date | null;
-	turnCounter:number;
+	turnCounter: number;
 }
 
 export const useMatchStore = defineStore(
@@ -33,10 +33,10 @@ export const useMatchStore = defineStore(
 		// Enhanced match data
 		const matchResult = ref(<MatchResult | null>null);
 		const gameState = ref(<GameState>{
-			playerHealth: 100,
-			enemyHealth: 100,
-			playerMaxHealth: 100,
-			enemyMaxHealth: 100,
+			playerHealth: 10,
+			enemyHealth: 10,
+			playerMaxHealth: 10,
+			enemyMaxHealth: 10,
 			currentTurn: "player",
 			actionsPerformed: 0,
 			matchStartTime: null,

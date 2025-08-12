@@ -65,10 +65,10 @@ const useMatch = () => {
 	 */
 	function initializeGameState() {
 		store.gameState = {
-			playerHealth: 100,
-			enemyHealth: 100,
-			playerMaxHealth: 100,
-			enemyMaxHealth: 100,
+			playerHealth: 10,
+			enemyHealth: 10,
+			playerMaxHealth: 10,
+			enemyMaxHealth: 10,
 			currentTurn: "player",
 			actionsPerformed: 0,
 			matchStartTime: new Date(),
@@ -140,10 +140,10 @@ const useMatch = () => {
 
 		// Keep match result for UI display but reset game state
 		store.gameState = {
-			playerHealth: 100,
-			enemyHealth: 100,
-			playerMaxHealth: 100,
-			enemyMaxHealth: 100,
+			playerHealth: 10,
+			enemyHealth: 10,
+			playerMaxHealth: 10,
+			enemyMaxHealth: 10,
 			currentTurn: "player",
 			actionsPerformed: 0,
 			matchStartTime: null,
@@ -187,8 +187,8 @@ const useMatch = () => {
 			store.matchResult = {
 				result: "loading",
 				duration: 0,
-				playerHealth: 100,
-				enemyHealth: 100,
+				playerHealth: 10,
+				enemyHealth: 10,
 				actionsPerformed: 0,
 				timestamp: new Date(),
 			};
