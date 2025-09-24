@@ -35,9 +35,9 @@ bun run format:check # Check formatting without fixing
 
 ### UI Libraries & Styling
 - **PrimeVue 4.3.2** as primary component library with Aura theme
-- **Reka UI** for additional components
-- **Tailwind CSS 4.0** for utility-first styling
-- **shadcn-vue** for modern component patterns
+- **Reka UI** DEPRECATED DO NOT USE REPLACE WITH PRIMEVUE NATIVE ELEMENTS!!! ~for additional components~
+- **Tailwind CSS 4.0** DEPRECATED DO NOT USE REPLACE WITH PRIMEVUE NATIVE ELEMENTS for utility-first styling
+- **shadcn-vue** DEPRECATED DO NOT USE REPLACE WITH PRIMEVUE NATIVE ELEMENTS for modern component patterns
 - **Custom Centralized Color System** (see COLOR_SYSTEM.md)
 
 ### Key Architectural Patterns

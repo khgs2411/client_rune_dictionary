@@ -141,13 +141,6 @@ const items: ComputedRef<Record<string, any>[]> = computed(() => [
 		visible: true,
 		class: router.currentRoute.value.name === "damage-calculator" ? "p-menubar-item-active" : "",
 	},
-	{
-		label: "Animations",
-		icon: "pi pi-fw pi-sparkles",
-		command: () => router.push("/animations"),
-		visible: auth.authorized.value,
-		class: router.currentRoute.value.name === "animations" ? "p-menubar-item-active" : "",
-	},
 ]);
 
 const darkMode = computed(() => store.darkMode);

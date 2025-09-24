@@ -28,7 +28,7 @@
 		"primevue": "^4.3.2",
 		"reka-ui": "^2.4.1",
 		"tailwindcss-animate": "^1.0.7",
-		"topsyde-utils": "^1.0.191",
+		"topsyde-utils": "^1.0.194",
 		"vue": "^3.5.13",
 		"vue-router": "^4.5.0"
 	},

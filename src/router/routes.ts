@@ -8,7 +8,6 @@
 			{ path: "app", name: "app", component: () => import("../views/Dictionary.vue") },
 			{ path: "dictionary", name: "dictionary", component: () => import("../views/Dictionary.vue") },
 			{ path: "match", name: "match", component: () => import("../views/Match.vue") },
-			{ path: "animations", name: "animations", component: () => import("../components/demo/AnimationShowcase.vue") },
 			{ path: "damage-calculator", name: "damage-calculator", component: () => import("../views/DamageCalculator.vue") },
 		],
 	},
