@@ -1,3 +1,4 @@
+import { IMatchParticipant } from "@/common/types/match.types";
 import { Entity } from "../common/types/types";
 import BaseAPI from "./api.base";
 
@@ -14,6 +15,9 @@ export default class MatchAPI extends BaseAPI {
 				whoami: Entity;
 				matchId: string;
 				channelId: string;
+				match: {
+					_entities: IMatchParticipant[];
+				}
 			};
 		}>("pve", { whoami });
 		BaseAPI.Status(response);

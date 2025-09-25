@@ -64,6 +64,10 @@ const timerRemaining = ref(5000); // 5 seconds in milliseconds
 const timerDuration = ref(5000);
 const timerActive = ref(false);
 
+/**
+ * These are event listeners for UI state updates based on server events
+ * Actual game logic and state changes are server authoritative and are handled in useMatchWebsocketEventHandler.ts
+ */
 useRxjs("match", {
 	onPlayerTurn: switchToPlayerTurn,
 	onEnemyTurn: switchToEnemyTurn,
@@ -200,7 +204,6 @@ async function perfornAction(type: string) {
 	// Note: isProcessingAction.value will be set to false when server responds with turn events
 }
 
-
 /**
  * Switch to player turn - Now controlled by server events
  */
@@ -209,7 +212,7 @@ function switchToPlayerTurn(data?: { turnNumber?: number }) {
 	isEnemyTurn.value = false;
 	isProcessingAction.value = false; // Reset processing state when it's player's turn
 	timerActive.value = true; // Activate timer when turn starts
-	
+
 	const turnMsg = data?.turnNumber ? `Your turn! (Turn ${data.turnNumber})` : "Your turn!";
 	addLogEntry({ type: "system", message: turnMsg });
 }
@@ -221,7 +224,7 @@ function switchToEnemyTurn(data?: { turnNumber?: number }) {
 	isPlayerTurn.value = false;
 	isEnemyTurn.value = true;
 	timerActive.value = true; // Keep timer active for enemy turns too (for UI consistency)
-	
+
 	const turnMsg = data?.turnNumber ? `${getEnemyName()}'s turn... (Turn ${data.turnNumber})` : `${getEnemyName()}'s turn...`;
 	addLogEntry({ type: "system", message: turnMsg });
 }
@@ -231,14 +234,14 @@ function switchToEnemyTurn(data?: { turnNumber?: number }) {
  */
 function updateTimer(data: { remaining: number; elapsed: number; percentage: number; duration: number }) {
 	// Validate timer data
-	if (typeof data.remaining !== 'number' || typeof data.duration !== 'number') {
-		console.warn('Invalid timer update data:', data);
+	if (typeof data.remaining !== "number" || typeof data.duration !== "number") {
+		console.warn("Invalid timer update data:", data);
 		return;
 	}
-	
+
 	timerRemaining.value = Math.max(0, data.remaining);
 	timerDuration.value = data.duration;
-	
+
 	// Ensure timer is active if we're receiving updates
 	if (!timerActive.value && data.remaining > 0) {
 		timerActive.value = true;
@@ -248,7 +251,7 @@ function updateTimer(data: { remaining: number; elapsed: number; percentage: num
 function handleTimerExpired(data?: { turnNumber?: number; entityId?: string }) {
 	timerActive.value = false;
 	timerRemaining.value = 0;
-	
+
 	const turnMsg = data?.turnNumber ? `Turn ${data.turnNumber}` : "Current turn";
 	addLogEntry({ type: "system", message: `${turnMsg}: Time's up! Automatic PASS action.` });
 }

@@ -94,8 +94,6 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 	}
 
 	function handleMatchStateUpdate(data: any) {
-		Lib.LogObject(data);
-		
 		// Validate input data structure
 		if (!data || typeof data !== 'object') {
 			console.warn('Invalid match state update data:', data);
