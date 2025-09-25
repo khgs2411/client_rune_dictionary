@@ -37,14 +37,13 @@ bun run format:check # Check formatting without fixing
 - **PrimeVue 4.3.2** as primary component library with Aura theme
 - **Reka UI** DEPRECATED DO NOT USE REPLACE WITH PRIMEVUE NATIVE ELEMENTS!!! ~for additional components~
 - **Tailwind CSS 4.0** DEPRECATED DO NOT USE REPLACE WITH PRIMEVUE NATIVE ELEMENTS for utility-first styling
-- **shadcn-vue** DEPRECATED DO NOT USE REPLACE WITH PRIMEVUE NATIVE ELEMENTS for modern component patterns
 - **Custom Centralized Color System** (see COLOR_SYSTEM.md)
 
 ### Key Architectural Patterns
 
 #### Centralized Color System
 The application uses a **single source of truth** color system (`src/utils/color-system.ts`):
-- Manages themes for PrimeVue, shadcn-vue, and custom components
+- Manages themes for PrimeVue and custom components
 - 23 color themes with light/dark modes each
 - All colors must use CSS variables: `var(--primary)`, `var(--background)`, etc.
 - Never hardcode colors or use library-specific color functions
@@ -68,7 +67,7 @@ The application uses a **single source of truth** color system (`src/utils/color
 src/
 ├── api/           # API layer (auth, app, match endpoints)
 ├── components/    # Vue components
-│   ├── ui/        # Reusable UI components (shadcn-vue style)
+│   ├── ui/        # Reusable UI components (removed - using PrimeVue directly)
 │   └── demo/      # Demo/showcase components
 ├── composables/   # Vue composables
 │   └── animation/ # Animation-related composables

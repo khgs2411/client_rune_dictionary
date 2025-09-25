@@ -1,73 +1,51 @@
 <template>
 	<Drawer position="right" :visible="visible" @update:visible="closeSettings">
 		<template #container>
-			<motion.div
-				:initial="{ opacity: 0, x: 20 }"
-				:animate="{ opacity: 1, x: 0 }"
-				:transition="{ duration: 0.3, ease: 'easeOut' }"
-				class="settings-sidebar"
-			>
+			<motion.div :initial="{ opacity: 0, x: 20 }" :animate="{ opacity: 1, x: 0 }" :transition="{ duration: 0.3, ease: 'easeOut' }" class="settings-sidebar">
 				<!-- Header -->
 				<div class="settings-header">
 					<div class="settings-title-section">
 						<Icon icon="lucide:settings" class="settings-icon" />
 						<h2 class="settings-title">Settings</h2>
 					</div>
-					<Button
-						variant="ghost"
-						size="icon"
-						@click="closeSettings"
-						class="close-button"
-						aria-label="Close settings"
-					>
+					<Button severity="secondary" text @click="closeSettings" class="close-button" aria-label="Close settings">
 						<Icon icon="lucide:x" />
 					</Button>
 				</div>
 
 				<!-- Theme Section -->
-				<Card class="theme-section">
-					<CardHeader>
-						<CardTitle class="flex items-center gap-2">
+				<Panel class="theme-section">
+					<template #header>
+						<div class="flex items-center gap-2">
 							<Icon icon="lucide:palette" class="section-icon" />
-							Theme
-						</CardTitle>
-						<CardDescription>Customize your appearance</CardDescription>
-					</CardHeader>
-					<CardContent class="space-y-4">
+							<span class="panel-title">Theme</span>
+						</div>
+					</template>
+					<div class="panel-content space-y-4">
+						<p class="panel-description">Customize your appearance</p>
 						<!-- Dark/Light Toggle -->
 						<div class="theme-toggle-section">
-							<Label class="theme-toggle-label">Appearance</Label>
-							<motion.div
-								:initial="{ opacity: 0, y: 10 }"
-								:animate="{ opacity: 1, y: 0 }"
-								:transition="{ duration: 0.3, delay: 0.1 }"
-								class="theme-toggle-container"
-							>
+							<label class="theme-toggle-label">Appearance</label>
+							<motion.div :initial="{ opacity: 0, y: 10 }" :animate="{ opacity: 1, y: 0 }" :transition="{ duration: 0.3, delay: 0.1 }" class="theme-toggle-container">
 								<!-- Toggle Switch Background -->
 								<div class="theme-toggle-wrapper">
-									<motion.div
-										:animate="{ x: darkMode ? '100%' : '0%' }"
-										:transition="{ type: 'spring', stiffness: 300, damping: 30 }"
-										class="theme-toggle-slider"
-									/>
-									
+									<motion.div :animate="{ x: darkMode ? '100%' : '0%' }" :transition="{ type: 'spring', stiffness: 300, damping: 30 }" class="theme-toggle-slider" />
+
 									<!-- Light Option -->
 									<motion.button
 										@click="setDarkMode(false)"
 										:whileHover="{ scale: 1.05 }"
 										:whileTap="{ scale: 0.98 }"
-										:class="{ 'active': !darkMode }"
+										:class="{ active: !darkMode }"
 										class="theme-option theme-option-light"
 										:aria-pressed="!darkMode"
-										aria-label="Switch to light mode"
-									>
+										aria-label="Switch to light mode">
 										<motion.div
-											:animate="{ 
+											:animate="{
 												rotate: darkMode ? 0 : 360,
-												scale: darkMode ? 0.8 : 1
+												scale: darkMode ? 0.8 : 1,
 											}"
-											:transition="{ duration: 0.4, ease: 'easeOut' }"
-										>
+											:transition="{ duration: 0.4, ease: 'easeOut' }">
 											<Icon icon="lucide:sun" class="theme-icon" />
 										</motion.div>
 										<span class="theme-label">Light</span>
@@ -78,18 +56,16 @@
 										@click="setDarkMode(true)"
 										:whileHover="{ scale: 1.05 }"
 										:whileTap="{ scale: 0.98 }"
-										:class="{ 'active': darkMode }"
+										:class="{ active: darkMode }"
 										class="theme-option theme-option-dark"
 										:aria-pressed="darkMode"
-										aria-label="Switch to dark mode"
-									>
+										aria-label="Switch to dark mode">
 										<motion.div
-											:animate="{ 
+											:animate="{
 												rotate: darkMode ? 360 : 0,
-												scale: darkMode ? 1 : 0.8
+												scale: darkMode ? 1 : 0.8,
 											}"
-											:transition="{ duration: 0.4, ease: 'easeOut' }"
-										>
+											:transition="{ duration: 0.4, ease: 'easeOut' }">
 											<Icon icon="lucide:moon" class="theme-icon" />
 										</motion.div>
 										<span class="theme-label">Dark</span>
@@ -97,15 +73,10 @@
 								</div>
 
 								<!-- Current Theme Indicator -->
-								<motion.div
-									:initial="{ opacity: 0 }"
-									:animate="{ opacity: 1 }"
-									:transition="{ delay: 0.3 }"
-									class="theme-indicator"
-								>
+								<motion.div :initial="{ opacity: 0 }" :animate="{ opacity: 1 }" :transition="{ delay: 0.3 }" class="theme-indicator">
 									<div class="theme-indicator-dot" />
 									<span class="theme-indicator-text">
-										{{ darkMode ? 'Dark mode active' : 'Light mode active' }}
+										{{ darkMode ? "Dark mode active" : "Light mode active" }}
 									</span>
 								</motion.div>
 							</motion.div>
@@ -113,7 +84,7 @@
 
 						<!-- Color Presets -->
 						<div class="color-presets-section">
-							<Label class="color-presets-label">Primary Color</Label>
+							<label class="color-presets-label">Primary Color</label>
 							<div class="color-presets-grid">
 								<motion.div
 									v-for="(color, index) in colorPresets"
@@ -129,29 +100,18 @@
 									role="button"
 									tabindex="0"
 									@keydown.enter="setTheme(color)"
-									@keydown.space.prevent="setTheme(color)"
-								/>
+									@keydown.space.prevent="setTheme(color)" />
 							</div>
 						</div>
-					</CardContent>
-				</Card>
+					</div>
+				</Panel>
 
 				<!-- Spacer -->
 				<div class="flex-1" />
 
 				<!-- Footer -->
-				<motion.div
-					:initial="{ opacity: 0, y: 20 }"
-					:animate="{ opacity: 1, y: 0 }"
-					:transition="{ duration: 0.3, delay: 0.2 }"
-					class="settings-footer"
-				>
-					<Button
-						variant="destructive"
-						@click="logout"
-						class="logout-button"
-						aria-label="Sign out of your account"
-					>
+				<motion.div :initial="{ opacity: 0, y: 20 }" :animate="{ opacity: 1, y: 0 }" :transition="{ duration: 0.3, delay: 0.2 }" class="settings-footer">
+					<Button severity="danger" @click="logout" class="logout-button" aria-label="Sign out of your account">
 						<Icon icon="lucide:log-out" class="mr-2 h-4 w-4" />
 						Log Out
 					</Button>
@@ -161,13 +121,12 @@
 	</Drawer>
 </template>
 <script lang="ts" setup>
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import Button from "primevue/button";
+import Panel from "primevue/panel";
 import { Icon } from "@iconify/vue";
 import { $dt } from "@primevue/themes";
 import { motion } from "motion-v";
-import { Drawer } from "primevue";
+import Drawer from "primevue/drawer";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import useAuth from "../../common/composables/useAuth";
@@ -279,9 +238,30 @@ function logout() {
 	border-radius: 0.5rem;
 	overflow: hidden;
 
-	&:deep(.card-header) {
+	.panel-title {
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: var(--p-text-color);
+	}
+
+	.panel-description {
+		font-size: 0.875rem;
+		color: var(--p-text-muted-color);
+		margin-bottom: 1rem;
+	}
+
+	.panel-content {
+		padding: 1.5rem;
+	}
+
+	&:deep(.p-panel-header) {
 		background: var(--p-content-background);
 		border-bottom: 1px solid var(--p-content-border-color);
+		padding: 1rem 1.5rem;
+	}
+
+	&:deep(.p-panel-content) {
+		padding: 0;
 	}
 
 	.section-icon {
@@ -301,6 +281,7 @@ function logout() {
 		font-weight: 500;
 		color: var(--p-text-color);
 		margin-bottom: 0.25rem;
+		display: block;
 	}
 
 	.theme-toggle-container {
@@ -420,6 +401,8 @@ function logout() {
 		font-size: 0.875rem;
 		font-weight: 500;
 		color: var(--p-text-color);
+		display: block;
+		margin-bottom: 0.5rem;
 	}
 
 	.color-presets-grid {
