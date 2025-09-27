@@ -1057,13 +1057,13 @@ watch(
 		animation: atbReadyPulse 1.5s ease-in-out infinite;
 
 		.atb-fill {
-			stroke: var(--p-green-400);
-			filter: drop-shadow(0 0 12px var(--p-green-400)) drop-shadow(0 0 6px var(--p-green-300));
+			stroke: var(--p-primary-400);
+			filter: drop-shadow(0 0 12px var(--p-primary-400)) drop-shadow(0 0 6px var(--p-primary-300));
 			animation: atbReadyGlow 1s ease-in-out infinite alternate;
 		}
 
 		.atb-bg {
-			stroke: color-mix(in srgb, var(--p-green-400) 30%, transparent);
+			stroke: color-mix(in srgb, var(--p-primary-400) 30%, transparent);
 		}
 	}
 }
@@ -1084,10 +1084,10 @@ watch(
 // ATB Ready glow animation
 @keyframes atbReadyGlow {
 	0% {
-		filter: drop-shadow(0 0 8px var(--p-green-400)) drop-shadow(0 0 4px var(--p-green-300));
+		filter: drop-shadow(0 0 8px var(--p-primary-400)) drop-shadow(0 0 4px var(--p-primary-300));
 	}
 	100% {
-		filter: drop-shadow(0 0 16px var(--p-green-400)) drop-shadow(0 0 8px var(--p-green-300)) drop-shadow(0 0 4px var(--p-green-200));
+		filter: drop-shadow(0 0 16px var(--p-primary-400)) drop-shadow(0 0 8px var(--p-primary-300)) drop-shadow(0 0 4px var(--p-primary-200));
 	}
 }
 

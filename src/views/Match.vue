@@ -224,7 +224,7 @@ function switchToPlayerTurn(data?: { turnNumber?: number }) {
 	isWaiting.value = false;
 	isProcessingAction.value = false; // Reset processing state when it's player's turn
 	timerActive.value = true; // Activate timer when turn starts
-
+	playerATBProgress.value = 100; // Player is ready at turn start
 	const turnMsg = data?.turnNumber ? `Your turn! (Turn ${data.turnNumber})` : "Your turn!";
 	addLogEntry({ type: "system", message: turnMsg });
 }
@@ -236,8 +236,8 @@ function switchToEnemyTurn(data?: { turnNumber?: number }) {
 	isPlayerTurn.value = false;
 	isEnemyTurn.value = true;
 	isWaiting.value = false;
-
 	timerActive.value = true; // Keep timer active for enemy turns too (for UI consistency)
+	enemyATBProgress.value = 100; // Enemy is ready at turn start
 
 	const turnMsg = data?.turnNumber ? `${getEnemyName()}'s turn... (Turn ${data.turnNumber})` : `${getEnemyName()}'s turn...`;
 	addLogEntry({ type: "system", message: turnMsg });
