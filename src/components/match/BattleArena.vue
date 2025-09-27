@@ -13,23 +13,16 @@
 			<div class="turn-badge">
 				<i class="pi" :class="isPlayerTurn ? 'pi-user' : 'pi-android'"></i>
 				<span class="turn-text">
-					{{ isPlayerTurn ? 'Your Turn' : `${enemyName}'s Turn` }}
+					{{ isPlayerTurn ? "Your Turn" : `${enemyName}'s Turn` }}
 				</span>
 				<span class="turn-number">Turn {{ displayTurnNumber }}</span>
 			</div>
-			
+
 			<!-- ATB Turn Timer -->
 			<div class="turn-timer-container">
-				<TurnTimer
-					:time-remaining="timerRemaining"
-					:duration="timerDuration"
-					:is-active="timerActive"
-					:size="isMobile ? 'sm' : 'md'"
-					:label="timerLabel"
-				/>
+				<TurnTimer :time-remaining="timerRemaining" :duration="timerDuration" :is-active="timerActive" :size="isMobile ? 'sm' : 'md'" :label="timerLabel" />
 			</div>
 		</div>
-
 
 		<!-- Battle Field -->
 		<div class="battle-field">
@@ -37,18 +30,25 @@
 			<div class="combatant-area player-area">
 				<!-- Floating damage/heal numbers -->
 				<TransitionGroup name="damage-number">
-					<div v-for="number in playerDamageNumbers" :key="number.id" 
-						class="damage-number" 
-						:class="{ 'heal-number': number.isHeal }">
-						{{ number.isHeal ? '+' : '-' }}{{ Math.abs(number.value) }}
-					</div>
+					<div v-for="number in playerDamageNumbers" :key="number.id" class="damage-number" :class="{ 'heal-number': number.isHeal }">{{ number.isHeal ? "+" : "-" }}{{ Math.abs(number.value) }}</div>
 				</TransitionGroup>
-				<Card class="character-card player-card" :class="{ 'taking-damage': playerTakingDamage, 'healing': playerHealing, 'breathing': true }" :style="{ '--health-percentage': playerHpPercentage, 'animation-delay': playerBreathOffset + 's' }">
+				<Card
+					class="character-card player-card"
+					:class="{ 'taking-damage': playerTakingDamage, healing: playerHealing, breathing: true }"
+					:style="{ '--health-percentage': playerHpPercentage, 'animation-delay': playerBreathOffset + 's' }">
 					<template #content>
 						<div class="character-card-content">
 							<div class="character-icon">
+								<!-- ATB Progress Ring -->
+								<div class="atb-progress-ring" :class="{ 'atb-ready': playerAtbProgress >= 100 }">
+									<svg class="atb-svg" viewBox="0 0 120 120">
+										<circle class="atb-bg" cx="60" cy="60" r="54" />
+										<circle class="atb-fill" cx="60" cy="60" r="54" :style="{ '--atb-progress': playerAtbProgress }" />
+									</svg>
+								</div>
 								<i class="pi pi-user"></i>
 							</div>
+
 							<div class="character-details">
 								<div class="character-header">
 									<span class="character-name">{{ playerName }}</span>
@@ -56,10 +56,7 @@
 								</div>
 								<div class="hp-container">
 									<div class="hp-bar">
-										<div class="hp-bar-fill" 
-											:style="{ width: playerHpPercentage + '%' }" 
-											:class="[getHpColorClass(playerHpPercentage), { healing: playerHealing }]">
-										</div>
+										<div class="hp-bar-fill" :style="{ width: playerHpPercentage + '%' }" :class="[getHpColorClass(playerHpPercentage), { healing: playerHealing }]"></div>
 									</div>
 									<div class="hp-text">{{ playerHealth }}/{{ playerMaxHealth }} HP</div>
 								</div>
@@ -73,16 +70,22 @@
 			<div class="combatant-area enemy-area">
 				<!-- Floating damage/heal numbers -->
 				<TransitionGroup name="damage-number">
-					<div v-for="number in enemyDamageNumbers" :key="number.id" 
-						class="damage-number" 
-						:class="{ 'heal-number': number.isHeal }">
-						{{ number.isHeal ? '+' : '-' }}{{ Math.abs(number.value) }}
-					</div>
+					<div v-for="number in enemyDamageNumbers" :key="number.id" class="damage-number" :class="{ 'heal-number': number.isHeal }">{{ number.isHeal ? "+" : "-" }}{{ Math.abs(number.value) }}</div>
 				</TransitionGroup>
-				<Card class="character-card enemy-card" :class="{ 'taking-damage': enemyTakingDamage, 'healing': enemyHealing, 'breathing': true }" :style="{ '--health-percentage': enemyHpPercentage, 'animation-delay': enemyBreathOffset + 's' }">
+				<Card
+					class="character-card enemy-card"
+					:class="{ 'taking-damage': enemyTakingDamage, healing: enemyHealing, breathing: true }"
+					:style="{ '--health-percentage': enemyHpPercentage, 'animation-delay': enemyBreathOffset + 's' }">
 					<template #content>
 						<div class="character-card-content">
 							<div class="character-icon">
+								<!-- ATB Progress Ring -->
+								<div class="atb-progress-ring" :class="{ 'atb-ready': enemyAtbProgress >= 100 }">
+									<svg class="atb-svg" viewBox="0 0 120 120">
+										<circle class="atb-bg" cx="60" cy="60" r="54" />
+										<circle class="atb-fill" cx="60" cy="60" r="54" :style="{ '--atb-progress': enemyAtbProgress }" />
+									</svg>
+								</div>
 								<i class="pi pi-android"></i>
 							</div>
 							<div class="character-details">
@@ -92,10 +95,7 @@
 								</div>
 								<div class="hp-container">
 									<div class="hp-bar">
-										<div class="hp-bar-fill" 
-											:style="{ width: enemyHpPercentage + '%' }" 
-											:class="[getHpColorClass(enemyHpPercentage), { healing: enemyHealing }]">
-										</div>
+										<div class="hp-bar-fill" :style="{ width: enemyHpPercentage + '%' }" :class="[getHpColorClass(enemyHpPercentage), { healing: enemyHealing }]"></div>
 									</div>
 									<div class="hp-text">{{ enemyHealth }}/{{ enemyMaxHealth }} HP</div>
 								</div>
@@ -105,7 +105,6 @@
 				</Card>
 			</div>
 		</div>
-
 	</div>
 </template>
 
@@ -131,6 +130,9 @@ interface Props {
 	timerRemaining?: number;
 	timerDuration?: number;
 	timerActive?: boolean;
+	// ATB props
+	playerAtbProgress?: number;
+	enemyAtbProgress?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -142,6 +144,9 @@ const props = withDefaults(defineProps<Props>(), {
 	timerRemaining: 5000,
 	timerDuration: 5000,
 	timerActive: false,
+	// ATB defaults
+	playerAtbProgress: 0,
+	enemyAtbProgress: 0,
 });
 
 // No emits needed anymore - moved to GameActions component
@@ -165,29 +170,32 @@ const turnNumber = ref(1);
 let lastTurnState = props.isPlayerTurn;
 
 // Watch for turn changes to increment turn number
-watch(() => props.isPlayerTurn, (newVal) => {
-	// If turn changed from enemy to player, increment turn number
-	if (newVal && !lastTurnState) {
-		turnNumber.value++;
-	}
-	lastTurnState = newVal;
-});
+watch(
+	() => props.isPlayerTurn,
+	(newVal) => {
+		// If turn changed from enemy to player, increment turn number
+		if (newVal && !lastTurnState) {
+			turnNumber.value++;
+		}
+		lastTurnState = newVal;
+	},
+);
 
 // Use computed to ensure reactivity
 const displayTurnNumber = computed(() => turnNumber.value);
 
 // Mobile detection
 const isMobile = ref(window.innerWidth <= 768);
-window.addEventListener('resize', () => {
+window.addEventListener("resize", () => {
 	isMobile.value = window.innerWidth <= 768;
 });
 
 // Timer computed properties
 const timerLabel = computed(() => {
-	if (!props.timerActive) return '';
-	if (props.timerRemaining <= 1000) return 'Now!';
-	if (props.isProcessingAction) return 'Wait';
-	return '';
+	if (!props.timerActive) return "";
+	if (props.timerRemaining <= 1000) return "Now!";
+	if (props.isProcessingAction) return "Wait";
+	return "";
 });
 
 // Damage animation states
@@ -222,67 +230,73 @@ function showDamageNumber(value: number, isPlayer: boolean) {
 	const number: DamageNumber = {
 		id: damageNumberId++,
 		value: value,
-		isHeal: value > 0
+		isHeal: value > 0,
 	};
-	
+
 	if (isPlayer) {
 		playerDamageNumbers.value.push(number);
 		// Remove after animation completes
 		setTimeout(() => {
-			playerDamageNumbers.value = playerDamageNumbers.value.filter(n => n.id !== number.id);
+			playerDamageNumbers.value = playerDamageNumbers.value.filter((n) => n.id !== number.id);
 		}, 1500);
 	} else {
 		enemyDamageNumbers.value.push(number);
 		setTimeout(() => {
-			enemyDamageNumbers.value = enemyDamageNumbers.value.filter(n => n.id !== number.id);
+			enemyDamageNumbers.value = enemyDamageNumbers.value.filter((n) => n.id !== number.id);
 		}, 1500);
 	}
 }
 
 // Watch for health changes to trigger damage/heal animations
-watch(() => props.playerHealth, (newHealth) => {
-	const healthDiff = newHealth - previousPlayerHealth;
-	if (healthDiff !== 0) {
-		showDamageNumber(healthDiff, true);
-		
-		if (newHealth < previousPlayerHealth) {
-			// Taking damage
-			playerTakingDamage.value = true;
-			setTimeout(() => {
-				playerTakingDamage.value = false;
-			}, 600); // Animation duration
-		} else if (newHealth > previousPlayerHealth) {
-			// Healing
-			playerHealing.value = true;
-			setTimeout(() => {
-				playerHealing.value = false;
-			}, 600); // Animation duration
-		}
-	}
-	previousPlayerHealth = newHealth;
-});
+watch(
+	() => props.playerHealth,
+	(newHealth) => {
+		const healthDiff = newHealth - previousPlayerHealth;
+		if (healthDiff !== 0) {
+			showDamageNumber(healthDiff, true);
 
-watch(() => props.enemyHealth, (newHealth) => {
-	const healthDiff = newHealth - previousEnemyHealth;
-	if (healthDiff !== 0) {
-		showDamageNumber(healthDiff, false);
-		
-		if (newHealth < previousEnemyHealth) {
-			// Taking damage
-			enemyTakingDamage.value = true;
-			setTimeout(() => {
-				enemyTakingDamage.value = false;
-			}, 600); // Animation duration
-		} else if (newHealth > previousEnemyHealth) {
-			// Healing
-			enemyHealing.value = true;
-			setTimeout(() => {
-				enemyHealing.value = false;
-			}, 600); // Animation duration
+			if (newHealth < previousPlayerHealth) {
+				// Taking damage
+				playerTakingDamage.value = true;
+				setTimeout(() => {
+					playerTakingDamage.value = false;
+				}, 600); // Animation duration
+			} else if (newHealth > previousPlayerHealth) {
+				// Healing
+				playerHealing.value = true;
+				setTimeout(() => {
+					playerHealing.value = false;
+				}, 600); // Animation duration
+			}
 		}
-	}
-	previousEnemyHealth = newHealth;
-});
+		previousPlayerHealth = newHealth;
+	},
+);
+
+watch(
+	() => props.enemyHealth,
+	(newHealth) => {
+		const healthDiff = newHealth - previousEnemyHealth;
+		if (healthDiff !== 0) {
+			showDamageNumber(healthDiff, false);
+
+			if (newHealth < previousEnemyHealth) {
+				// Taking damage
+				enemyTakingDamage.value = true;
+				setTimeout(() => {
+					enemyTakingDamage.value = false;
+				}, 600); // Animation duration
+			} else if (newHealth > previousEnemyHealth) {
+				// Healing
+				enemyHealing.value = true;
+				setTimeout(() => {
+					enemyHealing.value = false;
+				}, 600); // Animation duration
+			}
+		}
+		previousEnemyHealth = newHealth;
+	},
+);
 </script>
 
 <style lang="scss" scoped>
@@ -380,7 +394,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 		font-size: 1rem;
 		font-weight: 600;
 		border: 1px solid var(--p-surface-border);
-		box-shadow: 
+		box-shadow:
 			0 2px 4px rgba(0, 0, 0, 0.05),
 			0 4px 8px rgba(0, 0, 0, 0.1);
 		position: relative;
@@ -414,7 +428,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 		.turn-badge {
 			background: var(--p-content-background);
 			border-color: var(--p-primary-200);
-			box-shadow: 
+			box-shadow:
 				0 0 0 3px color-mix(in srgb, var(--p-primary-color) 10%, transparent),
 				0 2px 4px rgba(0, 0, 0, 0.05),
 				0 4px 8px rgba(0, 0, 0, 0.1);
@@ -434,7 +448,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 		.turn-badge {
 			background: var(--p-content-background);
 			border-color: var(--p-orange-200);
-			box-shadow: 
+			box-shadow:
 				0 0 0 3px color-mix(in srgb, var(--p-orange-500) 10%, transparent),
 				0 2px 4px rgba(0, 0, 0, 0.05),
 				0 4px 8px rgba(0, 0, 0, 0.1);
@@ -449,7 +463,6 @@ watch(() => props.enemyHealth, (newHealth) => {
 		}
 	}
 }
-
 
 // Battle Field
 .battle-field {
@@ -473,7 +486,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 		gap: 20px;
 		align-items: center;
 	}
-	
+
 	// Smaller screens with limited height
 	@media (max-height: 800px) and (min-width: 576px) {
 		padding-top: 60px;
@@ -491,14 +504,14 @@ watch(() => props.enemyHealth, (newHealth) => {
 	font-size: 2.5rem;
 	font-weight: 900;
 	color: var(--destructive);
-	text-shadow: 
+	text-shadow:
 		2px 2px 0 rgba(0, 0, 0, 0.5),
 		-1px -1px 0 rgba(0, 0, 0, 0.5),
 		1px -1px 0 rgba(0, 0, 0, 0.5),
 		-1px 1px 0 rgba(0, 0, 0, 0.5);
 	pointer-events: none;
 	z-index: 100;
-	
+
 	&.heal-number {
 		color: var(--primary);
 	}
@@ -534,7 +547,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 	align-items: center;
 	justify-content: center;
 	position: relative;
-	
+
 	// Desktop diagonal positioning
 	@include breakpoint-up("md") {
 		&.player-area {
@@ -544,7 +557,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 				transform: translateX(-10px);
 			}
 		}
-		
+
 		&.enemy-area {
 			align-self: flex-start;
 			padding-top: 90px;
@@ -553,7 +566,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 			}
 		}
 	}
-	
+
 	// Tablet specific - ensure cards stay within viewport
 	@media (min-width: 768px) and (max-width: 1024px) {
 		&.player-area {
@@ -562,7 +575,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 				transform: none;
 			}
 		}
-		
+
 		&.enemy-area {
 			padding-top: 20px; // Reduced to bring cards closer
 			.character-card {
@@ -570,14 +583,14 @@ watch(() => props.enemyHealth, (newHealth) => {
 			}
 		}
 	}
-	
+
 	// Smaller screens (between mobile and desktop) - prevent cutoff
 	@media (min-width: 576px) and (max-width: 1024px) and (max-height: 800px) {
 		&.player-area {
 			padding-bottom: 10px;
 			align-self: center;
 		}
-		
+
 		&.enemy-area {
 			padding-top: 10px;
 			align-self: center;
@@ -594,18 +607,18 @@ watch(() => props.enemyHealth, (newHealth) => {
 	max-width: 100%;
 	backdrop-filter: none;
 	opacity: 1;
-	
+
 	// Tablet specific sizing
 	@media (min-width: 768px) and (max-width: 1024px) {
 		width: 350px;
 	}
-	
+
 	:deep(.p-card) {
 		background: transparent;
 		box-shadow: none;
 		border: none;
 	}
-	
+
 	:deep(.p-card-content) {
 		padding: 1.5rem;
 		background: transparent;
@@ -629,7 +642,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 	// Damage animation
 	&.taking-damage {
 		animation: takeDamage 0.6s ease-out !important;
-		
+
 		&::before {
 			content: "";
 			position: absolute;
@@ -641,7 +654,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 			z-index: 1;
 		}
 	}
-	
+
 	// Healing animation - green glow
 	&.healing {
 		&::after {
@@ -681,7 +694,8 @@ watch(() => props.enemyHealth, (newHealth) => {
 
 // Breathing/floating animation
 @keyframes breathe {
-	0%, 100% {
+	0%,
+	100% {
 		transform: translateY(0);
 	}
 	50% {
@@ -718,7 +732,8 @@ watch(() => props.enemyHealth, (newHealth) => {
 	80% {
 		transform: rotate(1deg) scale(0.99);
 	}
-	90%, 100% {
+	90%,
+	100% {
 		transform: rotate(0deg) scale(1);
 	}
 }
@@ -769,11 +784,14 @@ watch(() => props.enemyHealth, (newHealth) => {
 	flex-shrink: 0;
 	border: 3px solid var(--p-primary-color);
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	position: relative;
 
 	i {
 		font-size: 3rem;
 		color: var(--p-primary-color);
 		opacity: 0.8;
+		z-index: 2;
+		position: relative;
 	}
 }
 
@@ -834,7 +852,9 @@ watch(() => props.enemyHealth, (newHealth) => {
 		left: 0;
 		height: 100%;
 		border-radius: 12px;
-		transition: width 0.5s ease, background-color 0.3s ease;
+		transition:
+			width 0.5s ease,
+			background-color 0.3s ease;
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 		position: relative;
 		overflow: hidden;
@@ -847,12 +867,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 			left: -100%;
 			width: 100%;
 			height: calc(100% + 4px);
-			background: linear-gradient(
-				90deg,
-				transparent,
-				rgba(255, 255, 255, 0.4) 50%,
-				transparent
-			);
+			background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4) 50%, transparent);
 			transform: skewX(-20deg);
 			transition: left 0.6s ease;
 		}
@@ -879,7 +894,8 @@ watch(() => props.enemyHealth, (newHealth) => {
 
 // Critical health pulse animation
 @keyframes criticalPulse {
-	0%, 100% {
+	0%,
+	100% {
 		filter: brightness(1);
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 	}
@@ -895,7 +911,6 @@ watch(() => props.enemyHealth, (newHealth) => {
 	color: var(--p-text-color);
 	text-align: right;
 }
-
 
 // Mobile Responsiveness
 @include breakpoint-down("sm") {
@@ -915,7 +930,7 @@ watch(() => props.enemyHealth, (newHealth) => {
 	.character-card {
 		width: 100%;
 		max-width: 400px;
-		
+
 		:deep(.p-card-content) {
 			padding: 1rem;
 		}
@@ -983,13 +998,108 @@ watch(() => props.enemyHealth, (newHealth) => {
 	align-items: center;
 	width: 100%;
 	// Remove max-width since timer component now has fixed width
-	
+
 	@include breakpoint-down("md") {
 		margin-top: 6px;
 	}
-	
+
 	@include breakpoint-down("sm") {
 		margin-top: 8px;
+	}
+}
+
+// ATB Progress Ring Styles
+.atb-progress-ring {
+	position: absolute;
+	top: -6px;
+	left: -6px;
+	width: calc(100% + 12px);
+	height: calc(100% + 12px);
+	z-index: 1;
+	opacity: 0.9;
+	transition: all 0.3s ease;
+	pointer-events: none;
+
+	.atb-svg {
+		width: 100%;
+		height: 100%;
+		transform: rotate(-90deg); // Start from top
+	}
+
+	.atb-bg {
+		fill: none;
+		stroke: color-mix(in srgb, var(--p-primary-color) 20%, transparent);
+		stroke-width: 3;
+		stroke-linecap: round;
+	}
+
+	.atb-fill {
+		fill: none;
+		stroke: var(--p-orange-400);
+		stroke-width: 4;
+		stroke-linecap: round;
+		stroke-dasharray: 339.3; // 2 * π * 54 (circumference)
+		stroke-dashoffset: calc(339.3 - (339.3 * var(--atb-progress) / 100));
+		transition:
+			stroke-dashoffset 0.2s ease,
+			stroke 0.3s ease;
+		filter: drop-shadow(0 0 6px color-mix(in srgb, var(--p-primary-color) 50%, transparent));
+	}
+
+	// Ready state with pulsing glow
+	&.atb-ready {
+		animation: atbReadyPulse 1.5s ease-in-out infinite;
+
+		.atb-fill {
+			stroke: var(--p-green-400);
+			filter: drop-shadow(0 0 12px var(--p-green-400)) drop-shadow(0 0 6px var(--p-green-300));
+			animation: atbReadyGlow 1s ease-in-out infinite alternate;
+		}
+
+		.atb-bg {
+			stroke: color-mix(in srgb, var(--p-green-400) 30%, transparent);
+		}
+	}
+}
+
+// ATB Ready pulse animation
+@keyframes atbReadyPulse {
+	0%,
+	100% {
+		transform: scale(1);
+		opacity: 0.9;
+	}
+	50% {
+		transform: scale(1.05);
+		opacity: 1;
+	}
+}
+
+// ATB Ready glow animation
+@keyframes atbReadyGlow {
+	0% {
+		filter: drop-shadow(0 0 8px var(--p-green-400)) drop-shadow(0 0 4px var(--p-green-300));
+	}
+	100% {
+		filter: drop-shadow(0 0 16px var(--p-green-400)) drop-shadow(0 0 8px var(--p-green-300)) drop-shadow(0 0 4px var(--p-green-200));
+	}
+}
+
+// Responsive ATB ring sizing
+@include breakpoint-down("sm") {
+	.atb-progress-ring {
+		top: -4px;
+		left: -4px;
+		width: calc(100% + 8px);
+		height: calc(100% + 8px);
+
+		.atb-bg {
+			stroke-width: 2;
+		}
+
+		.atb-fill {
+			stroke-width: 3;
+		}
 	}
 }
 </style>

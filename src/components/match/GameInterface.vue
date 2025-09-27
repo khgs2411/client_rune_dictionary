@@ -12,7 +12,9 @@
 			:is-processing-action="isProcessingAction"
 			:timer-remaining="timerRemaining"
 			:timer-duration="timerDuration"
-			:timer-active="timerActive" />
+			:timer-active="timerActive"
+			:player-atb-progress="playerAtbProgress"
+			:enemy-atb-progress="enemyAtbProgress" />
 		
 		<!-- Game Actions for controls and action buttons -->
 		<GameActions
@@ -51,6 +53,9 @@ defineProps<{
 	timerRemaining?: number;
 	timerDuration?: number;
 	timerActive?: boolean;
+	// ATB props
+	playerAtbProgress?: number;
+	enemyAtbProgress?: number;
 }>();
 
 defineEmits<{

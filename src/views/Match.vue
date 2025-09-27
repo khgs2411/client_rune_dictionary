@@ -25,6 +25,8 @@
 					:timer-remaining="timerRemaining"
 					:timer-duration="timerDuration"
 					:timer-active="timerActive"
+					:player-atb-progress="playerATBProgress"
+					:enemy-atb-progress="enemyATBProgress"
 					@leave-match="handleReturnToLobby"
 					@attack="performAction('attack')"
 					@open-settings="handleOpenSettings"
@@ -64,6 +66,10 @@ const timerRemaining = ref(5000); // 5 seconds in milliseconds
 const timerDuration = ref(5000);
 const timerActive = ref(false);
 
+// ATB state for readiness indicators
+const playerATBProgress = ref(0); // 0-100 percentage
+const enemyATBProgress = ref(0); // 0-100 percentage
+
 /**
  * These are event listeners for UI state updates based on server events
  * Actual game logic and state changes are server authoritative and are handled in useMatchWebsocketEventHandler.ts
@@ -74,6 +80,7 @@ useRxjs("match", {
 	onLogEntry: addLogEntry,
 	onTimerUpdate: updateTimer,
 	onTimerExpired: handleTimerExpired,
+	onATBProgressUpdate: updateATBProgress,
 });
 
 const matchCards = ref<MatchCard[]>([
@@ -144,6 +151,10 @@ function initializeGameState() {
 	timerRemaining.value = match$.store.timerInfo?.duration || 3000;
 	timerDuration.value = match$.store.timerInfo?.duration || 3000;
 	timerActive.value = false; // Will be activated by server events
+
+	// Initialize ATB state
+	playerATBProgress.value = 0;
+	enemyATBProgress.value = 0;
 
 	// Set up callbacks for server event integration
 	console.log("Set up callbacks for server event integration");
@@ -255,6 +266,49 @@ function handleTimerExpired(data?: { turnNumber?: number; entityId?: string }) {
 
 	const turnMsg = data?.turnNumber ? `Turn ${data.turnNumber}` : "Current turn";
 	addLogEntry({ type: "system", message: `${turnMsg}: Time's up! Automatic PASS action.` });
+}
+
+// ATB Progress interfaces
+interface I_ATBEntityData {
+	readiness: number;
+}
+
+interface I_ATBProgressEventData {
+	player: I_ATBEntityData | null;
+	enemy: I_ATBEntityData | null;
+	timestamp: string;
+}
+
+/**
+ * Update ATB progress indicators - Connected to WebSocket events from handleATBProgressUpdate
+ */
+function updateATBProgress(data: I_ATBProgressEventData) {
+	console.log("[ATB Match.vue] Received ATB progress update:", data);
+
+	// Validate data structure
+	if (!data || typeof data !== 'object') {
+		console.warn("Invalid ATB progress data:", data);
+		return;
+	}
+
+	// Update player ATB progress
+	if (data.player && typeof data.player.readiness === 'number') {
+		console.log(`[ATB Match.vue] Updating player progress: ${data.player.readiness}%`);
+		playerATBProgress.value = Math.max(0, Math.min(100, data.player.readiness));
+	} else {
+		console.log("[ATB Match.vue] No valid player data");
+	}
+
+	// Update enemy ATB progress
+	if (data.enemy && typeof data.enemy.readiness === 'number') {
+		console.log(`[ATB Match.vue] Updating enemy progress: ${data.enemy.readiness}%`);
+		enemyATBProgress.value = Math.max(0, Math.min(100, data.enemy.readiness));
+	} else {
+		console.log("[ATB Match.vue] No valid enemy data");
+	}
+
+	// Log for debugging
+	console.log(`[ATB Match.vue] Final values - Player: ${playerATBProgress.value}%, Enemy: ${enemyATBProgress.value}%`);
 }
 
 // Note: Match end is now handled exclusively by server authority

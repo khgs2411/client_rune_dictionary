@@ -8,6 +8,22 @@ import { I_UseWSM } from "../../common/composables/useWSM";
 import { MatchResult, useMatchStore } from "../../stores/match.store";
 import { E_MatchState, MATCH_MESSAGE } from "./useMatch";
 
+// ATB Progress Update interfaces
+interface I_ATBEntityData {
+	readiness: number;
+}
+
+interface I_ATBUpdateContent {
+	matchId: string;
+	atbData: Record<string, I_ATBEntityData>;
+	timestamp: string;
+}
+
+interface I_ATBProgressUpdateData {
+	type: string;
+	content: I_ATBUpdateContent;
+}
+
 const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 	const prompt$ = usePrompt();
 	const auth$ = useAuth();
@@ -64,6 +80,8 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 	function onGameEvent(wsm$: I_UseWSM) {
 		Lib.Log("Received game event:", wsm$.data);
 
+		// Debug: Log the exact event type
+
 		// Handle different game event types
 		switch (wsm$.data?.type) {
 			// New server events for server-authoritative combat
@@ -87,6 +105,9 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 				break;
 			case "match.state.update":
 				handleMatchStateUpdate(wsm$.data);
+				break;
+			case "match.atb.readiness.update":
+				handleATBProgressUpdate(wsm$.data);
 				break;
 			default:
 				Lib.Log("Unknown game event type:", wsm$.data?.type);
@@ -430,6 +451,64 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 		} catch (error) {
 			console.error("Failed to save match result:", error);
 		}
+	}
+
+	/**
+	 * Handle ATB progress update events from server
+	 */
+	function handleATBProgressUpdate(data: any) {
+		Lib.Log("ATB progress update:", data);
+
+		// Validate input data structure
+		if (!data || typeof data !== 'object') {
+			console.warn('Invalid ATB progress update data:', data);
+			return;
+		}
+
+		const content = data.content;
+		if (!content || typeof content !== 'object') {
+			console.warn('Invalid ATB progress update content:', content);
+			return;
+		}
+
+		const atbData = content.atbData;
+		if (!atbData || typeof atbData !== 'object') {
+			console.warn('Invalid ATB data in progress update:', atbData);
+			return;
+		}
+
+		// atbData contains readiness percentages for all entities
+		// Example: { "player1": { readiness: 65.5 }, "npc1": { readiness: 23.1 } }
+		const currentUserId = auth$.client.value?.id;
+
+
+		// Extract player and enemy ATB progress
+		let playerProgress: I_ATBEntityData = {
+			readiness: 0
+		};
+		let enemyProgress: I_ATBEntityData ={
+			readiness: 0
+		};
+
+		Object.entries(atbData).forEach(([entityId, entityData]: [string, any]) => {
+			if (entityId === currentUserId) {
+				playerProgress = entityData;
+			} else {
+				enemyProgress = entityData;
+			}
+		});
+
+		// Dispatch ATB progress update event
+		Rxjs.Next("match", {
+			cta: "onATBProgressUpdate",
+			data: {
+				player: playerProgress,
+				enemy: enemyProgress,
+				timestamp: content.timestamp || new Date().toISOString()
+			}
+		});
+
+		Lib.Log(`ATB Progress - Player: ${playerProgress?.readiness || 0}%, Enemy: ${enemyProgress?.readiness || 0}%`);
 	}
 
 	return {
