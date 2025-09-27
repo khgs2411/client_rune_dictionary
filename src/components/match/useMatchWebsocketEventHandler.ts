@@ -13,11 +13,6 @@ interface I_ATBEntityData {
 	readiness: number;
 }
 
-interface I_ATBUpdateContent {
-	matchId: string;
-	atbData: Record<string, I_ATBEntityData>;
-	timestamp: string;
-}
 
 
 const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {

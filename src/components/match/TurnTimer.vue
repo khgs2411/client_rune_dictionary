@@ -203,20 +203,7 @@ const isExpired = computed(() => {
 	return smoothTimeRemaining.value <= 0;
 });
 
-const isAnimating = computed(() => {
-	return props.isActive && !isExpired.value;
-});
 
-const barHeight = computed(() => {
-	switch (props.size) {
-		case "sm":
-			return 12;
-		case "lg":
-			return 20;
-		default:
-			return 16;
-	}
-});
 
 // Dynamic colors based on timer state
 const progressColor = computed(() => {

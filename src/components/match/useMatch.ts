@@ -4,7 +4,6 @@ import useAuth from "../../common/composables/useAuth";
 import useUtils from "../../common/composables/useUtils";
 import { Entity } from "../../common/types/types";
 import { useMatchStore } from "../../stores/match.store";
-import { Lib } from "topsyde-utils";
 import { IMatchParticipant } from "@/common/types/match.types";
 
 const MATCH_CHANNEL = "match";

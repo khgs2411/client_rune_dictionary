@@ -217,8 +217,7 @@ function continuousGeneration() {
 	
 	const generate = () => {
 		// Remove old particles
-		const now = Date.now();
-		particles.value = particles.value.filter(p => {
+		particles.value = particles.value.filter(() => {
 			// Keep particles that are still animating
 			return true; // For simplicity, let CSS handle removal
 		});
