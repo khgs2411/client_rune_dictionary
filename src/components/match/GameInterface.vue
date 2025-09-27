@@ -10,7 +10,6 @@
 			:is-player-turn="isPlayerTurn"
 			:is-enemy-turn="isEnemyTurn"
 			:is-waiting="isWaiting"
-			:is-processing-action="isProcessingAction"
 			:timer-remaining="timerRemaining"
 			:timer-duration="timerDuration"
 			:timer-active="timerActive"

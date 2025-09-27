@@ -7,43 +7,42 @@
 				<span class="timer-text">{{ displayLabel }}</span>
 				<span class="timer-seconds">{{ displaySeconds }}s</span>
 			</div>
-			
+
 			<!-- ATB Timer Bar -->
-			<div class="atb-timer-bar" :class="{ 'heartbeat': isActive && !isExpired }">
+			<div class="atb-timer-bar" :class="{ heartbeat: isActive && !isExpired }">
 				<!-- Background Bar -->
 				<div class="atb-timer-background"></div>
-				
+
 				<!-- Progress Fill -->
-				<div 
+				<div
 					class="atb-timer-fill"
-					:style="{ 
+					:style="{
 						width: fillPercentage + '%',
 						backgroundColor: progressColor,
-						transition: isAnimating ? 'width 0.333s ease-out, background-color 0.333s ease' : 'none'
-					}"
-				>
+						transition: isAnimating ? 'width 0.333s ease-out, background-color 0.333s ease' : 'none',
+					}">
 					<!-- Inner Glow Effect -->
 					<div class="atb-timer-glow"></div>
-					
+
 					<!-- Segmented Lines (ATB Style) -->
 					<div class="atb-timer-segments">
-						<div v-for="i in 4" :key="i" class="segment-line" :style="{ left: (i * 25) + '%' }"></div>
+						<div v-for="i in 4" :key="i" class="segment-line" :style="{ left: i * 25 + '%' }"></div>
 					</div>
 				</div>
-				
+
 				<!-- Timer Icon -->
 				<div class="atb-timer-icon">
 					<i class="pi" :class="timerIcon"></i>
 				</div>
-				
+
 				<!-- Critical Flash Overlay -->
 				<div v-if="isCritical" class="atb-timer-flash"></div>
 			</div>
 		</div>
-		
+
 		<!-- Warning Pulse Background -->
 		<div v-if="isWarning || isCritical" class="atb-timer-pulse"></div>
-		
+
 		<!-- Sparkle effects for different states -->
 		<SparkleEffect
 			v-if="isActive && !isExpired && !isCritical"
@@ -55,9 +54,8 @@
 			:size-range="{ min: 2, max: 5 }"
 			:glow="true"
 			:density="6"
-			:sync-with-timer="true"
-		/>
-		
+			:sync-with-timer="true" />
+
 		<!-- Critical state sparkles -->
 		<SparkleEffect
 			v-if="isCritical && !isExpired"
@@ -70,9 +68,8 @@
 			:glow="true"
 			:density="8"
 			:continuous="true"
-			:sync-with-timer="true"
-		/>
-		
+			:sync-with-timer="true" />
+
 		<!-- Expired celebration -->
 		<SparkleEffect
 			v-if="isExpired"
@@ -84,16 +81,14 @@
 			:size-range="{ min: 4, max: 10 }"
 			:glow="true"
 			:density="10"
-			:sync-with-timer="true"
-		/>
+			:sync-with-timer="true" />
 	</div>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
-import { colorSystem } from '../../utils/color-system';
-import { getCSSVariable, rpgTokens } from '../../utils/theme-utils';
-import SparkleEffect from '../effects/SparkleEffect.vue';
+import { computed } from "vue";
+import { colorSystem } from "../../utils/color-system";
+import SparkleEffect from "../effects/SparkleEffect.vue";
 
 interface Props {
 	/** Current time remaining in milliseconds */
@@ -107,16 +102,16 @@ interface Props {
 	/** Whether timer is actively counting down */
 	isActive: boolean;
 	/** Timer size variant */
-	size?: 'sm' | 'md' | 'lg';
+	size?: "sm" | "md" | "lg";
 	/** Custom label override */
 	label?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
 	duration: 5000,
-	warningThreshold: 80,
-	criticalThreshold: 95,
-	size: 'md',
+	warningThreshold: 30,
+	criticalThreshold: 60,
+	size: "md",
 });
 
 // No refs needed - all animations are CSS-based
@@ -137,21 +132,19 @@ const displaySeconds = computed(() => {
 });
 
 const displayLabel = computed(() => {
-	if (props.label) return props.label;
-	if (props.timeRemaining <= 0) return 'ACTION!';
-	if (isCritical.value) return 'READY!';
-	if (isWarning.value) return 'CHARGING';
-	return 'ATB';
+	if ( isWarning.value) return "Hurry Up!";
+	if ( isCritical.value) return "You're Running Out of Time!";
+	return "Time Remainig: ";
 });
 
 const isWarning = computed(() => {
 	// Warning when 80% of time has elapsed (20% remaining)
-	return remainingPercentage.value <= (100 - props.warningThreshold) && !isCritical.value;
+	return remainingPercentage.value <= 100 - props.warningThreshold && !isCritical.value;
 });
 
 const isCritical = computed(() => {
 	// Critical when 95% of time has elapsed (5% remaining)
-	return remainingPercentage.value <= (100 - props.criticalThreshold);
+	return remainingPercentage.value <= 100 - props.criticalThreshold;
 });
 
 const isExpired = computed(() => {
@@ -164,24 +157,27 @@ const isAnimating = computed(() => {
 
 const barHeight = computed(() => {
 	switch (props.size) {
-		case 'sm': return 12;
-		case 'lg': return 20;
-		default: return 16;
+		case "sm":
+			return 12;
+		case "lg":
+			return 20;
+		default:
+			return 16;
 	}
 });
 
 // Dynamic colors based on timer state
 const progressColor = computed(() => {
-	if (isExpired.value) return colorSystem.getColor('destructive');
-	if (isCritical.value) return colorSystem.getColor('destructive');
-	if (isWarning.value) return 'oklch(0.769 0.188 70.08)'; // amber
-	return colorSystem.getColor('primary');
+	if (isExpired.value) return colorSystem.getColor("destructive");
+	if (isCritical.value) return colorSystem.getColor("destructive");
+	if (isWarning.value) return "oklch(0.769 0.188 70.08)"; // amber
+	return colorSystem.getColor("primary");
 });
 
 const timerIcon = computed(() => {
-	if (isExpired.value) return 'pi-exclamation-triangle';
-	if (isCritical.value) return 'pi-clock';
-	return 'pi-hourglass';
+	if (isExpired.value) return "pi-exclamation-triangle";
+	if (isCritical.value) return "pi-clock";
+	return "pi-hourglass";
 });
 
 // State changes trigger CSS animations automatically through class changes
@@ -202,7 +198,7 @@ const timerIcon = computed(() => {
 	display: block;
 	// Fixed width for all screen sizes
 	width: 280px; // Default desktop width
-	
+
 	// Size variants are now ignored for width, only affect height/font
 	&.timer-sm {
 		.atb-timer-bar {
@@ -215,7 +211,7 @@ const timerIcon = computed(() => {
 			font-size: 0.65rem;
 		}
 	}
-	
+
 	&.timer-lg {
 		.atb-timer-bar {
 			height: 20px;
@@ -253,11 +249,11 @@ const timerIcon = computed(() => {
 	text-transform: uppercase;
 	letter-spacing: 0.1em;
 	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-	
+
 	.timer-warning & {
 		color: oklch(0.769 0.188 70.08); // amber
 	}
-	
+
 	.timer-critical & {
 		color: var(--destructive);
 		animation: text-pulse 0.666s ease-in-out infinite; // 2x 333ms
@@ -270,11 +266,11 @@ const timerIcon = computed(() => {
 	color: var(--p-text-muted-color);
 	font-variant-numeric: tabular-nums;
 	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-	
+
 	.timer-warning & {
 		color: oklch(0.769 0.188 70.08); // amber
 	}
-	
+
 	.timer-critical & {
 		color: var(--destructive);
 	}
@@ -287,13 +283,9 @@ const timerIcon = computed(() => {
 	height: 16px;
 	border-radius: 8px;
 	overflow: hidden;
-	background: linear-gradient(
-		to bottom,
-		rgba(0, 0, 0, 0.3),
-		rgba(0, 0, 0, 0.1)
-	);
+	background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1));
 	border: 2px solid var(--p-content-border-color);
-	box-shadow: 
+	box-shadow:
 		inset 0 2px 4px rgba(0, 0, 0, 0.3),
 		0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -302,10 +294,12 @@ const timerIcon = computed(() => {
 .atb-timer-background {
 	position: absolute;
 	inset: 0;
-	background: 
+	background:
 		linear-gradient(45deg, transparent 25%, rgba(255, 255, 255, 0.05) 25%, rgba(255, 255, 255, 0.05) 50%, transparent 50%, transparent 75%, rgba(255, 255, 255, 0.05) 75%),
 		linear-gradient(to bottom, var(--p-surface-300), var(--p-surface-400));
-	background-size: 8px 8px, 100% 100%;
+	background-size:
+		8px 8px,
+		100% 100%;
 	opacity: 0.3;
 }
 
@@ -315,36 +309,24 @@ const timerIcon = computed(() => {
 	top: 0;
 	left: 0;
 	height: 100%;
-	background: linear-gradient(
-		to bottom,
-		var(--p-primary-color),
-		oklch(from var(--p-primary-color) calc(l - 0.1) c h)
-	);
+	background: linear-gradient(to bottom, var(--p-primary-color), oklch(from var(--p-primary-color) calc(l - 0.1) c h));
 	border-radius: 6px;
-	box-shadow: 
+	box-shadow:
 		inset 0 1px 0 rgba(255, 255, 255, 0.3),
 		0 0 8px oklch(from var(--p-primary-color) l c h / 0.5);
 	overflow: hidden;
-	
+
 	// Color transitions
 	.timer-warning & {
-		background: linear-gradient(
-			to bottom,
-			oklch(0.769 0.188 70.08),
-			oklch(0.669 0.188 70.08)
-		);
-		box-shadow: 
+		background: linear-gradient(to bottom, oklch(0.769 0.188 70.08), oklch(0.669 0.188 70.08));
+		box-shadow:
 			inset 0 1px 0 rgba(255, 255, 255, 0.3),
 			0 0 8px oklch(0.769 0.188 70.08 / 0.6);
 	}
-	
+
 	.timer-critical & {
-		background: linear-gradient(
-			to bottom,
-			var(--destructive),
-			oklch(from var(--destructive) calc(l - 0.1) c h)
-		);
-		box-shadow: 
+		background: linear-gradient(to bottom, var(--destructive), oklch(from var(--destructive) calc(l - 0.1) c h));
+		box-shadow:
 			inset 0 1px 0 rgba(255, 255, 255, 0.3),
 			0 0 12px var(--destructive),
 			0 0 24px oklch(from var(--destructive) l c h / 0.3);
@@ -359,17 +341,14 @@ const timerIcon = computed(() => {
 	left: 0;
 	width: 100%;
 	height: 50%;
-	background: linear-gradient(
-		to bottom,
-		rgba(255, 255, 255, 0.4),
-		transparent
-	);
+	background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), transparent);
 	border-radius: 6px 6px 0 0;
 	animation: glow-shimmer 2.664s ease-in-out infinite; // 8x 333ms
 }
 
 @keyframes glow-shimmer {
-	0%, 100% {
+	0%,
+	100% {
 		opacity: 1;
 	}
 	50% {
@@ -408,27 +387,27 @@ const timerIcon = computed(() => {
 	align-items: center;
 	justify-content: center;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-	
+
 	i {
 		font-size: 0.7rem;
 		color: var(--p-text-color);
 	}
-	
+
 	.timer-warning & {
 		border-color: oklch(0.769 0.188 70.08);
 		box-shadow: 0 0 8px oklch(0.769 0.188 70.08 / 0.5);
-		
+
 		i {
 			color: oklch(0.769 0.188 70.08);
 		}
 	}
-	
+
 	.timer-critical & {
 		border-color: var(--destructive);
 		background: var(--destructive);
 		box-shadow: 0 0 12px var(--destructive);
 		animation: icon-pulse 0.666s ease-in-out infinite; // 2x 333ms
-		
+
 		i {
 			color: var(--destructive-foreground);
 		}
@@ -439,12 +418,7 @@ const timerIcon = computed(() => {
 .atb-timer-flash {
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(255, 255, 255, 0.3),
-		transparent
-	);
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
 	animation: flash-sweep 1.332s ease-in-out infinite; // 4x 333ms
 }
 
@@ -453,36 +427,25 @@ const timerIcon = computed(() => {
 	position: absolute;
 	inset: -4px;
 	border-radius: 12px;
-	background: radial-gradient(
-		ellipse,
-		var(--p-primary-color) 0%,
-		transparent 70%
-	);
+	background: radial-gradient(ellipse, var(--p-primary-color) 0%, transparent 70%);
 	opacity: 0.2;
 	animation: atb-pulse 1.998s ease-in-out infinite; // 6x 333ms
 	z-index: -1;
-	
+
 	.timer-warning & {
-		background: radial-gradient(
-			ellipse,
-			oklch(0.769 0.188 70.08) 0%,
-			transparent 70%
-		);
+		background: radial-gradient(ellipse, oklch(0.769 0.188 70.08) 0%, transparent 70%);
 	}
-	
+
 	.timer-critical & {
-		background: radial-gradient(
-			ellipse,
-			var(--destructive) 0%,
-			transparent 70%
-		);
+		background: radial-gradient(ellipse, var(--destructive) 0%, transparent 70%);
 		animation: atb-pulse 0.999s ease-in-out infinite; // 3x 333ms
 	}
 }
 
 // Heartbeat animation for active timer
 @keyframes heartbeat {
-	0%, 100% {
+	0%,
+	100% {
 		transform: scaleY(1);
 	}
 	50% {
@@ -497,7 +460,8 @@ const timerIcon = computed(() => {
 
 // Animations
 @keyframes critical-glow {
-	0%, 100% {
+	0%,
+	100% {
 		filter: brightness(1);
 	}
 	50% {
@@ -506,7 +470,8 @@ const timerIcon = computed(() => {
 }
 
 @keyframes text-pulse {
-	0%, 100% {
+	0%,
+	100% {
 		opacity: 1;
 		transform: scale(1);
 	}
@@ -517,7 +482,8 @@ const timerIcon = computed(() => {
 }
 
 @keyframes icon-pulse {
-	0%, 100% {
+	0%,
+	100% {
 		transform: translateY(-50%) scale(1);
 	}
 	50% {
@@ -540,7 +506,8 @@ const timerIcon = computed(() => {
 }
 
 @keyframes atb-pulse {
-	0%, 100% {
+	0%,
+	100% {
 		transform: scale(1);
 		opacity: 0.2;
 	}
@@ -562,20 +529,20 @@ const timerIcon = computed(() => {
 	.atb-timer {
 		width: 240px; // Compact width for mobile
 	}
-	
+
 	.timer-text,
 	.timer-seconds {
 		font-size: 0.65rem;
 	}
-	
+
 	.atb-timer-bar {
 		height: 14px;
 	}
-	
+
 	.atb-timer-icon {
 		width: 18px;
 		height: 18px;
-		
+
 		i {
 			font-size: 0.6rem;
 		}
@@ -626,12 +593,12 @@ const timerIcon = computed(() => {
 	.atb-timer {
 		width: 220px; // Even more compact for small phones
 	}
-	
+
 	.timer-text,
 	.timer-seconds {
 		font-size: 0.6rem;
 	}
-	
+
 	.atb-timer-bar {
 		height: 12px;
 	}
@@ -641,15 +608,15 @@ const timerIcon = computed(() => {
 @media (prefers-color-scheme: dark) {
 	.atb-timer-bar {
 		border-color: oklch(from var(--p-content-border-color) l c h / 0.5);
-		box-shadow: 
+		box-shadow:
 			inset 0 2px 4px rgba(0, 0, 0, 0.5),
 			0 2px 8px rgba(0, 0, 0, 0.3);
 	}
-	
+
 	.atb-timer-background {
 		opacity: 0.2;
 	}
-	
+
 	.timer-text,
 	.timer-seconds {
 		text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
@@ -661,7 +628,7 @@ const timerIcon = computed(() => {
 	.atb-timer-fill {
 		transition: width 0.333s cubic-bezier(0.4, 0, 0.6, 1) !important; // Smooth easing
 	}
-	
+
 	.timer-critical .atb-timer-fill,
 	.atb-timer-icon,
 	.timer-text,

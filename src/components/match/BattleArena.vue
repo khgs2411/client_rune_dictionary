@@ -25,7 +25,7 @@
 
 			<!-- ATB Turn Timer -->
 			<div class="turn-timer-container">
-				<TurnTimer :time-remaining="timerRemaining" :duration="timerDuration" :is-active="timerActive" :size="isMobile ? 'sm' : 'md'" :label="timerLabel" />
+				<TurnTimer :time-remaining="timerRemaining" :duration="timerDuration" :is-active="timerActive" :size="isMobile ? 'sm' : 'md'" />
 			</div>
 		</div>
 
@@ -37,20 +37,25 @@
 				<TransitionGroup name="damage-number">
 					<div v-for="number in playerDamageNumbers" :key="number.id" class="damage-number" :class="{ 'heal-number': number.isHeal }">{{ number.isHeal ? "+" : "-" }}{{ Math.abs(number.value) }}</div>
 				</TransitionGroup>
+
+
 				<Card
 					class="character-card player-card"
 					:class="{ 'taking-damage': playerTakingDamage, healing: playerHealing, breathing: true }"
 					:style="{ '--health-percentage': playerHpPercentage, 'animation-delay': playerBreathOffset + 's' }">
 					<template #content>
+						<!-- ATB Side Bars -->
+						<div class="atb-side-bars">
+							<div class="atb-side-bar left">
+								<div class="atb-segments">
+									<div v-for="i in 10" :key="i" class="atb-segment" :class="{ active: (11 - i) <= (playerAtbProgress / 10) }"></div>
+								</div>
+								<span class="atb-label">ATB</span>
+							</div>
+						</div>
+
 						<div class="character-card-content">
 							<div class="character-icon">
-								<!-- ATB Progress Ring -->
-								<div class="atb-progress-ring" :class="{ 'atb-ready': playerAtbProgress >= 100 }">
-									<svg class="atb-svg" viewBox="0 0 120 120">
-										<circle class="atb-bg" cx="60" cy="60" r="54" />
-										<circle class="atb-fill" cx="60" cy="60" r="54" :style="{ '--atb-progress': playerAtbProgress }" />
-									</svg>
-								</div>
 								<i class="pi pi-user"></i>
 							</div>
 
@@ -77,20 +82,25 @@
 				<TransitionGroup name="damage-number">
 					<div v-for="number in enemyDamageNumbers" :key="number.id" class="damage-number" :class="{ 'heal-number': number.isHeal }">{{ number.isHeal ? "+" : "-" }}{{ Math.abs(number.value) }}</div>
 				</TransitionGroup>
+
+
 				<Card
 					class="character-card enemy-card"
 					:class="{ 'taking-damage': enemyTakingDamage, healing: enemyHealing, breathing: true }"
 					:style="{ '--health-percentage': enemyHpPercentage, 'animation-delay': enemyBreathOffset + 's' }">
 					<template #content>
+						<!-- ATB Side Bars -->
+						<div class="atb-side-bars">
+							<div class="atb-side-bar right">
+								<div class="atb-segments">
+									<div v-for="i in 10" :key="i" class="atb-segment" :class="{ active: (11 - i) <= (enemyAtbProgress / 10) }"></div>
+								</div>
+								<span class="atb-label">ATB</span>
+							</div>
+						</div>
+
 						<div class="character-card-content">
 							<div class="character-icon">
-								<!-- ATB Progress Ring -->
-								<div class="atb-progress-ring" :class="{ 'atb-ready': enemyAtbProgress >= 100 }">
-									<svg class="atb-svg" viewBox="0 0 120 120">
-										<circle class="atb-bg" cx="60" cy="60" r="54" />
-										<circle class="atb-fill" cx="60" cy="60" r="54" :style="{ '--atb-progress': enemyAtbProgress }" />
-									</svg>
-								</div>
 								<i class="pi pi-android"></i>
 							</div>
 							<div class="character-details">
@@ -130,7 +140,6 @@ interface Props {
 	isPlayerTurn: boolean;
 	isEnemyTurn: boolean;
 	isWaiting: boolean;
-	isProcessingAction: boolean;
 	currentTurn?: number;
 	// Timer props
 	timerRemaining?: number;
@@ -196,13 +205,7 @@ window.addEventListener("resize", () => {
 	isMobile.value = window.innerWidth <= 768;
 });
 
-// Timer computed properties
-const timerLabel = computed(() => {
-	if (!props.timerActive) return "";
-	if (props.timerRemaining <= 1000) return "Now!";
-	if (props.isProcessingAction) return "Wait";
-	return "";
-});
+
 
 // Damage animation states
 const playerTakingDamage = ref(false);
@@ -1107,6 +1110,73 @@ watch(
 			stroke-width: 3;
 		}
 	}
+}
+
+
+// ATB Side Bars
+.atb-side-bars {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 2;
+
+	.atb-side-bar {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: 24px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+
+		&.left {
+			left: -32px;
+		}
+
+		&.right {
+			right: -32px;
+		}
+
+		.atb-segments {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+			height: 120px;
+			justify-content: space-between;
+
+			.atb-segment {
+				width: 20px;
+				height: 8px;
+				background: var(--p-surface-300);
+				border-radius: 4px;
+				border: 1px solid var(--p-surface-border);
+				transition: all 0.3s ease;
+
+				&.active {
+					background: linear-gradient(to top, var(--p-primary-500), var(--p-primary-400));
+					box-shadow: 0 0 6px var(--p-primary-400);
+					border-color: var(--p-primary-300);
+					animation: atb-segment-pulse 1s ease-in-out infinite alternate;
+				}
+			}
+		}
+
+		.atb-label {
+			font-size: 0.7rem;
+			font-weight: 700;
+			color: var(--p-primary-600);
+			writing-mode: vertical-rl;
+			text-orientation: mixed;
+			letter-spacing: 1px;
+		}
+	}
+}
+
+@keyframes atb-segment-pulse {
+	0% { transform: scaleY(1); filter: brightness(1); }
+	100% { transform: scaleY(1.1); filter: brightness(1.2); }
 }
 
 </style>
