@@ -19,10 +19,6 @@ interface I_ATBUpdateContent {
 	timestamp: string;
 }
 
-interface I_ATBProgressUpdateData {
-	type: string;
-	content: I_ATBUpdateContent;
-}
 
 const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 	const prompt$ = usePrompt();
@@ -310,6 +306,8 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 		Lib.Log("Turn end:", data);
 
 		const { entityId, turnNumber } = data.content || data;
+		store.gameState.currentTurn = 'waiting'
+		Rxjs.Next("match", { cta: "onWaitingForTurn", data: {} });
 		// Could add turn end animations or effects here
 
 		Lib.Log(`Turn ${turnNumber} ended for ${entityId}`);

@@ -2,7 +2,6 @@
 	<div class="game-actions">
 		<!-- Action Panel (Bottom Center) -->
 		<div class="action-panel" :class="{ expanded: isExpanded, collapsed: !isExpanded }">
-
 			<!-- Collapsed View (Mobile only) - Shows only Attack button -->
 			<div class="collapsed-content" v-if="!isExpanded && isMobile && isPlayerTurn && !isProcessingAction">
 				<div class="collapsed-inner">
@@ -14,14 +13,15 @@
 			</div>
 
 			<!-- Expanded View -->
-			<div class="expanded-content" v-if="(isExpanded && isMobile) || !isMobile || !isPlayerTurn">
+			<div class="expanded-content" v-if="(isExpanded && isMobile) || !isMobile || !isPlayerTurn || !isWaiting">
 				<div class="action-prompt" v-if="isPlayerTurn && !isProcessingAction">What will {{ playerName }} do?</div>
 				<div class="action-prompt" v-else-if="isEnemyTurn">{{ enemyName }} is thinking...</div>
+				<div class="action-prompt" v-else-if="isWaiting">Waiting...</div>
 				<div class="action-buttons" v-if="isPlayerTurn && !isProcessingAction">
 					<Button label="Attack" icon="pi pi-bolt" severity="danger" class="action-btn attack-btn" :disabled="isProcessingAction" @click="$emit('attack')" />
 					<Button label="Defend" icon="pi pi-shield" severity="info" class="action-btn" :disabled="isProcessingAction" />
 					<Button label="Item" icon="pi pi-box" severity="success" class="action-btn" :disabled="isProcessingAction" />
-					<Button label="Run" icon="pi pi-directions" severity="warning" class="action-btn" :disabled="isProcessingAction" @click="$emit('leave-match')"/>
+					<Button label="Run" icon="pi pi-directions" severity="warning" class="action-btn" :disabled="isProcessingAction" @click="$emit('leave-match')" />
 				</div>
 
 				<!-- Control Buttons Row -->
@@ -30,7 +30,7 @@
 					<Button icon="pi pi-book" class="control-btn" severity="secondary" text rounded v-tooltip.top="'Combat Log'" @click="$emit('toggle-log')" />
 					<Button icon="pi pi-times" class="control-btn" severity="secondary" text rounded v-tooltip.top="'Leave Match'" @click="$emit('leave-match')" />
 				</div>
-				
+
 				<!-- Collapse indicator for mobile expanded view -->
 				<button class="collapse-indicator" @click="toggleExpanded" v-if="isMobile && isPlayerTurn">
 					<i class="pi pi-angle-double-down"></i>
@@ -49,6 +49,7 @@ interface Props {
 	enemyName: string;
 	isPlayerTurn: boolean;
 	isEnemyTurn: boolean;
+	isWaiting: boolean;
 	isProcessingAction: boolean;
 }
 
@@ -68,7 +69,7 @@ const isExpanded = ref(false);
 const isMobile = ref(window.innerWidth <= 576);
 
 // Update on resize
-window.addEventListener('resize', () => {
+window.addEventListener("resize", () => {
 	isMobile.value = window.innerWidth <= 576;
 	if (!isMobile.value) {
 		isExpanded.value = false; // Reset when switching to desktop
@@ -116,19 +117,19 @@ const toggleExpanded = () => {
 		padding: 10px 12px;
 		bottom: 8px;
 		border-radius: 12px;
-		
+
 		// Collapsed state on mobile
 		&.collapsed {
 			padding: 8px;
 			width: calc(100% - 16px);
 			min-width: unset;
-			
+
 			.expanded-content {
 				display: none;
 			}
 		}
-		
-		// Expanded state on mobile  
+
+		// Expanded state on mobile
 		&.expanded {
 			bottom: 8px;
 			max-height: 60vh;
@@ -139,7 +140,8 @@ const toggleExpanded = () => {
 }
 
 // Expand/Collapse indicators - integrated into the action bar
-.expand-indicator, .collapse-indicator {
+.expand-indicator,
+.collapse-indicator {
 	display: none;
 	background: transparent;
 	border: none;
@@ -147,24 +149,24 @@ const toggleExpanded = () => {
 	cursor: pointer;
 	transition: all 0.2s ease;
 	padding: 8px;
-	
+
 	i {
 		font-size: 1.2rem;
 		transition: transform 0.2s ease;
 	}
-	
+
 	&:hover {
 		color: var(--p-text-color);
-		
+
 		i {
 			transform: translateY(-2px);
 		}
 	}
-	
+
 	&:active i {
 		transform: translateY(0);
 	}
-	
+
 	@include breakpoint-down("sm") {
 		display: block;
 	}
@@ -189,38 +191,43 @@ const toggleExpanded = () => {
 	animation: pulse-glow 2s ease-in-out infinite;
 	transition: all 0.3s ease;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-	
+
 	i {
 		font-size: 1rem;
 		transition: all 0.2s ease;
 	}
-	
+
 	&:hover {
 		background: oklch(from var(--foreground) l c h / 0.2);
 		border-color: oklch(from var(--foreground) l c h / 0.5);
 		transform: translateY(-50%) scale(1.05);
 		box-shadow: 0 4px 12px oklch(0 0 0 / 0.2);
 		animation-play-state: paused;
-		
+
 		i {
 			transform: translateY(-1px);
 			font-size: 1.1rem;
 		}
 	}
-	
+
 	&:active {
 		transform: translateY(-50%) scale(0.95);
 	}
 }
 
 @keyframes pulse-glow {
-	0%, 100% {
+	0%,
+	100% {
 		transform: translateY(-50%);
-		box-shadow: 0 2px 8px oklch(0 0 0 / 0.1), 0 0 0 0 oklch(from var(--foreground) l c h / 0.3);
+		box-shadow:
+			0 2px 8px oklch(0 0 0 / 0.1),
+			0 0 0 0 oklch(from var(--foreground) l c h / 0.3);
 	}
 	50% {
 		transform: translateY(-50%) translateY(-2px);
-		box-shadow: 0 4px 12px oklch(0 0 0 / 0.15), 0 0 0 4px oklch(from var(--foreground) l c h / 0.1);
+		box-shadow:
+			0 4px 12px oklch(0 0 0 / 0.15),
+			0 0 0 4px oklch(from var(--foreground) l c h / 0.1);
 	}
 }
 
@@ -231,16 +238,16 @@ const toggleExpanded = () => {
 // Collapsed content - only visible on mobile when collapsed
 .collapsed-content {
 	display: none;
-	
+
 	@include breakpoint-down("sm") {
 		display: block;
 		width: 100%;
-		
+
 		.collapsed-inner {
 			position: relative;
 			width: 100%;
 		}
-		
+
 		.action-btn {
 			margin: 0;
 			width: 100%;
@@ -248,13 +255,13 @@ const toggleExpanded = () => {
 			font-size: 1.1rem;
 			font-weight: 700;
 			padding-left: 48px; // Make room for expand indicator
-			
+
 			// Make it more prominent in collapsed mode
 			&.attack-btn {
 				background: var(--p-red-500);
 				border-color: var(--p-red-500);
 				box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
-				
+
 				&:hover:not(:disabled) {
 					background: var(--p-red-600);
 					border-color: var(--p-red-600);

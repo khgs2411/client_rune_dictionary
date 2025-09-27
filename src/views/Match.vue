@@ -20,6 +20,7 @@
 					:game-state="match$.store.gameState"
 					:is-player-turn="isPlayerTurn"
 					:is-enemy-turn="isEnemyTurn"
+					:is-waiting="isWaiting"
 					:is-processing-action="isProcessingAction"
 					:game-log="gameLog"
 					:timer-remaining="timerRemaining"
@@ -57,6 +58,7 @@ const { inLobby, inMatch, isFinished } = match$;
 // Game state for unified interface
 const isPlayerTurn = ref(false); // Start with player turn
 const isEnemyTurn = ref(false);
+const isWaiting = ref(true);
 const isProcessingAction = ref(false);
 const gameLog = ref<Array<{ type: string; message: string; timestamp: Date }>>([]);
 const currentMatchType = ref<MatchType | null>(null);
@@ -77,6 +79,7 @@ const enemyATBProgress = ref(0); // 0-100 percentage
 useRxjs("match", {
 	onPlayerTurn: switchToPlayerTurn,
 	onEnemyTurn: switchToEnemyTurn,
+	onWaitingForTurn: setIsWaiting,
 	onLogEntry: addLogEntry,
 	onTimerUpdate: updateTimer,
 	onTimerExpired: handleTimerExpired,
@@ -106,7 +109,6 @@ const matchCards = ref<MatchCard[]>([
 
 async function handleMatchType(card: MatchCard) {
 	// Handle match type selection
-	console.log(`Selected match type: ${card.type}`);
 	if (card.type === "pve") await handlePVEMatch(card);
 	else await handlePVPMatch(card);
 }
@@ -127,8 +129,7 @@ async function handlePVEMatch(card: MatchCard) {
 		currentMatchType.value = "pve";
 		initializeGameState();
 
-		const response = await match$.pve();
-		console.log("PVE match created:", response);
+		await match$.pve();
 	} catch (e) {
 		console.error("PVE match error:", e);
 		utils.toast.error("Something went wrong", "center");
@@ -157,7 +158,6 @@ function initializeGameState() {
 	enemyATBProgress.value = 0;
 
 	// Set up callbacks for server event integration
-	console.log("Set up callbacks for server event integration");
 
 	// Add initial log entry
 	addLogEntry({ type: "system", message: "Match started! Waiting for server to start first turn..." });
@@ -198,7 +198,6 @@ async function performAction(type: string) {
 				channelId: match$.store.currentChannelId,
 			},
 		});
-		
 
 		/**
 		 * Server will respond with:
@@ -222,6 +221,7 @@ async function performAction(type: string) {
 function switchToPlayerTurn(data?: { turnNumber?: number }) {
 	isPlayerTurn.value = true;
 	isEnemyTurn.value = false;
+	isWaiting.value = false;
 	isProcessingAction.value = false; // Reset processing state when it's player's turn
 	timerActive.value = true; // Activate timer when turn starts
 
@@ -235,10 +235,20 @@ function switchToPlayerTurn(data?: { turnNumber?: number }) {
 function switchToEnemyTurn(data?: { turnNumber?: number }) {
 	isPlayerTurn.value = false;
 	isEnemyTurn.value = true;
+	isWaiting.value = false;
+
 	timerActive.value = true; // Keep timer active for enemy turns too (for UI consistency)
 
 	const turnMsg = data?.turnNumber ? `${getEnemyName()}'s turn... (Turn ${data.turnNumber})` : `${getEnemyName()}'s turn...`;
 	addLogEntry({ type: "system", message: turnMsg });
+}
+
+function setIsWaiting(data?: { turnNumber?: number }) {
+	isPlayerTurn.value = false;
+	isEnemyTurn.value = false;
+	isWaiting.value = true;
+	isProcessingAction.value = false; // Reset processing state when waiting
+	timerActive.value = false; // Deactivate timer when waiting
 }
 
 /**
@@ -283,32 +293,25 @@ interface I_ATBProgressEventData {
  * Update ATB progress indicators - Connected to WebSocket events from handleATBProgressUpdate
  */
 function updateATBProgress(data: I_ATBProgressEventData) {
-	console.log("[ATB Match.vue] Received ATB progress update:", data);
-
 	// Validate data structure
-	if (!data || typeof data !== 'object') {
+	if (!data || typeof data !== "object") {
 		console.warn("Invalid ATB progress data:", data);
 		return;
 	}
 
 	// Update player ATB progress
-	if (data.player && typeof data.player.readiness === 'number') {
-		console.log(`[ATB Match.vue] Updating player progress: ${data.player.readiness}%`);
+	if (data.player && typeof data.player.readiness === "number") {
 		playerATBProgress.value = Math.max(0, Math.min(100, data.player.readiness));
 	} else {
-		console.log("[ATB Match.vue] No valid player data");
 	}
 
 	// Update enemy ATB progress
-	if (data.enemy && typeof data.enemy.readiness === 'number') {
-		console.log(`[ATB Match.vue] Updating enemy progress: ${data.enemy.readiness}%`);
+	if (data.enemy && typeof data.enemy.readiness === "number") {
 		enemyATBProgress.value = Math.max(0, Math.min(100, data.enemy.readiness));
 	} else {
-		console.log("[ATB Match.vue] No valid enemy data");
 	}
 
 	// Log for debugging
-	console.log(`[ATB Match.vue] Final values - Player: ${playerATBProgress.value}%, Enemy: ${enemyATBProgress.value}%`);
 }
 
 // Note: Match end is now handled exclusively by server authority

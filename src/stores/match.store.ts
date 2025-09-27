@@ -16,7 +16,7 @@ export interface GameState {
 	enemyHealth: number;
 	playerMaxHealth: number;
 	enemyMaxHealth: number;
-	currentTurn: "player" | "enemy";
+	currentTurn: "player" | "enemy" | "waiting";
 	actionsPerformed: number;
 	matchStartTime: Date | null;
 	turnCounter: number;

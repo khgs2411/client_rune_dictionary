@@ -37,8 +37,8 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 			if (wsm$.isMessage.value) onMessageReceived(ws, event, wsm$);
 			else onActionReceived(ws, event, wsm$);
 		} catch (err) {
-			console.log(JSON.stringify(event.data));
-			console.log(err);
+			Lib.Warn(JSON.stringify(event.data));
+			Lib.Warn(err);
 		}
 	}
 

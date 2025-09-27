@@ -10,12 +10,17 @@
 
 		<!-- Turn Indicator with Timer -->
 		<div class="turn-indicator" :class="{ 'player-turn': isPlayerTurn, 'enemy-turn': isEnemyTurn }">
-			<div class="turn-badge">
+			<div class="turn-badge" v-if="!isWaiting">
 				<i class="pi" :class="isPlayerTurn ? 'pi-user' : 'pi-android'"></i>
 				<span class="turn-text">
 					{{ isPlayerTurn ? "Your Turn" : `${enemyName}'s Turn` }}
 				</span>
-				<span class="turn-number">Turn {{ displayTurnNumber }}</span>
+				<span class="turn-number">Turn {{ displayTurnNumber }}{{ timerRemaining ? ` | ${timerRemaining}ms` : "" }}</span>
+			</div>
+			<div class="turn-badge" v-else>
+				<i class="pi" :class="''"></i>
+				<span class="turn-text"> Waiting... </span>
+				<span class="turn-number">Turn {{ displayTurnNumber }}{{ timerRemaining ? ` | ${timerRemaining}ms` : "" }}</span>
 			</div>
 
 			<!-- ATB Turn Timer -->
@@ -124,6 +129,7 @@ interface Props {
 	enemyLevel?: number;
 	isPlayerTurn: boolean;
 	isEnemyTurn: boolean;
+	isWaiting: boolean;
 	isProcessingAction: boolean;
 	currentTurn?: number;
 	// Timer props
@@ -1102,4 +1108,5 @@ watch(
 		}
 	}
 }
+
 </style>

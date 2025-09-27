@@ -9,6 +9,7 @@
 			:enemy-name="enemyName"
 			:is-player-turn="isPlayerTurn"
 			:is-enemy-turn="isEnemyTurn"
+			:is-waiting="isWaiting"
 			:is-processing-action="isProcessingAction"
 			:timer-remaining="timerRemaining"
 			:timer-duration="timerDuration"
@@ -22,6 +23,7 @@
 			:enemy-name="enemyName"
 			:is-player-turn="isPlayerTurn"
 			:is-enemy-turn="isEnemyTurn"
+			:is-waiting="isWaiting"
 			:is-processing-action="isProcessingAction"
 			@attack="$emit('attack')"
 			@leave-match="$emit('leave-match')"
@@ -43,6 +45,7 @@ defineProps<{
 	gameState: GameState;
 	isPlayerTurn: boolean;
 	isEnemyTurn: boolean;
+	isWaiting: boolean;
 	isProcessingAction: boolean;
 	gameLog: Array<{
 		type: string;
