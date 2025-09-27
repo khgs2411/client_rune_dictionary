@@ -243,7 +243,7 @@ function switchToEnemyTurn(data?: { turnNumber?: number }) {
 	addLogEntry({ type: "system", message: turnMsg });
 }
 
-function setIsWaiting(data?: { turnNumber?: number }) {
+function setIsWaiting() {
 	isPlayerTurn.value = false;
 	isEnemyTurn.value = false;
 	isWaiting.value = true;
