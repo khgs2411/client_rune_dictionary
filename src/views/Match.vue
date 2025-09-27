@@ -53,7 +53,7 @@ const match$ = useMatch();
 const { inLobby, inMatch, isFinished } = match$;
 
 // Game state for unified interface
-const isPlayerTurn = ref(true); // Start with player turn
+const isPlayerTurn = ref(false); // Start with player turn
 const isEnemyTurn = ref(false);
 const isProcessingAction = ref(false);
 const gameLog = ref<Array<{ type: string; message: string; timestamp: Date }>>([]);
@@ -135,14 +135,14 @@ async function handlePVEMatch(card: MatchCard) {
  * Initialize game state for a new match
  */
 function initializeGameState() {
-	isPlayerTurn.value = true;
+	isPlayerTurn.value = false;
 	isEnemyTurn.value = false;
 	isProcessingAction.value = false;
 	gameLog.value = [];
 
 	// Initialize timer state
-	timerRemaining.value = 5000;
-	timerDuration.value = 5000;
+	timerRemaining.value = 3000;
+	timerDuration.value = 3000;
 	timerActive.value = false; // Will be activated by server events
 
 	// Set up callbacks for server event integration
