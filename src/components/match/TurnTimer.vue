@@ -19,7 +19,7 @@
 					:style="{
 						width: fillPercentage + '%',
 						backgroundColor: progressColor,
-						transition: isAnimating ? 'width 0.333s ease-out, background-color 0.333s ease' : 'none',
+						transition: 'background-color 0.333s ease',
 					}">
 					<!-- Inner Glow Effect -->
 					<div class="atb-timer-glow"></div>
@@ -86,7 +86,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, ref, watch, onUnmounted } from "vue";
 import { colorSystem } from "../../utils/color-system";
 import SparkleEffect from "../effects/SparkleEffect.vue";
 
@@ -114,12 +114,64 @@ const props = withDefaults(defineProps<Props>(), {
 	size: "md",
 });
 
-// No refs needed - all animations are CSS-based
+// Client-side smooth interpolation state
+const smoothTimeRemaining = ref(props.timeRemaining);
+const lastServerUpdate = ref(Date.now());
+const animationFrameId = ref<number | null>(null);
 
-// Computed values for ATB-style depleting bar
+// Smooth animation function
+const animateTimer = () => {
+	if (!props.isActive || props.timeRemaining <= 0) {
+		if (animationFrameId.value) {
+			cancelAnimationFrame(animationFrameId.value);
+			animationFrameId.value = null;
+		}
+		return;
+	}
+
+	const now = Date.now();
+	const timeSinceUpdate = now - lastServerUpdate.value;
+
+	// Interpolate smoothly between server updates
+	const interpolatedRemaining = Math.max(0, props.timeRemaining - timeSinceUpdate);
+	smoothTimeRemaining.value = interpolatedRemaining;
+
+	animationFrameId.value = requestAnimationFrame(animateTimer);
+};
+
+// Watch for server updates to reset interpolation
+watch(() => props.timeRemaining, (newRemaining) => {
+	smoothTimeRemaining.value = newRemaining;
+	lastServerUpdate.value = Date.now();
+
+	// Start animation if timer is active
+	if (props.isActive && newRemaining > 0 && !animationFrameId.value) {
+		animateTimer();
+	}
+});
+
+// Watch for timer state changes
+watch(() => props.isActive, (isActive) => {
+	if (isActive && props.timeRemaining > 0) {
+		lastServerUpdate.value = Date.now();
+		animateTimer();
+	} else if (animationFrameId.value) {
+		cancelAnimationFrame(animationFrameId.value);
+		animationFrameId.value = null;
+	}
+});
+
+// Cleanup on unmount
+onUnmounted(() => {
+	if (animationFrameId.value) {
+		cancelAnimationFrame(animationFrameId.value);
+	}
+});
+
+// Computed values for ATB-style depleting bar (using smooth interpolated value)
 const remainingPercentage = computed(() => {
 	if (props.duration === 0) return 0;
-	return Math.min(100, Math.max(0, (props.timeRemaining / props.duration) * 100));
+	return Math.min(100, Math.max(0, (smoothTimeRemaining.value / props.duration) * 100));
 });
 
 const fillPercentage = computed(() => {
@@ -128,7 +180,7 @@ const fillPercentage = computed(() => {
 });
 
 const displaySeconds = computed(() => {
-	return Math.ceil(props.timeRemaining / 1000);
+	return Math.ceil(smoothTimeRemaining.value / 1000);
 });
 
 const displayLabel = computed(() => {
@@ -148,7 +200,7 @@ const isCritical = computed(() => {
 });
 
 const isExpired = computed(() => {
-	return props.timeRemaining <= 0;
+	return smoothTimeRemaining.value <= 0;
 });
 
 const isAnimating = computed(() => {
@@ -626,7 +678,7 @@ const timerIcon = computed(() => {
 // Reduced motion support
 @media (prefers-reduced-motion: reduce) {
 	.atb-timer-fill {
-		transition: width 0.333s cubic-bezier(0.4, 0, 0.6, 1) !important; // Smooth easing
+		transition: background-color 0.333s ease !important; // Only transition colors
 	}
 
 	.timer-critical .atb-timer-fill,
