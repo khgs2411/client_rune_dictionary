@@ -26,7 +26,7 @@
 					:timer-duration="timerDuration"
 					:timer-active="timerActive"
 					@leave-match="handleReturnToLobby"
-					@attack="perfornAction('attack')"
+					@attack="performAction('attack')"
 					@open-settings="handleOpenSettings"
 					@toggle-log="handleToggleLog" />
 			</div>
@@ -141,8 +141,8 @@ function initializeGameState() {
 	gameLog.value = [];
 
 	// Initialize timer state
-	timerRemaining.value = 3000;
-	timerDuration.value = 3000;
+	timerRemaining.value = match$.store.timerInfo?.duration || 3000;
+	timerDuration.value = match$.store.timerInfo?.duration || 3000;
 	timerActive.value = false; // Will be activated by server events
 
 	// Set up callbacks for server event integration
@@ -171,7 +171,7 @@ function getEnemyName(): string {
 /**
  * Handle attack action - Now server authoritative
  */
-async function perfornAction(type: string) {
+async function performAction(type: string) {
 	if (!isPlayerTurn.value || isProcessingAction.value) return;
 
 	try {
@@ -187,6 +187,7 @@ async function perfornAction(type: string) {
 				channelId: match$.store.currentChannelId,
 			},
 		});
+		
 
 		/**
 		 * Server will respond with:

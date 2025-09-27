@@ -17,6 +17,16 @@ export default class MatchAPI extends BaseAPI {
 				channelId: string;
 				match: {
 					_entities: IMatchParticipant[];
+				},
+				timerInfo: {
+					/** The duration in which the entity is allowed to take action in milliseconds (default: 5000) */
+					duration: number;
+					/** Action to take when timer expires (default: 'pass') */
+					fallbackAction: 'pass' | 'skip';
+					/** Warning threshold as percentage of total duration (default: 80) */
+					warningThreshold: number;
+					/** Enable speed-based turn timing (default: false) */
+					useSpeedBasedTurns?: boolean;
 				}
 			};
 		}>("pve", { whoami });

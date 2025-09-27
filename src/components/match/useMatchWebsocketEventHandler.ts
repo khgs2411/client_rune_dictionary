@@ -115,7 +115,7 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 		// Handle turn updates
 		if (gameState.currentTurnEntityId && gameState.turnCounter) {
 			const currentUserId = auth$.client.value?.id;
-			
+
 			// Update game state turn counter
 			if (typeof gameState.turnCounter === 'number') {
 				store.gameState.turnCounter = gameState.turnCounter;
@@ -124,15 +124,15 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 			// Dispatch turn events based on entity
 			if (gameState.currentTurnEntityId === currentUserId) {
 				// It's the player's turn
-				Rxjs.Next("match", { 
-					cta: "onPlayerTurn", 
-					data: { turnNumber: gameState.turnCounter } 
+				Rxjs.Next("match", {
+					cta: "onPlayerTurn",
+					data: { turnNumber: gameState.turnCounter }
 				});
 			} else {
 				// It's the enemy's turn
-				Rxjs.Next("match", { 
-					cta: "onEnemyTurn", 
-					data: { turnNumber: gameState.turnCounter } 
+				Rxjs.Next("match", {
+					cta: "onEnemyTurn",
+					data: { turnNumber: gameState.turnCounter }
 				});
 			}
 		}
@@ -140,13 +140,13 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 		// Handle timer updates
 		if (gameState.timer && typeof gameState.timer === 'object') {
 			const timer = gameState.timer;
-			
+
 			// Validate timer properties
-			if (typeof timer.remaining === 'number' && 
-			    typeof timer.elapsed === 'number' && 
-			    typeof timer.percentage === 'number' && 
-			    typeof timer.duration === 'number') {
-				
+			if (typeof timer.remaining === 'number' &&
+				typeof timer.elapsed === 'number' &&
+				typeof timer.percentage === 'number' &&
+				typeof timer.duration === 'number') {
+
 				// Dispatch timer update event
 				Rxjs.Next("match", {
 					cta: "onTimerUpdate",
@@ -176,7 +176,7 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 		// Handle other game state updates (health, etc.)
 		if (gameState.entities && Array.isArray(gameState.entities)) {
 			const currentUserId = auth$.client.value?.id;
-			
+
 			gameState.entities.forEach((entity: any) => {
 				if (entity && typeof entity === 'object' && entity.id) {
 					if (entity.id === currentUserId) {
@@ -243,6 +243,16 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 			store.gameState.enemyMaxHealth = maxHealth;
 			Rxjs.Next("match", { cta: "onLogEntry", data: { type: "enemy", message: "Health updated" } });
 		}
+
+		Rxjs.Next("match", {
+			cta: "onTimerUpdate",
+			data: {
+				remaining: store.timerInfo.duration,
+				elapsed: 0,
+				percentage: 0,
+				duration: store.timerInfo.duration
+			}
+		});
 
 		Lib.Log(`Health updated for ${entityId}: ${health}/${maxHealth}`);
 	}

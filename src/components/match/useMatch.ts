@@ -48,6 +48,7 @@ const useMatch = () => {
 		if (response.data?.matchId && response.data?.channelId) {
 			store.currentMatchId = response.data.matchId;
 			store.currentChannelId = response.data.channelId;
+			store.timerInfo = response.data.timerInfo;
 
 			// Initialize game state for new match
 			initializeGameState(response.data.match);

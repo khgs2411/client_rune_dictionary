@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { Ref, ref } from "vue";
 import { E_MatchState } from "../components/match/useMatch";
 
 export interface MatchResult {
@@ -32,6 +32,21 @@ export const useMatchStore = defineStore(
 
 		// Enhanced match data
 		const matchResult = ref(<MatchResult | null>null);
+		const timerInfo: Ref<{
+			/** The duration in which the entity is allowed to take action in milliseconds (default: 5000) */
+			duration: number;
+			/** Action to take when timer expires (default: 'pass') */
+			fallbackAction: 'pass' | 'skip';
+			/** Warning threshold as percentage of total duration (default: 80) */
+			warningThreshold: number;
+			/** Enable speed-based turn timing (default: false) */
+			useSpeedBasedTurns?: boolean;
+		}> = ref({
+			duration: 3000,
+			fallbackAction: 'pass',
+			warningThreshold: 80,
+			useSpeedBasedTurns: false,
+		})
 		const gameState = ref(<GameState>{
 			playerHealth: 10,
 			enemyHealth: 10,
@@ -54,6 +69,7 @@ export const useMatchStore = defineStore(
 			matchResult,
 			gameState,
 			matchHistory,
+			timerInfo,
 		};
 	},
 	{
