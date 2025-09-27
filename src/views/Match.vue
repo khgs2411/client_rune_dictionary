@@ -20,10 +20,16 @@
 					:game-state="match$.store.gameState"
 					:is-player-turn="isPlayerTurn"
 					:is-enemy-turn="isEnemyTurn"
+					:is-waiting="isWaiting"
 					:is-processing-action="isProcessingAction"
 					:game-log="gameLog"
+					:timer-remaining="timerRemaining"
+					:timer-duration="timerDuration"
+					:timer-active="timerActive"
+					:player-atb-progress="playerATBProgress"
+					:enemy-atb-progress="enemyATBProgress"
 					@leave-match="handleReturnToLobby"
-					@attack="perfornAction('attack')"
+					@attack="performAction('attack')"
 					@open-settings="handleOpenSettings"
 					@toggle-log="handleToggleLog" />
 			</div>
@@ -50,16 +56,34 @@ const match$ = useMatch();
 const { inLobby, inMatch, isFinished } = match$;
 
 // Game state for unified interface
-const isPlayerTurn = ref(true); // Start with player turn
+const isPlayerTurn = ref(false); // Start with player turn
 const isEnemyTurn = ref(false);
+const isWaiting = ref(true);
 const isProcessingAction = ref(false);
 const gameLog = ref<Array<{ type: string; message: string; timestamp: Date }>>([]);
 const currentMatchType = ref<MatchType | null>(null);
 
+// Timer state - placeholder values for now, will be connected to WebSocket events
+const timerRemaining = ref(5000); // 5 seconds in milliseconds
+const timerDuration = ref(5000);
+const timerActive = ref(false);
+
+// ATB state for readiness indicators
+const playerATBProgress = ref(0); // 0-100 percentage
+const enemyATBProgress = ref(0); // 0-100 percentage
+
+/**
+ * These are event listeners for UI state updates based on server events
+ * Actual game logic and state changes are server authoritative and are handled in useMatchWebsocketEventHandler.ts
+ */
 useRxjs("match", {
 	onPlayerTurn: switchToPlayerTurn,
 	onEnemyTurn: switchToEnemyTurn,
+	onWaitingForTurn: setIsWaiting,
 	onLogEntry: addLogEntry,
+	onTimerUpdate: updateTimer,
+	onTimerExpired: handleTimerExpired,
+	onATBProgressUpdate: updateATBProgress,
 });
 
 const matchCards = ref<MatchCard[]>([
@@ -85,7 +109,6 @@ const matchCards = ref<MatchCard[]>([
 
 async function handleMatchType(card: MatchCard) {
 	// Handle match type selection
-	console.log(`Selected match type: ${card.type}`);
 	if (card.type === "pve") await handlePVEMatch(card);
 	else await handlePVPMatch(card);
 }
@@ -106,8 +129,7 @@ async function handlePVEMatch(card: MatchCard) {
 		currentMatchType.value = "pve";
 		initializeGameState();
 
-		const response = await match$.pve();
-		console.log("PVE match created:", response);
+		await match$.pve();
 	} catch (e) {
 		console.error("PVE match error:", e);
 		utils.toast.error("Something went wrong", "center");
@@ -121,16 +143,24 @@ async function handlePVEMatch(card: MatchCard) {
  * Initialize game state for a new match
  */
 function initializeGameState() {
-	isPlayerTurn.value = true;
+	isPlayerTurn.value = false;
 	isEnemyTurn.value = false;
 	isProcessingAction.value = false;
 	gameLog.value = [];
 
+	// Initialize timer state
+	timerRemaining.value = match$.store.timerInfo?.duration || 3000;
+	timerDuration.value = match$.store.timerInfo?.duration || 3000;
+	timerActive.value = false; // Will be activated by server events
+
+	// Initialize ATB state
+	playerATBProgress.value = 0;
+	enemyATBProgress.value = 0;
+
 	// Set up callbacks for server event integration
-	console.log("Set up callbacks for server event integration");
 
 	// Add initial log entry
-	addLogEntry({ type: "system", message: "Match started! It's your turn." });
+	addLogEntry({ type: "system", message: "Match started! Waiting for server to start first turn..." });
 }
 
 /**
@@ -152,7 +182,7 @@ function getEnemyName(): string {
 /**
  * Handle attack action - Now server authoritative
  */
-async function perfornAction(type: string) {
+async function performAction(type: string) {
 	if (!isPlayerTurn.value || isProcessingAction.value) return;
 
 	try {
@@ -186,22 +216,102 @@ async function perfornAction(type: string) {
 }
 
 /**
- * Switch to enemy turn - Now controlled by server events
+ * Switch to player turn - Now controlled by server events
  */
-function switchToEnemyTurn() {
-	isPlayerTurn.value = false;
-	isEnemyTurn.value = true;
-	addLogEntry({ type: "system", message: `${getEnemyName()}'s turn...` });
+function switchToPlayerTurn(data?: { turnNumber?: number }) {
+	isPlayerTurn.value = true;
+	isEnemyTurn.value = false;
+	isWaiting.value = false;
+	isProcessingAction.value = false; // Reset processing state when it's player's turn
+	timerActive.value = true; // Activate timer when turn starts
+	playerATBProgress.value = 100; // Player is ready at turn start
+	const turnMsg = data?.turnNumber ? `Your turn! (Turn ${data.turnNumber})` : "Your turn!";
+	addLogEntry({ type: "system", message: turnMsg });
 }
 
 /**
- * Switch to player turn - Now controlled by server events
+ * Switch to enemy turn - Now controlled by server events
  */
-function switchToPlayerTurn() {
-	isPlayerTurn.value = true;
+function switchToEnemyTurn(data?: { turnNumber?: number }) {
+	isPlayerTurn.value = false;
+	isEnemyTurn.value = true;
+	isWaiting.value = false;
+	timerActive.value = true; // Keep timer active for enemy turns too (for UI consistency)
+	enemyATBProgress.value = 100; // Enemy is ready at turn start
+
+	const turnMsg = data?.turnNumber ? `${getEnemyName()}'s turn... (Turn ${data.turnNumber})` : `${getEnemyName()}'s turn...`;
+	addLogEntry({ type: "system", message: turnMsg });
+}
+
+function setIsWaiting(data?: { turnNumber?: number }) {
+	isPlayerTurn.value = false;
 	isEnemyTurn.value = false;
-	isProcessingAction.value = false; // Reset processing state when it's player's turn
-	addLogEntry({ type: "system", message: "Your turn!" });
+	isWaiting.value = true;
+	isProcessingAction.value = false; // Reset processing state when waiting
+	timerActive.value = false; // Deactivate timer when waiting
+}
+
+/**
+ * Timer event handlers - Connected to WebSocket events from handleMatchStateUpdate
+ */
+function updateTimer(data: { remaining: number; elapsed: number; percentage: number; duration: number }) {
+	// Validate timer data
+	if (typeof data.remaining !== "number" || typeof data.duration !== "number") {
+		console.warn("Invalid timer update data:", data);
+		return;
+	}
+
+	timerRemaining.value = Math.max(0, data.remaining);
+	timerDuration.value = data.duration;
+
+	// Ensure timer is active if we're receiving updates
+	if (!timerActive.value && data.remaining > 0) {
+		timerActive.value = true;
+	}
+}
+
+function handleTimerExpired(data?: { turnNumber?: number; entityId?: string }) {
+	timerActive.value = false;
+	timerRemaining.value = 0;
+
+	const turnMsg = data?.turnNumber ? `Turn ${data.turnNumber}` : "Current turn";
+	addLogEntry({ type: "system", message: `${turnMsg}: Time's up! Automatic PASS action.` });
+}
+
+// ATB Progress interfaces
+interface I_ATBEntityData {
+	readiness: number;
+}
+
+interface I_ATBProgressEventData {
+	player: I_ATBEntityData | null;
+	enemy: I_ATBEntityData | null;
+	timestamp: string;
+}
+
+/**
+ * Update ATB progress indicators - Connected to WebSocket events from handleATBProgressUpdate
+ */
+function updateATBProgress(data: I_ATBProgressEventData) {
+	// Validate data structure
+	if (!data || typeof data !== "object") {
+		console.warn("Invalid ATB progress data:", data);
+		return;
+	}
+
+	// Update player ATB progress
+	if (data.player && typeof data.player.readiness === "number") {
+		playerATBProgress.value = Math.max(0, Math.min(100, data.player.readiness));
+	} else {
+	}
+
+	// Update enemy ATB progress
+	if (data.enemy && typeof data.enemy.readiness === "number") {
+		enemyATBProgress.value = Math.max(0, Math.min(100, data.enemy.readiness));
+	} else {
+	}
+
+	// Log for debugging
 }
 
 // Note: Match end is now handled exclusively by server authority

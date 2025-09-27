@@ -1,4 +1,4 @@
-import { Guards, NamespaceActions, Rxjs, WebsocketStructuredMessage } from "topsyde-utils";
+import { Guards, Lib, NamespaceActions, Rxjs, WebsocketStructuredMessage } from "topsyde-utils";
 import useAuth from "../../common/composables/useAuth";
 import usePrompt, { PromptChoice, PromptData } from "../../common/composables/usePrompt";
 import useUtils from "../../common/composables/useUtils";
@@ -7,6 +7,18 @@ import { WebsocketClient } from "../../common/composables/useWebsocketInterface"
 import { I_UseWSM } from "../../common/composables/useWSM";
 import { MatchResult, useMatchStore } from "../../stores/match.store";
 import { E_MatchState, MATCH_MESSAGE } from "./useMatch";
+
+// ATB Progress Update interfaces
+interface I_ATBEntityData {
+	readiness: number;
+}
+
+interface I_ATBUpdateContent {
+	matchId: string;
+	atbData: Record<string, I_ATBEntityData>;
+	timestamp: string;
+}
+
 
 const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 	const prompt$ = usePrompt();
@@ -22,7 +34,7 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 	function outputEvents(ws: WebsocketClient): NamespaceActions {
 		return {
 			"match.action": (data) => {
-				console.log("Attack action received:", data);
+				Lib.Log("Attack action received:", data);
 				if (Guards.IsNil(store.currentChannelId)) {
 					throw new Error("Cannot send action: No current channel ID");
 				}
@@ -56,13 +68,15 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 			metadata: wsm$.data,
 			callback: (choice: PromptChoice, data: PromptData<WebsocketStructuredMessage>) => {
 				if (!data.metadata) return;
-				console.log(choice, data.metadata);
+				Lib.Log(choice, data.metadata);
 			},
 		});
 	}
 
 	function onGameEvent(wsm$: I_UseWSM) {
-		console.log("Received game event:", wsm$.data);
+		Lib.Log("Received game event:", wsm$.data);
+
+		// Debug: Log the exact event type
 
 		// Handle different game event types
 		switch (wsm$.data?.type) {
@@ -85,16 +99,129 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 			case "match.error":
 				handleMatchError(wsm$.data);
 				break;
+			case "match.state.update":
+				handleMatchStateUpdate(wsm$.data);
+				break;
+			case "match.atb.readiness.update":
+				handleATBProgressUpdate(wsm$.data);
+				break;
 			default:
-				console.log("Unknown game event type:", wsm$.data?.type);
+				Lib.Log("Unknown game event type:", wsm$.data?.type);
 		}
+	}
+
+	function handleMatchStateUpdate(data: any) {
+		// Validate input data structure
+		if (!data || typeof data !== 'object') {
+			console.warn('Invalid match state update data:', data);
+			return;
+		}
+
+		const content = data.content;
+		if (!content || typeof content !== 'object') {
+			console.warn('Invalid match state update content:', content);
+			return;
+		}
+
+		const gameState = content.gameState;
+		if (!gameState || typeof gameState !== 'object') {
+			console.warn('Invalid game state in match update:', gameState);
+			return;
+		}
+
+		// Handle turn updates
+		if (gameState.currentTurnEntityId && gameState.turnCounter) {
+			const currentUserId = auth$.client.value?.id;
+
+			// Update game state turn counter
+			if (typeof gameState.turnCounter === 'number') {
+				store.gameState.turnCounter = gameState.turnCounter;
+			}
+
+			// Dispatch turn events based on entity
+			if (gameState.currentTurnEntityId === currentUserId) {
+				// It's the player's turn
+				Rxjs.Next("match", {
+					cta: "onPlayerTurn",
+					data: { turnNumber: gameState.turnCounter }
+				});
+			} else {
+				// It's the enemy's turn
+				Rxjs.Next("match", {
+					cta: "onEnemyTurn",
+					data: { turnNumber: gameState.turnCounter }
+				});
+			}
+		}
+
+		// Handle timer updates
+		if (gameState.timer && typeof gameState.timer === 'object') {
+			const timer = gameState.timer;
+
+			// Validate timer properties
+			if (typeof timer.remaining === 'number' &&
+				typeof timer.elapsed === 'number' &&
+				typeof timer.percentage === 'number' &&
+				typeof timer.duration === 'number') {
+
+				// Dispatch timer update event
+				Rxjs.Next("match", {
+					cta: "onTimerUpdate",
+					data: {
+						remaining: Math.max(0, timer.remaining),
+						elapsed: timer.elapsed,
+						percentage: Math.max(0, Math.min(100, timer.percentage)),
+						duration: timer.duration
+					}
+				});
+
+				// If timer has expired (remaining <= 0), dispatch timer expired event
+				if (timer.remaining <= 0) {
+					Rxjs.Next("match", {
+						cta: "onTimerExpired",
+						data: {
+							turnNumber: gameState.turnCounter || 0,
+							entityId: gameState.currentTurnEntityId
+						}
+					});
+				}
+			} else {
+				console.warn('Invalid timer data in match state update:', timer);
+			}
+		}
+
+		// Handle other game state updates (health, etc.)
+		if (gameState.entities && Array.isArray(gameState.entities)) {
+			const currentUserId = auth$.client.value?.id;
+
+			gameState.entities.forEach((entity: any) => {
+				if (entity && typeof entity === 'object' && entity.id) {
+					if (entity.id === currentUserId) {
+						// Update player health if provided
+						if (typeof entity.health === 'number' && typeof entity.maxHealth === 'number') {
+							store.gameState.playerHealth = entity.health;
+							store.gameState.playerMaxHealth = entity.maxHealth;
+						}
+					} else {
+						// Update enemy health if provided
+						if (typeof entity.health === 'number' && typeof entity.maxHealth === 'number') {
+							store.gameState.enemyHealth = entity.health;
+							store.gameState.enemyMaxHealth = entity.maxHealth;
+						}
+					}
+				}
+			});
+		}
+
+		// Log successful processing
+		Lib.Log(`Match state updated - Turn: ${gameState.turnCounter}, Timer: ${gameState.timer?.remaining}ms remaining`);
 	}
 
 	/**
 	 * Handle damage dealt events from server
 	 */
 	function handleDamageDealt(data: any) {
-		console.log("Damage dealt:", data);
+		Lib.Log("Damage dealt:", data);
 
 		const { attackerId, targetId, damage, message } = data.content || data;
 		const currentUserId = auth$.client.value?.id;
@@ -109,14 +236,14 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 		const logType = attackerId === currentUserId ? "player" : "enemy";
 		Rxjs.Next("match", { cta: "onLogEntry", data: { type: logType, message } });
 
-		console.log(`${attackerId} dealt ${damage} damage to ${targetId}`);
+		Lib.Log(`${attackerId} dealt ${damage} damage to ${targetId}`);
 	}
 
 	/**
 	 * Handle health update events from server
 	 */
 	function handleHealthUpdate(data: any) {
-		console.log("Health update:", data);
+		Lib.Log("Health update:", data);
 
 		const { entityId, health, maxHealth } = data.content || data;
 		const currentUserId = auth$.client.value?.id;
@@ -134,14 +261,24 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 			Rxjs.Next("match", { cta: "onLogEntry", data: { type: "enemy", message: "Health updated" } });
 		}
 
-		console.log(`Health updated for ${entityId}: ${health}/${maxHealth}`);
+		Rxjs.Next("match", {
+			cta: "onTimerUpdate",
+			data: {
+				remaining: store.timerInfo.duration,
+				elapsed: 0,
+				percentage: 0,
+				duration: store.timerInfo.duration
+			}
+		});
+
+		Lib.Log(`Health updated for ${entityId}: ${health}/${maxHealth}`);
 	}
 
 	/**
 	 * Handle turn start events from server
 	 */
 	function handleTurnStart(data: any) {
-		console.log("Turn start:", data);
+		Lib.Log("Turn start:", data);
 
 		const { entityId, turnNumber } = data.content || data;
 		const currentUserId = auth$.client.value?.id;
@@ -159,26 +296,28 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 			Rxjs.Next("match", { cta: "onEnemyTurn", data: {} });
 		}
 
-		console.log(`Turn ${turnNumber} started for ${entityId}(${currentUserId})`);
+		Lib.Log(`Turn ${turnNumber} started for ${entityId}(${currentUserId})`);
 	}
 
 	/**
 	 * Handle turn end events from server
 	 */
 	function handleTurnEnd(data: any) {
-		console.log("Turn end:", data);
+		Lib.Log("Turn end:", data);
 
 		const { entityId, turnNumber } = data.content || data;
+		store.gameState.currentTurn = 'waiting'
+		Rxjs.Next("match", { cta: "onWaitingForTurn", data: {} });
 		// Could add turn end animations or effects here
 
-		console.log(`Turn ${turnNumber} ended for ${entityId}`);
+		Lib.Log(`Turn ${turnNumber} ended for ${entityId}`);
 	}
 
 	/**
 	 * Handle victory events from server
 	 */
 	function handleVictory(data: any) {
-		console.log("Victory event:", data);
+		Lib.Log("Victory event:", data);
 
 		const { result, winnerId, message } = data.content || data;
 		const currentUserId = auth$.client.value?.id;
@@ -198,14 +337,14 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 			message,
 		});
 
-		console.log(`Victory: ${result}, Winner: ${winnerId}`);
+		Lib.Log(`Victory: ${result}, Winner: ${winnerId}`);
 	}
 
 	/**
 	 * Handle match error events from server
 	 */
 	function handleMatchError(data: any) {
-		console.log("Match error:", data);
+		Lib.Log("Match error:", data);
 
 		const { error, entityId } = data.content || data;
 		const currentUserId = auth$.client.value?.id;
@@ -222,7 +361,7 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 	 * Handle match end events
 	 */
 	function handleMatchEnd(data: any) {
-		console.log("Match ended:", data);
+		Lib.Log("Match ended:", data);
 
 		// Calculate match duration
 		const startTime = store.gameState.matchStartTime;
@@ -261,7 +400,7 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 			utils.toast.info(resultMessage, "bottom-right");
 		}
 
-		console.log("Match result:", matchResult);
+		Lib.Log("Match result:", matchResult);
 	}
 
 	/**
@@ -303,13 +442,71 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 	async function saveMatchResult(result: MatchResult) {
 		try {
 			// TODO: Integrate with MongoDB to save match statistics
-			console.log("Saving match result to database:", result);
+			Lib.Log("Saving match result to database:", result);
 
 			// This will be implemented when backend MongoDB integration is ready
 			// await api.saveMatchResult(auth$.client.value.id, result);
 		} catch (error) {
 			console.error("Failed to save match result:", error);
 		}
+	}
+
+	/**
+	 * Handle ATB progress update events from server
+	 */
+	function handleATBProgressUpdate(data: any) {
+		Lib.Log("ATB progress update:", data);
+
+		// Validate input data structure
+		if (!data || typeof data !== 'object') {
+			console.warn('Invalid ATB progress update data:', data);
+			return;
+		}
+
+		const content = data.content;
+		if (!content || typeof content !== 'object') {
+			console.warn('Invalid ATB progress update content:', content);
+			return;
+		}
+
+		const atbData = content.atbData;
+		if (!atbData || typeof atbData !== 'object') {
+			console.warn('Invalid ATB data in progress update:', atbData);
+			return;
+		}
+
+		// atbData contains readiness percentages for all entities
+		// Example: { "player1": { readiness: 65.5 }, "npc1": { readiness: 23.1 } }
+		const currentUserId = auth$.client.value?.id;
+
+
+		// Extract player and enemy ATB progress
+		let playerProgress: I_ATBEntityData = {
+			readiness: 0
+		};
+		let enemyProgress: I_ATBEntityData ={
+			readiness: 0
+		};
+
+		Object.entries(atbData).forEach(([entityId, entityData]: [string, any]) => {
+			if (entityId === currentUserId) {
+				playerProgress = entityData;
+			} else {
+				enemyProgress = entityData;
+			}
+		});
+
+		// Dispatch ATB progress update event
+		Rxjs.Next("match", {
+			cta: "onATBProgressUpdate",
+			data: {
+				player: playerProgress,
+				enemy: enemyProgress,
+				timestamp: content.timestamp || new Date().toISOString()
+			}
+		});
+
+		Lib.Log(`ATB Progress - Player: ${playerProgress?.readiness || 0}%, Enemy: ${enemyProgress?.readiness || 0}%`);
 	}
 
 	return {

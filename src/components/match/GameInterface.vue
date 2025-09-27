@@ -9,7 +9,12 @@
 			:enemy-name="enemyName"
 			:is-player-turn="isPlayerTurn"
 			:is-enemy-turn="isEnemyTurn"
-			:is-processing-action="isProcessingAction" />
+			:is-waiting="isWaiting"
+			:timer-remaining="timerRemaining"
+			:timer-duration="timerDuration"
+			:timer-active="timerActive"
+			:player-atb-progress="playerAtbProgress"
+			:enemy-atb-progress="enemyAtbProgress" />
 		
 		<!-- Game Actions for controls and action buttons -->
 		<GameActions
@@ -17,6 +22,7 @@
 			:enemy-name="enemyName"
 			:is-player-turn="isPlayerTurn"
 			:is-enemy-turn="isEnemyTurn"
+			:is-waiting="isWaiting"
 			:is-processing-action="isProcessingAction"
 			@attack="$emit('attack')"
 			@leave-match="$emit('leave-match')"
@@ -38,12 +44,20 @@ defineProps<{
 	gameState: GameState;
 	isPlayerTurn: boolean;
 	isEnemyTurn: boolean;
+	isWaiting: boolean;
 	isProcessingAction: boolean;
 	gameLog: Array<{
 		type: string;
 		message: string;
 		timestamp: Date;
 	}>;
+	// Timer props
+	timerRemaining?: number;
+	timerDuration?: number;
+	timerActive?: boolean;
+	// ATB props
+	playerAtbProgress?: number;
+	enemyAtbProgress?: number;
 }>();
 
 defineEmits<{

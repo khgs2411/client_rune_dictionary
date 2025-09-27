@@ -4,6 +4,8 @@ import useAuth from "../../common/composables/useAuth";
 import useUtils from "../../common/composables/useUtils";
 import { Entity } from "../../common/types/types";
 import { useMatchStore } from "../../stores/match.store";
+import { Lib } from "topsyde-utils";
+import { IMatchParticipant } from "@/common/types/match.types";
 
 const MATCH_CHANNEL = "match";
 const MATCH_MESSAGE = " Would like to battle";
@@ -42,14 +44,14 @@ const useMatch = () => {
 	async function pve() {
 		loading.match = true;
 		const response = await api.pve(auth$.client.value);
-
 		// Store match data for WebSocket connection
 		if (response.data?.matchId && response.data?.channelId) {
 			store.currentMatchId = response.data.matchId;
 			store.currentChannelId = response.data.channelId;
+			store.timerInfo = response.data.timerInfo;
 
 			// Initialize game state for new match
-			initializeGameState();
+			initializeGameState(response.data.match);
 
 			// Connect to match channel for real-time updates
 			await connectToMatchChannel();
@@ -63,15 +65,20 @@ const useMatch = () => {
 	/**
 	 * Initialize game state for a new match
 	 */
-	function initializeGameState() {
+	function initializeGameState(match: {
+		_entities: IMatchParticipant[];
+	}) {
+		const player = match._entities.find((e) => !e.npc);
+		const npc = match._entities.find((e) => e.npc);
 		store.gameState = {
-			playerHealth: 100,
-			enemyHealth: 100,
-			playerMaxHealth: 100,
-			enemyMaxHealth: 100,
-			currentTurn: "player",
-			actionsPerformed: 0,
 			matchStartTime: new Date(),
+			playerHealth: player?.stats.health || 10,
+			playerMaxHealth: player?.stats.maxHealth || 10,
+			enemyHealth: npc?.stats.health || 10,
+			enemyMaxHealth: npc?.stats.maxHealth || 10,
+			actionsPerformed: 0,
+			currentTurn: "player",
+			turnCounter: 0,
 		};
 		store.matchResult = null;
 	}
@@ -93,32 +100,11 @@ const useMatch = () => {
 			console.log(`Connecting to match channel: ${store.currentChannelId}`);
 			store.isConnectedToMatch = true;
 
-			// Add WebSocket event listeners for PVE match events
-			setupMatchEventListeners();
 		} catch (error) {
 			console.error("Failed to connect to match channel:", error);
 			utils.toast.error("Failed to connect to match", "top-right");
 			store.isConnectedToMatch = false;
 		}
-	}
-
-	/**
-	 * Set up event listeners for PVE match events
-	 */
-	function setupMatchEventListeners() {
-		console.log("Setting up match event listeners for PVE");
-
-		// The onGameEvent handler is now properly connected through useWebsocketEventHandler
-		// and will receive the following server events:
-		// - match.damage.dealt: When damage is dealt to any participant
-		// - match.health.update: When participant health changes
-		// - match.turn.start: When a new turn begins
-		// - match.turn.end: When a turn ends
-		// - match.victory: When match ends with victory/defeat
-		// - match.error: When action validation fails
-		// - match.state.update: For general state synchronization
-
-		console.log("Match event listeners configured for server-authoritative combat");
 	}
 
 	/**
@@ -140,13 +126,14 @@ const useMatch = () => {
 
 		// Keep match result for UI display but reset game state
 		store.gameState = {
-			playerHealth: 100,
-			enemyHealth: 100,
-			playerMaxHealth: 100,
-			enemyMaxHealth: 100,
+			playerHealth: 10,
+			enemyHealth: 10,
+			playerMaxHealth: 10,
+			enemyMaxHealth: 10,
 			currentTurn: "player",
 			actionsPerformed: 0,
 			matchStartTime: null,
+			turnCounter: 0,
 		};
 
 		console.log("Match cleanup completed");
@@ -187,8 +174,8 @@ const useMatch = () => {
 			store.matchResult = {
 				result: "loading",
 				duration: 0,
-				playerHealth: 100,
-				enemyHealth: 100,
+				playerHealth: 10,
+				enemyHealth: 10,
 				actionsPerformed: 0,
 				timestamp: new Date(),
 			};

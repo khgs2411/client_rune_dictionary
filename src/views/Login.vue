@@ -29,8 +29,9 @@
 			}"
 			class="w-full max-w-md relative z-10"
 		>
-			<Card class="login-card backdrop-blur-xl shadow-2xl">
-				<CardHeader class="text-center space-y-2 pb-8">
+			<Panel class="login-card backdrop-blur-xl shadow-2xl">
+				<template #header>
+					<div class="login-header text-center space-y-2 pb-8">
 					<motion.div
 						:initial="{ opacity: 0, scale: 0.8 }"
 						:animate="{ opacity: 1, scale: 1 }"
@@ -44,24 +45,25 @@
 					>
 						<i class="pi pi-user text-2xl login-avatar-icon"></i>
 					</motion.div>
-					<CardTitle class="login-title text-2xl font-bold">Welcome Back</CardTitle>
-					<CardDescription class="login-subtitle">
-						Enter your credentials to access Rune RPG
-					</CardDescription>
-				</CardHeader>
+						<h2 class="login-title text-2xl font-bold">Welcome Back</h2>
+						<p class="login-subtitle">
+							Enter your credentials to access Rune RPG
+						</p>
+					</div>
+				</template>
 
-				<CardContent class="space-y-6">
+				<div class="login-content space-y-6">
 					<motion.div
 						:initial="{ opacity: 0, x: -30 }"
 						:animate="{ opacity: 1, x: 0 }"
 						:transition="{ delay: 0.6, duration: 0.5 }"
 						class="space-y-2"
 					>
-						<Label for="username" class="login-label text-sm font-medium">
+						<label for="username" class="login-label text-sm font-medium">
 							Username
-						</Label>
+						</label>
 						<div class="relative">
-							<Input
+							<InputText
 								id="username"
 								v-model="username"
 								placeholder="Enter your username"
@@ -89,11 +91,11 @@
 						:transition="{ delay: 0.7, duration: 0.5 }"
 						class="space-y-2"
 					>
-						<Label for="password" class="login-label text-sm font-medium">
+						<label for="password" class="login-label text-sm font-medium">
 							API Key
-						</Label>
+						</label>
 						<div class="relative">
-							<Input
+							<InputText
 								id="password"
 								v-model="password"
 								:type="showPasswordText ? 'text' : 'password'"
@@ -141,8 +143,8 @@
 							<span>{{ loading ? 'Signing In...' : 'Sign In' }}</span>
 						</Button>
 					</motion.div>
-				</CardContent>
-			</Card>
+				</div>
+			</Panel>
 		</motion.div>
 	</div>
 </template>
@@ -153,10 +155,9 @@ import { ref } from "vue";
 import { storeToRefs } from "pinia";
 import useAuth from "../common/composables/useAuth";
 import { useAuthStore } from "../stores/auth.store";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
+import Button from "primevue/button";
+import Panel from "primevue/panel";
+import InputText from "primevue/inputtext";
 
 const store = useAuthStore();
 const { loading } = storeToRefs(store);
@@ -216,9 +217,29 @@ async function handleSubmit() {
 
 // Login card styling
 .login-card {
-	background: color-mix(in oklch, var(--card) 90%, transparent 10%);
-	border: 1px solid color-mix(in oklch, var(--border) 60%, transparent 40%);
-	color: var(--card-foreground);
+	background: color-mix(in oklch, var(--p-content-background) 90%, transparent 10%);
+	border: 1px solid color-mix(in oklch, var(--p-content-border-color) 60%, transparent 40%);
+	color: var(--p-text-color);
+
+	&:deep(.p-panel-header) {
+		background: transparent;
+		border-bottom: none;
+		padding: 2rem 2rem 0 2rem;
+	}
+
+	&:deep(.p-panel-content) {
+		padding: 0 2rem 2rem 2rem;
+	}
+
+	.login-header {
+		padding-bottom: 2rem;
+	}
+
+	.login-content {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
 }
 
 // Avatar with primary gradient
@@ -232,74 +253,80 @@ async function handleSubmit() {
 
 // Typography
 .login-title {
-	color: var(--foreground);
+	color: var(--p-text-color);
+	margin: 0;
 }
 
 .login-subtitle {
-	color: var(--muted-foreground);
+	color: var(--p-text-muted-color);
+	margin: 0.5rem 0 0 0;
 }
 
 .login-label {
-	color: var(--foreground);
+	color: var(--p-text-color);
+	display: block;
+	margin-bottom: 0.5rem;
 }
 
 // Input styling with theme variables
 .login-input {
-	background: color-mix(in oklch, var(--background) 80%, transparent 20%);
-	border-color: color-mix(in oklch, var(--border) 70%, transparent 30%);
-	color: var(--foreground);
-	
+	background: color-mix(in oklch, var(--p-content-background) 80%, transparent 20%);
+	border-color: color-mix(in oklch, var(--p-content-border-color) 70%, transparent 30%);
+	color: var(--p-text-color);
+	width: 100%;
+
 	&::placeholder {
-		color: var(--muted-foreground);
+		color: var(--p-text-muted-color);
 		opacity: 0.8;
 	}
-	
+
 	&:focus {
-		border-color: var(--primary);
-		box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 20%, transparent 80%);
+		border-color: var(--p-primary-color);
+		box-shadow: 0 0 0 2px color-mix(in oklch, var(--p-primary-color) 20%, transparent 80%);
 	}
-	
+
 	&.login-input-error {
-		border-color: var(--destructive);
+		border-color: var(--p-red-500);
 	}
 }
 
 .login-input-icon {
-	color: var(--muted-foreground);
+	color: var(--p-text-muted-color);
 	opacity: 0.8;
-	
+
 	&:hover {
-		color: var(--foreground);
+		color: var(--p-text-color);
 		opacity: 1;
 	}
 }
 
 // Error styling
 .login-error {
-	color: var(--destructive);
+	color: var(--p-red-500);
 }
 
 // Button with primary gradient
 .login-button {
-	background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-	color: var(--primary-foreground);
+	background: linear-gradient(135deg, var(--p-primary-color) 0%, var(--p-primary-600) 100%);
+	color: white;
 	border: none;
-	
+	width: 100%;
+
 	&:hover {
-		background: linear-gradient(135deg, 
-			color-mix(in oklch, var(--primary) 85%, black 15%) 0%, 
-			color-mix(in oklch, var(--accent) 85%, black 15%) 100%
+		background: linear-gradient(135deg,
+			color-mix(in oklch, var(--p-primary-color) 85%, black 15%) 0%,
+			color-mix(in oklch, var(--p-primary-600) 85%, black 15%) 100%
 		);
-		box-shadow: 0 10px 25px color-mix(in oklch, var(--primary) 25%, transparent 75%);
+		box-shadow: 0 10px 25px color-mix(in oklch, var(--p-primary-color) 25%, transparent 75%);
 	}
-	
+
 	&:disabled {
-		background: var(--muted);
-		color: var(--muted-foreground);
-		
+		background: var(--p-surface-300);
+		color: var(--p-text-muted-color);
+
 		&:hover {
-			background: var(--muted);
-			color: var(--muted-foreground);
+			background: var(--p-surface-300);
+			color: var(--p-text-muted-color);
 			transform: none;
 			box-shadow: none;
 		}
@@ -308,16 +335,16 @@ async function handleSubmit() {
 
 // Loading spinner
 .login-spinner {
-	border-color: var(--primary-foreground);
+	border-color: white;
 	border-top-color: transparent;
 }
 
 // Dark mode specific adjustments
 :global(.dark) .login-card {
-	background: color-mix(in oklch, var(--card) 85%, transparent 15%);
+	background: color-mix(in oklch, var(--p-content-background) 85%, transparent 15%);
 }
 
 :global(.dark) .login-input {
-	background: color-mix(in oklch, var(--background) 90%, var(--border) 10%);
+	background: color-mix(in oklch, var(--p-content-background) 90%, var(--p-content-border-color) 10%);
 }
 </style>

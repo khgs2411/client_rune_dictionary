@@ -1,7 +1,7 @@
 /**
  * CENTRALIZED COLOR SYSTEM
  * This is the SINGLE SOURCE OF TRUTH for all colors in the application.
- * All UI libraries (PrimeVue, shadcn, custom components) must reference this system.
+ * All UI libraries (PrimeVue, custom components) must reference this system.
  */
 
 import { setCSSVariable } from './theme-utils';
