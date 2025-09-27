@@ -1035,7 +1035,7 @@ watch(
 
 	.atb-fill {
 		fill: none;
-		stroke: var(--p-orange-400);
+		stroke: var(--p-primary-800);
 		stroke-width: 4;
 		stroke-linecap: round;
 		stroke-dasharray: 339.3; // 2 * π * 54 (circumference)
