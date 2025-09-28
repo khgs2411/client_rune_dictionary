@@ -15,12 +15,12 @@
 				<span class="turn-text">
 					{{ isPlayerTurn ? "Your Turn" : `${enemyName}'s Turn` }}
 				</span>
-				<span class="turn-number">Turn {{ displayTurnNumber }}{{ timerRemaining ? ` | ${timerRemaining}ms` : "" }}</span>
+				<span class="turn-number">Turn {{ displayTurnNumber }}</span>
 			</div>
 			<div class="turn-badge" v-else>
 				<i class="pi" :class="''"></i>
 				<span class="turn-text"> Waiting... </span>
-				<span class="turn-number">Turn {{ displayTurnNumber }}{{ timerRemaining ? ` | ${timerRemaining}ms` : "" }}</span>
+				<span class="turn-number">Turn {{ displayTurnNumber }}</span>
 			</div>
 
 			<!-- ATB Turn Timer -->
@@ -38,7 +38,6 @@
 					<div v-for="number in playerDamageNumbers" :key="number.id" class="damage-number" :class="{ 'heal-number': number.isHeal }">{{ number.isHeal ? "+" : "-" }}{{ Math.abs(number.value) }}</div>
 				</TransitionGroup>
 
-
 				<Card
 					class="character-card player-card"
 					:class="{ 'taking-damage': playerTakingDamage, healing: playerHealing, breathing: true }"
@@ -48,7 +47,7 @@
 						<div class="atb-side-bars">
 							<div class="atb-side-bar left">
 								<div class="atb-segments">
-									<div v-for="i in 10" :key="i" class="atb-segment" :class="{ active: (11 - i) <= (playerAtbProgress / 10) }"></div>
+									<div v-for="i in 10" :key="i" class="atb-segment" :class="{ active: 11 - i <= playerAtbProgress / 10 }"></div>
 								</div>
 								<span class="atb-label">ATB</span>
 							</div>
@@ -83,7 +82,6 @@
 					<div v-for="number in enemyDamageNumbers" :key="number.id" class="damage-number" :class="{ 'heal-number': number.isHeal }">{{ number.isHeal ? "+" : "-" }}{{ Math.abs(number.value) }}</div>
 				</TransitionGroup>
 
-
 				<Card
 					class="character-card enemy-card"
 					:class="{ 'taking-damage': enemyTakingDamage, healing: enemyHealing, breathing: true }"
@@ -93,7 +91,7 @@
 						<div class="atb-side-bars">
 							<div class="atb-side-bar right">
 								<div class="atb-segments">
-									<div v-for="i in 10" :key="i" class="atb-segment" :class="{ active: (11 - i) <= (enemyAtbProgress / 10) }"></div>
+									<div v-for="i in 10" :key="i" class="atb-segment" :class="{ active: 11 - i <= enemyAtbProgress / 10 }"></div>
 								</div>
 								<span class="atb-label">ATB</span>
 							</div>
@@ -127,6 +125,7 @@
 import Card from "primevue/card";
 import { computed, ref, watch } from "vue";
 import TurnTimer from "./TurnTimer.vue";
+import useDevice from "../../common/composables/useDevice";
 
 interface Props {
 	playerName?: string;
@@ -199,13 +198,9 @@ watch(
 // Use computed to ensure reactivity
 const displayTurnNumber = computed(() => turnNumber.value);
 
-// Mobile detection
-const isMobile = ref(window.innerWidth <= 768);
-window.addEventListener("resize", () => {
-	isMobile.value = window.innerWidth <= 768;
-});
-
-
+// Device detection using the new composable
+const device = useDevice();
+const { isMobile } = device;
 
 // Damage animation states
 const playerTakingDamage = ref(false);
@@ -1113,7 +1108,6 @@ watch(
 	}
 }
 
-
 // ATB Side Bars
 .atb-side-bars {
 	position: absolute;
@@ -1234,8 +1228,13 @@ watch(
 }
 
 @keyframes atb-segment-pulse {
-	0% { transform: scaleY(1); filter: brightness(1); }
-	100% { transform: scaleY(1.1); filter: brightness(1.2); }
+	0% {
+		transform: scaleY(1);
+		filter: brightness(1);
+	}
+	100% {
+		transform: scaleY(1.1);
+		filter: brightness(1.2);
+	}
 }
-
 </style>

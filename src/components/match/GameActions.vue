@@ -43,6 +43,7 @@
 <script lang="ts" setup>
 import Button from "primevue/button";
 import { ref } from "vue";
+import useDevice from "../../common/composables/useDevice";
 
 interface Props {
 	playerName?: string;
@@ -65,16 +66,19 @@ defineEmits<{
 // State for collapsed/expanded
 const isExpanded = ref(false);
 
-// Check if mobile
-const isMobile = ref(window.innerWidth <= 576);
+// Device detection using the new composable with custom 576px mobile breakpoint
+const device = useDevice(576); // Mobile breakpoint at 576px for game actions
+const { isMobile } = device;
 
-// Update on resize
-window.addEventListener("resize", () => {
-	isMobile.value = window.innerWidth <= 576;
+// Watch for device changes and reset expanded state on desktop
+const resetExpanded = () => {
 	if (!isMobile.value) {
 		isExpanded.value = false; // Reset when switching to desktop
 	}
-});
+};
+
+// Add resize listener for reset functionality
+window.addEventListener("resize", resetExpanded);
 
 const toggleExpanded = () => {
 	isExpanded.value = !isExpanded.value;

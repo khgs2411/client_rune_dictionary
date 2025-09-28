@@ -50,6 +50,7 @@
 import { useLocalStorage } from "@vueuse/core";
 import { onMounted, onUnmounted, ref, watch, computed } from "vue";
 import Button from "primevue/button";
+import useDevice from "../../common/composables/useDevice";
 
 type ResizeHandle = "bottom-right" | "top-right";
 type Position = { x: number; y: number };
@@ -102,8 +103,8 @@ function ensureWithinBounds() {
 	const bounds = containerBounds.value ?? {
 		left: 0,
 		top: 0,
-		width: window.innerWidth,
-		height: window.innerHeight,
+		width: device.screenWidth.value,
+		height: device.screenHeight.value,
 	};
 
 	// Calculate max positions
@@ -117,13 +118,14 @@ function ensureWithinBounds() {
 	};
 }
 
-// Mobile detection
-const isMobile = computed(() => window.innerWidth <= 1024);
+// Device detection using the new composable with custom 1024px mobile threshold for chat window
+const device = useDevice(1024); // ChatWindow considers up to 1024px as mobile for better UX
+const { isMobile, isTablet } = device;
 
 // Computed values for mobile positioning
 const containerBottom = computed(() => {
 	if (!containerBounds.value) return 0;
-	return window.innerHeight - containerBounds.value.bottom;
+	return device.screenHeight.value - containerBounds.value.bottom;
 });
 
 // Toggle collapse
@@ -164,10 +166,10 @@ function onDrag(e: MouseEvent) {
 			y: Math.max(bounds.top, Math.min(maxY, newY)),
 		};
 	} else {
-		// Constrain within viewport
+		// Constrain within viewport using device screen dimensions
 		position.value = {
-			x: Math.max(0, Math.min(window.innerWidth - size.value.width, newX)),
-			y: Math.max(0, Math.min(window.innerHeight - size.value.height, newY)),
+			x: Math.max(0, Math.min(device.screenWidth.value - size.value.width, newX)),
+			y: Math.max(0, Math.min(device.screenHeight.value - size.value.height, newY)),
 		};
 	}
 }
