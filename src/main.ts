@@ -13,7 +13,7 @@ import DebugDirective from "./directives/debug.directive.ts";
 import router from "./router/router.ts";
 import "./style.css";
 
-// @version: 0.4.5 - This comment is auto-updated by deploy script
+// @version: 0.4.6 - This comment is auto-updated by deploy script
 
 // Force refresh when app version changes
 (function () {
