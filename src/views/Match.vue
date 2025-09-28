@@ -265,7 +265,7 @@ function updateTimer(data: { remaining: number; elapsed: number; percentage: num
 	timerDuration.value = data.duration;
 
 	// Ensure timer is active if we're receiving updates
-	if (!timerActive.value && data.remaining > 0) {
+	if (!timerActive.value && data.remaining > 0 && !isWaiting.value) {
 		timerActive.value = true;
 	}
 }

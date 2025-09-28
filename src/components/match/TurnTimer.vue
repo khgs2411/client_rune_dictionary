@@ -17,7 +17,7 @@
 				<div
 					class="atb-timer-fill"
 					:style="{
-						width: fillPercentage + '%',
+						width: remainingPercentage + '%',
 						backgroundColor: progressColor,
 						transition: 'background-color 0.333s ease',
 					}">
@@ -174,10 +174,6 @@ const remainingPercentage = computed(() => {
 	return Math.min(100, Math.max(0, (smoothTimeRemaining.value / props.duration) * 100));
 });
 
-const fillPercentage = computed(() => {
-	// Bar depletes from full (100%) to empty (0%) as time runs out
-	return remainingPercentage.value;
-});
 
 const displaySeconds = computed(() => {
 	return Math.ceil(smoothTimeRemaining.value / 1000);
