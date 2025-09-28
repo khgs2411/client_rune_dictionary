@@ -10,16 +10,9 @@
 
 		<!-- Turn Indicator with Timer -->
 		<div class="turn-indicator" :class="{ 'player-turn': isPlayerTurn, 'enemy-turn': isEnemyTurn }">
-			<div class="turn-badge" v-if="!isWaiting">
-				<i class="pi" :class="isPlayerTurn ? 'pi-user' : 'pi-android'"></i>
-				<span class="turn-text">
-					{{ isPlayerTurn ? "Your Turn" : `${enemyName}'s Turn` }}
-				</span>
-				<span class="turn-number">Turn {{ displayTurnNumber }}</span>
-			</div>
-			<div class="turn-badge" v-else>
-				<i class="pi" :class="''"></i>
-				<span class="turn-text"> Waiting... </span>
+			<div class="turn-badge">
+				<i class="pi" :class="turnBadgeIcon"></i>
+				<span class="turn-text">{{ turnBadgeText }}</span>
 				<span class="turn-number">Turn {{ displayTurnNumber }}</span>
 			</div>
 
@@ -197,6 +190,17 @@ watch(
 
 // Use computed to ensure reactivity
 const displayTurnNumber = computed(() => turnNumber.value);
+
+// Computed properties for turn badge
+const turnBadgeIcon = computed(() => {
+	if (isWaiting) return '';
+	return isPlayerTurn ? 'pi-user' : 'pi-android';
+});
+
+const turnBadgeText = computed(() => {
+	if (isWaiting) return 'Waiting...';
+	return isPlayerTurn ? 'Your Turn' : `${enemyName}'s Turn`;
+});
 
 // Device detection using the new composable
 const device = useDevice();
