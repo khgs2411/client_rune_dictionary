@@ -130,7 +130,7 @@ export const useDevice = (
 		updateDeviceState();
 
 		// Add resize listener with debouncing
-		let resizeTimeout: NodeJS.Timeout;
+		let resizeTimeout: Timer;
 		resizeHandler = () => {
 			clearTimeout(resizeTimeout);
 			resizeTimeout = setTimeout(updateDeviceState, 150);

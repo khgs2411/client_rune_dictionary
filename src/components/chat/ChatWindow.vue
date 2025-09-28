@@ -120,7 +120,7 @@ function ensureWithinBounds() {
 
 // Device detection using the new composable with custom 1024px mobile threshold for chat window
 const device = useDevice(1024); // ChatWindow considers up to 1024px as mobile for better UX
-const { isMobile, isTablet } = device;
+const { isMobile } = device;
 
 // Computed values for mobile positioning
 const containerBottom = computed(() => {
