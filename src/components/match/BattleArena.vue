@@ -193,13 +193,13 @@ const displayTurnNumber = computed(() => turnNumber.value);
 
 // Computed properties for turn badge
 const turnBadgeIcon = computed(() => {
-	if (isWaiting) return '';
-	return isPlayerTurn ? 'pi-user' : 'pi-android';
+	if (props.isWaiting) return '';
+	return props.isPlayerTurn ? 'pi-user' : 'pi-android';
 });
 
 const turnBadgeText = computed(() => {
-	if (isWaiting) return 'Waiting...';
-	return isPlayerTurn ? 'Your Turn' : `${enemyName}'s Turn`;
+	if (props.isWaiting) return 'Waiting...';
+	return props.isPlayerTurn ? 'Your Turn' : `${props.enemyName}'s Turn`;
 });
 
 // Device detection using the new composable
