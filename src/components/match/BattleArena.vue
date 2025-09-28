@@ -117,8 +117,8 @@
 <script lang="ts" setup>
 import Card from "primevue/card";
 import { computed, ref, watch } from "vue";
-import TurnTimer from "./TurnTimer.vue";
 import useDevice from "../../common/composables/useDevice";
+import TurnTimer from "./TurnTimer.vue";
 
 interface Props {
 	playerName?: string;
