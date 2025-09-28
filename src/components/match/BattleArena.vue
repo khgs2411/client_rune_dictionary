@@ -939,6 +939,7 @@ watch(
 	.character-card {
 		width: 100%;
 		max-width: 400px;
+		margin: 0 10px; // Add some margin to prevent ATB bars from going off-screen
 
 		:deep(.p-card-content) {
 			padding: 1rem;
@@ -1139,12 +1140,53 @@ watch(
 			right: -32px;
 		}
 
+		// Mobile responsive positioning
+		@include breakpoint-down("md") {
+			&.left {
+				left: -20px; // Bring closer to card on tablets
+			}
+
+			&.right {
+				right: -20px; // Bring closer to card on tablets
+			}
+		}
+
+		@include breakpoint-down("sm") {
+			width: 20px; // Slightly smaller on mobile
+			gap: 6px;
+
+			&.left {
+				left: -12px; // Much closer to card on mobile
+			}
+
+			&.right {
+				right: -12px; // Much closer to card on mobile
+			}
+		}
+
+		// Very small screens - move inside the card
+		@media (max-width: 400px) {
+			&.left {
+				left: 8px; // Inside the card
+			}
+
+			&.right {
+				right: 8px; // Inside the card
+			}
+		}
+
 		.atb-segments {
 			display: flex;
 			flex-direction: column;
 			gap: 4px;
 			height: 120px;
 			justify-content: space-between;
+
+			// Mobile responsive sizing
+			@include breakpoint-down("sm") {
+				height: 100px; // Shorter on mobile
+				gap: 3px;
+			}
 
 			.atb-segment {
 				width: 20px;
@@ -1154,11 +1196,22 @@ watch(
 				border: 1px solid var(--p-surface-border);
 				transition: all 0.3s ease;
 
+				// Mobile responsive sizing
+				@include breakpoint-down("sm") {
+					width: 16px; // Narrower on mobile
+					height: 6px; // Shorter on mobile
+				}
+
 				&.active {
 					background: linear-gradient(to top, var(--p-primary-500), var(--p-primary-400));
 					box-shadow: 0 0 6px var(--p-primary-400);
 					border-color: var(--p-primary-300);
 					animation: atb-segment-pulse 1s ease-in-out infinite alternate;
+
+					// Reduced glow on mobile for performance
+					@include breakpoint-down("sm") {
+						box-shadow: 0 0 4px var(--p-primary-400);
+					}
 				}
 			}
 		}
@@ -1170,6 +1223,12 @@ watch(
 			writing-mode: vertical-rl;
 			text-orientation: mixed;
 			letter-spacing: 1px;
+
+			// Mobile responsive font
+			@include breakpoint-down("sm") {
+				font-size: 0.6rem;
+				letter-spacing: 0.5px;
+			}
 		}
 	}
 }
