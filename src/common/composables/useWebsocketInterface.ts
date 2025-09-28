@@ -116,12 +116,14 @@ const useWebSocketInterface = (client: Ref<WebsocketEntityData | null>, messages
 	}
 
 	function logMessage(title: string, ws: WebSocket, event?: MessageEvent, toString: boolean = false) {
+		const ignore_these = ['match.atb.readiness.update', 'match.state.update'];
 		let dataString = event ? event.data : "";
 		try {
 			if (!toString) dataString = JSON.parse(dataString);
 		} catch (err) {
 			dataString = dataString.toString();
 		}
+		if (ignore_these.includes(dataString?.type)) return;
 		Lib.Log(`[${ws.url}] - ${title}`, dataString);
 	}
 

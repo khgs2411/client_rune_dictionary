@@ -69,9 +69,6 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 	}
 
 	function onGameEvent(wsm$: I_UseWSM) {
-		Lib.Log("Received game event:", wsm$.data);
-
-		// Debug: Log the exact event type
 
 		// Handle different game event types
 		switch (wsm$.data?.type) {
@@ -207,9 +204,6 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 				}
 			});
 		}
-
-		// Log successful processing
-		Lib.Log(`Match state updated - Turn: ${gameState.turnCounter}, Timer: ${gameState.timer?.remaining}ms remaining`);
 	}
 
 	/**
@@ -450,8 +444,6 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 	 * Handle ATB progress update events from server
 	 */
 	function handleATBProgressUpdate(data: any) {
-		Lib.Log("ATB progress update:", data);
-
 		// Validate input data structure
 		if (!data || typeof data !== 'object') {
 			console.warn('Invalid ATB progress update data:', data);
@@ -500,8 +492,6 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 				timestamp: content.timestamp || new Date().toISOString()
 			}
 		});
-
-		Lib.Log(`ATB Progress - Player: ${playerProgress?.readiness || 0}%, Enemy: ${enemyProgress?.readiness || 0}%`);
 	}
 
 	return {
