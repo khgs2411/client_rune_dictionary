@@ -1,5 +1,5 @@
-import { ref, computed, type Ref, type ComputedRef } from 'vue';
 import type { Camera } from 'three';
+import { computed, ref, type ComputedRef, type Ref } from 'vue';
 
 export interface CameraControlsOptions {
   target: {
