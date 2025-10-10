@@ -1,17 +1,9 @@
-import Aura from "@primevue/themes/aura";
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import "primeicons/primeicons.css";
-import { Tooltip } from "primevue";
-import PrimeVue from "primevue/config";
-import Ripple from "primevue/ripple";
-import ToastService from "primevue/toastservice";
 import { createApp } from "vue";
 import App from "./App.vue";
-import "./assets/css/style.scss";
-import DebugDirective from "./directives/debug.directive.ts";
-import router from "./router/router.ts";
-import "./style.css";
+import router from "./router/router";
 
 // @version: 0.4.7 - This comment is auto-updated by deploy script
 
@@ -50,23 +42,7 @@ pinia.use(piniaPluginPersistedstate);
 createApp(App)
 	.use(router)
 	.use(pinia)
-	.use(PrimeVue, {
-		ripple: true,
-		theme: {
-			preset: Aura,
-			options: {
-				prefix: "p",
-				darkModeSelector: ".dark",
-				cssLayer: false,
-			},
-		},
-	})
-	.use(ToastService)
-	.directive("tooltip", Tooltip)
-	.directive("ripple", Ripple)
-	.directive("debug", DebugDirective)
 	.mount("#app");
 
 
-// Make router available globally for CSS optimization
-window.router = router;
+

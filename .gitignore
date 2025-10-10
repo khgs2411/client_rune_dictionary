@@ -30,3 +30,4 @@ temp_build_*
 
 # Environment variables
 .env
+src_deprecated
