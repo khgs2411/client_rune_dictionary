@@ -1,6 +1,6 @@
 <template>
   <!-- Camera -->
-  <TresPerspectiveCamera ref="cameraRef" key="scene-camera" :position="camera$.position.value" />
+  <TresPerspectiveCamera ref="cameraRef" :position="camera$.position.value" />
 
   <!-- Blue Sky -->
   <Sky
@@ -52,6 +52,8 @@ import { useCameraControls } from '@/composables/useCameraController';
 import { useScene } from '@/composables/useScene';
 
 const settings = useSettingsStore();
+
+// Camera reference for lookAt updates
 const cameraRef = ref();
 
 // Character controls (VueUse $ convention)
