@@ -159,26 +159,32 @@ onBeforeRender(({ delta }) => {
   const camera = cameraRef.value
   if (!camera) return
 
-  // Calculate movement
-  let moveX = 0
-  let moveZ = 0
+  // Calculate movement input
+  let inputX = 0
+  let inputZ = 0
 
-  if (keys.w) moveZ -= 1
-  if (keys.s) moveZ += 1
-  if (keys.a) moveX -= 1
-  if (keys.d) moveX += 1
+  if (keys.w) inputZ -= 1
+  if (keys.s) inputZ += 1
+  if (keys.a) inputX -= 1
+  if (keys.d) inputX += 1
 
-  // Normalize diagonal movement
-  if (moveX !== 0 || moveZ !== 0) {
-    const length = Math.sqrt(moveX * moveX + moveZ * moveZ)
-    moveX /= length
-    moveZ /= length
+  // Apply camera-relative movement
+  if (inputX !== 0 || inputZ !== 0) {
+    // Normalize input
+    const length = Math.sqrt(inputX * inputX + inputZ * inputZ)
+    inputX /= length
+    inputZ /= length
+
+    // Convert input to world space based on camera angle
+    const angle = cameraAngleH.value
+    const moveX = inputX * Math.cos(angle) + inputZ * Math.sin(angle)
+    const moveZ = -inputX * Math.sin(angle) + inputZ * Math.cos(angle)
 
     // Update player position
     playerX.value += moveX * moveSpeed * delta
     playerZ.value += moveZ * moveSpeed * delta
 
-    // Update player rotation to face movement direction
+    // Update player rotation to face movement direction (world space)
     playerRotation.value = Math.atan2(moveX, moveZ)
   }
 
