@@ -51,18 +51,18 @@
 </template>
 
 <script setup lang="ts">
-import { Settings, Sun, Moon } from 'lucide-vue-next'
+import { Settings, Sun, Moon } from 'lucide-vue-next';
 import {
-	Sheet,
-	SheetContent,
-	SheetDescription,
-	SheetHeader,
-	SheetTitle,
-	SheetTrigger,
-} from '@/components/ui/sheet'
-import Button from '@/components/ui/button/Button.vue'
-import { useSettingsStore } from '@/stores/settings.store'
-import { THEME_OPTIONS } from '@/composables/useTheme'
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import Button from '@/components/ui/button/Button.vue';
+import { useSettingsStore } from '@/stores/settings.store';
+import { THEME_OPTIONS } from '@/composables/useTheme';
 
-const settings = useSettingsStore()
+const settings = useSettingsStore();
 </script>

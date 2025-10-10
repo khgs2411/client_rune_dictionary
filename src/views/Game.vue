@@ -5,8 +5,8 @@
 </template>
 
 <script setup lang="ts">
-import { TresCanvas } from '@tresjs/core'
-import { RouterView } from 'vue-router'
+import { TresCanvas } from '@tresjs/core';
+import { RouterView } from 'vue-router';
 </script>
 
 <style scoped>

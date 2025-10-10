@@ -18,20 +18,20 @@
 </template>
 
 <script setup lang="ts">
-import { useLoop } from '@tresjs/core'
-import { OrbitControls } from '@tresjs/cientos'
-import { useSettingsStore } from '@/stores/settings.store'
-import { ref } from 'vue'
+import { useLoop } from '@tresjs/core';
+import { OrbitControls } from '@tresjs/cientos';
+import { useSettingsStore } from '@/stores/settings.store';
+import { ref } from 'vue';
 
-const settings = useSettingsStore()
-const donutRef = ref()
+const settings = useSettingsStore();
+const donutRef = ref();
 
-const { onBeforeRender } = useLoop()
+const { onBeforeRender } = useLoop();
 
 onBeforeRender(({ elapsed }) => {
   if (donutRef.value) {
-    donutRef.value.rotation.x = elapsed * 0.5
-    donutRef.value.rotation.y = elapsed * 0.3
+    donutRef.value.rotation.x = elapsed * 0.5;
+    donutRef.value.rotation.y = elapsed * 0.3;
   }
-})
+});
 </script>
