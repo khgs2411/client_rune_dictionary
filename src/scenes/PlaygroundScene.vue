@@ -15,7 +15,7 @@
 
   <!-- Simple Character (Capsule) -->
   <TresGroup
-    :position="[character$.position.x.value, 1, character$.position.z.value]"
+    :position="[character$.position.x.value, character$.position.y.value + 1, character$.position.z.value]"
     :rotation="[0, character$.rotation.value, 0]">
     <!-- Body -->
     <TresMesh cast-shadow>
@@ -48,7 +48,7 @@ import { useGameContext } from '@/composables/useGameContext';
 const settings = useSettingsStore();
 
 // Inject game context from Game.vue
-const { character$, scene$ } = useGameContext();
+const { character$ } = useGameContext();
 
 // Character is always provided in Game.vue (for now)
 if (!character$) {

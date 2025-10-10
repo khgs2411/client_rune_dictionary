@@ -9,10 +9,12 @@ export interface CharacterControlsOptions {
 export interface CharacterControls {
   position: {
     x: Ref<number>;
+    y: Ref<number>;
     z: Ref<number>;
   };
   rotation: Ref<number>;
   speed: Ref<number>;
+  isJumping: Ref<boolean>;
   joystick: {
     active: Ref<boolean>;
     x: Ref<number>;
@@ -30,11 +32,17 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
   const { cameraAngleH } = options;
   // Player position and rotation
   const playerX = ref(0);
+  const playerY = ref(0);
   const playerZ = ref(0);
   const playerRotation = ref(0);
   const config = useConfigStore()
   // Movement speed
   const moveSpeed = computed(() => options.moveSpeed || config.characterMoveSpeed);
+
+  // Jump state
+  const isJumping = ref(false);
+  const verticalVelocity = ref(0);
+  const groundLevel = 0;
 
   // Keyboard state using keycodes
   const keys = new Map<string, boolean>();
@@ -44,6 +52,7 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
   const KEY_S = 'KeyS';
   const KEY_A = 'KeyA';
   const KEY_D = 'KeyD';
+  const KEY_SPACE = 'Space';
 
   // Virtual joystick state for mobile
   const joystickActive = ref(false);
@@ -59,12 +68,25 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
     if (e.code === KEY_W || e.code === KEY_S || e.code === KEY_A || e.code === KEY_D) {
       keys.set(e.code, true);
     }
+
+    // Handle jump
+    if (e.code === KEY_SPACE && !isJumping.value) {
+      jump();
+    }
   }
 
   function onKeyUp(e: KeyboardEvent) {
     if (e.code === KEY_W || e.code === KEY_S || e.code === KEY_A || e.code === KEY_D) {
       keys.set(e.code, false);
     }
+  }
+
+  // Jump function
+  function jump() {
+    if (isJumping.value) return; // Already jumping
+
+    isJumping.value = true;
+    verticalVelocity.value = config.jumpInitialVelocity;
   }
 
   // Touch handlers for virtual joystick (mobile)
@@ -168,13 +190,37 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
       // Update player rotation to face movement direction (world space)
       playerRotation.value = Math.atan2(moveX, moveZ);
     }
+
+    // Handle jump physics
+    if (isJumping.value) {
+      // Apply gravity - increases over time for heavy feel
+      verticalVelocity.value -= config.jumpGravity * delta;
+
+      // Clamp falling speed to max fall velocity
+      if (verticalVelocity.value < -config.jumpMaxFallSpeed) {
+        verticalVelocity.value = -config.jumpMaxFallSpeed;
+      }
+
+      // Update Y position
+      playerY.value += verticalVelocity.value * delta;
+
+      // Check if landed
+      if (playerY.value <= groundLevel) {
+        playerY.value = groundLevel;
+        isJumping.value = false;
+        verticalVelocity.value = 0;
+      }
+    }
   }
 
   // Reset player to origin
   function reset() {
     playerX.value = 0;
+    playerY.value = 0;
     playerZ.value = 0;
     playerRotation.value = 0;
+    isJumping.value = false;
+    verticalVelocity.value = 0;
   }
 
   // Cleanup event listeners
@@ -227,10 +273,12 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
   return {
     position: {
       x: playerX,
+      y: playerY,
       z: playerZ,
     },
     rotation: playerRotation,
     speed: moveSpeed,
+    isJumping,
     joystick: {
       active: joystickActive,
       x: joystickX,
