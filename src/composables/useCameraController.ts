@@ -79,6 +79,9 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
   }
 
   function startCamera() {
+    console.log('📷 [Camera] Initializing...');
+
+    console.log('  ↳ Adding event listeners');
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
@@ -90,26 +93,29 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
     window.addEventListener('touchmove', onTouchMove, { passive: false });
     window.addEventListener('touchend', onTouchEnd, { passive: false });
 
+    console.log('  ↳ Creating Three.js camera');
     const cam = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const [x, y, z] = cameraPosition.value;
     cam.position.set(x, y, z);
 
-    // Register with TresJS as active camera
+    console.log('  ↳ Registering camera with TresJS');
     cm.registerCamera(cam, true);
 
     cameraRef.value = cam;
+    console.log('✅ [Camera] Initialized');
   }
 
   // Cleanup event listeners
   function cleanup() {
+    console.log('🧹 [Camera] Starting cleanup...');
+
     // Deregister camera from TresJS
-    console.log('📷 Deregistering camera from TresJS');
     if (cameraRef.value) {
+      console.log('  ↳ Deregistering camera from TresJS');
       cm.deregisterCamera(cameraRef.value);
     }
 
-    reset();
-
+    console.log('  ↳ Removing event listeners');
     // Remove mouse event listeners
     window.removeEventListener('mousedown', onMouseDown);
     window.removeEventListener('mousemove', onMouseMove);
@@ -122,6 +128,8 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
     window.removeEventListener('touchmove', onTouchMove);
     window.removeEventListener('touchend', onTouchEnd);
 
+    console.log('  ↳ Resetting camera state');
+    reset();
     isDragging.value = false;
     isPointerLockActive.value = false;
     lastTouchDistance.value = 0;
@@ -130,6 +138,8 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
     if (document.pointerLockElement) {
       document.exitPointerLock();
     }
+
+    console.log('✅ [Camera] Cleanup complete');
   }
 
   // Reset camera to defaults
@@ -257,7 +267,7 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
 
   // Create and register camera on mount
   onMounted(() => {
-    // Initialize event listeners
+    console.log('🎬 [Camera] Mounted');
     startCamera();
   });
 

@@ -37,46 +37,50 @@ export function useScene(options: SceneOptions): Scene {
 
   // Initialize scene (called on mount)
   function init() {
-    if (debug) console.log('🚀 Scene initialized');
+    if (debug) console.log('📦 [Scene] Initialized');
   }
 
   // Cleanup scene (called on unmount)
   function cleanup() {
-    if (debug) console.log('🧹 Scene cleanup called');
+    if (debug) console.log('🧹 [Scene] Starting cleanup...');
 
     // Unregister animation loop callback first
     if (offBeforeRender) {
-      if (debug) console.log('🔄 Unregistering animation loop');
+      if (debug) console.log('  ↳ Stopping animation loop');
       offBeforeRender();
     }
 
+    // Cleanup composables (event listeners, etc.)
+    if (debug) console.log('  ↳ Cleaning up composables');
+    onCleanup();
+
     // Dispose Three.js scene resources (geometries, materials, textures)
     if (scene.value) {
-      if (debug) console.log('🗑️ Disposing Three.js scene resources');
+      if (debug) console.log('  ↳ Disposing Three.js resources');
       dispose(scene.value);
     }
-    // Cleanup composables (event listeners, etc.)
-    onCleanup();
+
+    if (debug) console.log('✅ [Scene] Cleanup complete');
   }
 
   // HMR dispose (called from scene file's import.meta.hot.dispose)
   function reload() {
-    if (debug) console.log('🔥 HMR dispose called');
+    if (debug) console.log('🔥 [HMR] Hot reload triggered');
 
     // Cleanup scene
     cleanup();
 
     if (autoRefreshOnHMR) {
-      if (debug) console.log('🔄 Auto-refresh enabled, reloading page...');
+      if (debug) console.log('🔄 [HMR] Reloading page...');
       window.location.reload();
     } else {
-      if (debug) console.log('🔄 HMR without page refresh');
+      if (debug) console.log('🔄 [HMR] Waiting for remount...');
     }
   }
 
   // Setup lifecycle hooks
   onMounted(() => {
-    if (debug) console.log('🟢 onMounted');
+    if (debug) console.log('🎬 [Scene] Mounted');
     init();
   });
 
@@ -84,7 +88,7 @@ export function useScene(options: SceneOptions): Scene {
   // Only cleanup when actually unmounting (page navigation, etc)
   onUnmounted(() => {
     if (!import.meta.hot) {
-      if (debug) console.log('🧹 onUnmounted called - cleaning up');
+      if (debug) console.log('👋 [Scene] Unmounted (not HMR)');
       cleanup();
     }
   });

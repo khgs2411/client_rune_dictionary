@@ -174,6 +174,9 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
 
   // Cleanup event listeners
   function cleanup() {
+    console.log('🧹 [Character] Starting cleanup...');
+
+    console.log('  ↳ Removing event listeners');
     // Remove keyboard event listeners
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
@@ -183,6 +186,7 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
     window.removeEventListener('touchmove', onTouchMove);
     window.removeEventListener('touchend', onTouchEnd);
 
+    console.log('  ↳ Resetting character state');
     // Reset key states
     keys.w = false;
     keys.s = false;
@@ -194,24 +198,32 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
     joystickX.value = 0;
     joystickY.value = 0;
     joystickTouchId.value = null;
+
+    console.log('✅ [Character] Cleanup complete');
   }
 
 
 
 
   function startCharacter() {
-    // Initialize event listeners 
+    console.log('🎮 [Character] Initializing...');
+
+    console.log('  ↳ Adding keyboard event listeners');
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
 
-    // Initialize touch event listeners for mobile joystick
+    console.log('  ↳ Adding touch event listeners');
     window.addEventListener('touchstart', onTouchStart, { passive: true });
     window.addEventListener('touchmove', onTouchMove, { passive: true });
     window.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    console.log('✅ [Character] Initialized');
   }
 
-
-  onMounted(startCharacter)
+  onMounted(() => {
+    console.log('🎬 [Character] Mounted');
+    startCharacter();
+  });
 
   return {
     position: {
