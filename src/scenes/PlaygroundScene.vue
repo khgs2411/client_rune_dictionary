@@ -43,55 +43,17 @@ import { useSettingsStore } from '@/stores/settings.store';
 import { Sky } from '@tresjs/cientos';
 
 // Composables
-import { useCameraControls } from '@/composables/useCameraController';
-import { useCharacterControls } from '@/composables/useCharacterController';
-import { useScene } from '@/composables/useScene';
+import { useGameContext } from '@/composables/useGameContext';
 
 const settings = useSettingsStore();
 
-// Camera controls
-const camera$ = useCameraControls();
+// Inject game context from Game.vue
+const { character$, scene$ } = useGameContext();
 
-// Character controls (VueUse $ convention)
-const character$ = useCharacterControls({
-  cameraAngleH: camera$.angle.horizontal,
-});
-
-// Link character position to camera target
-camera$.target.x = character$.position.x;
-camera$.target.z = character$.position.z;
-
-const onUpdate = (delta: number): void => {
-  // Update character movement
-  character$.update(delta);
-
-  // Update camera position and lookAt
-  camera$.lookAt(character$.position.x.value, character$.position.z.value);
-};
-
-
-function onCleanup(): () => void {
-  return () => {
-    character$.cleanup();
-    camera$.cleanup();
-  };
+// Character is always provided in Game.vue (for now)
+if (!character$) {
+  throw new Error('PlaygroundScene requires character controls');
 }
 
-function onHotReload() {
-  if (import.meta.hot) {
-    import.meta.hot.dispose(() => {
-      scene$.reload();
-    });
-  }
-}
 
-// Scene lifecycle + animation loop
-const scene$ = useScene({
-  autoRefreshOnHMR: false,
-  onUpdate: onUpdate,
-  onCleanup: onCleanup(),
-});
-
-// HMR handling (must be in scene file to fire on scene changes)
-onHotReload();
 </script>
