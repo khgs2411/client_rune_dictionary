@@ -26,112 +26,158 @@ bun run format:check # Check formatting without fixing
 
 ## Architecture Overview
 
+### Complete Rebuild (v0.5.0+)
+This application underwent a complete architectural rebuild from a 2D PrimeVue app to a 3D Three.js-based game. The old codebase is preserved in `src_deprecated/` for reference but should not be used for new development.
+
 ### Frontend Stack
 - **Vue 3** with Composition API and `<script setup>` syntax
-- **TypeScript** for type safety
-- **Vite** as build tool and dev server
-- **Pinia** for state management with persistence
-- **Vue Router** with authentication guards
+- **TypeScript** for type safety (single consolidated `tsconfig.json`)
+- **Vite 7** as build tool and dev server
+- **Pinia** for state management with `pinia-plugin-persistedstate`
+- **Vue Router** for navigation
+- **Three.js + TresJS** for 3D rendering and game world
 
-### UI Libraries & Styling
-- **PrimeVue 4.3.2** as primary component library with Aura theme
-- **Reka UI** DEPRECATED DO NOT USE REPLACE WITH PRIMEVUE NATIVE ELEMENTS!!! ~for additional components~
-- **Tailwind CSS 4.0** DEPRECATED DO NOT USE REPLACE WITH PRIMEVUE NATIVE ELEMENTS for utility-first styling
-- **Custom Centralized Color System** (see COLOR_SYSTEM.md)
+### 3D Rendering Stack
+- **Three.js 0.180.0** - Core 3D engine
+- **@tresjs/core 5.0.3** - Declarative Three.js using Vue components
+- **@tresjs/cientos 5.0.2** - Helper components (OrbitControls, Sky, Environment, etc.)
+- **@tresjs/post-processing 3.0.0** - Visual effects (Bloom, SSAO, etc.)
+
+**Important:** TresJS requires special Vite plugin configuration. The `vite.config.ts` imports `templateCompilerOptions` from `@tresjs/core` and spreads it into the Vue plugin.
+
+### UI & Styling
+- **shadcn-vue** - Component system built on Radix Vue primitives
+- **Tailwind CSS 4.1** - Utility-first styling (configured via `@tailwindcss/vite` plugin)
+- **CSS Variables** - Theming approach using HSL color values
+- **lucide-vue-next** - Icon library
+
+**Theming System:**
+- Light/dark mode via VueUse `useColorMode()` composable
+- CSS variables defined in `src/style.css` (`:root` for light, `.dark` for dark)
+- Tailwind v4 uses `@import "tailwindcss"` syntax (no config file needed)
+- Base color: Neutral
+- Style variant: New York
 
 ### Key Architectural Patterns
 
-#### Centralized Color System
-The application uses a **single source of truth** color system (`src/utils/color-system.ts`):
-- Manages themes for PrimeVue and custom components
-- 23 color themes with light/dark modes each
-- All colors must use CSS variables: `var(--primary)`, `var(--background)`, etc.
-- Never hardcode colors or use library-specific color functions
+#### TresJS 3D Scene Pattern
+TresJS allows declarative Three.js using Vue components:
+```vue
+<TresCanvas>
+  <TresPerspectiveCamera :position="[3, 3, 3]" />
+  <TresMesh>
+    <TresBoxGeometry />
+    <TresMeshStandardMaterial color="orange" />
+  </TresMesh>
+  <TresAmbientLight :intensity="0.5" />
+</TresCanvas>
+```
+
+The 3D world is the primary interface; traditional UI components are used for HUD overlays.
 
 #### State Management (Pinia Stores)
-- **Auth Store**: User authentication, WebSocket client data, localStorage persistence
-- **Settings Store**: Theme preferences, dark mode, fully persisted
-- **Misc Store**: Toast notifications (transient)
-- **Match Store**: Game match state and WebSocket communication
-- **Damage Calculator Store**: Combat calculation state
+Stores are being rebuilt from scratch. Reference `src_deprecated/stores/` for old patterns:
+- Authentication and WebSocket client management
+- Match state and game state
+- User settings and theme preferences
+- Toast notifications
 
-#### Authentication Flow
-1. Login credentials → Auth API call → Handshake API → WebSocket client setup
-2. Authentication state persisted in localStorage
-3. Router guards protect authenticated routes
-4. Automatic redirects based on auth status
+#### Backend Integration
+- **axios** for REST API calls
+- **topsyde-utils 1.0.207** - Custom package for WebSocket utilities and game logic
+- **Custom Vite Plugin** (`plugins/topsyde-utils-vite-plugin.ts`) - Provides Node.js module compatibility in browser (mocks `path`, `fs` for topsyde-utils)
 
 ### Directory Structure
 
 ```
 src/
-├── api/           # API layer (auth, app, match endpoints)
-├── components/    # Vue components
-│   ├── ui/        # Reusable UI components (removed - using PrimeVue directly)
-│   └── demo/      # Demo/showcase components
-├── composables/   # Vue composables
-│   └── animation/ # Animation-related composables
-├── stores/        # Pinia stores
-├── utils/         # Utility functions
-│   ├── color-system.ts  # Centralized color management
-│   └── theme-utils.ts   # Theme utilities
-├── views/         # Page components (Login, Dictionary, Match, etc.)
-├── router/        # Vue Router configuration
-└── styles/        # Global styles and SCSS
+├── components/       # Vue components
+│   └── ui/          # shadcn-vue components (added via CLI)
+├── lib/             # Utility functions
+│   └── utils.ts     # shadcn utilities (cn, etc.)
+├── router/          # Vue Router configuration
+├── views/           # Page components
+├── App.vue          # Root component (simple RouterView wrapper)
+├── main.ts          # App entry point
+├── style.css        # Global styles + Tailwind + CSS variables
+└── vite-env.d.ts    # Vite type definitions
+
+src_deprecated/      # Old 2D app (PrimeVue-based) - for reference only
 ```
 
 ### Environment & Configuration
 
 #### Environment Variables
-- `VITE_API_KEY`: Authentication API key (required)
+- `VITE_API_KEY`: Authentication API key
+- `VITE_WS_HOST`: WebSocket server host (defaults to wss://topsyde-gaming.duckdns.org:3000)
+- `VITE_HOST`: REST API base URL
 - Development server runs on port 8080
 
 #### Build Configuration
-- **Base path**: `/client_rune_dictionary/` for production
+- **Base path**: `/client_rune_dictionary/` for production (GitHub Pages deployment)
 - **Assets**: Chunked output with hash-based filenames
 - **Source maps**: Disabled in production
 - **Path alias**: `@` → `./src`
+- **TresJS Integration**: Requires `templateCompilerOptions` from `@tresjs/core` in Vite config
+
+#### Important Files
+- `components.json` - shadcn-vue configuration (style: new-york, baseColor: neutral)
+- `vite.config.ts` - Build configuration with TresJS + Tailwind v4 plugins
+- `tsconfig.json` - Single consolidated TypeScript config (no project references)
+- `plugins/topsyde-utils-vite-plugin.ts` - Critical for topsyde-utils browser compatibility
 
 ### Development Guidelines
 
 #### Component Patterns
 - Use Composition API with `<script setup>`
-- Follow existing component structure in `src/components/ui/`
-- Import UI components from established libraries before creating custom ones
-- All colors must use the centralized color system
+- For 3D scenes, use TresJS declarative components
+- For UI/HUD, use shadcn-vue components from `@/components/ui/`
+- Add shadcn components via: `bunx shadcn-vue@latest add <component-name>`
 
 #### Styling Approach
-- Tailwind CSS for utility classes
-- SCSS for complex styling (`src/assets/css/style.scss`)
-- CSS variables for all color references
-- PrimeVue theming integration through color system
+- **Tailwind v4** utility classes for all styling
+- **No SCSS/Sass** - removed from this rebuild
+- CSS variables for theming: `bg-background`, `text-foreground`, etc.
+- Dark mode via `useColorMode()` from `@vueuse/core`
+- Semantic color names defined in `src/style.css`
 
 #### State Management
-- Use appropriate Pinia store for state
-- Persist only necessary state (auth, settings)
-- Use composables for reusable logic
-- Maintain clear separation between stores
+- Create new Pinia stores as needed (reference deprecated stores for patterns)
+- Use `pinia-plugin-persistedstate` for localStorage persistence
+- Keep stores focused and single-purpose
+
+#### WebSocket Management
+The old WebSocket implementation is in `src_deprecated/common/composables/`. It will be completely rebuilt with a cleaner architecture.
 
 ### Testing & Quality
 
-- **No TypeScript checking required** - ask user to validate files
-- Code formatting via Prettier with `.prettierrc` configuration
-- Use `bun` instead of npm for all operations
-- Version management with automatic cache clearing on updates
+- **No TypeScript checking required** - user validates files
+- Code formatting via Prettier
+- **Always use `bun`** instead of npm (bun run, bun add, etc.)
+- Never run build commands without user permission
 
-### Special Features
+### Migration Notes
 
-#### Animation System
-- Composables in `src/composables/animation/`
-- Performance monitoring and reduced motion support
-- Sparkle effects and animation showcases
+#### What Was Removed
+- PrimeVue, Reka UI, and all old component libraries
+- Old color system and theme utilities
+- SCSS preprocessing
+- Complex layout wrappers
+- Old WebSocket composables (will be rebuilt)
 
-#### WebSocket Integration
-- Real-time match communication via Match store
-- Client data management through Auth store
-- Automatic connection handling
+#### What Was Preserved
+- Core backend integration patterns (axios, topsyde-utils)
+- Pinia store architecture (but stores need rebuilding)
+- Router structure
+- Authentication concepts
+- Game state management patterns
 
-#### Damage Calculation
-- Complex combat mechanics with multiple formulas
-- Dedicated store for calculation state
-- Integration with match system
+#### Reference Material
+The `src_deprecated/` folder contains the complete old codebase. Useful for:
+- Understanding old WebSocket event handling patterns
+- Referencing game state structures
+- Understanding match/combat logic
+- Reviewing authentication flow
+
+Do not copy-paste from deprecated code; use it only as reference to rebuild with modern patterns.
+- This project has to be mobile first
