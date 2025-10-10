@@ -1,7 +1,4 @@
 <template>
-  <!-- Camera -->
-  <TresPerspectiveCamera ref="cameraRef" :position="camera$.position.value" />
-
   <!-- Blue Sky -->
   <Sky
     :distance="450000"
@@ -44,7 +41,9 @@
 <script setup lang="ts">
 import { useSettingsStore } from '@/stores/settings.store';
 import { Sky } from '@tresjs/cientos';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
+import { useTresContext } from '@tresjs/core';
+import { PerspectiveCamera } from 'three';
 
 // Composables
 import { useCameraControls } from '@/composables/useCameraController';
@@ -53,8 +52,23 @@ import { useScene } from '@/composables/useScene';
 
 const settings = useSettingsStore();
 
+// Get TresJS camera manager
+const { camera: tresCameraManager } = useTresContext();
+
 // Camera reference for lookAt updates
-const cameraRef = ref();
+const cameraRef = ref<PerspectiveCamera>();
+
+// Create and register raw Three.js camera
+onMounted(() => {
+  const cam = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const [x, y, z] = camera$.position.value;
+  cam.position.set(x, y, z);
+
+  // Register with TresJS as active camera
+  tresCameraManager.registerCamera(cam, true);
+
+  cameraRef.value = cam;
+});
 
 // Character controls (VueUse $ convention)
 const character$ = useCharacterControls();
@@ -69,13 +83,25 @@ const camera$ = useCameraControls({
 
 // Scene lifecycle + animation loop
 const scene$ = useScene({
-  autoRefreshOnHMR: true,
+  autoRefreshOnHMR: false,
   onBeforeRender: (delta) => {
     if (!cameraRef.value) return;
+
+    // Update character
     character$.update(delta, camera$.angle.horizontal.value);
+
+    // Update camera position manually
+    const [x, y, z] = camera$.position.value;
+    cameraRef.value.position.set(x, y, z);
+
+    // Update camera lookAt
     camera$.updateLookAt(cameraRef.value, character$.position.x.value, character$.position.z.value);
   },
   onCleanup: () => {
+    // Deregister camera from TresJS
+    if (cameraRef.value) {
+      tresCameraManager.deregisterCamera(cameraRef.value);
+    }
     character$.cleanup();
     camera$.cleanup();
   },

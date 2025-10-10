@@ -26,11 +26,13 @@ export function useScene(options: SceneOptions): Scene {
   const { scene } = useTres();
 
   // Setup animation loop if onBeforeRender callback provided
+  let offBeforeRender: (() => void) | undefined;
   if (onBeforeRenderCallback) {
     const { onBeforeRender } = useLoop();
-    onBeforeRender(({ delta, elapsed }) => {
+    const { off } = onBeforeRender(({ delta, elapsed }) => {
       onBeforeRenderCallback(delta, elapsed);
     });
+    offBeforeRender = off;
   }
 
   // Initialize scene (called on mount)
@@ -41,6 +43,12 @@ export function useScene(options: SceneOptions): Scene {
   // Cleanup scene (called on unmount)
   function cleanup() {
     if (debug) console.log('🧹 Scene cleanup called');
+
+    // Unregister animation loop callback first
+    if (offBeforeRender) {
+      if (debug) console.log('🔄 Unregistering animation loop');
+      offBeforeRender();
+    }
 
     // Dispose Three.js scene resources (geometries, materials, textures)
     if (scene.value) {
