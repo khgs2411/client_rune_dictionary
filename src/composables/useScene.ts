@@ -3,7 +3,7 @@ import { onMounted, onUnmounted } from 'vue';
 
 export interface SceneOptions {
   onCleanup: () => void;
-  onBeforeRender?: (delta: number, elapsed: number) => void;
+  onUpdate?: (delta: number, elapsed: number) => void;
   autoRefreshOnHMR?: boolean;
   debug?: boolean;
 }
@@ -17,7 +17,7 @@ export interface Scene {
 export function useScene(options: SceneOptions): Scene {
   const {
     onCleanup,
-    onBeforeRender: onBeforeRenderCallback,
+    onUpdate: onUpdateCallback,
     autoRefreshOnHMR = false,
     debug = import.meta.env.DEV,
   } = options;
@@ -27,10 +27,10 @@ export function useScene(options: SceneOptions): Scene {
 
   // Setup animation loop if onBeforeRender callback provided
   let offBeforeRender: (() => void) | undefined;
-  if (onBeforeRenderCallback) {
+  if (onUpdateCallback) {
     const { onBeforeRender } = useLoop();
     const { off } = onBeforeRender(({ delta, elapsed }) => {
-      onBeforeRenderCallback(delta, elapsed);
+      onUpdateCallback(delta, elapsed);
     });
     offBeforeRender = off;
   }
@@ -96,11 +96,3 @@ export function useScene(options: SceneOptions): Scene {
   };
 }
 
-
-export function onHotReload(currentScene: Scene) {
-  if (import.meta.hot) {
-    import.meta.hot.dispose(() => {
-      currentScene.reload();
-    });
-  }
-}

@@ -9,7 +9,7 @@ export type TargetPosition = {
 };
 
 export interface CameraControlsOptions {
-  target: TargetPosition;
+  target?: TargetPosition;
 }
 
 export interface CameraControls {
@@ -21,14 +21,18 @@ export interface CameraControls {
   position: ComputedRef<[number, number, number]>;
   isDragging: Ref<boolean>;
   cameraRef: Ref<PerspectiveCamera | undefined>;
+  target: TargetPosition;
 
-  updateLookAt: (camera: Camera, targetX: number, targetZ: number) => void;
+  lookAt: (targetX: number, targetZ: number) => void;
   reset: () => void;
   cleanup: () => void;
 }
 
-export function useCameraControls(options: CameraControlsOptions): CameraControls {
-  const { target } = options;
+export function useCameraControls(options: CameraControlsOptions = {}): CameraControls {
+  const target = options.target || {
+    x: ref(0),
+    z: ref(0),
+  };
 
   // Get TresJS camera manager
   const { camera: cm } = useTresContext();
@@ -62,9 +66,16 @@ export function useCameraControls(options: CameraControlsOptions): CameraControl
   });
 
 
-  // Make camera look at target
-  function updateLookAt(camera: Camera, targetX: number, targetZ: number) {
-    camera.lookAt(targetX, 1, targetZ);
+  // Update camera position and make it look at target
+  function lookAt(targetX: number, targetZ: number) {
+    if (!cameraRef.value) return;
+
+    // Update position from computed value
+    const [x, y, z] = cameraPosition.value;
+    cameraRef.value.position.set(x, y, z);
+
+    // Update look at
+    cameraRef.value.lookAt(targetX, 1, targetZ);
   }
 
   function startCamera() {
@@ -259,8 +270,9 @@ export function useCameraControls(options: CameraControlsOptions): CameraControl
     position: cameraPosition,
     isDragging,
     cameraRef,
+    target,
     reset,
-    updateLookAt,
+    lookAt,
     cleanup,
   };
 

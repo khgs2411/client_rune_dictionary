@@ -30,7 +30,7 @@
     </TresMesh>
   </TresGroup>
 
-<!-- Lighting -->
+  <!-- Lighting -->
   <TresAmbientLight :intensity="0.5" />
   <TresDirectionalLight :position="[10, 10, 5]" :intensity="1" cast-shadow />
 
@@ -45,43 +45,53 @@ import { Sky } from '@tresjs/cientos';
 // Composables
 import { useCameraControls } from '@/composables/useCameraController';
 import { useCharacterControls } from '@/composables/useCharacterController';
-import { onHotReload, useScene } from '@/composables/useScene';
+import { useScene } from '@/composables/useScene';
 
 const settings = useSettingsStore();
 
-// Character controls (VueUse $ convention)
-const character$ = useCharacterControls();
+// Camera controls
+const camera$ = useCameraControls();
 
-// Camera controls (depends on character position)
-const camera$ = useCameraControls({
-  target: {
-    x: character$.position.x,
-    z: character$.position.z,
-  },
+// Character controls (VueUse $ convention)
+const character$ = useCharacterControls({
+  cameraAngleH: camera$.angle.horizontal,
 });
+
+// Link character position to camera target
+camera$.target.x = character$.position.x;
+camera$.target.z = character$.position.z;
+
+const onUpdate = (delta: number): void => {
+  // Update character movement
+  character$.update(delta);
+
+  // Update camera position and lookAt
+  camera$.lookAt(character$.position.x.value, character$.position.z.value);
+};
+
+
+function onCleanup(): () => void {
+  return () => {
+    character$.cleanup();
+    camera$.cleanup();
+  };
+}
+
+function onHotReload() {
+  if (import.meta.hot) {
+    import.meta.hot.dispose(() => {
+      scene$.reload();
+    });
+  }
+}
 
 // Scene lifecycle + animation loop
 const scene$ = useScene({
   autoRefreshOnHMR: false,
-  onBeforeRender: (delta) => {
-    if (!camera$.cameraRef.value) return;
-
-    // Update character
-    character$.update(delta, camera$.angle.horizontal.value);
-    // Update camera position manually
-    const [x, y, z] = camera$.position.value;
-    camera$.cameraRef.value.position.set(x, y, z);
-
-    // Update camera lookAt
-    camera$.updateLookAt(camera$.cameraRef.value, character$.position.x.value, character$.position.z.value);
-  },
-  onCleanup: () => {
-    character$.cleanup();
-    camera$.cleanup();
-  },
+  onUpdate: onUpdate,
+  onCleanup: onCleanup(),
 });
 
-
 // HMR handling (must be in scene file to fire on scene changes)
-onHotReload(scene$);
+onHotReload();
 </script>

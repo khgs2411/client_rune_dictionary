@@ -1,5 +1,9 @@
 import { ref, type Ref } from 'vue';
 
+export interface CharacterControlsOptions {
+  cameraAngleH: Ref<number>;
+}
+
 export interface CharacterControls {
   position: {
     x: Ref<number>;
@@ -15,12 +19,13 @@ export interface CharacterControls {
     startY: Ref<number>;
   };
 
-  update: (delta: number, cameraAngleH: number) => void;
+  update: (delta: number) => void;
   reset: () => void;
   cleanup: () => void;
 }
 
-export function useCharacterControls(): CharacterControls {
+export function useCharacterControls(options: CharacterControlsOptions): CharacterControls {
+  const { cameraAngleH } = options;
   // Player position and rotation
   const playerX = ref(0);
   const playerZ = ref(0);
@@ -106,7 +111,7 @@ export function useCharacterControls(): CharacterControls {
   }
 
   // Update player movement based on input and camera angle
-  function update(delta: number, cameraAngleH: number) {
+  function update(delta: number) {
     // Calculate movement input
     let inputX = 0;
     let inputZ = 0;
@@ -147,7 +152,7 @@ export function useCharacterControls(): CharacterControls {
       }
 
       // Convert input to world space based on camera angle
-      const angle = cameraAngleH;
+      const angle = cameraAngleH.value;
       const moveX = inputX * Math.cos(angle) + inputZ * Math.sin(angle);
       const moveZ = -inputX * Math.sin(angle) + inputZ * Math.cos(angle);
 
