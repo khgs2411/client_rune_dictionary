@@ -18,7 +18,9 @@
         <div class="space-y-3">
           <div class="flex justify-between items-center">
             <label class="text-sm font-medium">Movement Speed</label>
-            <span class="text-sm text-muted-foreground font-mono">{{ config.characterMoveSpeed }}</span>
+            <span class="text-sm text-muted-foreground font-mono">{{
+              config.characterMoveSpeed
+            }}</span>
           </div>
           <Slider
             v-model="speedValue"
@@ -41,7 +43,9 @@
           <div class="space-y-3">
             <div class="flex justify-between items-center">
               <label class="text-sm font-medium">Jump Power</label>
-              <span class="text-sm text-muted-foreground font-mono">{{ config.jumpInitialVelocity }}</span>
+              <span class="text-sm text-muted-foreground font-mono">{{
+                config.jumpInitialVelocity
+              }}</span>
             </div>
             <Slider
               v-model="jumpVelocityValue"
@@ -79,7 +83,9 @@
           <div class="space-y-3">
             <div class="flex justify-between items-center">
               <label class="text-sm font-medium">Max Fall Speed</label>
-              <span class="text-sm text-muted-foreground font-mono">{{ config.jumpMaxFallSpeed }}</span>
+              <span class="text-sm text-muted-foreground font-mono">{{
+                config.jumpMaxFallSpeed
+              }}</span>
             </div>
             <Slider
               v-model="jumpMaxFallSpeedValue"
@@ -124,19 +130,23 @@ const jumpGravityValue = ref([config.jumpGravity]);
 const jumpMaxFallSpeedValue = ref([config.jumpMaxFallSpeed]);
 
 // Update config when sliders change
-function updateSpeed(value: number[]) {
+function updateSpeed(value: number[] | undefined) {
+  if (!value) return;
   config.characterMoveSpeed = value[0];
 }
 
-function updateJumpVelocity(value: number[]) {
+function updateJumpVelocity(value: number[] | undefined) {
+  if (!value) return;
   config.jumpInitialVelocity = value[0];
 }
 
-function updateJumpGravity(value: number[]) {
+function updateJumpGravity(value: number[] | undefined) {
+  if (!value) return;
   config.jumpGravity = value[0];
 }
 
-function updateJumpMaxFallSpeed(value: number[]) {
+function updateJumpMaxFallSpeed(value: number[] | undefined) {
+  if (!value) return;
   config.jumpMaxFallSpeed = value[0];
 }
 
@@ -145,27 +155,27 @@ watch(
   () => config.characterMoveSpeed,
   (newSpeed) => {
     speedValue.value = [newSpeed];
-  }
+  },
 );
 
 watch(
   () => config.jumpInitialVelocity,
   (newValue) => {
     jumpVelocityValue.value = [newValue];
-  }
+  },
 );
 
 watch(
   () => config.jumpGravity,
   (newValue) => {
     jumpGravityValue.value = [newValue];
-  }
+  },
 );
 
 watch(
   () => config.jumpMaxFallSpeed,
   (newValue) => {
     jumpMaxFallSpeedValue.value = [newValue];
-  }
+  },
 );
 </script>
