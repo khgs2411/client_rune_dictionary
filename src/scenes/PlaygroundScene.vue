@@ -67,9 +67,9 @@ const camera$ = useCameraControls({
 
 // Scene lifecycle + animation loop
 const scene$ = useScene({
+  autoRefreshOnHMR: false,
   onBeforeRender: (delta) => {
     if (!cameraRef.value) return;
-
     character$.update(delta, camera$.angle.horizontal.value);
     camera$.updateLookAt(cameraRef.value, character$.position.x.value, character$.position.z.value);
   },
@@ -77,7 +77,6 @@ const scene$ = useScene({
     character$.cleanup();
     camera$.cleanup();
   },
-  autoRefreshOnHMR: false,
 });
 
 function onHotReload() {
