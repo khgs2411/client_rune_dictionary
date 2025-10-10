@@ -1,5 +1,5 @@
+import { dispose, useLoop, useTres } from '@tresjs/core';
 import { onMounted, onUnmounted } from 'vue';
-import { useLoop, useTres, dispose } from '@tresjs/core';
 
 export interface SceneOptions {
   onCleanup: () => void;

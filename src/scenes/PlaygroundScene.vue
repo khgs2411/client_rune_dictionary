@@ -33,7 +33,7 @@
     </TresMesh>
   </TresGroup>
 
-  <!-- Lighting -->
+<!-- Lighting -->
   <TresAmbientLight :intensity="0.5" />
   <TresDirectionalLight :position="[10, 10, 5]" :intensity="1" cast-shadow />
 
@@ -42,13 +42,13 @@
 </template>
 
 <script setup lang="ts">
-import { Sky } from '@tresjs/cientos';
 import { useSettingsStore } from '@/stores/settings.store';
+import { Sky } from '@tresjs/cientos';
 import { ref } from 'vue';
 
 // Composables
-import { useCharacterControls } from '@/composables/useCharacterController';
 import { useCameraControls } from '@/composables/useCameraController';
+import { useCharacterControls } from '@/composables/useCharacterController';
 import { useScene } from '@/composables/useScene';
 
 const settings = useSettingsStore();

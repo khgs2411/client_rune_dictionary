@@ -1,5 +1,5 @@
-import { computed, type ComputedRef, toValue, type MaybeRefOrGetter } from 'vue';
 import { convert, OKLCH, sRGB } from '@texel/color';
+import { computed, toValue, type ComputedRef, type MaybeRefOrGetter } from 'vue';
 
 export type ColorTheme = 'neutral' | 'rose' | 'blue' | 'purple' | 'green' | 'yellow';
 
