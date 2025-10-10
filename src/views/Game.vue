@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { TresCanvas } from '@tresjs/core';
-import DonutScene from '@/components/DonutScene.vue';
+import DonutScene from '@/scenes/DonutScene.vue';
 </script>
 
 <style scoped>

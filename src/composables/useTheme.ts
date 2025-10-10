@@ -12,7 +12,7 @@ export interface ThemeOption {
 /**
  * Three.js compatible RGB color as tuple [r, g, b]
  */
-export type ThreeJSColor = [number, number, number]
+export type RGBColor = [number, number, number]
 
 /**
  * Available theme options with preview colors
@@ -27,21 +27,21 @@ export const THEME_OPTIONS: ThemeOption[] = [
 ]
 
 export interface ThemeColors {
-	primary: ComputedRef<ThreeJSColor>
-	primaryForeground: ComputedRef<ThreeJSColor>
-	accent: ComputedRef<ThreeJSColor>
-	accentForeground: ComputedRef<ThreeJSColor>
-	background: ComputedRef<ThreeJSColor>
-	foreground: ComputedRef<ThreeJSColor>
-	muted: ComputedRef<ThreeJSColor>
-	card: ComputedRef<ThreeJSColor>
-	border: ComputedRef<ThreeJSColor>
+	primary: ComputedRef<RGBColor>
+	primaryForeground: ComputedRef<RGBColor>
+	accent: ComputedRef<RGBColor>
+	accentForeground: ComputedRef<RGBColor>
+	background: ComputedRef<RGBColor>
+	foreground: ComputedRef<RGBColor>
+	muted: ComputedRef<RGBColor>
+	card: ComputedRef<RGBColor>
+	border: ComputedRef<RGBColor>
 }
 
 /**
  * Converts OKLCH CSS variable to Three.js RGB color array
  */
-function parseOklchColor(varName: string): ThreeJSColor {
+function parseOklchColor(varName: string): RGBColor {
 	const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
 
 	if (!value) return [0.5, 0.5, 0.5]
@@ -58,7 +58,7 @@ function parseOklchColor(varName: string): ThreeJSColor {
 	}
 
 	// Convert to sRGB and return as tuple
-	return convert([l, c, h], OKLCH, sRGB) as ThreeJSColor
+	return convert([l, c, h], OKLCH, sRGB) as RGBColor
 }
 
 /**
