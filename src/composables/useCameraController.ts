@@ -1,5 +1,4 @@
 import { ref, computed, type Ref, type ComputedRef } from 'vue';
-import { usePointerLock } from '@vueuse/core';
 import type { Camera } from 'three';
 
 export interface CameraControlsOptions {
@@ -31,12 +30,14 @@ export function useCameraControls(options: CameraControlsOptions): CameraControl
   const cameraAngleH = ref(0); // Horizontal rotation around player
   const cameraAngleV = ref(0.4); // Vertical angle (0 = level, PI/2 = top-down)
 
-  // Mouse state for camera rotation
+  // Mouse/Touch state for camera rotation
   const isDragging = ref(false);
+  const isPointerLockActive = ref(false);
 
-  // Pointer lock for MMO-style camera (hides cursor, locks in place)
-  const canvasTarget = ref<HTMLElement>();
-  const { isSupported: isPointerLockSupported } = usePointerLock(canvasTarget);
+  // Touch state for mobile controls
+  const touchStartX = ref(0);
+  const touchStartY = ref(0);
+  const lastTouchDistance = ref(0);
 
   // Camera position (calculated from angles and distance)
   const cameraPosition = computed<[number, number, number]>(() => {
@@ -49,15 +50,16 @@ export function useCameraControls(options: CameraControlsOptions): CameraControl
     return [target.x.value + offsetX, offsetY + 1, target.z.value + offsetZ];
   });
 
-  // Mouse handlers for camera rotation
+  // Mouse handlers for camera rotation (desktop)
   function onMouseDown(e: MouseEvent) {
     // Only right mouse button
     if (e.button === 2) {
       isDragging.value = true;
 
       // Request pointer lock for MMO-style camera
-      if (isPointerLockSupported && document.body) {
+      if (document.body && 'requestPointerLock' in document.body) {
         document.body.requestPointerLock();
+        isPointerLockActive.value = true;
       }
 
       e.preventDefault();
@@ -86,6 +88,7 @@ export function useCameraControls(options: CameraControlsOptions): CameraControl
       // Exit pointer lock
       if (document.pointerLockElement) {
         document.exitPointerLock();
+        isPointerLockActive.value = false;
       }
     }
   }
@@ -98,6 +101,67 @@ export function useCameraControls(options: CameraControlsOptions): CameraControl
     // Zoom in/out
     cameraDistance.value = Math.max(5, Math.min(20, cameraDistance.value + e.deltaY * 0.01));
     e.preventDefault();
+  }
+
+  // Touch handlers for mobile camera rotation
+  function onTouchStart(e: TouchEvent) {
+    if (e.touches.length === 1) {
+      // Single finger - camera rotation
+      isDragging.value = true;
+      touchStartX.value = e.touches[0].clientX;
+      touchStartY.value = e.touches[0].clientY;
+    } else if (e.touches.length === 2) {
+      // Two fingers - pinch to zoom
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      lastTouchDistance.value = Math.sqrt(dx * dx + dy * dy);
+    }
+  }
+
+  function onTouchMove(e: TouchEvent) {
+    if (e.touches.length === 1 && isDragging.value) {
+      // Single finger - rotate camera
+      const deltaX = e.touches[0].clientX - touchStartX.value;
+      const deltaY = e.touches[0].clientY - touchStartY.value;
+
+      // Update camera angles
+      cameraAngleH.value -= deltaX * 0.01;
+      cameraAngleV.value = Math.max(
+        0.1,
+        Math.min(Math.PI / 2 - 0.1, cameraAngleV.value + deltaY * 0.01),
+      );
+
+      // Update touch start position for next frame
+      touchStartX.value = e.touches[0].clientX;
+      touchStartY.value = e.touches[0].clientY;
+
+      e.preventDefault();
+    } else if (e.touches.length === 2) {
+      // Two fingers - pinch to zoom
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (lastTouchDistance.value > 0) {
+        const delta = distance - lastTouchDistance.value;
+        cameraDistance.value = Math.max(5, Math.min(20, cameraDistance.value - delta * 0.05));
+      }
+
+      lastTouchDistance.value = distance;
+      e.preventDefault();
+    }
+  }
+
+  function onTouchEnd(e: TouchEvent) {
+    if (e.touches.length === 0) {
+      isDragging.value = false;
+      lastTouchDistance.value = 0;
+    } else if (e.touches.length === 1) {
+      // Reset to single touch
+      touchStartX.value = e.touches[0].clientX;
+      touchStartY.value = e.touches[0].clientY;
+      lastTouchDistance.value = 0;
+    }
   }
 
   // Make camera look at target
@@ -114,14 +178,23 @@ export function useCameraControls(options: CameraControlsOptions): CameraControl
 
   // Cleanup event listeners
   function cleanup() {
-    reset()
+    reset();
+
+    // Remove mouse event listeners
     window.removeEventListener('mousedown', onMouseDown);
     window.removeEventListener('mousemove', onMouseMove);
     window.removeEventListener('mouseup', onMouseUp);
     window.removeEventListener('contextmenu', onContextMenu);
     window.removeEventListener('wheel', onWheel);
 
+    // Remove touch event listeners
+    window.removeEventListener('touchstart', onTouchStart);
+    window.removeEventListener('touchmove', onTouchMove);
+    window.removeEventListener('touchend', onTouchEnd);
+
     isDragging.value = false;
+    isPointerLockActive.value = false;
+    lastTouchDistance.value = 0;
 
     // Exit pointer lock if active
     if (document.pointerLockElement) {
@@ -135,6 +208,11 @@ export function useCameraControls(options: CameraControlsOptions): CameraControl
   window.addEventListener('mouseup', onMouseUp);
   window.addEventListener('contextmenu', onContextMenu);
   window.addEventListener('wheel', onWheel, { passive: false });
+
+  // Initialize touch event listeners for mobile
+  window.addEventListener('touchstart', onTouchStart, { passive: false });
+  window.addEventListener('touchmove', onTouchMove, { passive: false });
+  window.addEventListener('touchend', onTouchEnd, { passive: false });
 
   return {
     angle: {

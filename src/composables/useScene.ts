@@ -5,6 +5,7 @@ export interface SceneOptions {
   onCleanup: () => void;
   onBeforeRender?: (delta: number, elapsed: number) => void;
   autoRefreshOnHMR?: boolean;
+  debug?: boolean;
 }
 
 export interface Scene {
@@ -14,7 +15,12 @@ export interface Scene {
 }
 
 export function useScene(options: SceneOptions): Scene {
-  const { onCleanup, onBeforeRender: onBeforeRenderCallback, autoRefreshOnHMR = false } = options;
+  const {
+    onCleanup,
+    onBeforeRender: onBeforeRenderCallback,
+    autoRefreshOnHMR = false,
+    debug = import.meta.env.DEV,
+  } = options;
 
   // Get TresJS context for scene disposal
   const { scene } = useTres();
@@ -29,16 +35,16 @@ export function useScene(options: SceneOptions): Scene {
 
   // Initialize scene (called on mount)
   function init() {
-    console.log('🚀 Scene initialized');
+    if (debug) console.log('🚀 Scene initialized');
   }
 
   // Cleanup scene (called on unmount)
   function cleanup() {
-    console.log('🧹 Scene cleanup called');
+    if (debug) console.log('🧹 Scene cleanup called');
 
     // Dispose Three.js scene resources (geometries, materials, textures)
     if (scene.value) {
-      console.log('🗑️ Disposing Three.js scene resources');
+      if (debug) console.log('🗑️ Disposing Three.js scene resources');
       dispose(scene.value);
     }
     // Cleanup composables (event listeners, etc.)
@@ -47,22 +53,22 @@ export function useScene(options: SceneOptions): Scene {
 
   // HMR dispose (called from scene file's import.meta.hot.dispose)
   function reload() {
-    console.log('🔥 HMR dispose called');
+    if (debug) console.log('🔥 HMR dispose called');
 
     // Cleanup scene
     cleanup();
 
     if (autoRefreshOnHMR) {
-      console.log('🔄 Auto-refresh enabled, reloading page...');
+      if (debug) console.log('🔄 Auto-refresh enabled, reloading page...');
       window.location.reload();
     } else {
-      console.log('🔄 HMR without page refresh');
+      if (debug) console.log('🔄 HMR without page refresh');
     }
   }
 
   // Setup lifecycle hooks
   onMounted(() => {
-    console.log('🟢 onMounted');
+    if (debug) console.log('🟢 onMounted');
     init();
   });
 
@@ -70,12 +76,10 @@ export function useScene(options: SceneOptions): Scene {
   // Only cleanup when actually unmounting (page navigation, etc)
   onUnmounted(() => {
     if (!import.meta.hot) {
-      console.log('🧹 onUnmounted called - cleaning up');
+      if (debug) console.log('🧹 onUnmounted called - cleaning up');
       cleanup();
     }
   });
-
-
 
   return {
     init,

@@ -69,7 +69,7 @@ const camera$ = useCameraControls({
 
 // Scene lifecycle + animation loop
 const scene$ = useScene({
-  autoRefreshOnHMR: false,
+  autoRefreshOnHMR: true,
   onBeforeRender: (delta) => {
     if (!cameraRef.value) return;
     character$.update(delta, camera$.angle.horizontal.value);
