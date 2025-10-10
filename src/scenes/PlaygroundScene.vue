@@ -1,6 +1,6 @@
 <template>
   <!-- Camera -->
-  <TresPerspectiveCamera ref="cameraRef" :position="camera$.position.value" />
+  <TresPerspectiveCamera ref="cameraRef" key="scene-camera" :position="camera$.position.value" />
 
   <!-- Blue Sky -->
   <Sky
@@ -47,8 +47,8 @@ import { useSettingsStore } from '@/stores/settings.store';
 import { ref } from 'vue';
 
 // Composables
-import { useCharacterControls } from '@/composables/useCharacterControls';
-import { useCameraControls } from '@/composables/useCameraControls';
+import { useCharacterControls } from '@/composables/useCharacterController';
+import { useCameraControls } from '@/composables/useCameraController';
 import { useScene } from '@/composables/useScene';
 
 const settings = useSettingsStore();
@@ -77,7 +77,7 @@ const scene$ = useScene({
     character$.cleanup();
     camera$.cleanup();
   },
-  autoRefreshOnHMR: true,
+  autoRefreshOnHMR: false,
 });
 
 function onHotReload() {

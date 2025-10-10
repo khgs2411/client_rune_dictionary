@@ -1,5 +1,5 @@
 import { onMounted, onUnmounted } from 'vue';
-import { useLoop } from '@tresjs/core';
+import { useLoop, useTres, dispose } from '@tresjs/core';
 
 export interface SceneOptions {
   onCleanup: () => void;
@@ -15,6 +15,9 @@ export interface Scene {
 
 export function useScene(options: SceneOptions): Scene {
   const { onCleanup, onBeforeRender: onBeforeRenderCallback, autoRefreshOnHMR = false } = options;
+
+  // Get TresJS context for scene disposal
+  const { scene } = useTres();
 
   // Setup animation loop if onBeforeRender callback provided
   if (onBeforeRenderCallback) {
@@ -32,7 +35,16 @@ export function useScene(options: SceneOptions): Scene {
   // Cleanup scene (called on unmount)
   function cleanup() {
     console.log('🧹 Scene cleanup called');
+
+    // Dispose Three.js scene resources (geometries, materials, textures)
+    if (scene.value) {
+      console.log('🗑️ Disposing Three.js scene resources');
+      dispose(scene.value);
+    }
+    // Cleanup composables (event listeners, etc.)
     onCleanup();
+
+   
   }
 
   // HMR dispose (called from scene file's import.meta.hot.dispose)
@@ -46,7 +58,7 @@ export function useScene(options: SceneOptions): Scene {
       console.log('🔄 Auto-refresh enabled, reloading page...');
       window.location.reload();
     } else {
-      console.warn('⚠️ Three.js scene updated - Press Cmd+R / Ctrl+R to refresh for clean scene');
+      console.log('🔄 HMR without page refresh');
     }
   }
 

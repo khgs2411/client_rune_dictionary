@@ -114,6 +114,7 @@ export function useCameraControls(options: CameraControlsOptions): CameraControl
 
   // Cleanup event listeners
   function cleanup() {
+    reset()
     window.removeEventListener('mousedown', onMouseDown);
     window.removeEventListener('mousemove', onMouseMove);
     window.removeEventListener('mouseup', onMouseUp);
@@ -143,9 +144,8 @@ export function useCameraControls(options: CameraControlsOptions): CameraControl
     distance: cameraDistance,
     position: cameraPosition,
     isDragging,
-
-    updateLookAt,
     reset,
+    updateLookAt,
     cleanup,
   };
 }
