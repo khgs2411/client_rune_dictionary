@@ -13,26 +13,6 @@ const routes = [
         path: 'game',
         name: 'game',
         component: () => import('../views/Game.vue'),
-        redirect: { name: 'login' },
-        children: [
-
-          {
-            path: 'playground',
-            name: 'playground',
-            component: () => import('../scenes/PlaygroundScene.vue'),
-            meta: {
-              hasCharacter: true,
-            },
-          },
-          {
-            path: 'donut',
-            name: 'donut',
-            component: () => import('../scenes/DonutScene.vue'),
-            meta: {
-              hasCharacter: true,
-            },
-          },
-        ],
       },
     ],
   },

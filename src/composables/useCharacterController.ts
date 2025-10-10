@@ -1,5 +1,5 @@
 import { useConfigStore } from '@/stores/config.store';
-import { computed, onMounted, ref, type Ref } from 'vue';
+import { computed, ref, type Ref } from 'vue';
 
 export interface CharacterControlsOptions {
   cameraAngleH: Ref<number>;
@@ -267,10 +267,8 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
     console.log('✅ [Character] Initialized');
   }
 
-  onMounted(() => {
-    console.log('🎬 [Character] Mounted');
-    startCharacter();
-  });
+  // Setup immediately
+  startCharacter();
 
   return {
     position: {

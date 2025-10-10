@@ -90,7 +90,7 @@ async function handleLogin() {
     if (response.authorized) {
       console.log('✅ Login successful!');
       // Navigate to game
-      router.push('/game/playground');
+      router.push('/game');
     } else {
       errorMessage.value = response.msg || 'Login failed';
     }
