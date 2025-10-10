@@ -71,7 +71,7 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
 
     // Handle jump
     if (e.code === KEY_SPACE && !isJumping.value) {
-      jump();
+      jump(e);
     }
   }
 
@@ -82,7 +82,9 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
   }
 
   // Jump function
-  function jump() {
+  function jump(e: KeyboardEvent | TouchEvent) {
+    e.preventDefault();
+    e.stopPropagation();
     if (isJumping.value) return; // Already jumping
 
     isJumping.value = true;
