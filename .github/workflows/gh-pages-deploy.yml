@@ -29,99 +29,99 @@
 name: Deploy to GitHub Pages
 
 on:
-    push:
-        branches:
-            - master
-        paths-ignore:
-            - "**.md"
-            - ".gitignore"
-    workflow_dispatch:
-        inputs:
-            ws_host:
-                description: "WebSocket Host URL"
-                required: false
-                default: "https://topsyde-gaming.duckdns.org:3000"
-                type: string
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+  workflow_dispatch:
+    inputs:
+      ws_host:
+        description: 'WebSocket Host URL'
+        required: false
+        default: 'https://topsyde-gaming.duckdns.org:3000'
+        type: string
 # Add permissions needed for GitHub Pages deployment
 permissions:
-    contents: write
-    pages: write
-    id-token: write
+  contents: write
+  pages: write
+  id-token: write
 
 env:
-    VITE_API_KEY: ${{ github.event.inputs.api_key || 'r_d_25c9dd62-ba12-44de-b303-67ef659ba7bd' }}
-    VITE_HOST: ${{ github.event.inputs.ws_host || 'https://topsyde-gaming.duckdns.org:3000' }}
-    VITE_WS_HOST: ${{ github.event.inputs.ws_host || 'wss://topsyde-gaming.duckdns.org:3000' }}
+  VITE_API_KEY: ${{ github.event.inputs.api_key || 'r_d_25c9dd62-ba12-44de-b303-67ef659ba7bd' }}
+  VITE_HOST: ${{ github.event.inputs.ws_host || 'https://topsyde-gaming.duckdns.org:3000' }}
+  VITE_WS_HOST: ${{ github.event.inputs.ws_host || 'wss://topsyde-gaming.duckdns.org:3000' }}
 
 jobs:
-    # First job: Check if commit message contains [deploy]
-    check-commit-message:
-        runs-on: ubuntu-latest
-        if: github.event_name != 'workflow_dispatch'
-        outputs:
-            should_deploy: ${{ steps.check.outputs.should_deploy }}
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v3
-              with:
-                  fetch-depth: 2
+  # First job: Check if commit message contains [deploy]
+  check-commit-message:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch'
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
 
-            - name: Check commit message for deploy keyword
-              id: check
-              run: |
-                  COMMIT_MSG=$(git log -1 --pretty=format:"%s")
-                  if [[ "$COMMIT_MSG" == *"[deploy]"* ]]; then
-                    echo "should_deploy=true" >> $GITHUB_OUTPUT
-                  else
-                    echo "should_deploy=false" >> $GITHUB_OUTPUT
-                  fi
-                  echo "Commit message: $COMMIT_MSG"
-                  echo "Should deploy: ${{ steps.check.outputs.should_deploy }}"
+      - name: Check commit message for deploy keyword
+        id: check
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+          if [[ "$COMMIT_MSG" == *"[deploy]"* ]]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+          fi
+          echo "Commit message: $COMMIT_MSG"
+          echo "Should deploy: ${{ steps.check.outputs.should_deploy }}"
 
-    # Second job: Build and deploy if triggered manually or commit contains [deploy]
-    build-and-deploy:
-        needs: [check-commit-message]
-        if: github.event_name == 'workflow_dispatch' || needs.check-commit-message.outputs.should_deploy == 'true'
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v3
+  # Second job: Build and deploy if triggered manually or commit contains [deploy]
+  build-and-deploy:
+    needs: [check-commit-message]
+    if: github.event_name == 'workflow_dispatch' || needs.check-commit-message.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-            - name: Install dependencies
-              run: bun install
+      - name: Install dependencies
+        run: bun install
 
-            - name: Verify production environment
-              run: |
-                  echo "Using VITE_API_KEY: $VITE_API_KEY"
-                  echo "Using VITE_HOST: $VITE_HOST"
-                  echo "Using VITE_WS_HOST: $VITE_WS_HOST"
+      - name: Verify production environment
+        run: |
+          echo "Using VITE_API_KEY: $VITE_API_KEY"
+          echo "Using VITE_HOST: $VITE_HOST"
+          echo "Using VITE_WS_HOST: $VITE_WS_HOST"
 
-                  # Create a .env.production file to ensure variables are available
-                  echo "VITE_API_KEY=$VITE_API_KEY" > .env.production
-                  echo "VITE_HOST=$VITE_HOST" >> .env.production
-                  echo "VITE_WS_HOST=$VITE_WS_HOST" >> .env.production
+          # Create a .env.production file to ensure variables are available
+          echo "VITE_API_KEY=$VITE_API_KEY" > .env.production
+          echo "VITE_HOST=$VITE_HOST" >> .env.production
+          echo "VITE_WS_HOST=$VITE_WS_HOST" >> .env.production
 
-                  cat .env.production
+          cat .env.production
 
-            - name: Build
-              run: bun run build
-              env:
-                  VITE_API_KEY: ${{ env.VITE_API_KEY }}
-                  VITE_HOST: ${{ env.VITE_HOST }}
-                  VITE_WS_HOST: ${{ env.VITE_WS_HOST }}
-            - name: Add cache control headers
-              run: |
-                  echo "/*" > ./dist/_headers
-                  echo "  Cache-Control: no-cache, no-store, must-revalidate" >> ./dist/_headers
-            - name: Deploy to GitHub Pages
-              uses: JamesIves/github-pages-deploy-action@v4
-              with:
-                  folder: dist
-                  branch: gh-pages
-                  clean: true
-                  force: true
+      - name: Build
+        run: bun run build
+        env:
+          VITE_API_KEY: ${{ env.VITE_API_KEY }}
+          VITE_HOST: ${{ env.VITE_HOST }}
+          VITE_WS_HOST: ${{ env.VITE_WS_HOST }}
+      - name: Add cache control headers
+        run: |
+          echo "/*" > ./dist/_headers
+          echo "  Cache-Control: no-cache, no-store, must-revalidate" >> ./dist/_headers
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          branch: gh-pages
+          clean: true
+          force: true

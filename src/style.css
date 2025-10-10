@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @plugin "tailwindcss-animate";
 
@@ -115,42 +115,42 @@
 }
 
 /* Pastel Color Themes */
-[data-theme="rose"] {
+:root[data-theme='rose'] {
   --primary: oklch(0.8 0.15 10);
   --primary-foreground: oklch(0.3 0.15 10);
   --accent: oklch(0.9 0.1 10);
   --accent-foreground: oklch(0.4 0.15 10);
 }
 
-[data-theme="blue"] {
+:root[data-theme='blue'] {
   --primary: oklch(0.75 0.15 240);
   --primary-foreground: oklch(0.25 0.15 240);
   --accent: oklch(0.85 0.1 240);
   --accent-foreground: oklch(0.35 0.15 240);
 }
 
-[data-theme="purple"] {
+:root[data-theme='purple'] {
   --primary: oklch(0.75 0.15 290);
   --primary-foreground: oklch(0.25 0.15 290);
   --accent: oklch(0.85 0.1 290);
   --accent-foreground: oklch(0.35 0.15 290);
 }
 
-[data-theme="green"] {
+:root[data-theme='green'] {
   --primary: oklch(0.75 0.15 145);
   --primary-foreground: oklch(0.25 0.15 145);
   --accent: oklch(0.85 0.1 145);
   --accent-foreground: oklch(0.35 0.15 145);
 }
 
-[data-theme="yellow"] {
+:root[data-theme='yellow'] {
   --primary: oklch(0.85 0.15 95);
   --primary-foreground: oklch(0.3 0.12 95);
   --accent: oklch(0.9 0.1 95);
   --accent-foreground: oklch(0.4 0.12 95);
 }
 
-[data-theme="neutral"] {
+:root[data-theme='neutral'] {
   /* Default neutral theme - uses root colors */
 }
 

@@ -1,33 +1,37 @@
-import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
-import path from "path";
-import tailwindcss from "@tailwindcss/vite";
-import topsydeUtilsPlugin from "./plugins/topsyde-utils-vite-plugin";
-import { templateCompilerOptions } from '@tresjs/core'
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import path from 'path';
+import tailwindcss from '@tailwindcss/vite';
+import topsydeUtilsPlugin from './plugins/topsyde-utils-vite-plugin';
+import { templateCompilerOptions } from '@tresjs/core';
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
-	return {
-		plugins: [vue({ ...templateCompilerOptions }), tailwindcss(), topsydeUtilsPlugin()],
-		base: command === "serve" ? "/" : "/client_rune_dictionary/",
-		server: {
-			port: 8080,
-		},
-		build: {
-			sourcemap: false,
-			minify: true,
-			assetsDir: "chunks",
-			rollupOptions: {
-				output: {
-					entryFileNames: `chunks/[name].[hash].js`,
-					chunkFileNames: `chunks/[name].[hash].js`,
-					assetFileNames: `assets/[name].[hash].[ext]`,
-				},
-			},
-		},
-		resolve: {
-			alias: {
-				"@": path.resolve(__dirname, "./src"),
-			},
-		},
-	};
+  return {
+    plugins: [vue({ ...templateCompilerOptions }), tailwindcss(), topsydeUtilsPlugin()],
+    base: command === 'serve' ? '/' : '/client_rune_dictionary/',
+    server: {
+      port: 8080,
+    },
+    build: {
+      sourcemap: false,
+      minify: true,
+      assetsDir: 'chunks',
+      rollupOptions: {
+        output: {
+          entryFileNames: `chunks/[name].[hash].js`,
+          chunkFileNames: `chunks/[name].[hash].js`,
+          assetFileNames: `assets/[name].[hash].[ext]`,
+        },
+      },
+    },
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
+      dedupe: ['three'],
+    },
+    optimizeDeps: {
+      exclude: ['three', '@tresjs/core', '@tresjs/cientos'],
+    },
+  };
 });

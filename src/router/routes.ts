@@ -1,15 +1,13 @@
 const routes = [
-    {
-        path: "/",
-        redirect: { name: "home" }, // Redirect to home using named route
-        children: [
-            { path: "home", name: "home", component: () => import("../views/Home.vue") },
-        ],
-    },
-    // Add a catch-all route to handle 404 errors
-    {
-        path: '/:pathMatch(.*)*',
-        redirect: { name: "home" },
-    },
+  {
+    path: '/',
+    redirect: { name: 'game' }, // Redirect to game using named route
+    children: [{ path: 'game', name: 'game', component: () => import('../views/Game.vue') }],
+  },
+  // Add a catch-all route to handle 404 errors
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: { name: 'game' },
+  },
 ];
 export default routes;
