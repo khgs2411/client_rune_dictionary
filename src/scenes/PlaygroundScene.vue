@@ -60,7 +60,6 @@
 <script setup lang="ts">
 import { useSettingsStore } from '@/stores/settings.store';
 import { Sky } from '@tresjs/cientos';
-import { onMounted } from 'vue';
 
 // Composables
 import { useGameContext } from '@/composables/useGameContext';
@@ -75,18 +74,5 @@ if (!character$) {
   throw new Error('PlaygroundScene requires character controls');
 }
 
-// Define obstacles for collision detection
-// Each obstacle is {x, z, width, depth} representing a box on the ground
-const obstacles = [
-  { x: 5, z: 0, width: 2, depth: 2 },    // Stone Wall 1
-  { x: -8, z: 5, width: 3, depth: 2 },   // Stone Wall 2
-  { x: 0, z: -10, width: 4, depth: 1.5 }, // Stone Wall 3
-];
 
-// Pass obstacles to character controller when mounted
-onMounted(() => {
-  if (character$.setObstacles) {
-    character$.setObstacles(obstacles);
-  }
-});
 </script>
