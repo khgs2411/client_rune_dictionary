@@ -13,7 +13,7 @@
   <!-- Ground Plane -->
   <TresMesh :rotation="[-Math.PI / 2, 0, 0]" receive-shadow>
     <TresPlaneGeometry :args="[100, 100]" />
-    <TresMeshStandardMaterial color="#4a7c4a" />
+    <TresMeshStandardMaterial :color="settings.theme.muted" />
   </TresMesh>
 
   <!-- Simple Character (Capsule) -->
@@ -43,6 +43,7 @@
 import { useLoop } from '@tresjs/core';
 import { Sky } from '@tresjs/cientos';
 import { useSettingsStore } from '@/stores/settings.store';
+import { usePointerLock } from '@vueuse/core';
 import {
   ref,
   computed,
@@ -77,8 +78,10 @@ const cameraAngleV = ref(0.4); // Vertical angle (0 = level, PI/2 = top-down)
 
 // Mouse state for camera rotation
 const isDragging = ref(false);
-const lastMouseX = ref(0);
-const lastMouseY = ref(0);
+
+// Pointer lock for MMO-style camera (hides cursor, locks in place)
+const canvasTarget = ref<HTMLElement>();
+const { isSupported: isPointerLockSupported } = usePointerLock(canvasTarget);
 
 // Camera position (calculated from angles and distance)
 const cameraPosition = computed<[number, number, number]>(() => {
@@ -118,8 +121,12 @@ function onMouseDown(e: MouseEvent) {
   // Only right mouse button
   if (e.button === 2) {
     isDragging.value = true;
-    lastMouseX.value = e.clientX;
-    lastMouseY.value = e.clientY;
+
+    // Request pointer lock for MMO-style camera
+    if (isPointerLockSupported && document.body) {
+      document.body.requestPointerLock();
+    }
+
     e.preventDefault();
   }
 }
@@ -127,8 +134,9 @@ function onMouseDown(e: MouseEvent) {
 function onMouseMove(e: MouseEvent) {
   if (!isDragging.value) return;
 
-  const deltaX = e.clientX - lastMouseX.value;
-  const deltaY = e.clientY - lastMouseY.value;
+  // Use movementX/Y for pointer lock (relative mouse movement)
+  const deltaX = e.movementX;
+  const deltaY = e.movementY;
 
   // Update camera angles (invert Y for natural camera feel)
   cameraAngleH.value -= deltaX * 0.005;
@@ -136,14 +144,16 @@ function onMouseMove(e: MouseEvent) {
     0.1,
     Math.min(Math.PI / 2 - 0.1, cameraAngleV.value + deltaY * 0.005),
   );
-
-  lastMouseX.value = e.clientX;
-  lastMouseY.value = e.clientY;
 }
 
 function onMouseUp(e: MouseEvent) {
   if (e.button === 2) {
     isDragging.value = false;
+
+    // Exit pointer lock
+    if (document.pointerLockElement) {
+      document.exitPointerLock();
+    }
   }
 }
 
@@ -244,8 +254,11 @@ function cleanupAndReset() {
   keys.a = false;
   keys.d = false;
   isDragging.value = false;
-  lastMouseX.value = 0;
-  lastMouseY.value = 0;
+
+  // Exit pointer lock if active
+  if (document.pointerLockElement) {
+    document.exitPointerLock();
+  }
 
   // Reset scene state - player
   playerX.value = 0;
