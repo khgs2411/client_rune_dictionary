@@ -1,12 +1,12 @@
 <template>
   <TresCanvas class="tres-canvas">
-    <DonutScene />
+    <RouterView />
   </TresCanvas>
 </template>
 
 <script setup lang="ts">
-import { TresCanvas } from '@tresjs/core';
-import DonutScene from '@/scenes/DonutScene.vue';
+import { TresCanvas } from '@tresjs/core'
+import { RouterView } from 'vue-router'
 </script>
 
 <style scoped>
