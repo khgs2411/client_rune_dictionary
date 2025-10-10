@@ -1,4 +1,5 @@
-import { onMounted, ref, type Ref } from 'vue';
+import { useConfigStore } from '@/stores/config.store';
+import { computed, onMounted, ref, type Ref } from 'vue';
 
 export interface CharacterControlsOptions {
   cameraAngleH: Ref<number>;
@@ -31,9 +32,9 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
   const playerX = ref(0);
   const playerZ = ref(0);
   const playerRotation = ref(0);
-
+  const config = useConfigStore()
   // Movement speed
-  const moveSpeed = ref(options.moveSpeed || 5);
+  const moveSpeed = computed(() => options.moveSpeed || config.characterMoveSpeed);
 
   // Keyboard state using keycodes
   const keys = new Map<string, boolean>();
