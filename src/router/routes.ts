@@ -4,19 +4,18 @@ const routes = [
     redirect: { name: 'login' },
     children: [
       {
+        path: 'login',
+        name: 'login',
+        component: () => import('../views/Login.vue'),
+
+      },
+      {
         path: 'game',
         name: 'game',
         component: () => import('../views/Game.vue'),
         redirect: { name: 'login' },
         children: [
-          {
-            path: 'login',
-            name: 'login',
-            component: () => import('../scenes/LoginScene.vue'),
-            meta: {
-              hasCharacter: false, // No character needed for login
-            },
-          },
+
           {
             path: 'playground',
             name: 'playground',

@@ -1,6 +1,6 @@
 <template>
   <header class="flex justify-end items-center px-3 py-1 border-b border-border bg-background">
-    <Sheet>
+    <Sheet v-model:open="isSheetOpen">
       <SheetTrigger as-child>
         <Button variant="ghost" size="icon" class="h-8 w-8">
           <Settings class="h-4 w-4" />
@@ -44,6 +44,14 @@
               </Button>
             </div>
           </div>
+
+          <!-- Logout Button -->
+          <div v-if="!isOnLoginPage" class="pt-4 border-t border-border">
+            <Button @click="handleLogout" variant="destructive" size="sm" class="w-full text-destructive-foreground">
+              <LogOut class="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
@@ -51,7 +59,8 @@
 </template>
 
 <script setup lang="ts">
-import { Settings, Sun, Moon } from 'lucide-vue-next';
+import { Settings, Sun, Moon, LogOut } from 'lucide-vue-next';
+import { useRouter } from 'vue-router';
 import {
   Sheet,
   SheetContent,
@@ -63,6 +72,19 @@ import {
 import Button from '@/components/ui/button/Button.vue';
 import { useSettingsStore } from '@/stores/settings.store';
 import { THEME_OPTIONS } from '@/composables/useTheme';
+import { computed, ref } from 'vue';
 
 const settings = useSettingsStore();
+const router = useRouter();
+
+const isSheetOpen = ref(false);
+
+function handleLogout() {
+  console.log('👋 Logging out...');
+  isSheetOpen.value = false; // Close the sheet
+  // TODO: Clear any auth tokens/session data here
+  router.push('/login');
+}
+
+const isOnLoginPage = computed(() => router.currentRoute.value.name === 'login');
 </script>
