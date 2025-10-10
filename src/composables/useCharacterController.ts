@@ -1,4 +1,4 @@
-import { ref, type Ref } from 'vue';
+import { onMounted, ref, type Ref } from 'vue';
 
 export interface CharacterControlsOptions {
   cameraAngleH: Ref<number>;
@@ -196,14 +196,22 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
     joystickTouchId.value = null;
   }
 
-  // Initialize event listeners
-  window.addEventListener('keydown', onKeyDown);
-  window.addEventListener('keyup', onKeyUp);
 
-  // Initialize touch event listeners for mobile joystick
-  window.addEventListener('touchstart', onTouchStart, { passive: true });
-  window.addEventListener('touchmove', onTouchMove, { passive: true });
-  window.addEventListener('touchend', onTouchEnd, { passive: true });
+
+
+  function startCharacter() {
+    // Initialize event listeners 
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+
+    // Initialize touch event listeners for mobile joystick
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+  }
+
+
+  onMounted(startCharacter)
 
   return {
     position: {
@@ -224,4 +232,5 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
     reset,
     cleanup,
   };
+
 }
