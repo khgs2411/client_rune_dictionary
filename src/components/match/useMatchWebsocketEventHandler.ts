@@ -44,7 +44,6 @@ const useMatchWebsocketEventHandler = (): I_WebsocketEventHandler => {
 					channel: store.currentChannelId,
 					timestamp: new Date().toISOString(),
 					client: auth$.client.value,
-					metadata: {},
 				};
 				ws.send(JSON.stringify(wsm));
 			},
