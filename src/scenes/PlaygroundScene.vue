@@ -54,6 +54,4 @@ const { character$, scene$ } = useGameContext();
 if (!character$) {
   throw new Error('PlaygroundScene requires character controls');
 }
-
-
 </script>

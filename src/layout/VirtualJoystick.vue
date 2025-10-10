@@ -1,8 +1,6 @@
 <template>
   <Teleport to="body">
-    <div
-      v-if="isMobile && joystick.active.value"
-      class="pointer-events-none fixed inset-0 z-50">
+    <div v-if="isMobile && joystick.active.value" class="pointer-events-none fixed inset-0 z-50">
       <!-- Joystick Base -->
       <div
         class="absolute rounded-full border-2 border-primary/30 bg-background/20 backdrop-blur-sm"

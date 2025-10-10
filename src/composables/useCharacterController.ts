@@ -202,9 +202,6 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
     console.log('✅ [Character] Cleanup complete');
   }
 
-
-
-
   function startCharacter() {
     console.log('🎮 [Character] Initializing...');
 
@@ -244,5 +241,4 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
     reset,
     cleanup,
   };
-
 }

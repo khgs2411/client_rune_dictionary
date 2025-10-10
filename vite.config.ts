@@ -1,9 +1,10 @@
-import { defineConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
+import { templateCompilerOptions } from '@tresjs/core';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
-import tailwindcss from '@tailwindcss/vite';
+import { defineConfig } from 'vite';
 import topsydeUtilsPlugin from './plugins/topsyde-utils-vite-plugin';
-import { templateCompilerOptions } from '@tresjs/core';
+
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
   return {

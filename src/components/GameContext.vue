@@ -4,37 +4,53 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, provide, ref } from 'vue';
+import { onMounted, provide, ref, withDefaults } from 'vue';
 
 import { useCameraControls } from '@/composables/useCameraController';
 import { useCharacterControls } from '@/composables/useCharacterController';
 import { GameContextKey, type GameContext } from '@/composables/useGameContext';
 import { useScene } from '@/composables/useScene';
 
-console.log('🎮 [GameContext] Initializing game context...');
+// Props to configure what this game context provides
+interface Props {
+  hasCharacter?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  hasCharacter: true,
+});
+
+console.log('🎮 [GameContext] Initializing game context...', {
+  hasCharacter: props.hasCharacter,
+});
 
 // Initialize camera (always available)
 const camera$ = useCameraControls();
 
-// Initialize character (always available for now, can make optional later)
-const character$ = useCharacterControls({
-  cameraAngleH: camera$.angle.horizontal,
-});
+// Initialize character only if needed
+const character$ = props.hasCharacter
+  ? useCharacterControls({
+      cameraAngleH: camera$.angle.horizontal,
+    })
+  : undefined;
 
-// Link character position to camera target
-camera$.target.x = character$.position.x;
-camera$.target.z = character$.position.z;
+// Link character position to camera target (if character exists)
+if (character$) {
+  camera$.target.x = character$.position.x;
+  camera$.target.z = character$.position.z;
+}
 
 // Store for custom scene update callbacks
 const customUpdateCallbacks = ref<Array<(delta: number) => void>>([]);
 
 // Standard update loop
 const onUpdate = (delta: number) => {
-  // Update character movement
-  character$.update(delta);
-
-  // Update camera to follow character
-  camera$.lookAt(character$.position.x.value, character$.position.z.value);
+  // Update character movement (if character exists)
+  if (character$) {
+    character$.update(delta);
+    // Update camera to follow character
+    camera$.lookAt(character$.position.x.value, character$.position.z.value);
+  }
 
   // Run any scene-specific custom updates
   customUpdateCallbacks.value.forEach((callback) => callback(delta));
@@ -43,7 +59,7 @@ const onUpdate = (delta: number) => {
 // Standard cleanup
 const onCleanup = () => {
   console.log('🧹 [GameContext] Cleaning up game context...');
-  character$.cleanup();
+  character$?.cleanup();
   camera$.cleanup();
   customUpdateCallbacks.value = [];
 };

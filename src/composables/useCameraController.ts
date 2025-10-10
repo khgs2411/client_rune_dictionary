@@ -65,7 +65,6 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
     return [target.x.value + offsetX, offsetY + 1, target.z.value + offsetZ];
   });
 
-
   // Update camera position and make it look at target
   function lookAt(targetX: number, targetZ: number) {
     if (!cameraRef.value) return;
@@ -263,8 +262,6 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
     }
   }
 
-
-
   // Create and register camera on mount
   onMounted(() => {
     console.log('🎬 [Camera] Mounted');
@@ -285,5 +282,4 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
     lookAt,
     cleanup,
   };
-
 }

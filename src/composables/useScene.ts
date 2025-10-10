@@ -99,5 +99,3 @@ export function useScene(options: SceneOptions): Scene {
     reload,
   };
 }
-
-

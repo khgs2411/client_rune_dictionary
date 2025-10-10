@@ -20,15 +20,23 @@ export function topsydeUtilsPlugin(): Plugin {
 
     // Handle virtual modules for Node.js built-ins
     resolveId(id) {
+      // Handle direct imports of virtual modules
       if (id === 'virtual:path' || id === 'virtual:fs') {
-        return id;
+        return '\0' + id; // Prefix with null byte to mark as virtual
+      }
+      // Handle aliased imports (path -> virtual:path)
+      if (id === 'path') {
+        return '\0virtual:path';
+      }
+      if (id === 'fs') {
+        return '\0virtual:fs';
       }
       return null;
     },
 
     // Provide mock implementations for Node.js modules
     load(id) {
-      if (id === 'virtual:path') {
+      if (id === '\0virtual:path') {
         return `
           export function join() { return ''; }
           export function resolve() { return ''; }
@@ -38,36 +46,42 @@ export function topsydeUtilsPlugin(): Plugin {
           export default { join, resolve, dirname, basename, extname };
         `;
       }
-      if (id === 'virtual:fs') {
+      if (id === '\0virtual:fs') {
         return `
           export function readFileSync() { return ''; }
           export function existsSync() { return false; }
           export function writeFileSync() { return null; }
           export function readdirSync() { return []; }
-          export function statSync() { 
-            return { 
+          export function statSync() {
+            return {
               isDirectory: () => false,
               isFile: () => true
-            }; 
+            };
           }
-          export default { readFileSync, existsSync, writeFileSync, readdirSync, statSync };
+          export const promises = {
+            readFile: async () => '',
+            writeFile: async () => null,
+            readdir: async () => [],
+            stat: async () => ({ isDirectory: () => false, isFile: () => true }),
+          };
+          export const constants = {};
+          export function createReadStream() { return null; }
+          export default {
+            readFileSync, existsSync, writeFileSync, readdirSync, statSync,
+            promises, constants, createReadStream
+          };
         `;
       }
       return null;
     },
 
-    // Configure aliases and optimizeDeps
+    // Configure optimizeDeps
     config() {
       return {
-        resolve: {
-          alias: {
-            // Alias Node.js built-ins to virtual modules
-            path: 'virtual:path',
-            fs: 'virtual:fs',
-          },
-        },
         optimizeDeps: {
-          exclude: ['topsyde-utils'],
+          // Don't exclude topsyde-utils - let Vite handle it normally
+          // This allows validator to be pre-bundled and work in dev
+          include: ['validator'],
         },
       };
     },

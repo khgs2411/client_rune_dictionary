@@ -11,8 +11,9 @@ export interface GameContext {
   /**
    * Register a custom update callback for this scene
    * Called after standard camera/character updates
+   * Returns a cleanup function to unregister the callback
    */
-  registerCustomUpdate?: (callback: (delta: number) => void) => void;
+  registerCustomUpdate?: (callback: (delta: number) => void) => () => void;
 }
 
 export const GameContextKey: InjectionKey<GameContext> = Symbol('game-context');
