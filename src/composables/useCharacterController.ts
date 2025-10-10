@@ -2,6 +2,7 @@ import { onMounted, ref, type Ref } from 'vue';
 
 export interface CharacterControlsOptions {
   cameraAngleH: Ref<number>;
+  moveSpeed?: number;
 }
 
 export interface CharacterControls {
@@ -32,15 +33,16 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
   const playerRotation = ref(0);
 
   // Movement speed
-  const moveSpeed = ref(5);
+  const moveSpeed = ref(options.moveSpeed || 5);
 
-  // Keyboard state
-  const keys = {
-    w: false,
-    s: false,
-    a: false,
-    d: false,
-  };
+  // Keyboard state using keycodes
+  const keys = new Map<string, boolean>();
+
+  // Key code constants for movement
+  const KEY_W = 'KeyW';
+  const KEY_S = 'KeyS';
+  const KEY_A = 'KeyA';
+  const KEY_D = 'KeyD';
 
   // Virtual joystick state for mobile
   const joystickActive = ref(false);
@@ -53,13 +55,15 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
 
   // Keyboard handlers
   function onKeyDown(e: KeyboardEvent) {
-    const key = e.key.toLowerCase();
-    if (key in keys) keys[key as keyof typeof keys] = true;
+    if (e.code === KEY_W || e.code === KEY_S || e.code === KEY_A || e.code === KEY_D) {
+      keys.set(e.code, true);
+    }
   }
 
   function onKeyUp(e: KeyboardEvent) {
-    const key = e.key.toLowerCase();
-    if (key in keys) keys[key as keyof typeof keys] = false;
+    if (e.code === KEY_W || e.code === KEY_S || e.code === KEY_A || e.code === KEY_D) {
+      keys.set(e.code, false);
+    }
   }
 
   // Touch handlers for virtual joystick (mobile)
@@ -117,10 +121,10 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
     let inputZ = 0;
 
     // Keyboard input (desktop)
-    if (keys.w) inputZ -= 1;
-    if (keys.s) inputZ += 1;
-    if (keys.a) inputX -= 1;
-    if (keys.d) inputX += 1;
+    if (keys.get(KEY_W)) inputZ -= 1;
+    if (keys.get(KEY_S)) inputZ += 1;
+    if (keys.get(KEY_A)) inputX -= 1;
+    if (keys.get(KEY_D)) inputX += 1;
 
     // Joystick input (mobile) - overrides keyboard if active
     if (joystickActive.value) {
@@ -188,10 +192,7 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
 
     console.log('  ↳ Resetting character state');
     // Reset key states
-    keys.w = false;
-    keys.s = false;
-    keys.a = false;
-    keys.d = false;
+    keys.clear();
 
     // Reset joystick state
     joystickActive.value = false;

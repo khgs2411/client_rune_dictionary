@@ -31,6 +31,7 @@ const camera$ = useCameraControls();
 const character$ = props.hasCharacter
   ? useCharacterControls({
       cameraAngleH: camera$.angle.horizontal,
+      moveSpeed: 10,
     })
   : undefined;
 
