@@ -24,7 +24,7 @@
     </TresMesh>
 
     <!-- Forward indicator (small cone pointing forward) -->
-    <TresMesh :position="[0, 0, 0.7]" :rotation="[-Math.PI / 2, 0, 0]" cast-shadow>
+    <TresMesh :position="[0, 0, 0.7]" :rotation="[Math.PI / 2, 0, 0]" cast-shadow>
       <TresConeGeometry :args="[0.2, 0.4, 8]" />
       <TresMeshStandardMaterial :color="settings.theme.accent" />
     </TresMesh>
@@ -41,34 +41,13 @@
 <script setup lang="ts">
 import { useSettingsStore } from '@/stores/settings.store';
 import { Sky } from '@tresjs/cientos';
-import { onMounted, ref } from 'vue';
-import { useTresContext } from '@tresjs/core';
-import { PerspectiveCamera } from 'three';
 
 // Composables
 import { useCameraControls } from '@/composables/useCameraController';
 import { useCharacterControls } from '@/composables/useCharacterController';
-import { useScene } from '@/composables/useScene';
+import { onHotReload, useScene } from '@/composables/useScene';
 
 const settings = useSettingsStore();
-
-// Get TresJS camera manager
-const { camera: tresCameraManager } = useTresContext();
-
-// Camera reference for lookAt updates
-const cameraRef = ref<PerspectiveCamera>();
-
-// Create and register raw Three.js camera
-onMounted(() => {
-  const cam = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  const [x, y, z] = camera$.position.value;
-  cam.position.set(x, y, z);
-
-  // Register with TresJS as active camera
-  tresCameraManager.registerCamera(cam, true);
-
-  cameraRef.value = cam;
-});
 
 // Character controls (VueUse $ convention)
 const character$ = useCharacterControls();
@@ -85,35 +64,24 @@ const camera$ = useCameraControls({
 const scene$ = useScene({
   autoRefreshOnHMR: false,
   onBeforeRender: (delta) => {
-    if (!cameraRef.value) return;
+    if (!camera$.cameraRef.value) return;
 
     // Update character
     character$.update(delta, camera$.angle.horizontal.value);
-
     // Update camera position manually
     const [x, y, z] = camera$.position.value;
-    cameraRef.value.position.set(x, y, z);
+    camera$.cameraRef.value.position.set(x, y, z);
 
     // Update camera lookAt
-    camera$.updateLookAt(cameraRef.value, character$.position.x.value, character$.position.z.value);
+    camera$.updateLookAt(camera$.cameraRef.value, character$.position.x.value, character$.position.z.value);
   },
   onCleanup: () => {
-    // Deregister camera from TresJS
-    if (cameraRef.value) {
-      tresCameraManager.deregisterCamera(cameraRef.value);
-    }
     character$.cleanup();
     camera$.cleanup();
   },
 });
 
-function onHotReload() {
-  if (import.meta.hot) {
-    import.meta.hot.dispose(() => {
-      scene$.reload();
-    });
-  }
-}
+
 // HMR handling (must be in scene file to fire on scene changes)
-onHotReload();
+onHotReload(scene$);
 </script>

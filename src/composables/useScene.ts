@@ -95,3 +95,12 @@ export function useScene(options: SceneOptions): Scene {
     reload,
   };
 }
+
+
+export function onHotReload(currentScene: Scene) {
+  if (import.meta.hot) {
+    import.meta.hot.dispose(() => {
+      currentScene.reload();
+    });
+  }
+}

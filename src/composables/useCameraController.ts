@@ -1,11 +1,15 @@
+import { useTresContext } from '@tresjs/core';
 import type { Camera } from 'three';
-import { computed, ref, type ComputedRef, type Ref } from 'vue';
+import { PerspectiveCamera } from 'three';
+import { computed, onMounted, ref, type ComputedRef, type Ref } from 'vue';
+
+export type TargetPosition = {
+  x: Ref<number>;
+  z: Ref<number>;
+};
 
 export interface CameraControlsOptions {
-  target: {
-    x: Ref<number>;
-    z: Ref<number>;
-  };
+  target: TargetPosition;
 }
 
 export interface CameraControls {
@@ -16,6 +20,7 @@ export interface CameraControls {
   distance: Ref<number>;
   position: ComputedRef<[number, number, number]>;
   isDragging: Ref<boolean>;
+  cameraRef: Ref<PerspectiveCamera | undefined>;
 
   updateLookAt: (camera: Camera, targetX: number, targetZ: number) => void;
   reset: () => void;
@@ -24,6 +29,12 @@ export interface CameraControls {
 
 export function useCameraControls(options: CameraControlsOptions): CameraControls {
   const { target } = options;
+
+  // Get TresJS camera manager
+  const { camera: cm } = useTresContext();
+
+  // Camera reference
+  const cameraRef = ref<PerspectiveCamera>();
 
   // Camera controls
   const cameraDistance = ref(10);
@@ -49,6 +60,73 @@ export function useCameraControls(options: CameraControlsOptions): CameraControl
 
     return [target.x.value + offsetX, offsetY + 1, target.z.value + offsetZ];
   });
+
+
+  // Make camera look at target
+  function updateLookAt(camera: Camera, targetX: number, targetZ: number) {
+    camera.lookAt(targetX, 1, targetZ);
+  }
+
+  function startCamera() {
+    window.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('contextmenu', onContextMenu);
+    window.addEventListener('wheel', onWheel, { passive: false });
+
+    // Initialize touch event listeners for mobile
+    window.addEventListener('touchstart', onTouchStart, { passive: false });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd, { passive: false });
+
+    const cam = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const [x, y, z] = cameraPosition.value;
+    cam.position.set(x, y, z);
+
+    // Register with TresJS as active camera
+    cm.registerCamera(cam, true);
+
+    cameraRef.value = cam;
+  }
+
+  // Cleanup event listeners
+  function cleanup() {
+    // Deregister camera from TresJS
+    console.log('📷 Deregistering camera from TresJS');
+    if (cameraRef.value) {
+      cm.deregisterCamera(cameraRef.value);
+    }
+
+    reset();
+
+    // Remove mouse event listeners
+    window.removeEventListener('mousedown', onMouseDown);
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
+    window.removeEventListener('contextmenu', onContextMenu);
+    window.removeEventListener('wheel', onWheel);
+
+    // Remove touch event listeners
+    window.removeEventListener('touchstart', onTouchStart);
+    window.removeEventListener('touchmove', onTouchMove);
+    window.removeEventListener('touchend', onTouchEnd);
+
+    isDragging.value = false;
+    isPointerLockActive.value = false;
+    lastTouchDistance.value = 0;
+
+    // Exit pointer lock if active
+    if (document.pointerLockElement) {
+      document.exitPointerLock();
+    }
+  }
+
+  // Reset camera to defaults
+  function reset() {
+    cameraDistance.value = 10;
+    cameraAngleH.value = 0;
+    cameraAngleV.value = 0.4;
+  }
 
   // Mouse handlers for camera rotation (desktop)
   function onMouseDown(e: MouseEvent) {
@@ -164,55 +242,13 @@ export function useCameraControls(options: CameraControlsOptions): CameraControl
     }
   }
 
-  // Make camera look at target
-  function updateLookAt(camera: Camera, targetX: number, targetZ: number) {
-    camera.lookAt(targetX, 1, targetZ);
-  }
 
-  // Reset camera to defaults
-  function reset() {
-    cameraDistance.value = 10;
-    cameraAngleH.value = 0;
-    cameraAngleV.value = 0.4;
-  }
 
-  // Cleanup event listeners
-  function cleanup() {
-    reset();
-
-    // Remove mouse event listeners
-    window.removeEventListener('mousedown', onMouseDown);
-    window.removeEventListener('mousemove', onMouseMove);
-    window.removeEventListener('mouseup', onMouseUp);
-    window.removeEventListener('contextmenu', onContextMenu);
-    window.removeEventListener('wheel', onWheel);
-
-    // Remove touch event listeners
-    window.removeEventListener('touchstart', onTouchStart);
-    window.removeEventListener('touchmove', onTouchMove);
-    window.removeEventListener('touchend', onTouchEnd);
-
-    isDragging.value = false;
-    isPointerLockActive.value = false;
-    lastTouchDistance.value = 0;
-
-    // Exit pointer lock if active
-    if (document.pointerLockElement) {
-      document.exitPointerLock();
-    }
-  }
-
-  // Initialize event listeners
-  window.addEventListener('mousedown', onMouseDown);
-  window.addEventListener('mousemove', onMouseMove);
-  window.addEventListener('mouseup', onMouseUp);
-  window.addEventListener('contextmenu', onContextMenu);
-  window.addEventListener('wheel', onWheel, { passive: false });
-
-  // Initialize touch event listeners for mobile
-  window.addEventListener('touchstart', onTouchStart, { passive: false });
-  window.addEventListener('touchmove', onTouchMove, { passive: false });
-  window.addEventListener('touchend', onTouchEnd, { passive: false });
+  // Create and register camera on mount
+  onMounted(() => {
+    // Initialize event listeners
+    startCamera();
+  });
 
   return {
     angle: {
@@ -222,8 +258,10 @@ export function useCameraControls(options: CameraControlsOptions): CameraControl
     distance: cameraDistance,
     position: cameraPosition,
     isDragging,
+    cameraRef,
     reset,
     updateLookAt,
     cleanup,
   };
+
 }
