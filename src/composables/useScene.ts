@@ -43,8 +43,6 @@ export function useScene(options: SceneOptions): Scene {
     }
     // Cleanup composables (event listeners, etc.)
     onCleanup();
-
-   
   }
 
   // HMR dispose (called from scene file's import.meta.hot.dispose)
