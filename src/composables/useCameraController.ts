@@ -58,6 +58,14 @@ export function useCameraControls(options: I_CameraControlsOptions = {}): I_Came
   }
 
   /**
+   * Start camera controls
+   */
+  function start() {
+    instance.lookAt(new THREE.Vector3(0, 1, 0));
+    instance.updateMatrixWorld(true);
+  }
+
+  /**
    * Reset camera to defaults
    */
   function reset() {
@@ -67,14 +75,18 @@ export function useCameraControls(options: I_CameraControlsOptions = {}): I_Came
   }
 
   /**
-   * Cleanup (VueUse composables handle auto-cleanup)
+   * destroy (VueUse composables handle auto-destroy)
    */
-  function cleanup() {
+  function destroy() {
     reset();
     mouse.isDragging.value = false;
   }
 
-  // Setup resize listener (VueUse auto-cleanup)
+  function update(target: THREE.Vector3) { 
+    instance.lookAt(target);
+  }
+
+  // Setup resize listener (VueUse auto-destroy)
   useEventListener('resize', handleResize);
 
   return {
@@ -86,7 +98,8 @@ export function useCameraControls(options: I_CameraControlsOptions = {}): I_Came
     distance: cameraDistance,
     isDragging: mouse.isDragging,
     target,
+    update,
     reset,
-    cleanup,
+    destroy,
   };
 }

@@ -60,8 +60,7 @@ export class PlaygroundScene implements I_GameScene {
     this.setupThemeWatchers();
 
     // Set initial camera lookAt and update matrices
-    this.camera.lookAt(new THREE.Vector3(0, 1, 0));
-    this.camera.updateMatrixWorld(true);
+    this.camera$.start?.();
 
     console.log('✅ [PlaygroundScene] Initialized');
   }
@@ -82,7 +81,8 @@ export class PlaygroundScene implements I_GameScene {
       1, // Fixed height for lookAt
       this.character$.position.z.value
     );
-    this.camera.lookAt(lookAtTarget);
+
+    this.camera$.update(lookAtTarget);
 
     // Sync Three.js character mesh with composable state
     this.character.position.set(
@@ -102,7 +102,7 @@ export class PlaygroundScene implements I_GameScene {
 
     // Cleanup composables
     this.character$.destroy();
-    this.camera$.cleanup();
+    this.camera$.destroy();
 
     // Remove objects from scene
     this.engine.scene.remove(this.character);
