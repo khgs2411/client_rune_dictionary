@@ -1,11 +1,26 @@
 import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
 import { rgbToHex } from '@/composables/useTheme';
-import type { Engine, I_GameScene } from '@/core/Engine';
+import type { Engine } from '@/core/Engine';
+import type { I_GameScene } from '@/common/types';
 import { useSettingsStore } from '@/stores/settings.store';
 import { watch, type WatchStopHandle } from 'vue';
 import { I_SceneConfig } from '@/common/types';
-import { Group, MeshStandardMaterial, Mesh, Vector3, Material, AmbientLight, DirectionalLight, PlaneGeometry, GridHelper, CapsuleGeometry, ConeGeometry, BoxGeometry, MeshBasicMaterial } from 'three';
+import {
+  Group,
+  MeshStandardMaterial,
+  Mesh,
+  Vector3,
+  Material,
+  AmbientLight,
+  DirectionalLight,
+  PlaneGeometry,
+  GridHelper,
+  CapsuleGeometry,
+  ConeGeometry,
+  BoxGeometry,
+  MeshBasicMaterial,
+} from 'three';
 
 export class PlaygroundScene implements I_GameScene {
   readonly name = 'PlaygroundScene';
@@ -27,8 +42,6 @@ export class PlaygroundScene implements I_GameScene {
   // Scene state
   private objects: Mesh[] = [];
   private watchers: WatchStopHandle[] = [];
-
-
 
   constructor(config: I_SceneConfig) {
     this.engine = config.engine;
@@ -60,7 +73,6 @@ export class PlaygroundScene implements I_GameScene {
     console.log('✅ [PlaygroundScene] Initialized');
   }
 
-
   update(delta: number): void {
     // Update character controller
     this.character.update(delta);
@@ -69,7 +81,7 @@ export class PlaygroundScene implements I_GameScene {
     const lookAtTarget = new Vector3(
       this.character.controller.position.x.value,
       1, // Fixed height for lookAt
-      this.character.controller.position.z.value
+      this.character.controller.position.z.value,
     );
 
     this.camera.update(lookAtTarget);
@@ -78,7 +90,7 @@ export class PlaygroundScene implements I_GameScene {
     this.characterMesh.position.set(
       this.character.controller.position.x.value,
       this.character.controller.position.y.value + 1, // Offset for capsule center
-      this.character.controller.position.z.value
+      this.character.controller.position.z.value,
     );
     this.characterMesh.rotation.y = this.character.controller.rotation.value;
   }
@@ -128,8 +140,8 @@ export class PlaygroundScene implements I_GameScene {
         () => {
           console.log('🎨 [PlaygroundScene] Theme changed, updating colors...');
           this.updateMaterialColors();
-        }
-      )
+        },
+      ),
     );
 
     // Watch for dark mode changes
@@ -139,8 +151,8 @@ export class PlaygroundScene implements I_GameScene {
         () => {
           console.log('🌓 [PlaygroundScene] Dark mode toggled, updating colors...');
           this.updateMaterialColors();
-        }
-      )
+        },
+      ),
     );
   }
 
@@ -260,5 +272,4 @@ export class PlaygroundScene implements I_GameScene {
     cube.position.set(5, 1, 0); // At origin, y=1
     this.engine.scene.add(cube);
   }
-
 }

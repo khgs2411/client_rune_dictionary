@@ -2,7 +2,8 @@ import { useConfigStore } from '@/stores/config.store';
 import { useCharacterJump } from './useCharacterJump';
 import { useCharacterMovement } from './useCharacterMovement';
 import { useJoystick } from './useJoystick';
-import { I_CharacterControls, I_CharacterControlsOptions } from './composables.types';
+import { I_CharacterControls } from './composables.types';
+import { I_CharacterControlsOptions } from '@/common/types';
 
 /**
  * Main character controls composable
@@ -30,12 +31,7 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
    */
   function update(delta: number) {
     // Update movement with keyboard + joystick input
-    movement.update(
-      delta,
-      cameraAngleH.value,
-      joystick.inputX.value,
-      joystick.inputZ.value
-    );
+    movement.update(delta, cameraAngleH.value, joystick.inputX.value, joystick.inputZ.value);
 
     // Update jump physics
     jump.update(movement.position.y, delta);

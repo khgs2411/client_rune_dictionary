@@ -7,9 +7,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
-import { Engine, I_GameScene } from '@/core/Engine';
 import { PlaygroundScene } from '@/scenes/PlaygroundScene';
-import { I_SceneConfig } from '@/common/types';
+import { I_GameScene, I_SceneConfig } from '@/common/types';
+import { Engine } from '@/core/Engine';
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let engine: Engine | null = null;

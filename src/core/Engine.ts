@@ -1,27 +1,5 @@
-import { useCamera } from '@/composables/useCamera';
 import { Scene, Clock, WebGLRenderer, Color, PCFSoftShadowMap, Camera } from 'three';
 import { Lib } from 'topsyde-utils';
-
-export interface I_GameScene {
-  readonly name: string;
-  readonly camera: ReturnType<typeof useCamera>
-  readonly engine: Engine;
-
-  /**
-   * Initialize the scene (lights, objects, etc.)
-   */
-  start(): void;
-
-  /**
-   * Called every frame with delta time.
-   */
-  update(delta: number): void;
-
-  /**
-   * Clean up resources, remove event listeners, etc.
-   */
-  destroy(): void;
-}
 
 /**
  * Core game engine that encapsulates js scene, renderer, and clock.
@@ -35,7 +13,7 @@ export class Engine {
   constructor(canvas: HTMLCanvasElement) {
     // Create scene
     this.scene = new Scene();
-    this.scene.background = new Color(0x87CEEB); // Sky blue for visibility
+    this.scene.background = new Color(0x87ceeb); // Sky blue for visibility
 
     // Create renderer
     this.renderer = new WebGLRenderer({
@@ -60,7 +38,6 @@ export class Engine {
   render(camera: Camera): void {
     this.renderer.render(this.scene, camera);
   }
-
 
   /**
    * Handle window resize
