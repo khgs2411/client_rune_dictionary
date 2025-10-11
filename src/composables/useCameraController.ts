@@ -1,12 +1,12 @@
-import { reactive, ref, watchEffect } from 'vue';
+import { useConfigStore } from '@/stores/config.store';
 import { useEventListener } from '@vueuse/core';
 import * as THREE from 'three';
-import { useConfigStore } from '@/stores/config.store';
-import { useCameraRotation } from './useCameraRotation';
-import { useCameraZoom } from './useCameraZoom';
+import { reactive, ref, watchEffect } from 'vue';
+import { I_CameraControls } from './composables.types';
 import { useCameraMouseInput } from './useCameraMouseInput';
+import { useCameraRotation } from './useCameraRotation';
 import { useCameraTouchInput } from './useCameraTouchInput';
-import { I_CameraControls, I_CameraControlsOptions } from './composables.types';
+import { useCameraZoom } from './useCameraZoom';
 
 /**
  * Main camera controls composable
