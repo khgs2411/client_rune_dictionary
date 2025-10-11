@@ -1,17 +1,15 @@
-import { I_GameCharacter } from './composables.types';
+import { I_CharacterControlsOptions } from '@/common/types';
 import { useConfigStore } from '@/stores/config.store';
-import type { Ref } from 'vue';
+import { I_GameCharacter } from './composables.types';
 import { useCharacterController } from './useCharacterController';
 
-export interface CharacterOptions {
-  cameraAngleH: Ref<number>;
-}
+
 
 /**
  * High-level character entity composable
  * Wraps character controller and could handle Three.js mesh in the future
  */
-export function useCharacter(options: CharacterOptions): I_GameCharacter {
+export function useCharacter(options: I_CharacterControlsOptions): I_GameCharacter {
   const config = useConfigStore();
 
   if (config.debug.enableConsoleLog) {
@@ -46,7 +44,7 @@ export function useCharacter(options: CharacterOptions): I_GameCharacter {
   }
 
   if (config.debug.enableConsoleLog) {
-    console.log('      ↳ Character controller ready');
+    console.log('      ↳ Character composable ready');
   }
 
   return {

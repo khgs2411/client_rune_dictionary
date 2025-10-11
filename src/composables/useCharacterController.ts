@@ -14,7 +14,7 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
   const { cameraAngleH } = options;
 
   if (config.debug.enableConsoleLog) {
-    console.log('🎮 [Character] Initializing...');
+    console.log('         ↳ Character controller initializing...');
   }
 
   // Compose smaller, focused composables
@@ -23,7 +23,7 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
   const movement = useCharacterMovement();
 
   if (config.debug.enableConsoleLog) {
-    console.log('✅ [Character] Initialized');
+    console.log('         ↳ Character controller ready');
   }
 
   /**
@@ -50,11 +50,11 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
    */
   function destroy() {
     if (config.debug.enableConsoleLog) {
-      console.log('🧹 [Character] Starting cleanup...');
+      console.log('         ↳ Resetting character state...');
     }
     reset();
     if (config.debug.enableConsoleLog) {
-      console.log('✅ [Character] Cleanup complete');
+      console.log('         ↳ Character controller cleanup complete');
     }
   }
 

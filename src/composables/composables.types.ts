@@ -51,17 +51,9 @@ export interface I_GameCamera extends I_GameComposable {
 
     // Methods
     start: () => void;
-    update: (lookAtVector: Vector3) => void;
-    reset: () => void;
-    destroy: () => void;
 }
 
 export interface I_GameCharacter extends I_GameComposable {
     // State (delegated from controller)
     controller: ReturnType<typeof useCharacterController>;
-
-    // Methods
-    update: (delta: number) => void;
-    reset: () => void;
-    destroy: () => void;
 }
