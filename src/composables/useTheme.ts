@@ -88,6 +88,21 @@ function parseOklchColor(varName: string): RGBColor {
 }
 
 /**
+ * Converts RGB color tuple (0-1 range) to Three.js hex color
+ * @param rgb - RGB color as [r, g, b] where each value is 0-1
+ * @returns Hex color number for Three.js
+ */
+export function rgbToHex(rgb: RGBColor): number {
+  // Convert 0-1 range to 0-255
+  const r = Math.round(rgb[0] * 255);
+  const g = Math.round(rgb[1] * 255);
+  const b = Math.round(rgb[2] * 255);
+
+  // Combine into hex number
+  return (r << 16) | (g << 8) | b;
+}
+
+/**
  * Composable that provides reactive theme colors converted for Three.js
  * @param themeTrigger - Reactive value that triggers color recalculation when changed
  */
