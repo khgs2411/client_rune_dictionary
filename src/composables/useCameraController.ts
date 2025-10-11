@@ -1,6 +1,5 @@
 import { useConfigStore } from '@/stores/config.store';
-import { useEventListener } from '@vueuse/core';
-import * as THREE from 'three';
+import { Vector3 } from 'three';
 import { reactive, ref, watchEffect } from 'vue';
 import { I_CameraControls } from './composables.types';
 import { useCameraMouseInput } from './useCameraMouseInput';
@@ -67,7 +66,7 @@ export function useCameraController(): I_CameraControls {
     mouse.isDragging.value = false;
   }
 
-  function update(lookAtVector: THREE.Vector3) {
+  function update(lookAtVector: Vector3) {
 
     target.x = lookAtVector.x;
     target.z = lookAtVector.z;

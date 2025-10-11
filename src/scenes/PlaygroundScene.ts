@@ -3,9 +3,9 @@ import { useCharacter } from '@/composables/useCharacter';
 import { rgbToHex } from '@/composables/useTheme';
 import type { Engine, I_GameScene } from '@/core/Engine';
 import { useSettingsStore } from '@/stores/settings.store';
-import * as THREE from 'three';
 import { watch, type WatchStopHandle } from 'vue';
 import { I_SceneConfig } from '@/common/types';
+import { Group, MeshStandardMaterial, Mesh, Vector3, Material, AmbientLight, DirectionalLight, PlaneGeometry, GridHelper, CapsuleGeometry, ConeGeometry, BoxGeometry, MeshBasicMaterial } from 'three';
 
 export class PlaygroundScene implements I_GameScene {
   readonly name = 'PlaygroundScene';
@@ -17,15 +17,15 @@ export class PlaygroundScene implements I_GameScene {
   public camera!: ReturnType<typeof useCamera>;
   private character!: ReturnType<typeof useCharacter>;
 
-  // Three.js objects
-  private characterMesh!: THREE.Group;
-  private characterBodyMaterial!: THREE.MeshStandardMaterial;
-  private characterConeMaterial!: THREE.MeshStandardMaterial;
-  private ground!: THREE.Mesh;
-  private groundMaterial!: THREE.MeshStandardMaterial;
+  // js objects
+  private characterMesh!: Group;
+  private characterBodyMaterial!: MeshStandardMaterial;
+  private characterConeMaterial!: MeshStandardMaterial;
+  private ground!: Mesh;
+  private groundMaterial!: MeshStandardMaterial;
 
   // Scene state
-  private objects: THREE.Mesh[] = [];
+  private objects: Mesh[] = [];
   private watchers: WatchStopHandle[] = [];
 
 
@@ -66,7 +66,7 @@ export class PlaygroundScene implements I_GameScene {
     this.character.update(delta);
 
     // Just update lookAt target
-    const lookAtTarget = new THREE.Vector3(
+    const lookAtTarget = new Vector3(
       this.character.controller.position.x.value,
       1, // Fixed height for lookAt
       this.character.controller.position.z.value
@@ -74,7 +74,7 @@ export class PlaygroundScene implements I_GameScene {
 
     this.camera.update(lookAtTarget);
 
-    // Sync Three.js character mesh with composable state
+    // Sync js character mesh with composable state
     this.characterMesh.position.set(
       this.character.controller.position.x.value,
       this.character.controller.position.y.value + 1, // Offset for capsule center
@@ -101,9 +101,9 @@ export class PlaygroundScene implements I_GameScene {
 
     // Dispose geometries and materials
     this.characterMesh.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
+      if (child instanceof Mesh) {
         child.geometry.dispose();
-        if (child.material instanceof THREE.Material) {
+        if (child.material instanceof Material) {
           child.material.dispose();
         }
       }
@@ -114,7 +114,7 @@ export class PlaygroundScene implements I_GameScene {
 
     this.objects.forEach((obstacle) => {
       obstacle.geometry.dispose();
-      (obstacle.material as THREE.Material).dispose();
+      (obstacle.material as Material).dispose();
     });
 
     console.log('✅ [PlaygroundScene] Cleanup complete');
@@ -157,11 +157,11 @@ export class PlaygroundScene implements I_GameScene {
 
   private setupLighting(): void {
     // Ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambientLight = new AmbientLight(0xffffff, 0.5);
     this.engine.scene.add(ambientLight);
 
     // Directional light with shadows
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    const directionalLight = new DirectionalLight(0xffffff, 1);
     directionalLight.position.set(10, 10, 5);
     directionalLight.castShadow = true;
     directionalLight.shadow.mapSize.width = 2048;
@@ -178,18 +178,18 @@ export class PlaygroundScene implements I_GameScene {
   }
 
   private createGround(): void {
-    const geometry = new THREE.PlaneGeometry(100, 100);
-    this.groundMaterial = new THREE.MeshStandardMaterial({
+    const geometry = new PlaneGeometry(100, 100);
+    this.groundMaterial = new MeshStandardMaterial({
       color: rgbToHex(this.settings.theme.muted),
     });
 
-    this.ground = new THREE.Mesh(geometry, this.groundMaterial);
+    this.ground = new Mesh(geometry, this.groundMaterial);
     this.ground.rotation.x = -Math.PI / 2;
     this.ground.receiveShadow = true;
     this.engine.scene.add(this.ground);
 
     // Add grid helper
-    const gridHelper = new THREE.GridHelper(50, 50);
+    const gridHelper = new GridHelper(50, 50);
     gridHelper.position.y = 0.01;
     this.engine.scene.add(gridHelper);
 
@@ -198,23 +198,23 @@ export class PlaygroundScene implements I_GameScene {
   }
 
   private createCharacterMesh(): void {
-    this.characterMesh = new THREE.Group();
+    this.characterMesh = new Group();
 
     // Body (capsule)
-    const bodyGeometry = new THREE.CapsuleGeometry(0.5, 1, 8, 16);
-    this.characterBodyMaterial = new THREE.MeshStandardMaterial({
+    const bodyGeometry = new CapsuleGeometry(0.5, 1, 8, 16);
+    this.characterBodyMaterial = new MeshStandardMaterial({
       color: rgbToHex(this.settings.theme.primary),
     });
-    const body = new THREE.Mesh(bodyGeometry, this.characterBodyMaterial);
+    const body = new Mesh(bodyGeometry, this.characterBodyMaterial);
     body.castShadow = true;
     this.characterMesh.add(body);
 
     // Forward indicator (cone)
-    const coneGeometry = new THREE.ConeGeometry(0.2, 0.4, 8);
-    this.characterConeMaterial = new THREE.MeshStandardMaterial({
+    const coneGeometry = new ConeGeometry(0.2, 0.4, 8);
+    this.characterConeMaterial = new MeshStandardMaterial({
       color: rgbToHex(this.settings.theme.accent),
     });
-    const cone = new THREE.Mesh(coneGeometry, this.characterConeMaterial);
+    const cone = new Mesh(coneGeometry, this.characterConeMaterial);
     cone.position.set(0, 0, 0.7);
     cone.rotation.x = Math.PI / 2;
     cone.castShadow = true;
@@ -235,12 +235,12 @@ export class PlaygroundScene implements I_GameScene {
     ];
 
     obstacleData.forEach((data) => {
-      const geometry = new THREE.BoxGeometry(...(data.size as [number, number, number]));
-      const material = new THREE.MeshStandardMaterial({
+      const geometry = new BoxGeometry(...(data.size as [number, number, number]));
+      const material = new MeshStandardMaterial({
         color: 0x6b7280,
         roughness: 0.8,
       });
-      const obstacle = new THREE.Mesh(geometry, material);
+      const obstacle = new Mesh(geometry, material);
       obstacle.position.set(...(data.position as [number, number, number]));
       obstacle.castShadow = true;
       obstacle.receiveShadow = true;
@@ -254,9 +254,9 @@ export class PlaygroundScene implements I_GameScene {
 
   private createDebugCube(): void {
     // Bright red cube at origin for debugging camera view
-    const geometry = new THREE.BoxGeometry(2, 2, 2);
-    const material = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Bright red, unlit
-    const cube = new THREE.Mesh(geometry, material);
+    const geometry = new BoxGeometry(2, 2, 2);
+    const material = new MeshBasicMaterial({ color: 0xff0000 }); // Bright red, unlit
+    const cube = new Mesh(geometry, material);
     cube.position.set(5, 1, 0); // At origin, y=1
     this.engine.scene.add(cube);
   }

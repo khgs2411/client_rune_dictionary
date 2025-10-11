@@ -1,6 +1,5 @@
 import { useCamera } from '@/composables/useCamera';
-import { useCameraController } from '@/composables/useCameraController';
-import * as THREE from 'three';
+import { Scene, Clock, WebGLRenderer, Color, PCFSoftShadowMap, Camera } from 'three';
 import { Lib } from 'topsyde-utils';
 
 export interface I_GameScene {
@@ -25,21 +24,21 @@ export interface I_GameScene {
 }
 
 /**
- * Core game engine that encapsulates Three.js scene, renderer, and clock.
+ * Core game engine that encapsulates js scene, renderer, and clock.
  * Does not own the camera - each scene creates its own camera via composables.
  */
 export class Engine {
-  scene: THREE.Scene;
-  renderer: THREE.WebGLRenderer;
-  clock: THREE.Clock;
+  scene: Scene;
+  renderer: WebGLRenderer;
+  clock: Clock;
 
   constructor(canvas: HTMLCanvasElement) {
     // Create scene
-    this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x87CEEB); // Sky blue for visibility
+    this.scene = new Scene();
+    this.scene.background = new Color(0x87CEEB); // Sky blue for visibility
 
     // Create renderer
-    this.renderer = new THREE.WebGLRenderer({
+    this.renderer = new WebGLRenderer({
       canvas,
       antialias: true,
       alpha: false,
@@ -47,10 +46,10 @@ export class Engine {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = PCFSoftShadowMap;
 
     // Create clock for delta time
-    this.clock = new THREE.Clock();
+    this.clock = new Clock();
 
     Lib.Log('🎮 [Engine] Initialized - Scene UUID:', this.scene.uuid);
   }
@@ -58,7 +57,7 @@ export class Engine {
   /**
    * Render the scene with the provided camera
    */
-  render(camera: THREE.Camera): void {
+  render(camera: Camera): void {
     this.renderer.render(this.scene, camera);
   }
 

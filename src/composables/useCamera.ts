@@ -1,9 +1,9 @@
 import { I_GameCamera } from '@/common/types';
 import { useConfigStore } from '@/stores/config.store';
 import { useEventListener } from '@vueuse/core';
-import * as THREE from 'three';
 import { watchEffect } from 'vue';
 import { useCameraController } from './useCameraController';
+import { PerspectiveCamera, Vector3 } from 'three';
 
 /**
  * High-level camera entity composable
@@ -20,7 +20,7 @@ export function useCamera(): I_GameCamera {
   const controller = useCameraController();
 
   // Create Three.js camera instance
-  const instance = new THREE.PerspectiveCamera(
+  const instance = new PerspectiveCamera(
     75, // FOV
     window.innerWidth / window.innerHeight, // Aspect
     0.1, // Near
@@ -58,7 +58,7 @@ export function useCamera(): I_GameCamera {
    * Initialize camera - set lookAt and update matrices
    */
   function start() {
-    instance.lookAt(new THREE.Vector3(0, 1, 0));
+    instance.lookAt(new Vector3(0, 1, 0));
     instance.updateMatrixWorld(true);
 
     if (config.debug.enableConsoleLog) {
@@ -69,7 +69,7 @@ export function useCamera(): I_GameCamera {
   /**
    * Update camera target (what to look at)
    */
-  function update(lookAtVector: THREE.Vector3) {
+  function update(lookAtVector: Vector3) {
     controller.target.x = lookAtVector.x;
     controller.target.z = lookAtVector.z;
     instance.lookAt(lookAtVector);

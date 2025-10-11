@@ -1,5 +1,5 @@
 import { TargetPosition } from "@/common/types";
-import * as THREE from "three";
+import { Vector3 } from "three";
 import { Ref } from "vue";
 
 export interface I_GameComposable {
@@ -37,7 +37,7 @@ export interface I_CameraControls extends I_GameComposable {
     isDragging: Ref<boolean>;
     target: TargetPosition;
 
-    update: (target: THREE.Vector3) => void;
+    update: (target: Vector3) => void;
 
 }
 
