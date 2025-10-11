@@ -3,6 +3,7 @@
     <!-- Loading Screen -->
     <LoadingScreen />
 
+
     <!-- Game Canvas -->
     <canvas ref="canvasRef" class="three-canvas" />
   </div>

@@ -49,6 +49,8 @@ export const useConfigStore = defineStore('config', () => {
 
     const debug = reactive({
         enableConsoleLog: true, // Enable/disable console logs
+        showStats: true, // Show/hide Three.js stats panel
+        showWebSocketDebugger: false, // Show/hide WebSocket event debugger
     })
 
     return {
@@ -56,4 +58,4 @@ export const useConfigStore = defineStore('config', () => {
         camera,
         debug,
     }
-});
+},);

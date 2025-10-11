@@ -13,6 +13,6 @@ export default class GameModule {
                 moduleName: this.name,
                 sceneName: sceneName,
             });
-        }, Math.random() * 1000 + 500); // Simulated delay
+        }, Math.random() * 100); // Simulated delay
     }
 }

@@ -1,6 +1,8 @@
 import { Camera, Clock, Color, LoadingManager, PCFSoftShadowMap, Scene, WebGLRenderer } from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { useRxjs } from 'topsyde-utils';
+import { watch } from 'vue';
+import { useConfigStore } from '@/stores/config.store';
 
 /**
  * Core game engine that encapsulates js scene, renderer, and clock.
@@ -16,10 +18,21 @@ export class Engine {
   constructor(canvas: HTMLCanvasElement) {
     console.log('   ↳ Initializing Three.js engine...');
 
+    const config = useConfigStore();
+
     // Create clock for delta time
     this.clock = new Clock();
     this.stats = new Stats();
     canvas.parentElement?.appendChild(this.stats.dom);
+
+    // Watch stats visibility setting
+    watch(
+      () => config.debug.showStats,
+      (showStats) => {
+        this.stats.dom.style.display = showStats ? 'block' : 'none';
+      },
+      { immediate: true }
+    );
 
     // Create scene
     this.scene = new Scene();
