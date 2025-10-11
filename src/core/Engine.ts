@@ -9,7 +9,7 @@ export interface GameScene {
   /**
    * Initialize the scene (lights, objects, etc.)
    */
-  init(): void;
+  start(): void;
 
   /**
    * Called every frame with delta time.
@@ -19,7 +19,7 @@ export interface GameScene {
   /**
    * Clean up resources, remove event listeners, etc.
    */
-  cleanup(): void;
+  destroy(): void;
 }
 
 /**

@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { watch, type WatchStopHandle } from 'vue';
 import { I_SceneConfig } from '@/common/types';
 
+
 export class PlaygroundScene implements GameScene {
   readonly name = 'PlaygroundScene';
   readonly engine: Engine;
@@ -33,9 +34,10 @@ export class PlaygroundScene implements GameScene {
 
   constructor(config: I_SceneConfig) {
     this.engine = config.engine;
+    this.start();
   }
 
-  public init(): void {
+  public start(): void {
     console.log('🎬 [PlaygroundScene] Initializing...');
 
     // Initialize settings store (must be done after Vue app is mounted)
@@ -91,7 +93,7 @@ export class PlaygroundScene implements GameScene {
     this.character.rotation.y = this.character$.rotation.value;
   }
 
-  cleanup(): void {
+  destroy(): void {
     console.log('🧹 [PlaygroundScene] Cleaning up...');
 
     // Stop all Vue watchers

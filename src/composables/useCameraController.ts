@@ -1,4 +1,5 @@
 import { ref, watchEffect, type Ref } from 'vue';
+import { useEventListener, usePointerLock } from '@vueuse/core';
 import * as THREE from 'three';
 
 export type TargetPosition = {
@@ -47,7 +48,9 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
 
   // Mouse/Touch state for camera rotation
   const isDragging = ref(false);
-  const isPointerLockActive = ref(false);
+
+  // VueUse: Pointer lock for MMO-style camera (lock on document.body)
+  const { isSupported: isPointerLockSupported, lock, unlock, element: lockedElement } = usePointerLock(document.body);
 
   // Touch state for mobile controls
   const touchStartX = ref(0);
@@ -71,31 +74,15 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
     instance.updateProjectionMatrix();
   }
 
-  // Cleanup event listeners
+  // Cleanup (VueUse handles most cleanup automatically)
   function cleanup() {
-    // Remove mouse event listeners
-    window.removeEventListener('mousedown', onMouseDown);
-    window.removeEventListener('mousemove', onMouseMove);
-    window.removeEventListener('mouseup', onMouseUp);
-    window.removeEventListener('contextmenu', onContextMenu);
-    window.removeEventListener('wheel', onWheel);
-
-    // Remove touch event listeners
-    window.removeEventListener('touchstart', onTouchStart);
-    window.removeEventListener('touchmove', onTouchMove);
-    window.removeEventListener('touchend', onTouchEnd);
-
-    // Remove resize listener
-    window.removeEventListener('resize', handleResize);
-
     reset();
     isDragging.value = false;
-    isPointerLockActive.value = false;
     lastTouchDistance.value = 0;
 
     // Exit pointer lock if active
-    if (document.pointerLockElement) {
-      document.exitPointerLock();
+    if (lockedElement.value) {
+      unlock();
     }
   }
 
@@ -108,17 +95,16 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
 
   // Mouse handlers for camera rotation (desktop)
   function onMouseDown(e: MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
     // Only right mouse button
     if (e.button === 2) {
       isDragging.value = true;
 
-      // Request pointer lock for MMO-style camera
-      if (document.body && 'requestPointerLock' in document.body) {
-        document.body.requestPointerLock();
-        isPointerLockActive.value = true;
+      // Request pointer lock for MMO-style camera (VueUse)
+      if (isPointerLockSupported) {
+        lock(e); // VueUse locks on document.body by default
       }
-
-      e.preventDefault();
     }
   }
 
@@ -141,10 +127,9 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
     if (e.button === 2) {
       isDragging.value = false;
 
-      // Exit pointer lock
-      if (document.pointerLockElement) {
-        document.exitPointerLock();
-        isPointerLockActive.value = false;
+      // Exit pointer lock (VueUse)
+      if (lockedElement.value) {
+        unlock();
       }
     }
   }
@@ -220,16 +205,16 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
     }
   }
 
-  // Setup event listeners
-  window.addEventListener('mousedown', onMouseDown);
-  window.addEventListener('mousemove', onMouseMove);
-  window.addEventListener('mouseup', onMouseUp);
-  window.addEventListener('contextmenu', onContextMenu);
-  window.addEventListener('wheel', onWheel, { passive: false });
-  window.addEventListener('touchstart', onTouchStart, { passive: false });
-  window.addEventListener('touchmove', onTouchMove, { passive: false });
-  window.addEventListener('touchend', onTouchEnd, { passive: false });
-  window.addEventListener('resize', handleResize);
+  // Setup event listeners using VueUse (auto-cleanup on component unmount)
+  useEventListener('mousedown', onMouseDown);
+  useEventListener('mousemove', onMouseMove);
+  useEventListener('mouseup', onMouseUp);
+  useEventListener('contextmenu', onContextMenu);
+  useEventListener('wheel', onWheel, { passive: false });
+  useEventListener('touchstart', onTouchStart, { passive: false });
+  useEventListener('touchmove', onTouchMove, { passive: false });
+  useEventListener('touchend', onTouchEnd, { passive: false });
+  useEventListener('resize', handleResize);
 
   return {
     instance,

@@ -1,31 +1,36 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { reactive, ref } from "vue";
 
 export const useConfigStore = defineStore('config', () => {
 
-    const characterMoveSpeed = ref(10);
 
-    // Jump configuration
-    const jumpHeight = ref(3); // Maximum jump height
-    const jumpInitialVelocity = ref(12); // Initial upward velocity
-    const jumpGravity = ref(30); // Gravity acceleration (higher = heavier feel)
-    const jumpMaxFallSpeed = ref(40); // Terminal velocity when falling
+    const character = reactive({
+        moveSpeed: 10,
 
-    // Collision and boundary configuration
-    const characterRadius = ref(0.5); // Character collision radius
-    const planeBoundary = ref(50); // Plane size (100x100, so boundary is ±50)
-    const respawnThreshold = ref(-10); // Y position below which to respawn
-    const respawnPosition = { x: 0, y: 0, z: 0 }; // Position to respawn at
+        // Jump configuration
+        jumpHeight: 3, // Maximum jump height
+        jumpInitialVelocity: 12, // Initial upward velocity
+        jumpGravity: 30, // Gravity acceleration (higher = heavier feel)
+        jumpMaxFallSpeed: 40, // Terminal velocity when falling
+
+        // Ground and physics
+        groundLevel: 0, // Default ground height
+
+        // Mobile joystick configuration
+        joystickMaxDistance: 50, // Maximum joystick displacement in pixels
+        joystickDeadZone: 5, // Dead zone threshold in pixels (ignore small movements)
+
+        // Collision and boundary configuration
+        characterRadius: 0.5, // Character collision radius
+        planeBoundary: 50, // Plane size (100x100, so boundary is ±50)
+        respawnThreshold: -10, // Y position below which to respawn
+        respawnPosition: { x: 0, y: 0, z: 0 }, // Position to respawn at
+    })
+
+
 
     return {
-        characterMoveSpeed,
-        jumpHeight,
-        jumpInitialVelocity,
-        jumpGravity,
-        jumpMaxFallSpeed,
-        characterRadius,
-        planeBoundary,
-        respawnThreshold,
-        respawnPosition,
+        character: character,
+
     }
 });

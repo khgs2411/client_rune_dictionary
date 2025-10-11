@@ -37,7 +37,7 @@ function start() {
   // Create and load playground scene
   const config: I_SceneConfig = { engine };
   currentScene = new PlaygroundScene(config);
-  currentScene.init();
+  // currentScene.start();
 
   // Start render loop
   resumeRenderLoop();
@@ -54,7 +54,7 @@ function destroy() {
 
   // Cleanup playground scene
   if (currentScene) {
-    currentScene.cleanup();
+    currentScene.destroy();
     currentScene = null;
   }
 

@@ -1,5 +1,6 @@
 import { useConfigStore } from '@/stores/config.store';
 import { computed, ref, type Ref } from 'vue';
+import { useEventListener, useMagicKeys, whenever } from '@vueuse/core';
 
 export interface CharacterControlsOptions {
   cameraAngleH: Ref<number>;
@@ -29,30 +30,23 @@ export interface CharacterControls {
 }
 
 export function useCharacterControls(options: CharacterControlsOptions): CharacterControls {
+  const config = useConfigStore()
+
   const { cameraAngleH } = options;
   // Player position and rotation
   const playerX = ref(0);
   const playerY = ref(0);
   const playerZ = ref(0);
   const playerRotation = ref(0);
-  const config = useConfigStore()
   // Movement speed
-  const moveSpeed = computed(() => options.moveSpeed || config.characterMoveSpeed);
+  const moveSpeed = computed(() => config.character.moveSpeed);
 
   // Jump state
   const isJumping = ref(false);
   const verticalVelocity = ref(0);
-  const groundLevel = 0;
 
-  // Keyboard state using keycodes
-  const keys = new Map<string, boolean>();
-
-  // Key code constants for movement
-  const KEY_W = 'KeyW';
-  const KEY_S = 'KeyS';
-  const KEY_A = 'KeyA';
-  const KEY_D = 'KeyD';
-  const KEY_SPACE = 'Space';
+  // VueUse: Reactive keyboard state (replaces manual Map)
+  const { w, a, s, d, space } = useMagicKeys();
 
   // Virtual joystick state for mobile
   const joystickActive = ref(false);
@@ -61,35 +55,14 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
   const joystickStartX = ref(0);
   const joystickStartY = ref(0);
   const joystickTouchId = ref<number | null>(null);
-  const joystickMaxDistance = 50; // Maximum joystick displacement in pixels
 
-  // Keyboard handlers
-  function onKeyDown(e: KeyboardEvent) {
-    if (e.code === KEY_W || e.code === KEY_S || e.code === KEY_A || e.code === KEY_D) {
-      keys.set(e.code, true);
+  // VueUse: Watch for space key to trigger jump (replaces onKeyDown handler)
+  whenever(space, () => {
+    if (!isJumping.value) {
+      isJumping.value = true;
+      verticalVelocity.value = config.character.jumpInitialVelocity;
     }
-
-    // Handle jump
-    if (e.code === KEY_SPACE && !isJumping.value) {
-      jump(e);
-    }
-  }
-
-  function onKeyUp(e: KeyboardEvent) {
-    if (e.code === KEY_W || e.code === KEY_S || e.code === KEY_A || e.code === KEY_D) {
-      keys.set(e.code, false);
-    }
-  }
-
-  // Jump function
-  function jump(e: KeyboardEvent | TouchEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isJumping.value) return; // Already jumping
-
-    isJumping.value = true;
-    verticalVelocity.value = config.jumpInitialVelocity;
-  }
+  });
 
   // Touch handlers for virtual joystick (mobile)
   function onTouchStart(e: TouchEvent) {
@@ -145,11 +118,11 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
     let inputX = 0;
     let inputZ = 0;
 
-    // Keyboard input (desktop)
-    if (keys.get(KEY_W)) inputZ -= 1;
-    if (keys.get(KEY_S)) inputZ += 1;
-    if (keys.get(KEY_A)) inputX -= 1;
-    if (keys.get(KEY_D)) inputX += 1;
+    // VueUse keyboard input (desktop) - reactive refs from useMagicKeys
+    if (w.value) inputZ -= 1;
+    if (s.value) inputZ += 1;
+    if (a.value) inputX -= 1;
+    if (d.value) inputX += 1;
 
     // Joystick input (mobile) - overrides keyboard if active
     if (joystickActive.value) {
@@ -158,16 +131,16 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
 
       // Clamp to max distance
       const distance = Math.sqrt(dx * dx + dy * dy);
-      const clampedDistance = Math.min(distance, joystickMaxDistance);
+      const clampedDistance = Math.min(distance, config.character.joystickMaxDistance);
 
-      if (distance > 5) {
-        // Dead zone of 5 pixels
+      if (distance > config.character.joystickDeadZone) {
+        // Apply dead zone threshold
         const normalizedDx = (dx / distance) * clampedDistance;
         const normalizedDy = (dy / distance) * clampedDistance;
 
         // Convert joystick displacement to input (-1 to 1)
-        inputX = normalizedDx / joystickMaxDistance;
-        inputZ = normalizedDy / joystickMaxDistance;
+        inputX = normalizedDx / config.character.joystickMaxDistance;
+        inputZ = normalizedDy / config.character.joystickMaxDistance;
       }
     }
 
@@ -196,19 +169,19 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
     // Handle jump physics
     if (isJumping.value) {
       // Apply gravity - increases over time for heavy feel
-      verticalVelocity.value -= config.jumpGravity * delta;
+      verticalVelocity.value -= config.character.jumpGravity * delta;
 
       // Clamp falling speed to max fall velocity
-      if (verticalVelocity.value < -config.jumpMaxFallSpeed) {
-        verticalVelocity.value = -config.jumpMaxFallSpeed;
+      if (verticalVelocity.value < -config.character.jumpMaxFallSpeed) {
+        verticalVelocity.value = -config.character.jumpMaxFallSpeed;
       }
 
       // Update Y position
       playerY.value += verticalVelocity.value * delta;
 
       // Check if landed
-      if (playerY.value <= groundLevel) {
-        playerY.value = groundLevel;
+      if (playerY.value <= config.character.groundLevel) {
+        playerY.value = config.character.groundLevel;
         isJumping.value = false;
         verticalVelocity.value = 0;
       }
@@ -225,24 +198,11 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
     verticalVelocity.value = 0;
   }
 
-  // Cleanup event listeners
+  // Cleanup (VueUse handles keyboard cleanup automatically)
   function cleanup() {
     console.log('🧹 [Character] Starting cleanup...');
 
-    console.log('  ↳ Removing event listeners');
-    // Remove keyboard event listeners
-    window.removeEventListener('keydown', onKeyDown);
-    window.removeEventListener('keyup', onKeyUp);
-
-    // Remove touch event listeners
-    window.removeEventListener('touchstart', onTouchStart);
-    window.removeEventListener('touchmove', onTouchMove);
-    window.removeEventListener('touchend', onTouchEnd);
-
     console.log('  ↳ Resetting character state');
-    // Reset key states
-    keys.clear();
-
     // Reset joystick state
     joystickActive.value = false;
     joystickX.value = 0;
@@ -252,23 +212,13 @@ export function useCharacterControls(options: CharacterControlsOptions): Charact
     console.log('✅ [Character] Cleanup complete');
   }
 
-  function startCharacter() {
-    console.log('🎮 [Character] Initializing...');
-
-    console.log('  ↳ Adding keyboard event listeners');
-    window.addEventListener('keydown', onKeyDown);
-    window.addEventListener('keyup', onKeyUp);
-
-    console.log('  ↳ Adding touch event listeners');
-    window.addEventListener('touchstart', onTouchStart, { passive: true });
-    window.addEventListener('touchmove', onTouchMove, { passive: true });
-    window.addEventListener('touchend', onTouchEnd, { passive: true });
-
-    console.log('✅ [Character] Initialized');
-  }
-
-  // Setup immediately
-  startCharacter();
+  // VueUse: Setup touch event listeners (auto-cleanup on unmount)
+  console.log('🎮 [Character] Initializing...');
+  console.log('  ↳ Adding touch event listeners');
+  useEventListener('touchstart', onTouchStart, { passive: true });
+  useEventListener('touchmove', onTouchMove, { passive: true });
+  useEventListener('touchend', onTouchEnd, { passive: true });
+  console.log('✅ [Character] Initialized');
 
   return {
     position: {
