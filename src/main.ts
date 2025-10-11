@@ -4,7 +4,7 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router/router';
 import './style.css';
-// @version: 0.5.1 - This comment is auto-updated by deploy script
+// @version: 0.5.2 - This comment is auto-updated by deploy script
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
