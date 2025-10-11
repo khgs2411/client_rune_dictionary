@@ -1,5 +1,26 @@
 import * as THREE from 'three';
 
+export interface GameScene {
+  readonly name: string;
+  readonly camera: THREE.Camera;
+  readonly engine: Engine;
+
+  /**
+   * Initialize the scene (lights, objects, etc.)
+   */
+  init(): void;
+
+  /**
+   * Called every frame with delta time.
+   */
+  update(delta: number): void;
+
+  /**
+   * Clean up resources, remove event listeners, etc.
+   */
+  cleanup(): void;
+}
+
 /**
  * Core game engine that encapsulates Three.js scene, renderer, and clock.
  * Does not own the camera - each scene creates its own camera via composables.

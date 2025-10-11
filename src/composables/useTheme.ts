@@ -41,7 +41,7 @@ export interface ThemeColors {
 /**
  * Converts OKLCH CSS variable to Three.js RGB color array
  */
-function parseOklchColor(varName: string): RGBColor {
+export function parseOklchColor(varName: string): RGBColor {
   // Check if we're in a browser environment
   if (typeof document === 'undefined' || typeof window === 'undefined') {
     console.warn(`parseOklchColor called in non-browser environment for ${varName}`);

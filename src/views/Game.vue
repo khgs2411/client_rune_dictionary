@@ -7,10 +7,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
-import { Engine } from '@/core/Engine';
+import { Engine, GameScene } from '@/core/Engine';
 import { PlaygroundScene } from '@/scenes/PlaygroundScene';
 import { I_SceneConfig } from '@/common/types';
-import { GameScene } from '@/core/GameScene';
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let engine: Engine | null = null;
@@ -19,14 +18,8 @@ let currentScene: GameScene | null = null;
 // VueUse: Auto-reactive window size
 const { width, height } = useWindowSize();
 
-// Watch window size changes and resize engine
-watch([width, height], () => {
-  if (engine) {
-    engine.resize();
-  }
-});
 
-function init() {
+function start() {
   if (!canvasRef.value) return;
 
   // Prevent double initialization
@@ -54,7 +47,7 @@ function init() {
   console.log('Engine scene UUID:', engine.scene.uuid);
 }
 
-function cleanup() {
+function destroy() {
   console.log('🧹 [Game] Cleaning up...');
 
   // Pause render loop
@@ -75,6 +68,14 @@ function cleanup() {
   console.log('✅ [Game] Cleanup complete');
 }
 
+function tryOnReload(cb: Function) {
+  if (import.meta.hot) {
+    import.meta.hot.dispose(() => {
+      cb();
+    });
+  }
+}
+
 // VueUse: Animation frame loop
 const { pause: pauseRenderLoop, resume: resumeRenderLoop } = useRafFn(
   () => {
@@ -91,21 +92,21 @@ const { pause: pauseRenderLoop, resume: resumeRenderLoop } = useRafFn(
   { immediate: false },
 ); // Don't start immediately
 
-// VueUse: Safe lifecycle hooks
-tryOnMounted(() => {
-  init();
+
+
+// Watch window size changes and resize engine
+watch([width, height], () => {
+  if (engine) {
+    engine.resize();
+  }
 });
 
-tryOnUnmounted(() => {
-  cleanup();
-});
+// VueUse: Safe lifecycle hooks
+tryOnMounted(start);
+tryOnUnmounted(destroy);
 
 // Handle hot module replacement (HMR) cleanup
-if (import.meta.hot) {
-  import.meta.hot.dispose(() => {
-    cleanup();
-  });
-}
+tryOnReload(destroy);
 </script>
 
 <style scoped>

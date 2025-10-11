@@ -1,8 +1,7 @@
 import { useCameraControls } from '@/composables/useCameraController';
 import { useCharacterControls } from '@/composables/useCharacterController';
 import { rgbToHex } from '@/composables/useTheme';
-import type { GameScene } from '@/core/GameScene';
-import type { Engine } from '@/core/Engine';
+import type { Engine, GameScene } from '@/core/Engine';
 import { useSettingsStore } from '@/stores/settings.store';
 import * as THREE from 'three';
 import { watch, type WatchStopHandle } from 'vue';
@@ -10,7 +9,6 @@ import { I_SceneConfig } from '@/common/types';
 
 export class PlaygroundScene implements GameScene {
   readonly name = 'PlaygroundScene';
-  camera!: THREE.Camera;
   readonly engine: Engine;
 
   private settings!: ReturnType<typeof useSettingsStore>;
@@ -27,8 +25,11 @@ export class PlaygroundScene implements GameScene {
   private groundMaterial!: THREE.MeshStandardMaterial;
 
   // Scene state
-  private obstacles: THREE.Mesh[] = [];
+  private objects: THREE.Mesh[] = [];
   private watchers: WatchStopHandle[] = [];
+
+  public camera!: THREE.Camera;
+
 
   constructor(config: I_SceneConfig) {
     this.engine = config.engine;
@@ -42,9 +43,7 @@ export class PlaygroundScene implements GameScene {
 
     // Initialize camera composable and expose instance
     this.camera$ = useCameraControls();
-    console.log(this.camera$);
     this.camera = this.camera$.instance;
-    console.log(this.camera);
 
     // Initialize character with camera angle
     this.character$ = useCharacterControls({
@@ -63,11 +62,6 @@ export class PlaygroundScene implements GameScene {
     this.camera.updateMatrixWorld(true);
 
     console.log('✅ [PlaygroundScene] Initialized');
-    console.log('Camera position:', this.camera.position);
-    console.log('Camera rotation:', this.camera.rotation);
-    console.log('Camera aspect:', (this.camera as THREE.PerspectiveCamera).aspect);
-    console.log('Camera near/far:', (this.camera as THREE.PerspectiveCamera).near, (this.camera as THREE.PerspectiveCamera).far);
-    console.log('Scene children:', this.engine.scene.children.length);
   }
 
 
@@ -111,7 +105,7 @@ export class PlaygroundScene implements GameScene {
     // Remove objects from scene
     this.engine.scene.remove(this.character);
     this.engine.scene.remove(this.ground);
-    this.obstacles.forEach((obstacle) => this.engine.scene.remove(obstacle));
+    this.objects.forEach((obstacle) => this.engine.scene.remove(obstacle));
 
     // Dispose geometries and materials
     this.character.traverse((child) => {
@@ -126,7 +120,7 @@ export class PlaygroundScene implements GameScene {
     this.ground.geometry.dispose();
     this.groundMaterial.dispose();
 
-    this.obstacles.forEach((obstacle) => {
+    this.objects.forEach((obstacle) => {
       obstacle.geometry.dispose();
       (obstacle.material as THREE.Material).dispose();
     });
@@ -261,11 +255,11 @@ export class PlaygroundScene implements GameScene {
       obstacle.castShadow = true;
       obstacle.receiveShadow = true;
 
-      this.obstacles.push(obstacle);
+      this.objects.push(obstacle);
       this.engine.scene.add(obstacle);
     });
 
-    console.log('🧱 [PlaygroundScene] Created', this.obstacles.length, 'obstacles');
+    console.log('🧱 [PlaygroundScene] Created', this.objects.length, 'obstacles');
   }
 
   private createDebugCube(): void {
