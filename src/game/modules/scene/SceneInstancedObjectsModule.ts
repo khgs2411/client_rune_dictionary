@@ -1,7 +1,7 @@
 import { RGBColor } from '@/common/types';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
-import { I_ModuleContext, I_ThemedSceneModule } from '@/scenes/scenes.types';
+import { I_ModuleContext, I_ThemedModule } from '@/scenes/scenes.types';
 import {
   BoxGeometry,
   BufferGeometry,
@@ -27,7 +27,7 @@ import {
  * - InteractionEntityModule: Makes objects clickable/hoverable
  * - VisualFeedbackEntityModule: Provides visual feedback for interactions
  */
-export class SceneInstancedObjectsModule extends SceneModule implements I_ThemedSceneModule {
+export class SceneInstancedObjectsModule extends SceneModule implements I_ThemedModule {
   private objectConfigs: I_SceneObjectConfig[];
   private instancedMeshes: Map<string, InstancedMesh> = new Map();
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes

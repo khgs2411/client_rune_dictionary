@@ -1,4 +1,4 @@
-import { I_InteractableModule, I_ModuleContext, I_SceneModule, I_UpdateableModule, IsInteractableModule, IsUpdateableModule } from '@/scenes/scenes.types';
+import { I_HasInteractableModules, I_HasUpdateableModules, I_InteractableModule, I_ModuleContext, I_SceneModule, I_UpdateableModule, IsInteractableModule, IsUpdateableModule } from '@/scenes/scenes.types';
 import { SceneLifecycle } from '@/game/SceneLifecycle';
 import { useRxjs } from 'topsyde-utils';
 import {
@@ -15,21 +15,16 @@ import { useSettingsStore } from '@/stores/settings.store';
 import type { Engine } from '@/game/Engine';
 import type { SettingsStore } from '@/stores/settings.store';
 
+export interface I_GameScene extends I_HasInteractableModules, I_HasUpdateableModules { }
+
 /**
  * Base class for game scenes with typed module registry support
  * Implements template pattern with default lifecycle implementations
  * Subclasses only need to override scene-specific logic
  */
-export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneModule> = Record<string, I_SceneModule>> {
+export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneModule> = Record<string, I_SceneModule>> implements I_GameScene {
   private enabled = false;
-  private modulesLoaded = false;
-  protected modules: Partial<TModuleRegistry> = {};
-  protected updateableModules: Set<I_UpdateableModule> = new Set();
-  protected interactableModules: Set<I_InteractableModule> = new Set();
 
-  protected initializedModules: Set<I_SceneModule> = new Set();
-  protected initializedUpdateableModules: Set<I_UpdateableModule> = new Set();
-  protected moduleNames: Map<I_SceneModule, string> = new Map();
   protected lifecycle: SceneLifecycle = new SceneLifecycle();
   protected sceneEvents = useRxjs('scene:loading');
   protected moduleEvents = useRxjs('module:loading');
@@ -37,6 +32,14 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
   // High-level entity composables
   protected character!: ReturnType<typeof useCharacter>;
   protected settings!: SettingsStore;
+
+  public modulesLoaded = false;
+  public modules: Partial<TModuleRegistry> = {};
+  public updateableModules: Set<I_UpdateableModule> = new Set();
+  public interactableModules: Set<I_InteractableModule> = new Set();
+  public initializedModules: Set<I_SceneModule> = new Set();
+  public initializedUpdateableModules: Set<I_UpdateableModule> = new Set();
+  public moduleNames: Map<I_SceneModule, string> = new Map();
 
   public camera!: ReturnType<typeof useCamera>;
 
@@ -99,7 +102,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
   /**
    * Add a module to the registry with type-safe key checking
    */
-  protected addModule<K extends keyof TModuleRegistry>(key: K, module: TModuleRegistry[K]): this {
+  public addModule<K extends keyof TModuleRegistry>(key: K, module: TModuleRegistry[K]): this {
     this.modules[key] = module;
 
     // Auto-set module name from registry key
@@ -121,18 +124,18 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
     return this;
   }
 
-  protected getModule<K extends keyof TModuleRegistry>(key: K): TModuleRegistry[K] | undefined {
+  public getModule<K extends keyof TModuleRegistry>(key: K): TModuleRegistry[K] | undefined {
     return this.modules[key];
   }
 
-  protected moduleCount(): number {
+  public moduleCount(): number {
     return Object.keys(this.modules).length;
   }
 
   /**
    * Helper to iterate all modules (converts record to array)
    */
-  protected forEachModule(callback: (module: I_SceneModule) => void): void {
+  public forEachModule(callback: (module: I_SceneModule) => void): void {
     Object.values(this.modules).forEach((module) => {
       if (module) callback(module as I_SceneModule);
     });

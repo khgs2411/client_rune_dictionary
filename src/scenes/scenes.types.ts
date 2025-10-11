@@ -1,7 +1,7 @@
 import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
 import { Engine } from '@/game/Engine';
-import { InteractionSystemModule } from '@/game/modules/entity/InteractionSystemModule';
+import { InteractionSystemModule } from '@/game/modules/scene/InteractionSystemModule';
 import { SceneLifecycle } from '@/game/SceneLifecycle';
 import { SettingsStore } from '@/stores/settings.store';
 import { Object3D, Scene } from 'three';
@@ -32,13 +32,36 @@ export interface I_SceneConfig {
   engine: Engine;
 }
 
+export interface I_HasModules<TModuleRegistry extends Record<string, I_SceneModule> = Record<string, I_SceneModule>> {
+  modulesLoaded: boolean;
+
+  modules: Partial<TModuleRegistry>;
+  initializedModules: Set<I_SceneModule>;
+  moduleNames: Map<I_SceneModule, string>;
+  addModule<K extends keyof TModuleRegistry>(key: K, module: TModuleRegistry[K]): this
+  getModule<K extends keyof TModuleRegistry>(key: K): TModuleRegistry[K] | undefined
+  moduleCount(): number;
+  forEachModule(callback: (module: I_SceneModule) => void | Promise<void>): void | Promise<void>;
+}
+
+export interface I_HasUpdateableModules<T extends Record<string, I_SceneModule> = Record<string, I_SceneModule>> extends I_HasModules<T> {
+  updateableModules: Set<I_UpdateableModule>;
+  initializedUpdateableModules: Set<I_UpdateableModule>;
+}
+
+export interface I_HasInteractableModules<T extends Record<string, I_SceneModule> = Record<string, I_SceneModule>> extends I_HasModules<T> {
+  interactableModules: Set<I_InteractableModule>;
+}
+
 export interface I_SceneModule {
   start(context: I_ModuleContext): Promise<void>;
   destroy(): Promise<void>;
 }
 
+export interface I_EntityModule extends I_SceneModule { }
+
 export interface I_UpdateableModule extends I_SceneModule {
-  update(delta: number, ...args: any[]): void;
+  update(delta: number, ...args: any[]): Promise<void>;
 
 }
 
@@ -76,7 +99,7 @@ export function IsInteractableModule(module: any): module is I_InteractableModul
   return typeof module.setInteractionSystem === 'function' && typeof module.getInteractableObjects === 'function' && typeof module.clearInteractionSystem === 'function';
 }
 
-export interface I_ThemedSceneModule extends I_SceneModule {
+export interface I_ThemedModule extends I_SceneModule {
   updateColors(...args: any): void;
 }
 

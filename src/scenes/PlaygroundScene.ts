@@ -6,7 +6,7 @@ import { GroundModule } from '@/game/modules/scene/GroundModule';
 import { LightingModule } from '@/game/modules/scene/LightingModule';
 import { SceneInstancedObjectsModule } from '@/game/modules/scene/SceneInstancedObjectsModule';
 import { SceneObjectsModule } from '@/game/modules/scene/SceneObjectsModule';
-import { InteractionSystemModule } from '@/game/modules/entity/InteractionSystemModule';
+import { InteractionSystemModule } from '@/game/modules/scene/InteractionSystemModule';
 import { watch } from 'vue';
 import { I_GameScene, I_SceneConfig } from './scenes.types';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';

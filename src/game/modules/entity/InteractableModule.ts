@@ -1,5 +1,5 @@
-import SceneModule from '@/game/SceneModule';
-import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
+import { EntityModule } from '@/game/EntityModule';
+import { I_EntityModule, I_ModuleContext } from '@/scenes/scenes.types';
 import { useEventListener } from '@vueuse/core';
 import { Object3D, Raycaster, Vector2, Vector3 } from 'three';
 import { useRxjs } from 'topsyde-utils';
@@ -7,21 +7,37 @@ import type {
   I_HoverState,
   I_Interactable,
   I_InteractionConfig,
+  I_InteractionEntityConfig,
   I_InteractionEvent,
-} from '../entity/interaction.types';
+} from './interaction.types';
 
 /**
- * Interaction Module
- * Handles raycasting, hover detection, click detection for all scene objects
- * Mobile-first: supports both mouse and touch
+ * Interaction Entity Module
+ * Pluggable entity feature for making objects interactive (hover, click)
  *
- * Emits events via RxJS 'interaction' channel:
- * - hover-start: Mouse/touch enters object
- * - hover-end: Mouse/touch leaves object
- * - hover-hold: Hover held for threshold duration (default 500ms)
- * - click: Object clicked/tapped (no drag)
+ * Usage:
+ * ```typescript
+ * class SceneObjectsModule extends SceneModule {
+ *   private interaction = new InteractionEntityModule();
+ *
+ *   async start(context) {
+ *     // Create mesh
+ *     const mesh = new Mesh(...);
+ *
+ *     // Attach interaction to specific entities
+ *     this.interaction.register('box-1', mesh, {
+ *       hoverable: true,
+ *       clickable: true,
+ *       tooltip: { title: 'Mysterious Box' }
+ *     });
+ *
+ *     // Initialize
+ *     await this.interaction.start(context);
+ *   }
+ * }
+ * ```
  */
-export class InteractionModule extends SceneModule implements I_SceneModule {
+export class InteractableModule extends EntityModule {
   private context!: I_ModuleContext;
   private raycaster = new Raycaster();
   private pointer = new Vector2();
@@ -62,14 +78,20 @@ export class InteractionModule extends SceneModule implements I_SceneModule {
     useEventListener(canvas, 'pointerdown', this.onPointerDown.bind(this));
     useEventListener(canvas, 'pointerup', this.onPointerUp.bind(this));
 
+    // Listen to pointer leave - clear hover when mouse leaves canvas
+    useEventListener(canvas, 'pointerleave', this.onPointerLeave.bind(this));
+
     // Start hover hold checker (runs every 100ms)
     this.hoverCheckInterval = window.setInterval(this.checkHoverHold.bind(this), 100);
 
-    console.log('🖱️ [InteractionModule] Initialized (hover threshold: %dms)', this.config.hoverHoldThreshold);
-    this.initialized(context.sceneName);
+    console.log(
+      '🎯 [InteractionEntityModule] Initialized with %d interactables (hover threshold: %dms)',
+      this.interactables.size,
+      this.config.hoverHoldThreshold
+    );
   }
 
-  update(delta: number): void {
+  public update(): void {
     // No per-frame updates needed (event-driven)
   }
 
@@ -85,22 +107,27 @@ export class InteractionModule extends SceneModule implements I_SceneModule {
   /**
    * Register an object as interactable
    */
-  register(interactable: I_Interactable): void {
-    this.interactables.set(interactable.id, interactable);
-    console.log('🎯 [InteractionModule] Registered:', interactable.id, interactable.object3D);
+  public register(id: string, object3D: Object3D, config: I_InteractionEntityConfig): void {
+    const interactable: I_Interactable = {
+      id,
+      object3D,
+      config,
+    };
+    this.interactables.set(id, interactable);
+    console.log('  ↳ Registered interactable:', id);
   }
 
   /**
    * Unregister an interactable
    */
-  unregister(id: string): void {
+  public unregister(id: string): void {
     this.interactables.delete(id);
   }
 
   /**
    * Enable/disable interaction system
    */
-  setEnabled(enabled: boolean): void {
+  public setEnabled(enabled: boolean): void {
     this.config.enabled = enabled;
     if (!enabled && this.currentHover) {
       // Clear hover state when disabled
@@ -148,6 +175,16 @@ export class InteractionModule extends SceneModule implements I_SceneModule {
   }
 
   /**
+   * Pointer leave handler - clear hover state when mouse leaves canvas
+   */
+  private onPointerLeave(): void {
+    if (this.currentHover) {
+      console.log('🚪 [InteractionEntityModule] Pointer left canvas, ending hover');
+      this.endHover();
+    }
+  }
+
+  /**
    * Update normalized pointer coordinates (-1 to 1)
    */
   private updatePointerPosition(event: PointerEvent): void {
@@ -167,7 +204,6 @@ export class InteractionModule extends SceneModule implements I_SceneModule {
     // Get camera from context (passed from scene)
     const camera = this.context.camera.instance;
     if (!camera) {
-      console.warn('🖱️ [InteractionModule] No camera found');
       return;
     }
 
@@ -185,7 +221,15 @@ export class InteractionModule extends SceneModule implements I_SceneModule {
       const hitObject = intersects[0].object;
       const interactable = this.findInteractable(hitObject);
 
-      if (interactable) {
+      if (!interactable) {
+        console.warn('⚠️ Raycast hit object but findInteractable returned null:', {
+          hitObject: hitObject.uuid,
+          hitObjectName: hitObject.name,
+          hitObjectType: hitObject.type,
+        });
+      }
+
+      if (interactable && interactable.config.hoverable !== false) {
         const worldPos = intersects[0].point;
         const screenPos = this.worldToScreen(worldPos);
 
@@ -193,11 +237,8 @@ export class InteractionModule extends SceneModule implements I_SceneModule {
         if (!this.currentHover || this.currentHover.interactable.id !== interactable.id) {
           this.endHover(); // End previous hover
           this.startHover(interactable, worldPos, screenPos);
-          console.log('🖱️ [InteractionModule] Hover started:', interactable.id);
         }
         return;
-      } else {
-        console.log('🖱️ [InteractionModule] Hit object but no interactable found:', hitObject);
       }
     }
 
@@ -213,7 +254,12 @@ export class InteractionModule extends SceneModule implements I_SceneModule {
   private performClick(): void {
     if (!this.context || !this.currentHover) return;
 
-    console.log('🖱️ [InteractionModule] Clicked:', this.currentHover.interactable.id);
+    // Check if clickable
+    if (this.currentHover.interactable.config.clickable === false) {
+      return;
+    }
+
+    console.log('🖱️ [InteractionEntityModule] Clicked:', this.currentHover.interactable.id);
 
     const event: I_InteractionEvent = {
       type: 'click',
@@ -231,7 +277,7 @@ export class InteractionModule extends SceneModule implements I_SceneModule {
    */
   private findInteractable(object: Object3D): I_Interactable | null {
     // Check if this object is registered
-    for (const [id, interactable] of this.interactables) {
+    for (const interactable of this.interactables.values()) {
       if (interactable.object3D === object || interactable.object3D.uuid === object.uuid) {
         return interactable;
       }

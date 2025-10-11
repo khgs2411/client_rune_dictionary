@@ -13,7 +13,7 @@ import type { I_InteractionEvent } from './interaction.types';
  * - Hover: Faint orange outline/emissive glow
  * - Click: Bright flash effect
  */
-export class VisualFeedbackEntityModule extends EntityModule {
+export class VisualFeedbackModule extends EntityModule {
   private events = useRxjs('interaction');
 
   // Track current hover object for cleanup

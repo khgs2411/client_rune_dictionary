@@ -1,4 +1,4 @@
-import type { I_ModuleContext } from '@/scenes/scenes.types';
+import type { I_EntityModule, I_ModuleContext, I_SceneModule, I_UpdateableModule } from '@/scenes/scenes.types';
 
 /**
  * EntityModule Base Class
@@ -29,7 +29,7 @@ import type { I_ModuleContext } from '@/scenes/scenes.types';
  * }
  * ```
  */
-export abstract class EntityModule {
+export abstract class EntityModule implements I_EntityModule {
   public readonly name: string;
 
   constructor(name: string) {
@@ -41,14 +41,6 @@ export abstract class EntityModule {
    * Called once by parent SceneModule during scene setup
    */
   abstract start(context: I_ModuleContext): Promise<void>;
-
-  /**
-   * Update loop (called every frame)
-   * Optional - override if entity module needs per-frame updates
-   */
-  update(delta: number, ...args: any[]): void {
-    // Default: no per-frame updates
-  }
 
   /**
    * Cleanup (called when parent SceneModule is destroyed)
