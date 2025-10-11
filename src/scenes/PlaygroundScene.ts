@@ -79,6 +79,7 @@ export class SceneLifecycle {
 
 export abstract class GameScene {
   protected modules: SceneModule[] = [];
+  protected lifecycle: SceneLifecycle = new SceneLifecycle();
 
 
   abstract start(): void;
