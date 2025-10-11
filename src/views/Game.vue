@@ -5,130 +5,107 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
-import * as THREE from 'three';
+import { ref, watch } from 'vue';
+import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
+import { Engine } from '@/core/Engine';
 import { PlaygroundScene } from '@/scenes/PlaygroundScene';
+import { I_SceneConfig } from '@/common/types';
+import { GameScene } from '@/core/GameScene';
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
+let engine: Engine | null = null;
+let currentScene: GameScene | null = null;
 
-let scene: THREE.Scene;
-let camera: THREE.PerspectiveCamera;
-let renderer: THREE.WebGLRenderer;
-let animationFrameId: number;
-let clock: THREE.Clock;
-let playgroundScene: PlaygroundScene | null = null;
+// VueUse: Auto-reactive window size
+const { width, height } = useWindowSize();
+
+// Watch window size changes and resize engine
+watch([width, height], () => {
+  if (engine) {
+    engine.resize();
+  }
+});
 
 function init() {
   if (!canvasRef.value) return;
 
-  console.log('🎮 [GameThree] Initializing Three.js...');
-
-  // Create scene
-  scene = new THREE.Scene();
-
-  // Create camera
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 5, 10);
-
-  // Create renderer
-  renderer = new THREE.WebGLRenderer({
-    canvas: canvasRef.value,
-    antialias: true,
-    alpha: false,
-  });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-  // Create clock for delta time
-  clock = new THREE.Clock();
-
-  // Create and load playground scene
-  playgroundScene = new PlaygroundScene();
-  playgroundScene.init({
-    scene,
-    camera,
-    renderer,
-    canvas: canvasRef.value,
-  });
-
-  // Start render loop
-  animate();
-
-  console.log('✅ [GameThree] Three.js initialized');
-}
-
-function animate() {
-  animationFrameId = requestAnimationFrame(animate);
-
-  const delta = clock.getDelta();
-
-  // Update playground scene
-  if (playgroundScene) {
-    playgroundScene.update(delta);
+  // Prevent double initialization
+  if (engine || currentScene) {
+    console.warn('⚠️ [Game] Already initialized, skipping...');
+    return;
   }
 
-  // Render
-  renderer.render(scene, camera);
-}
+  console.log('🎮 [Game] Initializing...');
+  console.log('Canvas size:', canvasRef.value.width, 'x', canvasRef.value.height);
+  console.log('Window size:', window.innerWidth, 'x', window.innerHeight);
 
-function handleResize() {
-  if (!camera || !renderer) return;
+  // Create engine
+  engine = new Engine(canvasRef.value);
 
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+  // Create and load playground scene
+  const config: I_SceneConfig = { engine };
+  currentScene = new PlaygroundScene(config);
+  currentScene.init();
 
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // Start render loop
+  resumeRenderLoop();
+
+  console.log('✅ [Game] Initialized');
+  console.log('Engine scene UUID:', engine.scene.uuid);
 }
 
 function cleanup() {
-  console.log('🧹 [GameThree] Cleaning up...');
+  console.log('🧹 [Game] Cleaning up...');
 
-  // Cancel animation frame
-  if (animationFrameId) {
-    cancelAnimationFrame(animationFrameId);
-  }
+  // Pause render loop
+  pauseRenderLoop();
 
   // Cleanup playground scene
-  if (playgroundScene) {
-    playgroundScene.cleanup();
-    playgroundScene = null;
+  if (currentScene) {
+    currentScene.cleanup();
+    currentScene = null;
   }
 
-  // Dispose renderer
-  if (renderer) {
-    renderer.dispose();
+  // Cleanup engine
+  if (engine) {
+    engine.cleanup();
+    engine = null;
   }
 
-  // Remove resize listener
-  window.removeEventListener('resize', handleResize);
-
-  console.log('✅ [GameThree] Cleanup complete');
+  console.log('✅ [Game] Cleanup complete');
 }
 
-/**
- * Handle hot module replacement (HMR) cleanup for the game scene.
- */
-function onHotReload() {
-  if (import.meta.hot) {
-    import.meta.hot.dispose(() => {
-      cleanup();
-    });
-  }
-}
+// VueUse: Animation frame loop
+const { pause: pauseRenderLoop, resume: resumeRenderLoop } = useRafFn(
+  () => {
+    if (!engine || !currentScene) return;
 
-onMounted(() => {
+    const delta = engine.clock.getDelta();
+
+    // Update scene
+    currentScene.update(delta);
+
+    // Render
+    engine.render(currentScene.camera);
+  },
+  { immediate: false },
+); // Don't start immediately
+
+// VueUse: Safe lifecycle hooks
+tryOnMounted(() => {
   init();
-  window.addEventListener('resize', handleResize);
 });
 
-onUnmounted(() => {
+tryOnUnmounted(() => {
   cleanup();
 });
 
-onHotReload();
+// Handle hot module replacement (HMR) cleanup
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    cleanup();
+  });
+}
 </script>
 
 <style scoped>

@@ -1,16 +1,19 @@
+import { useCameraControls } from '@/composables/useCameraController';
+import { useCharacterControls } from '@/composables/useCharacterController';
+import { rgbToHex } from '@/composables/useTheme';
+import type { GameScene } from '@/core/GameScene';
+import type { Engine } from '@/core/Engine';
+import { useSettingsStore } from '@/stores/settings.store';
 import * as THREE from 'three';
 import { watch, type WatchStopHandle } from 'vue';
-import { useSettingsStore } from '@/stores/settings.store';
-import { useCharacterControls } from '@/composables/useCharacterController';
-import { useCameraControls } from '@/composables/useCameraController';
-import { rgbToHex } from '@/composables/useTheme';
-import { GameScene, ThreeContext } from '@/common/types';
+import { I_SceneConfig } from '@/common/types';
 
 export class PlaygroundScene implements GameScene {
-  name = 'PlaygroundScene';
+  readonly name = 'PlaygroundScene';
+  camera!: THREE.Camera;
+  readonly engine: Engine;
 
-  private context!: ThreeContext;
-  private settings = useSettingsStore();
+  private settings!: ReturnType<typeof useSettingsStore>;
 
   // Use existing composables
   private camera$!: ReturnType<typeof useCameraControls>;
@@ -22,17 +25,28 @@ export class PlaygroundScene implements GameScene {
   private characterConeMaterial!: THREE.MeshStandardMaterial;
   private ground!: THREE.Mesh;
   private groundMaterial!: THREE.MeshStandardMaterial;
-  private obstacles: THREE.Mesh[] = [];
 
-  // Vue reactivity watchers
+  // Scene state
+  private obstacles: THREE.Mesh[] = [];
   private watchers: WatchStopHandle[] = [];
 
-  init(context: ThreeContext): void {
-    console.log('🎬 [PlaygroundScene] Initializing...');
-    this.context = context;
+  constructor(config: I_SceneConfig) {
+    this.engine = config.engine;
+  }
 
-    // Initialize composables
+  public init(): void {
+    console.log('🎬 [PlaygroundScene] Initializing...');
+
+    // Initialize settings store (must be done after Vue app is mounted)
+    this.settings = useSettingsStore();
+
+    // Initialize camera composable and expose instance
     this.camera$ = useCameraControls();
+    console.log(this.camera$);
+    this.camera = this.camera$.instance;
+    console.log(this.camera);
+
+    // Initialize character with camera angle
     this.character$ = useCharacterControls({
       cameraAngleH: this.camera$.angle.horizontal,
     });
@@ -41,9 +55,19 @@ export class PlaygroundScene implements GameScene {
     this.createGround();
     this.createCharacter();
     this.createObstacles();
+    this.createDebugCube(); // Temporary debug helper
     this.setupThemeWatchers();
 
+    // Set initial camera lookAt and update matrices
+    this.camera.lookAt(new THREE.Vector3(0, 1, 0));
+    this.camera.updateMatrixWorld(true);
+
     console.log('✅ [PlaygroundScene] Initialized');
+    console.log('Camera position:', this.camera.position);
+    console.log('Camera rotation:', this.camera.rotation);
+    console.log('Camera aspect:', (this.camera as THREE.PerspectiveCamera).aspect);
+    console.log('Camera near/far:', (this.camera as THREE.PerspectiveCamera).near, (this.camera as THREE.PerspectiveCamera).far);
+    console.log('Scene children:', this.engine.scene.children.length);
   }
 
 
@@ -55,26 +79,22 @@ export class PlaygroundScene implements GameScene {
     this.camera$.target.x.value = this.character$.position.x.value;
     this.camera$.target.z.value = this.character$.position.z.value;
 
-    // Sync Three.js character with composable state
+    // Camera position is auto-updated by composable!
+    // Just update lookAt target
+    const lookAtTarget = new THREE.Vector3(
+      this.character$.position.x.value,
+      1, // Fixed height for lookAt
+      this.character$.position.z.value
+    );
+    this.camera.lookAt(lookAtTarget);
+
+    // Sync Three.js character mesh with composable state
     this.character.position.set(
       this.character$.position.x.value,
       this.character$.position.y.value + 1, // Offset for capsule center
       this.character$.position.z.value
     );
-
     this.character.rotation.y = this.character$.rotation.value;
-
-    // Sync Three.js camera with composable state
-    const { camera } = this.context;
-    const [camX, camY, camZ] = this.camera$.position.value;
-    camera.position.set(camX, camY, camZ);
-    camera.lookAt(
-      new THREE.Vector3(
-        this.camera$.target.x.value,
-        1, // Fixed height for lookAt
-        this.camera$.target.z.value
-      )
-    );
   }
 
   cleanup(): void {
@@ -89,10 +109,9 @@ export class PlaygroundScene implements GameScene {
     this.camera$.cleanup();
 
     // Remove objects from scene
-    const { scene } = this.context;
-    scene.remove(this.character);
-    scene.remove(this.ground);
-    this.obstacles.forEach((obstacle) => scene.remove(obstacle));
+    this.engine.scene.remove(this.character);
+    this.engine.scene.remove(this.ground);
+    this.obstacles.forEach((obstacle) => this.engine.scene.remove(obstacle));
 
     // Dispose geometries and materials
     this.character.traverse((child) => {
@@ -151,11 +170,9 @@ export class PlaygroundScene implements GameScene {
   }
 
   private setupLighting(): void {
-    const { scene } = this.context;
-
     // Ambient light
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
+    this.engine.scene.add(ambientLight);
 
     // Directional light with shadows
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -169,12 +186,12 @@ export class PlaygroundScene implements GameScene {
     directionalLight.shadow.camera.right = 25;
     directionalLight.shadow.camera.top = 25;
     directionalLight.shadow.camera.bottom = -25;
-    scene.add(directionalLight);
+    this.engine.scene.add(directionalLight);
+
+    console.log('💡 [PlaygroundScene] Lighting setup complete');
   }
 
   private createGround(): void {
-    const { scene } = this.context;
-
     const geometry = new THREE.PlaneGeometry(100, 100);
     this.groundMaterial = new THREE.MeshStandardMaterial({
       color: rgbToHex(this.settings.theme.muted),
@@ -183,17 +200,18 @@ export class PlaygroundScene implements GameScene {
     this.ground = new THREE.Mesh(geometry, this.groundMaterial);
     this.ground.rotation.x = -Math.PI / 2;
     this.ground.receiveShadow = true;
-    scene.add(this.ground);
+    this.engine.scene.add(this.ground);
 
     // Add grid helper
     const gridHelper = new THREE.GridHelper(50, 50);
     gridHelper.position.y = 0.01;
-    scene.add(gridHelper);
+    this.engine.scene.add(gridHelper);
+
+    console.log('🌍 [PlaygroundScene] Ground created at y=0');
+    console.log('   ↳ Grid helper at y=0.01');
   }
 
   private createCharacter(): void {
-    const { scene } = this.context;
-
     this.character = new THREE.Group();
 
     // Body (capsule)
@@ -216,12 +234,16 @@ export class PlaygroundScene implements GameScene {
     cone.castShadow = true;
     this.character.add(cone);
 
-    scene.add(this.character);
+    // Set initial position
+    this.character.position.set(0, 1, 0);
+
+    this.engine.scene.add(this.character);
+
+    console.log('👤 [PlaygroundScene] Character created at:', this.character.position.toArray());
+    console.log('   ↳ Scene children count:', this.engine.scene.children.length);
   }
 
   private createObstacles(): void {
-    const { scene } = this.context;
-
     const obstacleData = [
       { position: [5, 1, 0], size: [2, 2, 2] },
       { position: [-8, 1.5, 5], size: [3, 3, 2] },
@@ -240,8 +262,24 @@ export class PlaygroundScene implements GameScene {
       obstacle.receiveShadow = true;
 
       this.obstacles.push(obstacle);
-      scene.add(obstacle);
+      this.engine.scene.add(obstacle);
     });
+
+    console.log('🧱 [PlaygroundScene] Created', this.obstacles.length, 'obstacles');
+  }
+
+  private createDebugCube(): void {
+    // Bright red cube at origin for debugging camera view
+    const geometry = new THREE.BoxGeometry(2, 2, 2);
+    const material = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Bright red, unlit
+    const cube = new THREE.Mesh(geometry, material);
+    cube.position.set(0, 1, 0); // At origin, y=1
+    this.engine.scene.add(cube);
+
+    console.log('🔴 [PlaygroundScene] Debug cube at origin (0, 1, 0) - should be BRIGHT RED');
+    console.log('   ↳ Cube parent scene UUID:', cube.parent?.uuid);
+    console.log('   ↳ Engine scene UUID:', this.engine.scene.uuid);
+    console.log('   ↳ Cube is in correct scene:', cube.parent === this.engine.scene);
   }
 
 }

@@ -203,3 +203,4 @@ The `src_deprecated/` folder contains the complete old codebase. Useful for:
 Do not copy-paste from deprecated code; use it only as reference to rebuild with modern patterns.
 
 - This project has to be mobile first
+- Always use vueuse where possible in vue related files - it is battle tested and filled with utilities

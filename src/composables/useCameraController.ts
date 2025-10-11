@@ -1,4 +1,5 @@
-import { computed, ref, type ComputedRef, type Ref } from 'vue';
+import { ref, watchEffect, type Ref } from 'vue';
+import * as THREE from 'three';
 
 export type TargetPosition = {
   x: Ref<number>;
@@ -10,12 +11,12 @@ export interface CameraControlsOptions {
 }
 
 export interface CameraControls {
+  instance: THREE.PerspectiveCamera;
   angle: {
     horizontal: Ref<number>;
     vertical: Ref<number>;
   };
   distance: Ref<number>;
-  position: ComputedRef<[number, number, number]>;
   isDragging: Ref<boolean>;
   target: TargetPosition;
 
@@ -28,6 +29,16 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
     x: ref(0),
     z: ref(0),
   };
+
+  // Create Three.js camera instance
+  const instance = new THREE.PerspectiveCamera(
+    75, // FOV
+    window.innerWidth / window.innerHeight, // Aspect
+    0.1, // Near
+    1000 // Far
+  );
+
+  console.log('📷 [useCameraController] Camera created with aspect:', instance.aspect);
 
   // Camera controls
   const cameraDistance = ref(10);
@@ -43,16 +54,22 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
   const touchStartY = ref(0);
   const lastTouchDistance = ref(0);
 
-  // Camera position (calculated from angles and distance)
-  const cameraPosition = computed<[number, number, number]>(() => {
+  // Auto-update camera position when angles/distance/target change
+  watchEffect(() => {
     const offsetX =
       Math.sin(cameraAngleH.value) * cameraDistance.value * Math.cos(cameraAngleV.value);
     const offsetZ =
       Math.cos(cameraAngleH.value) * cameraDistance.value * Math.cos(cameraAngleV.value);
     const offsetY = Math.sin(cameraAngleV.value) * cameraDistance.value;
 
-    return [target.x.value + offsetX, offsetY + 1, target.z.value + offsetZ];
+    instance.position.set(target.x.value + offsetX, offsetY + 1, target.z.value + offsetZ);
   });
+
+  // Handle camera resize
+  function handleResize() {
+    instance.aspect = window.innerWidth / window.innerHeight;
+    instance.updateProjectionMatrix();
+  }
 
   // Cleanup event listeners
   function cleanup() {
@@ -67,6 +84,9 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
     window.removeEventListener('touchstart', onTouchStart);
     window.removeEventListener('touchmove', onTouchMove);
     window.removeEventListener('touchend', onTouchEnd);
+
+    // Remove resize listener
+    window.removeEventListener('resize', handleResize);
 
     reset();
     isDragging.value = false;
@@ -209,14 +229,15 @@ export function useCameraControls(options: CameraControlsOptions = {}): CameraCo
   window.addEventListener('touchstart', onTouchStart, { passive: false });
   window.addEventListener('touchmove', onTouchMove, { passive: false });
   window.addEventListener('touchend', onTouchEnd, { passive: false });
+  window.addEventListener('resize', handleResize);
 
   return {
+    instance,
     angle: {
       horizontal: cameraAngleH,
       vertical: cameraAngleV,
     },
     distance: cameraDistance,
-    position: cameraPosition,
     isDragging,
     target,
     reset,
