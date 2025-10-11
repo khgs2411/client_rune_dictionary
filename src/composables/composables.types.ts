@@ -29,7 +29,6 @@ export interface I_CharacterControls extends I_GameComposable {
 }
 
 export interface I_CameraControls extends I_GameComposable {
-    instance: THREE.PerspectiveCamera;
     angle: {
         horizontal: Ref<number>;
         vertical: Ref<number>;
@@ -37,7 +36,6 @@ export interface I_CameraControls extends I_GameComposable {
     distance: Ref<number>;
     isDragging: Ref<boolean>;
     target: TargetPosition;
-    start: () => void;
 
     update: (target: THREE.Vector3) => void;
 

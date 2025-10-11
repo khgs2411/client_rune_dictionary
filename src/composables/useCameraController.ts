@@ -17,14 +17,6 @@ export function useCameraController(): I_CameraControls {
 
   const target = reactive({ x: 0, z: 0, y: 0 })
 
-  // Create Three.js camera instance
-  const instance = new THREE.PerspectiveCamera(
-    75, // FOV
-    window.innerWidth / window.innerHeight, // Aspect
-    0.1, // Near
-    1000 // Far
-  );
-
   if (config.debug.enableConsoleLog) {
     console.log('📷 [useCameraController] Camera created');
   }
@@ -55,24 +47,8 @@ export function useCameraController(): I_CameraControls {
       Math.cos(cameraAngleH.value) * cameraDistance.value * Math.cos(cameraAngleV.value);
     const offsetY = Math.sin(cameraAngleV.value) * cameraDistance.value;
 
-    instance.position.set(target.x + offsetX, offsetY + 1, target.z + offsetZ);
   });
 
-  /**
-   * Handle camera resize
-   */
-  function handleResize() {
-    instance.aspect = window.innerWidth / window.innerHeight;
-    instance.updateProjectionMatrix();
-  }
-
-  /**
-   * Start camera controls
-   */
-  function start() {
-    instance.lookAt(new THREE.Vector3(0, 1, 0));
-    instance.updateMatrixWorld(true);
-  }
 
   /**
    * Reset camera to defaults
@@ -95,14 +71,11 @@ export function useCameraController(): I_CameraControls {
 
     target.x = lookAtVector.x;
     target.z = lookAtVector.z;
-    instance.lookAt(lookAtVector);
   }
 
   // Setup resize listener (VueUse auto-destroy)
-  useEventListener('resize', handleResize);
 
   return {
-    instance,
     angle: {
       horizontal: cameraAngleH,
       vertical: cameraAngleV,
@@ -110,7 +83,6 @@ export function useCameraController(): I_CameraControls {
     distance: cameraDistance,
     isDragging: mouse.isDragging,
     target,
-    start,
     update,
     reset,
     destroy,
