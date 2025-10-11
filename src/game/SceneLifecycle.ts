@@ -1,4 +1,4 @@
-import { Object3D, Scene, Mesh } from 'three';
+import { Mesh, Object3D, Scene } from 'three';
 import type { WatchStopHandle } from 'vue';
 
 /**

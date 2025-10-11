@@ -31,11 +31,11 @@
             <Button
               v-for="theme in THEME_OPTIONS"
               :key="theme.value"
-              @click="settings.setTheme(theme.value)"
+              @click="settings.theme.setTheme(theme.value)"
               variant="ghost"
               :class="[
                 'w-10 h-10 p-0 rounded-full border-2 transition-all shrink-0 overflow-hidden',
-                settings.currentTheme === theme.value
+                settings.theme.currentTheme === theme.value
                   ? 'border-foreground ring-2 ring-ring scale-110'
                   : 'border-transparent hover:scale-105',
               ]"

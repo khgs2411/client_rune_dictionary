@@ -5,11 +5,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
+import { Engine } from '@/game/Engine';
 import { PlaygroundScene } from '@/scenes/PlaygroundScene';
-import { I_GameScene, I_SceneConfig } from '@/common/types';
-import { Engine } from '@/core/Engine';
+import { I_GameScene, I_SceneConfig } from '@/scenes/scenes.types';
+import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
+import { ref, watch } from 'vue';
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let engine: Engine | null = null;
@@ -92,7 +92,10 @@ function render() {
 }
 
 // VueUse: Animation frame loop
-const { pause: pauseRenderLoop, resume: resumeRenderLoop } = useRafFn(render, { immediate: false }); // Don't start immediately
+const { pause: pauseRenderLoop, resume: resumeRenderLoop } = useRafFn(render, {
+  immediate: false,
+  fpsLimit: undefined,
+}); // Don't start immediately
 
 // Watch window size changes and resize engine
 watch([width, height], () => {

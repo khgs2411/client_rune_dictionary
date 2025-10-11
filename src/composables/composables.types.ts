@@ -27,6 +27,7 @@ export interface I_CharacterControls extends I_GameComposable {
         startX: Ref<number>;
         startY: Ref<number>;
     };
+    getPosition: () => Vector3;
     update: (delta: number) => void;
 }
 

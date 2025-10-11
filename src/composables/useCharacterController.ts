@@ -4,6 +4,7 @@ import { useCharacterMovement } from './useCharacterMovement';
 import { useJoystick } from './useJoystick';
 import { I_CharacterControls } from './composables.types';
 import { I_CharacterControlsOptions } from '@/common/types';
+import { Vector3 } from 'three';
 
 /**
  * Main character controls composable
@@ -35,6 +36,22 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
 
     // Update jump physics
     jump.update(movement.position.y, delta);
+  }
+
+  
+  /**
+   * Returns the current position of the character as a `Vector3`.
+   * The X and Z coordinates are taken from the movement state, while the Y coordinate is fixed at 1
+   * to maintain a consistent height for lookAt operations.
+   *
+   * @returns {Vector3} The position vector with fixed height.
+   */
+  function getPosition(): Vector3 {
+    return new Vector3(
+      movement.position.x.value,
+      1, // Fixed height for lookAt
+      movement.position.z.value,
+    )
   }
 
   /**
@@ -71,6 +88,7 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
       startY: joystick.startY,
     },
 
+    getPosition,
     update,
     reset,
     destroy,

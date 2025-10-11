@@ -2,6 +2,7 @@ import { I_CharacterControlsOptions } from '@/common/types';
 import { useConfigStore } from '@/stores/config.store';
 import { I_GameCharacter } from './composables.types';
 import { useCharacterController } from './useCharacterController';
+import { Vector3 } from 'three';
 
 
 
@@ -25,6 +26,7 @@ export function useCharacter(options: I_CharacterControlsOptions): I_GameCharact
   function update(delta: number) {
     controller.update(delta);
   }
+
 
   /**
    * Reset character to defaults
