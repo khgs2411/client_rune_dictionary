@@ -1,5 +1,4 @@
 import tailwindcss from '@tailwindcss/vite';
-import { templateCompilerOptions } from '@tresjs/core';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
 import { defineConfig } from 'vite';
@@ -8,7 +7,7 @@ import topsydeUtilsPlugin from './plugins/topsyde-utils-vite-plugin';
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
   return {
-    plugins: [vue({ ...templateCompilerOptions }), tailwindcss(), topsydeUtilsPlugin()],
+    plugins: [vue(), tailwindcss(), topsydeUtilsPlugin()],
     base: command === 'serve' ? '/' : '/client_rune_dictionary/',
     server: {
       port: 8080,
@@ -32,7 +31,7 @@ export default defineConfig(({ command }) => {
       dedupe: ['three'],
     },
     optimizeDeps: {
-      exclude: ['three', '@tresjs/core', '@tresjs/cientos'],
+      exclude: ['three'],
     },
   };
 });
