@@ -6,7 +6,7 @@ import { useRxjs } from 'topsyde-utils';
  * Base class for game scenes with typed module registry support
  * Subclasses should define their own ModuleRegistry interface
  */
-export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>> {
+export abstract class BaseScene<TModuleRegistry = Record<string, I_SceneModule>> {
   protected modules: Partial<TModuleRegistry> = {};
   protected initializedModules: Set<I_SceneModule> = new Set();
   protected lifecycle: SceneLifecycle = new SceneLifecycle();
@@ -57,9 +57,9 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
   /**
    * Emit loading event with simple API
    */
-  protected loading(
+  protected loading<T>(
     event: 'start' | 'update' | 'fail',
-    data: Record<string, any> = {}
+    data: T = {} as T
   ): void {
     this.rxjs.$next(event, {
       sceneName: this.name,

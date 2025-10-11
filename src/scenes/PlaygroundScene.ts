@@ -2,7 +2,7 @@ import { SettingsStore } from '@/stores/settings.store';
 import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
 import type { Engine } from '@/game/Engine';
-import { GameScene } from '@/scenes/BaseScene';
+import { BaseScene } from '@/scenes/BaseScene';
 import { CharacterMeshModule } from '@/game/modules/CharacterMeshModule';
 import { DebugModule } from '@/game/modules/DebugModule';
 import { GroundModule } from '@/game/modules/GroundModule';
@@ -24,7 +24,7 @@ interface PlaygroundModuleRegistry {
   characterMesh: CharacterMeshModule;
 }
 
-export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> implements I_GameScene {
+export class PlaygroundScene extends BaseScene<PlaygroundModuleRegistry> implements I_GameScene {
   readonly name = 'PlaygroundScene';
   readonly engine: Engine;
 

@@ -1,32 +1,22 @@
-/**
- * Scene Loading Event Types
- */
-export type SceneLoadingEvents =
-  | 'scene:loading'
-  | 'scene:progress'
-  | 'scene:loaded'
-  | 'scene:error';
+import { I_RxjsPayload, RxjsDataType } from "topsyde-utils";
+
+
+export type SceneLoadingEvent = RxjsDataType & {
+  sceneName: string;
+  assetName?: string; // Currently loading asset
+}
 
 /**
  * Loading event payloads
  */
-export interface SceneLoadingStartPayload {
-  sceneName: string;
+export type SceneLoadingStartPayload = SceneLoadingEvent &{
   totalAssets: number;
 }
 
-export interface SceneLoadingProgressPayload {
-  sceneName: string;
+export type SceneLoadingProgressPayload = SceneLoadingEvent & {
   loaded: number;
-  url?: string; // Currently loading asset
 }
 
-export interface SceneLoadedPayload {
-  sceneName: string;
-}
-
-export interface SceneErrorPayload {
-  sceneName: string;
+export type SceneErrorPayload = SceneLoadingEvent &{
   error: string;
-  url?: string;
 }

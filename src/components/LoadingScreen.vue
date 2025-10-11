@@ -59,11 +59,10 @@
 import { ref, computed } from 'vue';
 import { useRxjs } from 'topsyde-utils';
 import type {
-  SceneLoadingEvents,
   SceneLoadingStartPayload,
   SceneLoadingProgressPayload,
-  SceneLoadedPayload,
   SceneErrorPayload,
+  SceneLoadingEvent,
 } from '@/common/events.types';
 
 // Local reactive state (updated by RxJS events)
@@ -100,14 +99,14 @@ function update(data: SceneLoadingProgressPayload) {
   const progressPercent = totalAssets.value > 0 ? (data.loaded / totalAssets.value) * 100 : 0;
   loadedAssets.value = data.loaded;
   progress.value = progressPercent;
-  currentAsset.value = data.url || '';
+  currentAsset.value = data.assetName || '';
   console.log(`⏳ [LoadingScreen] Progress: ${progressPercent.toFixed(2)}%`);
   if(progressPercent >= 100) {
     complete({ sceneName: data.sceneName });
   }
 }
 
-function complete(data: SceneLoadedPayload) {
+function complete(data: SceneLoadingEvent) {
   isLoading.value = false;
   progress.value = 100;
   const loadTime = (performance.now() - loadStartTime.value).toFixed(0);
