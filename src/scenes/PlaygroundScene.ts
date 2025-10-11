@@ -68,7 +68,7 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
     this.createDebugCube(); // Temporary debug helper
 
     console.log('   ↳ Setting up theme watchers...');
-    this.setupThemeWatchers();
+    this.setLifecycleWatchers();
 
     // Set initial camera lookAt and update matrices
     console.log('   ↳ Initializing camera position...');
@@ -116,7 +116,7 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
     console.log('✅ [PlaygroundScene] Scene cleanup complete');
   }
 
-  private setupThemeWatchers(): void {
+  private setLifecycleWatchers(): void {
     // Watch for theme changes (color theme: neutral, rose, blue, etc.)
     this.lifecycle.watch(
       watch(
