@@ -71,13 +71,13 @@
             <Slider
               v-model="jumpGravityValue"
               :min="10"
-              :max="50"
+              :max="70"
               :step="1"
               class="w-full"
               @update:model-value="updateJumpGravity" />
             <div class="flex justify-between text-xs text-muted-foreground">
               <span>Light (10)</span>
-              <span>Heavy (50)</span>
+              <span>Heavy (70)</span>
             </div>
           </div>
 
