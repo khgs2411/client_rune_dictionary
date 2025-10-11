@@ -150,26 +150,11 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
     }
   }
 
-  /**
-   * Override update to include interaction system
-   */
-  public update(delta: number): void {
-    super.update(delta);
+  protected disposeInteractableModules(m: I_InteractableModule): void {
     const interactionSystem = this.getModule('interaction');
     if (interactionSystem) {
-      interactionSystem.update(delta);
+      m.clearInteractionSystem(interactionSystem);
     }
-  }
-
-  /**
-   * Override destroy to cleanup interaction system
-   */
-  public destroy(): void {
-    const interactionSystem = this.getModule('interaction');
-    if (interactionSystem) {
-      interactionSystem.destroy();
-    }
-    super.destroy();
   }
 
   /**

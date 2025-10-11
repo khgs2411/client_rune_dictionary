@@ -59,6 +59,7 @@ export interface I_InteractableModule extends I_SceneModule {
    * Set the interaction system and auto-register all interactable objects
    */
   setInteractionSystem(system: InteractionSystemModule): void;
+  clearInteractionSystem(system: InteractionSystemModule): void;
 
   /**
    * Get all interactable objects from this module
@@ -72,7 +73,7 @@ export interface I_InteractableModule extends I_SceneModule {
 }
 
 export function IsInteractableModule(module: any): module is I_InteractableModule {
-  return typeof module.setInteractionSystem === 'function' && typeof module.getInteractableObjects === 'function';
+  return typeof module.setInteractionSystem === 'function' && typeof module.getInteractableObjects === 'function' && typeof module.clearInteractionSystem === 'function';
 }
 
 export interface I_ThemedSceneModule extends I_SceneModule {

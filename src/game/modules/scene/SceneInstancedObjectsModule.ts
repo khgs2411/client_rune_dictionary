@@ -30,7 +30,7 @@ import {
  * - InteractionEntityModule: Makes objects clickable/hoverable
  * - VisualFeedbackEntityModule: Provides visual feedback for interactions
  */
-export class SceneInstancedObjectsModule extends SceneModule implements I_ThemedSceneModule, I_InteractableModule {
+export class SceneInstancedObjectsModule extends SceneModule implements I_ThemedSceneModule {
   private objectConfigs: I_SceneObjectConfig[];
   private instancedMeshes: Map<string, InstancedMesh> = new Map();
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
@@ -88,61 +88,6 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_Themed
       material.color.setHex(hex);
     });
   }
-
-  /**
-   * Set the interaction system and auto-register all interactable objects
-   */
-  public setInteractionSystem(system: InteractionSystemModule): void {
-    this.getInteractableObjects().forEach(({ id, object, config }) => {
-      system.register(id, object, config);
-    });
-  }
-
-  /**
-   * Get all interactable objects from this module
-   * Called by setInteractionSystem to auto-register objects
-   * Note: All instances in an InstancedMesh group share the same interaction config
-   */
-  public getInteractableObjects(): Array<{
-    id: string;
-    object: Object3D;
-    config: I_InteractionEntityConfig;
-  }> {
-    const interactables: Array<{
-      id: string;
-      object: Object3D;
-      config: I_InteractionEntityConfig;
-    }> = [];
-
-    // Group objects by their interaction config
-    const groups = this.groupObjects();
-
-    groups.forEach((configs, groupKey) => {
-      const firstConfig = configs[0];
-
-      if (firstConfig.interactive) {
-        const instancedMesh = this.instancedMeshes.get(groupKey);
-
-        if (instancedMesh) {
-          interactables.push({
-            id: `scene-object-${groupKey}`,
-            object: instancedMesh,
-            config: firstConfig.interaction || {
-              hoverable: true,
-              clickable: true,
-              tooltip: {
-                title: `${firstConfig.geometry.type} obstacle`,
-                description: 'A scene object',
-              },
-            },
-          });
-        }
-      }
-    });
-
-    return interactables;
-  }
-
 
   private addToScene(context: I_ModuleContext, instancedMesh: InstancedMesh) {
     context.scene.add(instancedMesh);

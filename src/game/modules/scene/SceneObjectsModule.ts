@@ -115,6 +115,12 @@ export class SceneObjectsModule extends SceneModule implements I_ThemedSceneModu
     });
   }
 
+  public clearInteractionSystem(system: InteractionSystemModule): void {
+    this.getInteractableObjects().forEach(({ id }) => {
+      system.unregister(id);
+    });
+  }
+
   /**
    * Get all interactable objects from this module
    * Called by setInteractionSystem to auto-register objects

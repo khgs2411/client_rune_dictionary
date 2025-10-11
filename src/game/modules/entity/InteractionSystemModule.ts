@@ -1,5 +1,4 @@
-import { EntityModule } from '@/game/EntityModule';
-import { I_ModuleContext } from '@/scenes/scenes.types';
+import { I_ModuleContext, I_UpdateableModule } from '@/scenes/scenes.types';
 import { InteractionEntityModule } from './InteractionEntityModule';
 import { VisualFeedbackEntityModule } from './VisualFeedbackEntityModule';
 import type { I_InteractionEntityConfig } from './interaction.types';
@@ -11,7 +10,7 @@ import SceneModule from '@/game/SceneModule';
  * Unified module that handles both interaction detection and visual feedback
  * Combines InteractionEntityModule and VisualFeedbackEntityModule into a single interface
  */
-export class InteractionSystemModule extends SceneModule {
+export class InteractionSystemModule extends SceneModule implements I_UpdateableModule {
   private interaction = new InteractionEntityModule();
   private visualFeedback = new VisualFeedbackEntityModule();
 
@@ -22,29 +21,29 @@ export class InteractionSystemModule extends SceneModule {
   async start(context: I_ModuleContext): Promise<void> {
     await this.interaction.start(context);
     await this.visualFeedback.start(context);
-    this.initialized(context.sceneName)
+    this.initialized(context.sceneName);
   }
 
   /**
    * Register an object as interactable
    */
-  register(id: string, object: Object3D, config: I_InteractionEntityConfig): void {
+  public register(id: string, object: Object3D, config: I_InteractionEntityConfig): void {
     this.interaction.register(id, object, config);
   }
 
   /**
    * Unregister an interactable object
    */
-  unregister(id: string): void {
+  public unregister(id: string): void {
     this.interaction.unregister(id);
   }
 
-  update(_delta?: number): void {
+  public update(delta: number, ...args: any[]): void {
     this.interaction.update();
     this.visualFeedback.update();
   }
 
-  async destroy(): Promise<void> {
+  public async destroy(): Promise<void> {
     await this.interaction.destroy();
     await this.visualFeedback.destroy();
   }

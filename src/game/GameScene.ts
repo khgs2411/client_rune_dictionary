@@ -64,6 +64,10 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
     this.sceneEvents.$subscribe({
       complete: (data: SceneLoadedPayload) => {
         if (data.sceneName !== this.name) return;
+
+        // Register interactable objects AFTER all modules are loaded
+        this.setupEveryInteractableModule();
+
         this.modulesLoaded = true;
         this.enabled = this.modulesLoaded;
       },
@@ -85,7 +89,6 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
     this.initializeComposables();
     this.registerModules();
     this.addSceneObjects();
-    this.forEachInteractableModule();
     this.startModuleLoading();
     this.finalizeSetup();
 
@@ -132,13 +135,22 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
   }
 
 
-  private forEachInteractableModule(): void {
+  private setupEveryInteractableModule(): void {
+    console.log(`🔗 [${this.name}] Setting up ${this.interactableModules.size} interactable modules...`);
     this.interactableModules.forEach((module) => {
       this.setupInteractableModules(module);
     });
   }
 
+  private disposeEveryInteractableModule(): void {
+    console.log(`🔗 [${this.name}] Disposing ${this.interactableModules.size} interactable modules...`);
+    this.interactableModules.forEach((module) => {
+      this.disposeInteractableModules(module);
+    });
+  }
+
   protected abstract setupInteractableModules(m:I_InteractableModule): void
+  protected abstract disposeInteractableModules(m:I_InteractableModule): void
 
 
   /**
@@ -241,6 +253,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
 
     this.character.destroy();
     this.camera.destroy();
+    this.disposeEveryInteractableModule();
     this.forEachModule((m) => m.destroy());
     this.lifecycle.cleanup(this.engine.scene);
 
