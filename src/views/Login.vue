@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import AuthAPI from '@/api/auth.api';
@@ -70,8 +70,8 @@ const router = useRouter();
 const authStore = useAuthStore();
 
 // Form state
-const username = ref(import.meta.env.DEV ? 'tal' : '');
-const password = ref(import.meta.env.DEV ? 'Aa123123' : '');
+const username = computed(() => authStore.username);
+const password = computed(() => authStore.password);
 const isLoading = ref(false);
 const errorMessage = ref('');
 
