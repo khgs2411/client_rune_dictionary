@@ -69,7 +69,7 @@ import type {
 // Local reactive state (updated by RxJS events)
 const isLoading = ref(false);
 const progress = ref(0);
-const predefinedAssets = ref(1);
+const predefinedAssets = ref(0);
 const loadedAssets = ref(0);
 const totalAssets = ref(predefinedAssets.value);
 const currentAsset = ref('');
