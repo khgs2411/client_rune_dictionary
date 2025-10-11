@@ -100,6 +100,7 @@ export class PlaygroundScene extends BaseScene<PlaygroundModuleRegistry> impleme
 
     // Init all modules with progress tracking (simulated delay for loading screen testing)
     let loadedModules = 0;
+    
     this.forEachModule((m) => {
       const currentModule = loadedModules; // Capture current value
       setTimeout(() => {
