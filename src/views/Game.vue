@@ -9,8 +9,6 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import * as THREE from 'three';
 import { PlaygroundScene } from '@/scenes/PlaygroundScene';
 
-
-
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 
 let scene: THREE.Scene;
@@ -110,6 +108,17 @@ function cleanup() {
   console.log('✅ [GameThree] Cleanup complete');
 }
 
+/**
+ * Handle hot module replacement (HMR) cleanup for the game scene.
+ */
+function onHotReload() {
+  if (import.meta.hot) {
+    import.meta.hot.dispose(() => {
+      cleanup();
+    });
+  }
+}
+
 onMounted(() => {
   init();
   window.addEventListener('resize', handleResize);
@@ -119,12 +128,7 @@ onUnmounted(() => {
   cleanup();
 });
 
-// HMR support
-if (import.meta.hot) {
-  import.meta.hot.dispose(() => {
-    cleanup();
-  });
-}
+onHotReload();
 </script>
 
 <style scoped>
