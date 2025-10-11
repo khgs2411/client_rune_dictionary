@@ -19,6 +19,11 @@ export interface SceneErrorPayload extends SceneLoadingEvent {
   error: string;
 }
 
+export interface SceneLoadedPayload extends SceneLoadingEvent {
+  loadTime: number; // in ms
+  progress: number; // final progress (should be 100)
+}
+
 /**
  * Module Loading Events (module-level progress)
  * Emitted by individual modules when they complete initialization

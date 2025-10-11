@@ -63,6 +63,7 @@ import type {
   SceneLoadingProgressPayload,
   SceneErrorPayload,
   SceneLoadingEvent,
+  SceneLoadedPayload,
 } from '@/common/events.types';
 
 // Local reactive state (updated by RxJS events)
@@ -78,7 +79,7 @@ const loadStartTime = ref(0);
 const loadingPercentage = computed(() => `${Math.round(progress.value)}%`);
 const isComplete = computed(() => progress.value >= 100 && !isLoading.value);
 
-useRxjs('scene:loading', {
+const events = useRxjs('scene:loading', {
   start,
   loaded: update,
   fail,
@@ -101,9 +102,7 @@ function update(data: SceneLoadingProgressPayload) {
   progress.value = progressPercent;
   currentAsset.value = data.assetName || '';
   console.log(`⏳ [LoadingScreen] Progress: ${progressPercent.toFixed(2)}%`);
-  if (progressPercent >= 100) {
-    complete({ sceneName: data.sceneName });
-  }
+  if (progressPercent >= 100) complete({ sceneName: data.sceneName });
 }
 
 function complete(data: SceneLoadingEvent) {
@@ -111,6 +110,7 @@ function complete(data: SceneLoadingEvent) {
   progress.value = 100;
   const loadTime = (performance.now() - loadStartTime.value).toFixed(0);
   console.log(`✅ [LoadingScreen] ${data.sceneName} loaded in ${loadTime}ms`);
+  events.$next('complete', { ...data, loadTime: Number(loadTime), progress: progress.value });
 }
 
 function fail(data: SceneErrorPayload) {

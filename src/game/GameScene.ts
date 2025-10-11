@@ -7,6 +7,7 @@ import {
   SceneLoadingProgressPayload,
   SceneLoadingStartPayload,
   ModuleLoadingProgressPayload,
+  SceneLoadedPayload,
 } from '@/common/events.types';
 import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
@@ -20,24 +21,26 @@ import type { SettingsStore } from '@/stores/settings.store';
  * Subclasses only need to override scene-specific logic
  */
 export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>> {
+  private enabled = false;
   protected modules: Partial<TModuleRegistry> = {};
   protected initializedModules: Set<I_SceneModule> = new Set();
   protected moduleNames: Map<I_SceneModule, string> = new Map();
   protected lifecycle: SceneLifecycle = new SceneLifecycle();
-  protected rxjs = useRxjs('scene:loading');
-  protected moduleLoadingRxjs = useRxjs('module:loading');
+  protected sceneEvents = useRxjs('scene:loading');
+  protected moduleEvents = useRxjs('module:loading');
 
   // High-level entity composables
-  public camera!: ReturnType<typeof useCamera>;
   protected character!: ReturnType<typeof useCharacter>;
   protected settings!: SettingsStore;
+
+  public camera!: ReturnType<typeof useCamera>;
 
   // Engine instance (set by subclass constructor)
   public abstract readonly engine: Engine;
 
   constructor() {
     // Subscribe to module loading events
-    this.moduleLoadingRxjs.$subscribe({
+    this.moduleEvents.$subscribe({
       loaded: (data: ModuleLoadingProgressPayload) => {
         if (data.sceneName !== this.name) return;
 
@@ -49,6 +52,13 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
             break;
           }
         }
+      },
+    });
+
+    this.sceneEvents.$subscribe({
+      complete: (data: SceneLoadedPayload) => {
+        if (data.sceneName !== this.name) return;
+        this.enabled = true;
       },
     });
   }
@@ -106,7 +116,7 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
     event: 'start' | 'loaded' | 'fail',
     data: T
   ): void {
-    this.rxjs.$next(event, { sceneName: this.name, ...data });
+    this.sceneEvents.$next(event, { sceneName: this.name, ...data });
   }
 
   /**
@@ -172,6 +182,7 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
    * Can be overridden for custom update order
    */
   public update(delta: number): void {
+    if (!this.enabled) return;
     this.character.update(delta);
     this.camera.update(this.character.controller.getPosition());
     this.forEachInitializedModule((m) => m.update(delta));
