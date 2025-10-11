@@ -1,17 +1,20 @@
 import { ref, watchEffect } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import * as THREE from 'three';
-import { I_CameraControlsOptions, I_CameraControls } from '@/common/types';
+import { useConfigStore } from '@/stores/config.store';
 import { useCameraRotation } from './useCameraRotation';
 import { useCameraZoom } from './useCameraZoom';
 import { useCameraMouseInput } from './useCameraMouseInput';
 import { useCameraTouchInput } from './useCameraTouchInput';
+import { I_CameraControls, I_CameraControlsOptions } from './composables.types';
 
 /**
  * Main camera controls composable
  * Orchestrates rotation, zoom, mouse, and touch composables
  */
-export function useCameraControls(options: I_CameraControlsOptions = {}): I_CameraControls {
+export function useCameraController(options: I_CameraControlsOptions = {}): I_CameraControls {
+  const config = useConfigStore();
+
   const target = options.target || {
     x: ref(0),
     z: ref(0),
@@ -25,16 +28,25 @@ export function useCameraControls(options: I_CameraControlsOptions = {}): I_Came
     1000 // Far
   );
 
-  console.log('📷 [useCameraController] Camera created');
+  if (config.debug.enableConsoleLog) {
+    console.log('📷 [useCameraController] Camera created');
+  }
 
-  // Camera state
-  const cameraDistance = ref(10);
-  const cameraAngleH = ref(0); // Horizontal rotation around player
-  const cameraAngleV = ref(0.4); // Vertical angle (0 = level, PI/2 = top-down)
+  // Camera state from config
+  const cameraDistance = ref(config.camera.initialDistance);
+  const cameraAngleH = ref(config.camera.initialAngleH);
+  const cameraAngleV = ref(config.camera.initialAngleV);
 
-  // Compose smaller, focused composables
-  const rotation = useCameraRotation(cameraAngleH, cameraAngleV);
-  const zoom = useCameraZoom(cameraDistance);
+  // Compose smaller, focused composables (pass config sensitivity/limits)
+  const rotation = useCameraRotation(
+    cameraAngleH,
+    cameraAngleV,
+    { h: config.camera.mouseSensitivityH, v: config.camera.mouseSensitivityV }
+  );
+  const zoom = useCameraZoom(
+    cameraDistance,
+    { min: config.camera.zoomMin, max: config.camera.zoomMax }
+  );
   const mouse = useCameraMouseInput(rotation, zoom);
   useCameraTouchInput(rotation, zoom); // Side effects only
 
@@ -69,9 +81,9 @@ export function useCameraControls(options: I_CameraControlsOptions = {}): I_Came
    * Reset camera to defaults
    */
   function reset() {
-    cameraDistance.value = 10;
-    cameraAngleH.value = 0;
-    cameraAngleV.value = 0.4;
+    cameraDistance.value = config.camera.initialDistance;
+    cameraAngleH.value = config.camera.initialAngleH;
+    cameraAngleV.value = config.camera.initialAngleV;
   }
 
   /**
@@ -82,8 +94,11 @@ export function useCameraControls(options: I_CameraControlsOptions = {}): I_Came
     mouse.isDragging.value = false;
   }
 
-  function update(target: THREE.Vector3) { 
-    instance.lookAt(target);
+  function update(lookAtVector: THREE.Vector3) { 
+
+    target.x.value = lookAtVector.x;
+    target.z.value = lookAtVector.z;
+    instance.lookAt(lookAtVector);
   }
 
   // Setup resize listener (VueUse auto-destroy)
@@ -98,6 +113,7 @@ export function useCameraControls(options: I_CameraControlsOptions = {}): I_Came
     distance: cameraDistance,
     isDragging: mouse.isDragging,
     target,
+    start,
     update,
     reset,
     destroy,

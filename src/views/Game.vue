@@ -84,7 +84,7 @@ function render() {
   currentScene.update(delta);
 
   // Render
-  engine.render(currentScene.camera);
+  engine.render(currentScene.camera.instance);
 }
 
 // VueUse: Animation frame loop

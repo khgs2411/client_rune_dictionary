@@ -27,10 +27,33 @@ export const useConfigStore = defineStore('config', () => {
         respawnPosition: { x: 0, y: 0, z: 0 }, // Position to respawn at
     })
 
+    const camera = reactive({
+        // Initial camera position
+        initialDistance: 10, // Distance from target
+        initialAngleH: 0, // Initial horizontal angle (radians)
+        initialAngleV: 0.4, // Initial vertical angle (radians)
 
+        // Camera rotation sensitivity
+        mouseSensitivityH: 0.005, // Horizontal mouse sensitivity
+        mouseSensitivityV: 0.005, // Vertical mouse sensitivity
+        touchSensitivityMultiplier: 2, // Touch sensitivity multiplier (compared to mouse)
+
+        // Camera zoom limits
+        zoomMin: 5, // Minimum zoom distance
+        zoomMax: 20, // Maximum zoom distance
+
+        // Camera angle limits
+        angleVMin: 0.1, // Minimum vertical angle (prevent looking straight down)
+        angleVMax: Math.PI / 2 - 0.1, // Maximum vertical angle (prevent looking straight up)
+    })
+
+    const debug = reactive({
+        enableConsoleLog: true, // Enable/disable console logs
+    })
 
     return {
-        character: character,
-
+        character,
+        camera,
+        debug,
     }
 });

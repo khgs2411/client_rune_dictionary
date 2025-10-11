@@ -1,5 +1,5 @@
-import { useCameraControls } from '@/composables/useCameraController';
-import { useCharacterControls } from '@/composables/useCharacterController';
+import { useCameraController } from '@/composables/useCameraController';
+import { useCharacterController } from '@/composables/useCharacterController';
 import { rgbToHex } from '@/composables/useTheme';
 import type { Engine, I_GameScene } from '@/core/Engine';
 import { useSettingsStore } from '@/stores/settings.store';
@@ -15,8 +15,7 @@ export class PlaygroundScene implements I_GameScene {
   private settings!: ReturnType<typeof useSettingsStore>;
 
   // Use existing composables
-  private camera$!: ReturnType<typeof useCameraControls>;
-  private character$!: ReturnType<typeof useCharacterControls>;
+  private character$!: ReturnType<typeof useCharacterController>;
 
   // Three.js objects
   private character!: THREE.Group;
@@ -28,8 +27,8 @@ export class PlaygroundScene implements I_GameScene {
   // Scene state
   private objects: THREE.Mesh[] = [];
   private watchers: WatchStopHandle[] = [];
+  public camera!: ReturnType<typeof useCameraController>;
 
-  public camera!: THREE.Camera;
 
 
   constructor(config: I_SceneConfig) {
@@ -44,12 +43,11 @@ export class PlaygroundScene implements I_GameScene {
     this.settings = useSettingsStore();
 
     // Initialize camera composable and expose instance
-    this.camera$ = useCameraControls();
-    this.camera = this.camera$.instance;
+    this.camera = useCameraController();
 
     // Initialize character with camera angle
-    this.character$ = useCharacterControls({
-      cameraAngleH: this.camera$.angle.horizontal,
+    this.character$ = useCharacterController({
+      cameraAngleH: this.camera.angle.horizontal,
     });
 
     this.setupLighting();
@@ -60,7 +58,7 @@ export class PlaygroundScene implements I_GameScene {
     this.setupThemeWatchers();
 
     // Set initial camera lookAt and update matrices
-    this.camera$.start?.();
+    this.camera.start();
 
     console.log('✅ [PlaygroundScene] Initialized');
   }
@@ -70,11 +68,6 @@ export class PlaygroundScene implements I_GameScene {
     // Update character controller
     this.character$.update(delta);
 
-    // Update camera target to follow character
-    this.camera$.target.x.value = this.character$.position.x.value;
-    this.camera$.target.z.value = this.character$.position.z.value;
-
-    // Camera position is auto-updated by composable!
     // Just update lookAt target
     const lookAtTarget = new THREE.Vector3(
       this.character$.position.x.value,
@@ -82,7 +75,7 @@ export class PlaygroundScene implements I_GameScene {
       this.character$.position.z.value
     );
 
-    this.camera$.update(lookAtTarget);
+    this.camera.update(lookAtTarget);
 
     // Sync Three.js character mesh with composable state
     this.character.position.set(
@@ -102,7 +95,7 @@ export class PlaygroundScene implements I_GameScene {
 
     // Cleanup composables
     this.character$.destroy();
-    this.camera$.destroy();
+    this.camera.destroy();
 
     // Remove objects from scene
     this.engine.scene.remove(this.character);

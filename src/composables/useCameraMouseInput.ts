@@ -1,5 +1,6 @@
 import { ref, type Ref } from 'vue';
 import { useEventListener, usePointerLock } from '@vueuse/core';
+import { useConfigStore } from '@/stores/config.store';
 import type { CameraRotation } from './useCameraRotation';
 import type { CameraZoom } from './useCameraZoom';
 
@@ -15,6 +16,7 @@ export function useCameraMouseInput(
   rotation: CameraRotation,
   zoom: CameraZoom
 ): CameraMouseInput {
+  const config = useConfigStore();
   const isDragging = ref(false);
 
   // Create a ref for document.body to use with usePointerLock
@@ -36,9 +38,11 @@ export function useCameraMouseInput(
 
       // Request pointer lock for MMO-style camera (hides cursor)
       if (isSupported.value) {
-        console.log('🔒 [CameraMouseInput] Requesting pointer lock...');
+        if (config.debug.enableConsoleLog) {
+          console.log('🔒 [CameraMouseInput] Requesting pointer lock...');
+        }
         lock(e);
-      } else {
+      } else if (config.debug.enableConsoleLog) {
         console.warn('⚠️ [CameraMouseInput] Pointer lock not supported');
       }
     }
@@ -62,7 +66,9 @@ export function useCameraMouseInput(
       isDragging.value = false;
 
       // Exit pointer lock (show cursor)
-      console.log('🔓 [CameraMouseInput] Releasing pointer lock...');
+      if (config.debug.enableConsoleLog) {
+        console.log('🔓 [CameraMouseInput] Releasing pointer lock...');
+      }
       unlock();
     }
   }

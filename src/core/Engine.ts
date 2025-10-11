@@ -1,9 +1,10 @@
+import { useCameraController } from '@/composables/useCameraController';
 import * as THREE from 'three';
 import { Lib } from 'topsyde-utils';
 
 export interface I_GameScene {
   readonly name: string;
-  readonly camera: THREE.Camera;
+  readonly camera: ReturnType<typeof useCameraController>
   readonly engine: Engine;
 
   /**

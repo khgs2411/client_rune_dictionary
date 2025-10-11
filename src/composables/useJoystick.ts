@@ -27,40 +27,30 @@ export function useJoystick(): JoystickState {
   const startY = ref(0);
   const touchId = ref<number | null>(null);
 
-  // Computed normalized input values
-  const inputX = computed(() => {
-    if (!active.value) return 0;
+  // Computed normalized input values (optimized to calculate distance once)
+  const joystickInput = computed(() => {
+    if (!active.value) return { x: 0, z: 0 };
 
     const dx = x.value - startX.value;
     const dy = y.value - startY.value;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     // Apply dead zone
-    if (distance <= config.character.joystickDeadZone) return 0;
+    if (distance <= config.character.joystickDeadZone) return { x: 0, z: 0 };
 
     // Clamp and normalize
     const clampedDistance = Math.min(distance, config.character.joystickMaxDistance);
     const normalizedDx = (dx / distance) * clampedDistance;
-
-    return normalizedDx / config.character.joystickMaxDistance;
-  });
-
-  const inputZ = computed(() => {
-    if (!active.value) return 0;
-
-    const dx = x.value - startX.value;
-    const dy = y.value - startY.value;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    // Apply dead zone
-    if (distance <= config.character.joystickDeadZone) return 0;
-
-    // Clamp and normalize
-    const clampedDistance = Math.min(distance, config.character.joystickMaxDistance);
     const normalizedDy = (dy / distance) * clampedDistance;
 
-    return normalizedDy / config.character.joystickMaxDistance;
+    return {
+      x: normalizedDx / config.character.joystickMaxDistance,
+      z: normalizedDy / config.character.joystickMaxDistance,
+    };
   });
+
+  const inputX = computed(() => joystickInput.value.x);
+  const inputZ = computed(() => joystickInput.value.z);
 
   // Touch handlers
   function onTouchStart(e: TouchEvent) {

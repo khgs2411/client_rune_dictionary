@@ -1,17 +1,21 @@
 import { ref } from 'vue';
 import { useEventListener } from '@vueuse/core';
+import { useConfigStore } from '@/stores/config.store';
 import type { CameraRotation } from './useCameraRotation';
 import type { CameraZoom } from './useCameraZoom';
+
+export interface CameraTouchInput {}
 
 /**
  * Camera touch input composable
  * Handles touch-based camera controls (rotation, pinch zoom)
- * Note: Returns empty object as it only produces side effects
  */
 export function useCameraTouchInput(
   rotation: CameraRotation,
   zoom: CameraZoom
-) {
+): CameraTouchInput {
+  const config = useConfigStore();
+
   // Touch-specific state
   const isTouchDragging = ref(false);
   const touchStartX = ref(0);
@@ -24,11 +28,17 @@ export function useCameraTouchInput(
   function onTouchStart(e: TouchEvent) {
     if (e.touches.length === 1) {
       // Single finger - camera rotation
+      e.preventDefault();
+      e.stopPropagation();
+
       isTouchDragging.value = true;
       touchStartX.value = e.touches[0].clientX;
       touchStartY.value = e.touches[0].clientY;
     } else if (e.touches.length === 2) {
       // Two fingers - pinch to zoom
+      e.preventDefault();
+      e.stopPropagation();
+
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       lastTouchDistance.value = Math.sqrt(dx * dx + dy * dy);
@@ -44,8 +54,11 @@ export function useCameraTouchInput(
       const deltaX = e.touches[0].clientX - touchStartX.value;
       const deltaY = e.touches[0].clientY - touchStartY.value;
 
-      // Update rotation (2x multiplier for better touch sensitivity)
-      rotation.update(deltaX * 2, deltaY * 2);
+      // Update rotation (use touch sensitivity from config)
+      rotation.update(
+        deltaX * config.camera.touchSensitivityMultiplier,
+        deltaY * config.camera.touchSensitivityMultiplier
+      );
 
       // Update touch start position for next frame
       touchStartX.value = e.touches[0].clientX;

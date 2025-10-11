@@ -1,25 +1,29 @@
-import { I_CharacterControls, I_CharacterControlsOptions } from '@/common/types';
+import { useConfigStore } from '@/stores/config.store';
 import { useCharacterJump } from './useCharacterJump';
 import { useCharacterMovement } from './useCharacterMovement';
 import { useJoystick } from './useJoystick';
-
-
+import { I_CharacterControls, I_CharacterControlsOptions } from './composables.types';
 
 /**
  * Main character controls composable
  * Orchestrates movement, jump, and joystick composables
  */
-export function useCharacterControls(options: I_CharacterControlsOptions): I_CharacterControls {
+export function useCharacterController(options: I_CharacterControlsOptions): I_CharacterControls {
+  const config = useConfigStore();
   const { cameraAngleH } = options;
 
-  console.log('🎮 [Character] Initializing...');
+  if (config.debug.enableConsoleLog) {
+    console.log('🎮 [Character] Initializing...');
+  }
 
   // Compose smaller, focused composables
   const joystick = useJoystick();
   const jump = useCharacterJump();
   const movement = useCharacterMovement();
 
-  console.log('✅ [Character] Initialized');
+  if (config.debug.enableConsoleLog) {
+    console.log('✅ [Character] Initialized');
+  }
 
   /**
    * Update character state (call every frame)
@@ -49,9 +53,13 @@ export function useCharacterControls(options: I_CharacterControlsOptions): I_Cha
    * Cleanup (VueUse composables handle auto-cleanup)
    */
   function destroy() {
-    console.log('🧹 [Character] Starting cleanup...');
+    if (config.debug.enableConsoleLog) {
+      console.log('🧹 [Character] Starting cleanup...');
+    }
     reset();
-    console.log('✅ [Character] Cleanup complete');
+    if (config.debug.enableConsoleLog) {
+      console.log('✅ [Character] Cleanup complete');
+    }
   }
 
   return {
