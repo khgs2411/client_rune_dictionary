@@ -22,7 +22,7 @@ export class CharacterMeshModule extends BaseModule implements I_ThemedSceneModu
     this.characterController = characterController;
   }
 
-  start(context: I_ModuleContext): void {
+  async start(context: I_ModuleContext): Promise<void> {
     // Simulate async loading delay (for testing loading screen)
       this.mesh = new Group();
 
@@ -67,7 +67,7 @@ export class CharacterMeshModule extends BaseModule implements I_ThemedSceneModu
     this.mesh.rotation.y = this.characterController.rotation.value;
   }
 
-  destroy(): void {
+  async destroy(): Promise<void> {
     // Lifecycle handles cleanup
   }
 

@@ -17,7 +17,7 @@ export class GroundModule extends BaseModule implements I_SceneModule {
     this.settings = settings;
   }
 
-  start(context: I_ModuleContext): void {
+  async start(context: I_ModuleContext): Promise<void> {
     // Simulate async loading delay (for testing loading screen)
       // Create ground plane
       const geometry = new PlaneGeometry(100, 100);
@@ -47,7 +47,7 @@ export class GroundModule extends BaseModule implements I_SceneModule {
     // Static ground, nothing to update
   }
 
-  destroy(): void {
+  async destroy(): Promise<void> {
     // Lifecycle handles cleanup
   }
 

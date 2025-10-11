@@ -63,7 +63,7 @@ export class SceneObjectsModule extends BaseModule implements I_ThemedSceneModul
     this.objectConfigs = objectConfigs;
   }
 
-  start(context: I_ModuleContext): void {
+ async start(context: I_ModuleContext): Promise<void> {
     // Simulate async loading delay (for testing loading screen)
       // Group objects by geometry + material properties
       const groups = this.groupObjects();
@@ -116,7 +116,7 @@ export class SceneObjectsModule extends BaseModule implements I_ThemedSceneModul
     // Static objects, nothing to update
   }
 
-  destroy(): void {
+  async destroy(): Promise<void> {
     // Lifecycle handles cleanup
     this.themedMaterials = [];
     this.instancedMeshes.clear();

@@ -18,7 +18,7 @@ export class LightingModule extends BaseModule implements I_SceneModule {
   }
 
 
-  start(context: I_ModuleContext): void {
+  async start(context: I_ModuleContext): Promise<void> {
     // Simulate async loading delay (for testing loading screen)
       // Ambient light
       const ambientLight = new AmbientLight(0xffffff, 0.5);
@@ -56,7 +56,7 @@ export class LightingModule extends BaseModule implements I_SceneModule {
     // Optional: animate lights if needed
   }
 
-  destroy(): void {
+  async destroy(): Promise<void> {
     // Lifecycle handles cleanup
     this.lights = [];
   }

@@ -32,9 +32,9 @@ export interface I_SceneConfig {
 }
 
 export interface I_SceneModule {
-  start(context: I_ModuleContext): void;
+  start(context: I_ModuleContext): Promise<void>;
   update(delta: number): void;
-  destroy(): void;
+  destroy(): Promise<void>;
 }
 
 export interface I_ThemedSceneModule extends I_SceneModule {

@@ -12,7 +12,7 @@ export class DebugModule extends BaseModule implements I_SceneModule {
   constructor() {
     super('debug');
   }
-  start(context: I_ModuleContext): void {
+  async start(context: I_ModuleContext): Promise<void> {
     // Simulate async loading delay (for testing loading screen)
     // Bright red cube for debugging camera view
     const geometry = new BoxGeometry(2, 2, 2);
@@ -31,7 +31,8 @@ export class DebugModule extends BaseModule implements I_SceneModule {
     // Static debug cube, nothing to update
   }
 
-  destroy(): void {
+  destroy(): Promise<void> {
     // Lifecycle handles cleanup
+    return Promise.resolve();
   }
 }
