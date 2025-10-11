@@ -9,15 +9,17 @@ import {
 } from '@/composables/useWebSocketConnection';
 
 // Props (optional - for flexibility)
-interface Props {
-  autoConnect?: boolean; // Auto-connect on mount (default: true)
-  autoDisconnect?: boolean; // Auto-disconnect on unmount (default: true)
-}
 
-const props = withDefaults(defineProps<Props>(), {
-  autoConnect: true,
-  autoDisconnect: true,
-});
+const props = withDefaults(
+  defineProps<{
+    autoConnect?: boolean; // Auto-connect on mount (default: true)
+    autoDisconnect?: boolean; // Auto-disconnect on unmount (default: true)
+  }>(),
+  {
+    autoConnect: true,
+    autoDisconnect: true,
+  },
+);
 
 const auth = useAuthStore();
 const wsStore = useWebSocketStore();

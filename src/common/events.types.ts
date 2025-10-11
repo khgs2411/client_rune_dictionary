@@ -37,3 +37,11 @@ export interface ModuleLoadingProgressPayload extends ModuleLoadingEvent {
   progress?: number; // Optional: 0-100
   assetName?: string; // Optional: currently loading asset
 }
+
+
+
+export interface I_DebugConsoleEvent {
+  type: string;
+  data: any;
+  timestamp: string;
+}

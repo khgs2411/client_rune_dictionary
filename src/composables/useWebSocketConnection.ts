@@ -4,7 +4,7 @@ import { useWebSocketStore, type I_ClientData } from '@/stores/websocket.store';
 import AuthAPI from '@/api/auth.api';
 import { useGameConfig } from '@/stores/gameConfig.store';
 import { useRxjs, WebsocketStructuredMessage } from 'topsyde-utils';
-import { I_DebugConsoleEvent } from '@/components/DebugConsole.vue';
+import { I_DebugConsoleEvent } from '@/common/events.types';
 
 export interface I_HandshakeCredentials {
 	username: string;
@@ -18,46 +18,17 @@ export const useWebSocketConnection = () => {
 	const wsStore = useWebSocketStore();
 	const config = useGameConfig();
 	const rx = useRxjs(['debug', 'ws']);
+	const HEARTBEAT_INTERVAL = 5;
 
 	// Hold the VueUse useWebSocket instance
 	let wsInstance: ReturnType<typeof useWebSocket> | null = null;
 
 
 	/**
-	 * Establishes WebSocket connection with handshake authentication
-	 * 1. Performs handshake to get client credentials
-	 * 2. Connects to WebSocket with credentials in protocol header
-	 */
-	async function connect(credentials: I_HandshakeCredentials) {
-		if (wsStore.isConnecting || wsStore.isConnected) {
-			console.warn('[WS] Already connected or connecting');
-			return;
-		}
-
-		try {
-			// Step 1: Handshake
-			wsStore.status = 'handshaking';
-			const clientData = await performHandshake(credentials);
-
-			// Step 2: Store client data
-			wsStore.setClientData(clientData);
-
-			// Step 3: Establish WebSocket connection
-			wsStore.status = 'connecting';
-			establishConnection(clientData);
-		} catch (error) {
-			wsStore.status = 'disconnected';
-			wsStore.lastError = error;
-			console.error('[WS] Connection failed:', error);
-			throw error;
-		}
-	}
-
-	/**
 	 * Establishes WebSocket connection with VueUse useWebSocket
 	 * Configures auto-reconnect and heartbeat
 	 */
-	function establishConnection(clientData: I_ClientData) {
+	function connection(clientData: I_ClientData) {
 		// Build WebSocket subprotocol: "{id}-{username}"
 		const protocol = `${clientData.id}-${clientData.name}`;
 
@@ -82,8 +53,8 @@ export const useWebSocketConnection = () => {
 
 			// Heartbeat (ping/pong)
 			heartbeat: {
-				interval: 20000, // 20 seconds
-				pongTimeout: 20000,
+				interval: HEARTBEAT_INTERVAL * 1000,
+				pongTimeout: HEARTBEAT_INTERVAL * 1000,
 				message: 'ping',
 			},
 
@@ -93,6 +64,37 @@ export const useWebSocketConnection = () => {
 			onMessage: handleMessage,
 			onError: handleError,
 		});
+	}
+
+
+	/**
+	 * Establishes WebSocket connection with handshake authentication
+	 * 1. Performs handshake to get client credentials
+	 * 2. Connects to WebSocket with credentials in protocol header
+	 */
+	async function connect(credentials: I_HandshakeCredentials) {
+		if (wsStore.isConnecting || wsStore.isConnected) {
+			console.warn('[WS] Already connected or connecting');
+			return;
+		}
+
+		try {
+			// Step 1: Handshake
+			wsStore.status = 'handshaking';
+			const clientData = await performHandshake(credentials);
+
+			// Step 2: Store client data
+			wsStore.setClientData(clientData);
+
+			// Step 3: Establish WebSocket connection
+			wsStore.status = 'connecting';
+			connection(clientData);
+		} catch (error) {
+			wsStore.status = 'disconnected';
+			wsStore.lastError = error;
+			console.error('[WS] Connection failed:', error);
+			throw error;
+		}
 	}
 
 
@@ -204,7 +206,7 @@ export const useWebSocketConnection = () => {
 	function emit(event: Omit<I_DebugConsoleEvent, 'timestamp'>) {
 		if (!config.debug.showWebSocketDebugger) return;
 		console.log('[WS Debug]', event);
-		rx.$next('debug', { cta: 'message', data: { ...event, timestamp: new Date().toLocaleTimeString() } });
+		rx.$next('debug', { cta: 'log', data: { ...event, timestamp: new Date().toLocaleTimeString() } });
 	}
 
 
