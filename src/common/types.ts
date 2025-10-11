@@ -1,5 +1,5 @@
 import { Engine } from "@/core/Engine";
-import { Ref } from "vue";
+import { Reactive, Ref } from "vue";
 
 export interface I_SceneConfig {
     engine: Engine
@@ -8,7 +8,9 @@ export interface I_SceneConfig {
 
 
 
-export type TargetPosition = {
-    x: Ref<number>;
-    z: Ref<number>;
-};
+export type TargetPosition = Reactive<{
+    x: number;
+    z: number;
+    y: number;
+}> 
+

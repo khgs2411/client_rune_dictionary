@@ -1,4 +1,4 @@
-import { ref, watchEffect } from 'vue';
+import { reactive, ref, watchEffect } from 'vue';
 import { useEventListener } from '@vueuse/core';
 import * as THREE from 'three';
 import { useConfigStore } from '@/stores/config.store';
@@ -12,13 +12,10 @@ import { I_CameraControls, I_CameraControlsOptions } from './composables.types';
  * Main camera controls composable
  * Orchestrates rotation, zoom, mouse, and touch composables
  */
-export function useCameraController(options: I_CameraControlsOptions = {}): I_CameraControls {
+export function useCameraController(): I_CameraControls {
   const config = useConfigStore();
 
-  const target = options.target || {
-    x: ref(0),
-    z: ref(0),
-  };
+  const target = reactive({ x: 0, z: 0, y: 0 })
 
   // Create Three.js camera instance
   const instance = new THREE.PerspectiveCamera(
@@ -58,7 +55,7 @@ export function useCameraController(options: I_CameraControlsOptions = {}): I_Ca
       Math.cos(cameraAngleH.value) * cameraDistance.value * Math.cos(cameraAngleV.value);
     const offsetY = Math.sin(cameraAngleV.value) * cameraDistance.value;
 
-    instance.position.set(target.x.value + offsetX, offsetY + 1, target.z.value + offsetZ);
+    instance.position.set(target.x + offsetX, offsetY + 1, target.z + offsetZ);
   });
 
   /**
@@ -94,10 +91,10 @@ export function useCameraController(options: I_CameraControlsOptions = {}): I_Ca
     mouse.isDragging.value = false;
   }
 
-  function update(lookAtVector: THREE.Vector3) { 
+  function update(lookAtVector: THREE.Vector3) {
 
-    target.x.value = lookAtVector.x;
-    target.z.value = lookAtVector.z;
+    target.x = lookAtVector.x;
+    target.z = lookAtVector.z;
     instance.lookAt(lookAtVector);
   }
 
