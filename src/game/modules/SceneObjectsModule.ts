@@ -13,7 +13,7 @@ import {
   Quaternion,
   Vector3,
 } from 'three';
-import BaseModule from './BaseModule';
+import GameModule from '../GameModule';
 
 /**
  * Scene Object Configuration DTO
@@ -53,7 +53,7 @@ interface InstanceGroup {
  * Manages static scene objects (houses, trees, obstacles, etc.) using instanced rendering
  * Groups objects by geometry + material properties for optimal performance
  */
-export class SceneObjectsModule extends BaseModule implements I_ThemedSceneModule {
+export class SceneObjectsModule extends GameModule implements I_ThemedSceneModule {
   private objectConfigs: SceneObjectConfig[];
   private instancedMeshes: Map<string, InstancedMesh> = new Map();
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes

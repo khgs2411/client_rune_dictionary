@@ -1,10 +1,8 @@
-import { SettingsStore } from '@/stores/settings.store';
 import { useCamera } from '@/composables/useCamera';
-import { useTheme } from '@/composables/useTheme';
 import { Engine } from '@/game/Engine';
 import { SceneLifecycle } from '@/game/SceneLifecycle';
+import { SettingsStore } from '@/stores/settings.store';
 import { Scene } from 'three';
-import { useRxjs } from 'topsyde-utils';
 
 export interface I_GameScene {
   readonly name: string;

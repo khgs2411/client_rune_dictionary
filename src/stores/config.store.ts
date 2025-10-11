@@ -9,8 +9,8 @@ export const useConfigStore = defineStore('config', () => {
 
         // Jump configuration
         jumpHeight: 3, // Maximum jump height
-        jumpInitialVelocity: 12, // Initial upward velocity
-        jumpGravity: 30, // Gravity acceleration (higher = heavier feel)
+        jumpInitialVelocity: 20, // Initial upward velocity
+        jumpGravity: 50, // Gravity acceleration (higher = heavier feel)
         jumpMaxFallSpeed: 40, // Terminal velocity when falling
 
         // Ground and physics

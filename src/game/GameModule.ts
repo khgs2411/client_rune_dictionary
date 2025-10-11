@@ -1,6 +1,6 @@
 import { useRxjs } from "topsyde-utils";
 
-export default class BaseModule {
+export default class GameModule {
     public readonly name: string = this.constructor.name;
     protected rxjs = useRxjs('module:loading');
     constructor(moduleName: string) {

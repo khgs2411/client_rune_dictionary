@@ -1,13 +1,13 @@
 import { I_ModuleContext } from '@/scenes/scenes.types';
 import { I_SceneModule } from '@/scenes/scenes.types';
 import { BoxGeometry, Mesh, MeshBasicMaterial } from 'three';
-import BaseModule from './BaseModule';
+import GameModule from '../GameModule';
 
 /**
  * Debug Module
  * Temporary debug visualization (red cube)
  */
-export class DebugModule extends BaseModule implements I_SceneModule {
+export class DebugModule extends GameModule implements I_SceneModule {
 
   constructor() {
     super('debug');
