@@ -181,7 +181,7 @@ export const useWebSocketConnection = () => {
 			// Route message through event system (also handles debug emission)
 			// routeMessage(message);
 			emit({
-				type: 'message.received',
+				type: message.type,
 				data: message.content,
 			});
 		} catch (error) {

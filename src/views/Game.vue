@@ -55,7 +55,6 @@ function start() {
 }
 
 function destroy() {
-  console.log('');
   console.log('🧹 [Game] Starting cleanup...');
 
   // Pause render loop
