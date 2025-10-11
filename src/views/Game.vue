@@ -7,13 +7,13 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
-import { Engine, GameScene } from '@/core/Engine';
+import { Engine, I_GameScene } from '@/core/Engine';
 import { PlaygroundScene } from '@/scenes/PlaygroundScene';
 import { I_SceneConfig } from '@/common/types';
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let engine: Engine | null = null;
-let currentScene: GameScene | null = null;
+let currentScene: I_GameScene | null = null;
 
 // VueUse: Auto-reactive window size
 const { width, height } = useWindowSize();

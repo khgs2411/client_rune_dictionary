@@ -19,7 +19,7 @@
           <div class="flex justify-between items-center">
             <label class="text-sm font-medium">Movement Speed</label>
             <span class="text-sm text-muted-foreground font-mono">{{
-              config.characterMoveSpeed
+              config.character.moveSpeed
             }}</span>
           </div>
           <Slider
@@ -44,7 +44,7 @@
             <div class="flex justify-between items-center">
               <label class="text-sm font-medium">Jump Power</label>
               <span class="text-sm text-muted-foreground font-mono">{{
-                config.jumpInitialVelocity
+                config.character.jumpInitialVelocity
               }}</span>
             </div>
             <Slider
@@ -64,7 +64,9 @@
           <div class="space-y-3">
             <div class="flex justify-between items-center">
               <label class="text-sm font-medium">Gravity (Weight)</label>
-              <span class="text-sm text-muted-foreground font-mono">{{ config.jumpGravity }}</span>
+              <span class="text-sm text-muted-foreground font-mono">{{
+                config.character.jumpGravity
+              }}</span>
             </div>
             <Slider
               v-model="jumpGravityValue"
@@ -84,7 +86,7 @@
             <div class="flex justify-between items-center">
               <label class="text-sm font-medium">Max Fall Speed</label>
               <span class="text-sm text-muted-foreground font-mono">{{
-                config.jumpMaxFallSpeed
+                config.character.jumpMaxFallSpeed
               }}</span>
             </div>
             <Slider
@@ -106,8 +108,7 @@
 </template>
 
 <script setup lang="ts">
-import { Gamepad2 } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import Button from '@/components/ui/button/Button.vue';
 import {
   Sheet,
   SheetContent,
@@ -116,64 +117,65 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import Button from '@/components/ui/button/Button.vue';
 import Slider from '@/components/ui/slider/Slider.vue';
 import { useConfigStore } from '@/stores/config.store';
+import { Gamepad2 } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 
 const config = useConfigStore();
 const isOpen = ref(false);
 
 // Local slider values (array format required by reka-ui)
-const speedValue = ref([config.characterMoveSpeed]);
-const jumpVelocityValue = ref([config.jumpInitialVelocity]);
-const jumpGravityValue = ref([config.jumpGravity]);
-const jumpMaxFallSpeedValue = ref([config.jumpMaxFallSpeed]);
+const speedValue = ref([config.character.moveSpeed]);
+const jumpVelocityValue = ref([config.character.jumpInitialVelocity]);
+const jumpGravityValue = ref([config.character.jumpGravity]);
+const jumpMaxFallSpeedValue = ref([config.character.jumpMaxFallSpeed]);
 
 // Update config when sliders change
 function updateSpeed(value: number[] | undefined) {
   if (!value) return;
-  config.characterMoveSpeed = value[0];
+  config.character.moveSpeed = value[0];
 }
 
 function updateJumpVelocity(value: number[] | undefined) {
   if (!value) return;
-  config.jumpInitialVelocity = value[0];
+  config.character.jumpInitialVelocity = value[0];
 }
 
 function updateJumpGravity(value: number[] | undefined) {
   if (!value) return;
-  config.jumpGravity = value[0];
+  config.character.jumpGravity = value[0];
 }
 
 function updateJumpMaxFallSpeed(value: number[] | undefined) {
   if (!value) return;
-  config.jumpMaxFallSpeed = value[0];
+  config.character.jumpMaxFallSpeed = value[0];
 }
 
 // Sync with store changes (in case modified elsewhere)
 watch(
-  () => config.characterMoveSpeed,
+  () => config.character.moveSpeed,
   (newSpeed) => {
     speedValue.value = [newSpeed];
   },
 );
 
 watch(
-  () => config.jumpInitialVelocity,
+  () => config.character.jumpInitialVelocity,
   (newValue) => {
     jumpVelocityValue.value = [newValue];
   },
 );
 
 watch(
-  () => config.jumpGravity,
+  () => config.character.jumpGravity,
   (newValue) => {
     jumpGravityValue.value = [newValue];
   },
 );
 
 watch(
-  () => config.jumpMaxFallSpeed,
+  () => config.character.jumpMaxFallSpeed,
   (newValue) => {
     jumpMaxFallSpeedValue.value = [newValue];
   },

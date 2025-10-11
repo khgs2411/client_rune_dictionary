@@ -1,14 +1,14 @@
 import { useCameraControls } from '@/composables/useCameraController';
 import { useCharacterControls } from '@/composables/useCharacterController';
 import { rgbToHex } from '@/composables/useTheme';
-import type { Engine, GameScene } from '@/core/Engine';
+import type { Engine, I_GameScene } from '@/core/Engine';
 import { useSettingsStore } from '@/stores/settings.store';
 import * as THREE from 'three';
 import { watch, type WatchStopHandle } from 'vue';
 import { I_SceneConfig } from '@/common/types';
 
 
-export class PlaygroundScene implements GameScene {
+export class PlaygroundScene implements I_GameScene {
   readonly name = 'PlaygroundScene';
   readonly engine: Engine;
 
@@ -101,7 +101,7 @@ export class PlaygroundScene implements GameScene {
     this.watchers = [];
 
     // Cleanup composables
-    this.character$.cleanup();
+    this.character$.destroy();
     this.camera$.cleanup();
 
     // Remove objects from scene

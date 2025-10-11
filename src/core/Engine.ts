@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Lib } from 'topsyde-utils';
 
-export interface GameScene {
+export interface I_GameScene {
   readonly name: string;
   readonly camera: THREE.Camera;
   readonly engine: Engine;

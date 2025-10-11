@@ -26,11 +26,11 @@
 
 <script setup lang="ts">
 import { useBreakpoints } from '@vueuse/core';
-import type { CharacterControls } from '@/composables/useCharacterController';
+import type { I_CharacterControls } from '@/composables/useCharacterController';
 import { computed } from 'vue';
 
 interface Props {
-  joystick: CharacterControls['joystick'];
+  joystick: I_CharacterControls['joystick'];
   baseRadius?: number;
   handleRadius?: number;
 }
