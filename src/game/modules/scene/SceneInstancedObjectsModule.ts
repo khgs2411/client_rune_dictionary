@@ -1,24 +1,21 @@
 import { RGBColor } from '@/common/types';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
-import { I_InteractableModule, I_ModuleContext, I_ThemedSceneModule } from '@/scenes/scenes.types';
-import { InteractionSystemModule } from '../entity/InteractionSystemModule';
-import type { I_InteractionEntityConfig } from '../entity/interaction.types';
+import { I_ModuleContext, I_ThemedSceneModule } from '@/scenes/scenes.types';
 import {
   BoxGeometry,
-  SphereGeometry,
-  CylinderGeometry,
-  ConeGeometry,
   BufferGeometry,
-  InstancedMesh,
-  MeshStandardMaterial,
-  Matrix4,
-  Euler,
-  Quaternion,
-  Vector3,
-  Object3D,
   BufferGeometryEventMap,
+  ConeGeometry,
+  CylinderGeometry,
+  Euler,
+  InstancedMesh,
+  Matrix4,
+  MeshStandardMaterial,
   NormalBufferAttributes,
+  Quaternion,
+  SphereGeometry,
+  Vector3
 } from 'three';
 
 /**
