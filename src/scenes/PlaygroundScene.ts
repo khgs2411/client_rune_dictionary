@@ -23,69 +23,87 @@ import {
   Scene,
   Object3D,
 } from 'three';
+import { GameScene } from '../core/GameScene';
 
-
-interface SceneModule {
-  init(context: ModuleContext): void
-  update(delta: number): void
-  destroy(): void
+export interface SceneModule {
+  init(context: ModuleContext): void;
+  update(delta: number): void;
+  destroy(): void;
 }
 
 // Context = everything a module might need
 interface ModuleContext {
-  engine: Engine
-  scene: Scene
-  lifecycle: SceneLifecycle
+  engine: Engine;
+  scene: Scene;
+  lifecycle: SceneLifecycle;
   // Can expand as needed
 }
 
+/**
+ * Manages lifecycle of Three.js objects and Vue watchers
+ * Handles automatic cleanup and disposal to prevent memory leaks
+ */
 export class SceneLifecycle {
   private watchers: WatchStopHandle[] = [];
   private disposables: Object3D[] = [];
 
+  /**
+   * Register Vue watcher for automatic cleanup
+   * @returns this for fluent chaining
+   */
   watch(watcher: WatchStopHandle): this {
     this.watchers.push(watcher);
     return this;
   }
 
+  /**
+   * Register Three.js objects for automatic cleanup
+   * @returns this for fluent chaining
+   */
   register(...objects: Object3D[]): this {
     this.disposables.push(...objects);
     return this;
   }
 
-  cleanup(engine: Engine): void {
-    this.watchers.forEach(stop => stop());
-    this.disposables.forEach(obj => {
-      engine.scene.remove(obj);
-      this.dispose(obj);
+  /**
+   * Cleanup all registered resources
+   * Stops watchers, removes objects from scene, and disposes geometries/materials
+   */
+  cleanup(scene: Scene): void {
+    // Stop all Vue watchers
+    this.watchers.forEach((stop) => stop());
+
+    // Remove and dispose all registered objects
+    this.disposables.forEach((obj) => {
+      try {
+        scene.remove(obj);
+        this.dispose(obj);
+      } catch (e) {
+        console.warn('[SceneLifecycle] Failed to dispose object:', e);
+      }
     });
+
+    // Clear arrays
     this.watchers = [];
     this.disposables = [];
   }
 
+  /**
+   * Recursively dispose geometries and materials
+   * Handles Mesh objects (covers 90% of use cases)
+   */
   private dispose(obj: Object3D): void {
-    obj.traverse(child => {
+    obj.traverse((child) => {
       if (child instanceof Mesh) {
         child.geometry?.dispose();
         if (Array.isArray(child.material)) {
-          child.material.forEach(m => m.dispose());
+          child.material.forEach((m) => m.dispose());
         } else {
           child.material?.dispose();
         }
       }
     });
   }
-}
-
-export abstract class GameScene {
-  protected modules: SceneModule[] = [];
-  protected lifecycle: SceneLifecycle = new SceneLifecycle();
-
-
-  abstract start(): void;
-  abstract update(...args: any): void;
-  abstract destroy(): void;
-
 }
 
 export class PlaygroundScene extends GameScene implements I_GameScene {
@@ -98,16 +116,11 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
   public camera!: ReturnType<typeof useCamera>;
   private character!: ReturnType<typeof useCharacter>;
 
-  // js objects
+  // Three.js objects (for material updates)
   private characterMesh!: Group;
   private characterBodyMaterial!: MeshStandardMaterial;
   private characterConeMaterial!: MeshStandardMaterial;
-  private ground!: Mesh;
   private groundMaterial!: MeshStandardMaterial;
-
-  // Scene state
-  private objects: Mesh[] = [];
-  private watchers: WatchStopHandle[] = [];
 
   constructor(config: I_SceneConfig) {
     super();
@@ -165,43 +178,19 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
   destroy(): void {
     console.log('🧹 [PlaygroundScene] Cleaning up...');
 
-    // Stop all Vue watchers
-    this.watchers.forEach((stop) => stop());
-    this.watchers = [];
-
-    // Cleanup composables
+    // Cleanup Vue composables
     this.character.destroy();
     this.camera.destroy();
 
-    // Remove objects from scene
-    this.engine.scene.remove(this.characterMesh);
-    this.engine.scene.remove(this.ground);
-    this.objects.forEach((obstacle) => this.engine.scene.remove(obstacle));
-
-    // Dispose geometries and materials
-    this.characterMesh.traverse((child) => {
-      if (child instanceof Mesh) {
-        child.geometry.dispose();
-        if (child.material instanceof Material) {
-          child.material.dispose();
-        }
-      }
-    });
-
-    this.ground.geometry.dispose();
-    this.groundMaterial.dispose();
-
-    this.objects.forEach((obstacle) => {
-      obstacle.geometry.dispose();
-      (obstacle.material as Material).dispose();
-    });
+    // Lifecycle handles all Three.js cleanup (objects, watchers, disposal)
+    this.lifecycle.cleanup(this.engine.scene);
 
     console.log('✅ [PlaygroundScene] Cleanup complete');
   }
 
   private setupThemeWatchers(): void {
     // Watch for theme changes (color theme: neutral, rose, blue, etc.)
-    this.watchers.push(
+    this.lifecycle.watch(
       watch(
         () => this.settings.currentTheme,
         () => {
@@ -212,7 +201,7 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
     );
 
     // Watch for dark mode changes
-    this.watchers.push(
+    this.lifecycle.watch(
       watch(
         () => this.settings.colorMode,
         () => {
@@ -238,6 +227,7 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
     // Ambient light
     const ambientLight = new AmbientLight(0xffffff, 0.5);
     this.engine.scene.add(ambientLight);
+    this.lifecycle.register(ambientLight);
 
     // Directional light with shadows
     const directionalLight = new DirectionalLight(0xffffff, 1);
@@ -252,6 +242,7 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
     directionalLight.shadow.camera.top = 25;
     directionalLight.shadow.camera.bottom = -25;
     this.engine.scene.add(directionalLight);
+    this.lifecycle.register(directionalLight);
 
     console.log('💡 [PlaygroundScene] Lighting setup complete');
   }
@@ -262,15 +253,17 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
       color: rgbToHex(this.settings.theme.muted),
     });
 
-    this.ground = new Mesh(geometry, this.groundMaterial);
-    this.ground.rotation.x = -Math.PI / 2;
-    this.ground.receiveShadow = true;
-    this.engine.scene.add(this.ground);
+    const ground = new Mesh(geometry, this.groundMaterial);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    this.engine.scene.add(ground);
+    this.lifecycle.register(ground);
 
     // Add grid helper
     const gridHelper = new GridHelper(50, 50);
     gridHelper.position.y = 0.01;
     this.engine.scene.add(gridHelper);
+    this.lifecycle.register(gridHelper);
 
     console.log('🌍 [PlaygroundScene] Ground created at y=0');
     console.log('   ↳ Grid helper at y=0.01');
@@ -303,6 +296,7 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
     this.characterMesh.position.set(0, 1, 0);
 
     this.engine.scene.add(this.characterMesh);
+    this.lifecycle.register(this.characterMesh);
     console.log('🧍 [PlaygroundScene] Character mesh created at (0,1,0)');
   }
 
@@ -324,11 +318,11 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
       obstacle.castShadow = true;
       obstacle.receiveShadow = true;
 
-      this.objects.push(obstacle);
       this.engine.scene.add(obstacle);
+      this.lifecycle.register(obstacle);
     });
 
-    console.log('🧱 [PlaygroundScene] Created', this.objects.length, 'obstacles');
+    console.log('🧱 [PlaygroundScene] Created', obstacleData.length, 'obstacles');
   }
 
   private createDebugCube(): void {
@@ -338,5 +332,6 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
     const cube = new Mesh(geometry, material);
     cube.position.set(5, 1, 0); // At origin, y=1
     this.engine.scene.add(cube);
+    this.lifecycle.register(cube);
   }
 }
