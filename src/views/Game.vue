@@ -1,5 +1,9 @@
 <template>
   <div class="game-container">
+    <!-- Loading Screen -->
+    <LoadingScreen />
+
+    <!-- Game Canvas -->
     <canvas ref="canvasRef" class="three-canvas" />
   </div>
 </template>
@@ -8,8 +12,9 @@
 import { Engine } from '@/game/Engine';
 import { PlaygroundScene } from '@/scenes/PlaygroundScene';
 import { I_GameScene, I_SceneConfig } from '@/scenes/scenes.types';
+import LoadingScreen from '@/components/LoadingScreen.vue';
 import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
-import { ref, watch } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let engine: Engine | null = null;
@@ -28,11 +33,12 @@ function start() {
   }
 
   console.log('🎮 [Game] Initializing game...');
-  console.log('   ↳ Canvas:', canvasRef.value.width, 'x', canvasRef.value.height);
-  console.log('   ↳ Window:', window.innerWidth, 'x', window.innerHeight);
 
   // Create engine
   engine = new Engine(canvasRef.value);
+  console.log('   ↳ Scene UUID:', engine.scene.uuid);
+
+  console.log('   ↳ LoadingScreen subscription ready');
 
   // Create and load playground scene
   const config: I_SceneConfig = { engine };
@@ -42,7 +48,6 @@ function start() {
   resumeRenderLoop();
 
   console.log('✅ [Game] Game initialization complete');
-  console.log('   ↳ Scene UUID:', engine.scene.uuid);
 }
 
 function destroy() {

@@ -1,4 +1,4 @@
-import { type SettingsStore } from '@/common/types';
+import { type SettingsStore } from '@/stores/settings.store';
 import { I_ModuleContext } from '@/scenes/scenes.types';
 import { I_SceneModule } from '@/scenes/scenes.types';
 import { GridHelper, InstancedMesh, Mesh, MeshStandardMaterial, PlaneGeometry } from 'three';

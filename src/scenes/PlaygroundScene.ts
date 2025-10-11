@@ -1,7 +1,7 @@
-
-import { SettingsStore } from '@/common/types';
+import { SettingsStore } from '@/stores/settings.store';
 import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
+import { useSceneLoader } from '@/composables/useSceneLoader';
 import type { Engine } from '@/game/Engine';
 import { GameScene } from '@/scenes/BaseScene';
 import { CharacterMeshModule } from '@/game/modules/CharacterMeshModule';
@@ -43,6 +43,10 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
 
   public start(): void {
     console.log('🎬 [PlaygroundScene] Initializing scene...');
+
+    // Emit loading start event
+    const loader = useSceneLoader();
+    loader.emitLoadingStart(this.name, 5); // 5 modules to load
 
     this.settings = useSettingsStore();
 
@@ -89,14 +93,26 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
     this.addModule('ground', new GroundModule(this.settings));
     this.addModule('sceneObjects', new SceneObjectsModule(sceneObjectConfigs));
     this.addModule('debug', new DebugModule());
-    this.addModule('characterMesh', new CharacterMeshModule(this.settings, this.character.controller));
+    this.addModule(
+      'characterMesh',
+      new CharacterMeshModule(this.settings, this.character.controller),
+    );
 
     // Init all modules
-    this.forEachModule((m) => m.start(context));
+    let loadedModules = 0;
+    const totalModules = 5;
+    this.forEachModule((m) => {
+      m.start(context);
+      loadedModules++;
+      loader.emitLoadingProgress(this.name, loadedModules, totalModules);
+    });
 
     this.setLifecycleWatchers();
 
     this.camera.start();
+
+    // Emit loading complete
+    loader.emitLoadingComplete(this.name);
 
     console.log('✅ [PlaygroundScene] Scene initialization complete');
   }
@@ -146,7 +162,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
     // Update character mesh colors
     this.modules.characterMesh?.updateColors(
       this.settings.theme.primary,
-      this.settings.theme.accent
+      this.settings.theme.accent,
     );
   }
 }

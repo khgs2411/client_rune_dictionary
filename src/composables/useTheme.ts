@@ -1,3 +1,4 @@
+import { RGBColor } from '@/common/types';
 import { convert, OKLCH, sRGB } from '@texel/color';
 import { computed, ref } from 'vue';
 
@@ -18,7 +19,7 @@ export const THEME_OPTIONS = [
 /**
  * Converts OKLCH CSS variable to Three.js RGB color array
  */
-function parseOklchColor(varName: string): [number, number, number] {
+function parseOklchColor(varName: string): RGBColor {
   // Check if we're in a browser environment
   if (typeof document === 'undefined' || typeof window === 'undefined') {
     console.warn(`parseOklchColor called in non-browser environment for ${varName}`);
@@ -50,7 +51,7 @@ function parseOklchColor(varName: string): [number, number, number] {
     }
 
     // Convert to sRGB and return as tuple
-    const rgb = convert([l, c, h], OKLCH, sRGB) as [number, number, number];
+    const rgb = convert([l, c, h], OKLCH, sRGB) as RGBColor;
 
     // Clamp RGB values to 0-1 range (in case conversion produces out-of-gamut colors)
     return [
@@ -69,7 +70,7 @@ function parseOklchColor(varName: string): [number, number, number] {
  * @param rgb - RGB color as [r, g, b] where each value is 0-1
  * @returns Hex color number for Three.js
  */
-function rgbToHex(rgb: [number, number, number]): number {
+function rgbToHex(rgb: RGBColor): number {
   const r = Math.round(rgb[0] * 255);
   const g = Math.round(rgb[1] * 255);
   const b = Math.round(rgb[2] * 255);
@@ -149,7 +150,7 @@ export function useTheme() {
     if (typeof localStorage === 'undefined') return;
 
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as ColorTheme | null;
-    if (savedTheme && THEME_OPTIONS.some(opt => opt.value === savedTheme)) {
+    if (savedTheme && THEME_OPTIONS.some((opt) => opt.value === savedTheme)) {
       setTheme(savedTheme);
     }
   }
@@ -158,7 +159,7 @@ export function useTheme() {
   const palette = computed(() => {
     const record: Record<ColorTheme, { label: string; color: string; hex: number }> = {} as any;
 
-    THEME_OPTIONS.forEach(option => {
+    THEME_OPTIONS.forEach((option) => {
       record[option.value] = {
         label: option.label,
         color: option.color,

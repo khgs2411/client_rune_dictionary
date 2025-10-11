@@ -1,5 +1,6 @@
-import { Camera, Clock, Color, PCFSoftShadowMap, Scene, WebGLRenderer } from 'three';
+import { Camera, Clock, Color, LoadingManager, PCFSoftShadowMap, Scene, WebGLRenderer } from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
+import { useSceneLoader } from '@/composables/useSceneLoader';
 
 /**
  * Core game engine that encapsulates js scene, renderer, and clock.
@@ -10,6 +11,8 @@ export class Engine {
   renderer: WebGLRenderer;
   clock: Clock;
   stats: Stats;
+  loadingManager: LoadingManager;
+  private sceneLoader: ReturnType<typeof useSceneLoader>;
 
   constructor(canvas: HTMLCanvasElement) {
     console.log('   ↳ Initializing Three.js engine...');
@@ -23,10 +26,40 @@ export class Engine {
     this.scene = new Scene();
     this.scene.background = new Color(0x87ceeb); // Sky blue for visibility
 
+    // Setup loading system
+    this.sceneLoader = useSceneLoader();
+    this.loadingManager = this.createLoadingManager();
+
     // Create renderer
     this.stats.begin();
     this.renderer = this.createRenderer(canvas);
     console.log('   ↳ Engine initialized (Scene UUID:', this.scene.uuid + ')');
+  }
+
+  private createLoadingManager(): LoadingManager {
+    const manager = new LoadingManager();
+
+    manager.onStart = (url, itemsLoaded, itemsTotal) => {
+      // Initial loading event will be emitted by scene
+      console.log(`📦 [LoadingManager] Started loading: ${itemsLoaded}/${itemsTotal}`);
+    };
+
+    manager.onProgress = (url, itemsLoaded, itemsTotal) => {
+      // Progress events emitted automatically for loaded assets
+      console.log(`📦 [LoadingManager] Progress: ${itemsLoaded}/${itemsTotal} - ${url}`);
+    };
+
+    manager.onLoad = () => {
+      // Complete event will be emitted by scene
+      console.log('📦 [LoadingManager] All assets loaded');
+    };
+
+    manager.onError = (url) => {
+      this.sceneLoader.emitLoadingError('Unknown', `Failed to load: ${url}`, url);
+      console.error('📦 [LoadingManager] Error loading:', url);
+    };
+
+    return manager;
   }
 
   private createRenderer(canvas: HTMLCanvasElement) {

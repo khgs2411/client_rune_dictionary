@@ -1,4 +1,4 @@
-import { type SettingsStore } from '@/common/types';
+import { type SettingsStore } from '@/stores/settings.store';
 import { I_CharacterControls } from '@/composables/composables.types';
 import { I_ModuleContext, I_ThemedSceneModule } from '@/scenes/scenes.types';
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
@@ -19,7 +19,6 @@ export class CharacterMeshModule implements I_ThemedSceneModule {
     this.settings = settings;
     this.characterController = characterController;
   }
-
 
   start(context: I_ModuleContext): void {
     this.mesh = new Group();
@@ -56,7 +55,7 @@ export class CharacterMeshModule implements I_ThemedSceneModule {
     this.mesh.position.set(
       this.characterController.position.x.value,
       this.characterController.position.y.value + 1, // Offset for capsule center
-      this.characterController.position.z.value
+      this.characterController.position.z.value,
     );
     this.mesh.rotation.y = this.characterController.rotation.value;
   }

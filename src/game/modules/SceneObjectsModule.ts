@@ -1,3 +1,4 @@
+import { RGBColor } from '@/common/types';
 import { I_ModuleContext, I_ThemedSceneModule } from '@/scenes/scenes.types';
 import {
   BoxGeometry,
@@ -17,9 +18,9 @@ import {
  * Scene Object Configuration DTO
  */
 export interface SceneObjectConfig {
-  position: [number, number, number];
-  rotation?: [number, number, number]; // Euler angles in radians
-  scale?: [number, number, number]; // Default [1, 1, 1]
+  position: RGBColor;
+  rotation?: RGBColor; // Euler angles in radians
+  scale?: RGBColor; // Default [1, 1, 1]
   geometry: {
     type: 'box' | 'sphere' | 'cylinder' | 'cone';
     params: number[]; // Geometry-specific parameters
@@ -161,7 +162,7 @@ export class SceneObjectsModule implements I_ThemedSceneModule {
     switch (type) {
       case 'box':
         // params: [width, height, depth]
-        return new BoxGeometry(...(params as [number, number, number]));
+        return new BoxGeometry(...(params as RGBColor));
 
       case 'sphere':
         // params: [radius, widthSegments?, heightSegments?]
@@ -186,7 +187,7 @@ export class SceneObjectsModule implements I_ThemedSceneModule {
    */
   private createMaterial(
     config: SceneObjectConfig,
-    context: I_ModuleContext
+    context: I_ModuleContext,
   ): MeshStandardMaterial {
     const { material } = config;
 
