@@ -4,6 +4,7 @@ import { useTheme } from '@/composables/useTheme';
 import { Engine } from '@/game/Engine';
 import { SceneLifecycle } from '@/game/SceneLifecycle';
 import { Scene } from 'three';
+import { useRxjs } from 'topsyde-utils';
 
 export interface I_GameScene {
   readonly name: string;
@@ -46,4 +47,5 @@ export interface I_ModuleContext {
   scene: Scene;
   lifecycle: SceneLifecycle;
   settings: SettingsStore;
+  sceneName: string;
 }

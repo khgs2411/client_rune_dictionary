@@ -1,7 +1,13 @@
 import { I_SceneModule } from '@/scenes/scenes.types';
 import { SceneLifecycle } from '@/game/SceneLifecycle';
 import { useRxjs } from 'topsyde-utils';
-import { SceneErrorPayload, SceneLoadingEvent, SceneLoadingProgressPayload, SceneLoadingStartPayload } from '@/common/events.types';
+import {
+  SceneErrorPayload,
+  SceneLoadingEvent,
+  SceneLoadingProgressPayload,
+  SceneLoadingStartPayload,
+  ModuleLoadingProgressPayload,
+} from '@/common/events.types';
 
 /**
  * Base class for game scenes with typed module registry support
@@ -10,8 +16,31 @@ import { SceneErrorPayload, SceneLoadingEvent, SceneLoadingProgressPayload, Scen
 export abstract class BaseScene<TModuleRegistry = Record<string, I_SceneModule>> {
   protected modules: Partial<TModuleRegistry> = {};
   protected initializedModules: Set<I_SceneModule> = new Set();
+  protected moduleNames: Map<I_SceneModule, string> = new Map(); // Track module names
   protected lifecycle: SceneLifecycle = new SceneLifecycle();
   protected rxjs = useRxjs('scene:loading');
+  protected moduleLoadingRxjs = useRxjs('module:loading'); // Module-level events
+
+  constructor() {
+    this.moduleLoadingRxjs.$subscribe({
+      loaded: (data: ModuleLoadingProgressPayload) => {
+        // Only handle events for this scene
+        if (data.sceneName !== this.name) return;
+
+        // Find the module by name and mark it as initialized
+        for (const [module, moduleName] of this.moduleNames.entries()) {
+          if (moduleName === data.moduleName) {
+            this.markModuleInitialized(module);
+            console.log(`✅ [${this.name}] Module "${data.moduleName}" initialized`);
+
+            // Emit scene-level progress update
+            this.loading('loaded', { loaded: this.initializedModules.size });
+            break;
+          }
+        }
+      },
+    })
+  }
 
   /**
    * Scene name (must be overridden by subclass)
@@ -23,6 +52,7 @@ export abstract class BaseScene<TModuleRegistry = Record<string, I_SceneModule>>
    */
   protected addModule<K extends keyof TModuleRegistry>(key: K, module: TModuleRegistry[K]): this {
     this.modules[key] = module;
+    this.moduleNames.set(module as I_SceneModule, String(key)); // Track module name
     return this;
   }
 

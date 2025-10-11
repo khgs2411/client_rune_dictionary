@@ -13,6 +13,7 @@ import {
   Quaternion,
   Vector3,
 } from 'three';
+import BaseModule from './BaseModule';
 
 /**
  * Scene Object Configuration DTO
@@ -52,57 +53,63 @@ interface InstanceGroup {
  * Manages static scene objects (houses, trees, obstacles, etc.) using instanced rendering
  * Groups objects by geometry + material properties for optimal performance
  */
-export class SceneObjectsModule implements I_ThemedSceneModule {
+export class SceneObjectsModule extends BaseModule implements I_ThemedSceneModule {
   private objectConfigs: SceneObjectConfig[];
   private instancedMeshes: Map<string, InstancedMesh> = new Map();
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
 
   constructor(objectConfigs: SceneObjectConfig[]) {
+    super('sceneObjects');
     this.objectConfigs = objectConfigs;
   }
 
   start(context: I_ModuleContext): void {
-    // Group objects by geometry + material properties
-    const groups = this.groupObjects();
+    // Simulate async loading delay (for testing loading screen)
+      // Group objects by geometry + material properties
+      const groups = this.groupObjects();
 
-    groups.forEach((configs, groupKey) => {
-      const sampleConfig = configs[0];
-      const geometry = this.createGeometry(sampleConfig.geometry);
-      const material = this.createMaterial(sampleConfig, context);
+      groups.forEach((configs, groupKey) => {
+        const sampleConfig = configs[0];
+        const geometry = this.createGeometry(sampleConfig.geometry);
+        const material = this.createMaterial(sampleConfig, context);
 
-      // Track themed materials for updateColors
-      if (sampleConfig.material.useTheme) {
-        this.themedMaterials.push(material);
-      }
+        // Track themed materials for updateColors
+        if (sampleConfig.material.useTheme) {
+          this.themedMaterials.push(material);
+        }
 
-      // Create instanced mesh
-      const instancedMesh = new InstancedMesh(geometry, material, configs.length);
-      instancedMesh.castShadow = sampleConfig.castShadow ?? true;
-      instancedMesh.receiveShadow = sampleConfig.receiveShadow ?? true;
+        // Create instanced mesh
+        const instancedMesh = new InstancedMesh(geometry, material, configs.length);
+        instancedMesh.count = 0;
+        instancedMesh.castShadow = sampleConfig.castShadow ?? true;
+        instancedMesh.receiveShadow = sampleConfig.receiveShadow ?? true;
 
-      // Set transforms for each instance
-      configs.forEach((config, index) => {
-        const matrix = new Matrix4();
-        const position = new Vector3(...config.position);
-        const euler = new Euler(...(config.rotation || [0, 0, 0]));
-        const quaternion = new Quaternion().setFromEuler(euler);
-        const scale = new Vector3(...(config.scale || [1, 1, 1]));
+        // Set transforms for each instance
+        configs.forEach((config, index) => {
+          const matrix = new Matrix4();
+          const position = new Vector3(...config.position);
+          const euler = new Euler(...(config.rotation || [0, 0, 0]));
+          const quaternion = new Quaternion().setFromEuler(euler);
+          const scale = new Vector3(...(config.scale || [1, 1, 1]));
 
-        matrix.compose(position, quaternion, scale);
-        instancedMesh.setMatrixAt(index, matrix);
+          matrix.compose(position, quaternion, scale);
+          instancedMesh.setMatrixAt(instancedMesh.count++, matrix);
+        });
+
+        instancedMesh.instanceMatrix.needsUpdate = true;
+
+        // Compute bounding sphere for proper frustum culling
+        instancedMesh.computeBoundingSphere();
+
+        // Add to scene and lifecycle
+        context.scene.add(instancedMesh);
+        context.lifecycle.register(instancedMesh);
+
+        this.instancedMeshes.set(groupKey, instancedMesh);
       });
 
-      instancedMesh.instanceMatrix.needsUpdate = true;
-
-      // Compute bounding sphere for proper frustum culling
-      instancedMesh.computeBoundingSphere();
-
-      // Add to scene and lifecycle
-      context.scene.add(instancedMesh);
-      context.lifecycle.register(instancedMesh);
-
-      this.instancedMeshes.set(groupKey, instancedMesh);
-    });
+      // Emit loading complete event
+      this.initialized(context.sceneName)
   }
 
   update(delta: number): void {

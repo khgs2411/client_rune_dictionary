@@ -35,6 +35,30 @@ export class PlaygroundScene extends BaseScene<PlaygroundModuleRegistry> impleme
   public camera!: ReturnType<typeof useCamera>;
   private character!: ReturnType<typeof useCharacter>;
 
+  // Scene object configurations
+  private readonly sceneObjectConfigs: SceneObjectConfig[] = [
+    // Themed obstacles (change color with theme)
+    {
+      position: [5, 1, 0],
+      scale: [2, 2, 2],
+      geometry: { type: 'box', params: [1, 1, 1] },
+      material: { useTheme: true, roughness: 0.8 },
+    },
+    {
+      position: [-8, 1.5, 5],
+      scale: [3, 3, 2],
+      geometry: { type: 'box', params: [1, 1, 1] },
+      material: { useTheme: true, roughness: 0.8 },
+    },
+    // Static colored obstacle (brown/wood color)
+    {
+      position: [0, 0.75, -10],
+      scale: [4, 1.5, 1.5],
+      geometry: { type: 'box', params: [1, 1, 1] },
+      material: { staticColor: 0x8b4513, roughness: 0.9 }, // Brown
+    },
+  ];
+
   constructor(config: I_SceneConfig) {
     super();
     this.engine = config.engine;
@@ -44,80 +68,65 @@ export class PlaygroundScene extends BaseScene<PlaygroundModuleRegistry> impleme
   public start(): void {
     console.log('🎬 [PlaygroundScene] Initializing scene...');
 
+    this.initializeComposables();
+    this.registerModules();
+    this.startModuleLoading();
+    this.finalizeSetup();
+
+    console.log('✅ [PlaygroundScene] Scene initialization complete');
+  }
+
+  /**
+   * Phase 1: Initialize Vue composables (camera, character, settings)
+   */
+  private initializeComposables(): void {
     this.settings = useSettingsStore();
-
     this.camera = useCamera();
-
     this.character = useCharacter({
       cameraAngleH: this.camera.controller.angle.horizontal,
     });
+  }
 
-    // Build module context
-    const context: I_ModuleContext = {
-      engine: this.engine,
-      scene: this.engine.scene,
-      lifecycle: this.lifecycle,
-      settings: this.settings,
-    };
-
-    // Configure scene objects (obstacles, props, environment, etc.)
-    const sceneObjectConfigs: SceneObjectConfig[] = [
-      // Themed obstacles (change color with theme)
-      {
-        position: [5, 1, 0],
-        scale: [2, 2, 2],
-        geometry: { type: 'box', params: [1, 1, 1] },
-        material: { useTheme: true, roughness: 0.8 },
-      },
-      {
-        position: [-8, 1.5, 5],
-        scale: [3, 3, 2],
-        geometry: { type: 'box', params: [1, 1, 1] },
-        material: { useTheme: true, roughness: 0.8 },
-      },
-      // Static colored obstacle (brown/wood color)
-      {
-        position: [0, 0.75, -10],
-        scale: [4, 1.5, 1.5],
-        geometry: { type: 'box', params: [1, 1, 1] },
-        material: { staticColor: 0x8b4513, roughness: 0.9 }, // Brown
-      },
-    ];
-
-    // Register modules (type-safe!)
-    this.addModule('lighting', new LightingModule());
+  /**
+   * Phase 2: Register all scene modules
+   */
+  private registerModules(): void {
+    this.addModule('lighting', new LightingModule(/* moduleName */));
     this.addModule('ground', new GroundModule(this.settings));
-    this.addModule('sceneObjects', new SceneObjectsModule(sceneObjectConfigs));
+    this.addModule('sceneObjects', new SceneObjectsModule(this.sceneObjectConfigs));
     this.addModule('debug', new DebugModule());
     this.addModule(
       'characterMesh',
       new CharacterMeshModule(this.settings, this.character.controller),
     );
+  }
 
-    const totalModules = this.moduleCount();
+  /**
+   * Phase 3: Start async module loading
+   * Modules control their own initialization and emit events when ready
+   */
+  private startModuleLoading(): void {
+    const context: I_ModuleContext = {
+      engine: this.engine,
+      scene: this.engine.scene,
+      lifecycle: this.lifecycle,
+      settings: this.settings,
+      sceneName: this.name,
+    };
 
     // Emit loading start
-    this.loading('start', { totalAssets: totalModules });
+    this.loading('start', { totalAssets: this.moduleCount() });
 
-    // Init all modules with progress tracking (simulated delay for loading screen testing)
-    let loadedModules = 0;
+    // Start all modules (they'll emit when ready)
+    this.forEachModule((m) => m.start(context));
+  }
 
-    this.forEachModule((m) => {
-      const currentModule = loadedModules; // Capture current value
-      setTimeout(() => {
-        m.start(context);
-        this.markModuleInitialized(m); // Track that this module is ready
-        this.loading('loaded', { loaded: currentModule + 1 });
-      }, currentModule * 500); // Stagger: 0s, 1s, 2s, 3s, 4s
-      loadedModules++;
-    });
-
+  /**
+   * Phase 4: Finalize setup (watchers, camera start)
+   */
+  private finalizeSetup(): void {
     this.setLifecycleWatchers();
-
     this.camera.start();
-
-
-    console.log('✅ [PlaygroundScene] Scene initialization complete');
   }
 
   update(delta: number): void {

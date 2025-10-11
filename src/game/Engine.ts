@@ -52,6 +52,7 @@ export class Engine {
       console.log('📦 [LoadingManager] All assets loaded');
     };
 
+
     manager.onError = (url) => {
       const rxjs$ = useRxjs('scene:loading');
       rxjs$.$next('fail', { sceneName: "Engine", error: 'Failed to load: ' + url, url })
