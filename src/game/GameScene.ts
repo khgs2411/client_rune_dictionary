@@ -22,6 +22,7 @@ import type { SettingsStore } from '@/stores/settings.store';
  */
 export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>> {
   private enabled = false;
+  private modulesLoaded = false;
   protected modules: Partial<TModuleRegistry> = {};
   protected initializedModules: Set<I_SceneModule> = new Set();
   protected moduleNames: Map<I_SceneModule, string> = new Map();
@@ -47,7 +48,7 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
         for (const [module, moduleName] of this.moduleNames.entries()) {
           if (moduleName === data.moduleName) {
             this.markModuleInitialized(module);
-            console.log(`✅ [${this.name}] Module "${data.moduleName}" initialized`);
+            console.log(`✅ [${this.name}] Loaded Module: "${data.moduleName}"`);
             this.loading('loaded', { loaded: this.initializedModules.size });
             break;
           }
@@ -58,7 +59,8 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
     this.sceneEvents.$subscribe({
       complete: (data: SceneLoadedPayload) => {
         if (data.sceneName !== this.name) return;
-        this.enabled = true;
+        this.modulesLoaded = true;
+        this.enabled = this.modulesLoaded;
       },
     });
   }
