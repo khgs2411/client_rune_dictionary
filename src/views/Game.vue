@@ -27,9 +27,9 @@ function start() {
     return;
   }
 
-  console.log('🎮 [Game] Initializing...');
-  console.log('Canvas size:', canvasRef.value.width, 'x', canvasRef.value.height);
-  console.log('Window size:', window.innerWidth, 'x', window.innerHeight);
+  console.log('🎮 [Game] Initializing game...');
+  console.log('   ↳ Canvas:', canvasRef.value.width, 'x', canvasRef.value.height);
+  console.log('   ↳ Window:', window.innerWidth, 'x', window.innerHeight);
 
   // Create engine
   engine = new Engine(canvasRef.value);
@@ -37,29 +37,32 @@ function start() {
   // Create and load playground scene
   const config: I_SceneConfig = { engine };
   currentScene = new PlaygroundScene(config);
-  // currentScene.start();
 
   // Start render loop
   resumeRenderLoop();
 
-  console.log('✅ [Game] Initialized');
-  console.log('Engine scene UUID:', engine.scene.uuid);
+  console.log('✅ [Game] Game initialization complete');
+  console.log('   ↳ Scene UUID:', engine.scene.uuid);
 }
 
 function destroy() {
-  console.log('🧹 [Game] Cleaning up...');
+  console.log('');
+  console.log('🧹 [Game] Starting cleanup...');
 
   // Pause render loop
+  console.log('   ↳ Pausing render loop...');
   pauseRenderLoop();
 
   // Cleanup playground scene
   if (currentScene) {
+    console.log('   ↳ Destroying scene...');
     currentScene.destroy();
     currentScene = null;
   }
 
   // Cleanup engine
   if (engine) {
+    console.log('   ↳ Cleaning up engine...');
     engine.cleanup();
     engine = null;
   }
@@ -70,6 +73,7 @@ function destroy() {
 function tryOnReload(cb: Function) {
   if (import.meta.hot) {
     import.meta.hot.dispose(() => {
+      console.log('🔥 [Game] Hot Module Replacement detected');
       cb();
     });
   }

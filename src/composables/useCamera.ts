@@ -13,7 +13,7 @@ export function useCamera(): I_GameCamera {
   const config = useConfigStore();
 
   if (config.debug.enableConsoleLog) {
-    console.log('📷 [useCamera] Creating camera entity...');
+    console.log('      ↳ Initializing camera composable...');
   }
 
   // Initialize pure controller (state/input logic)
@@ -27,24 +27,6 @@ export function useCamera(): I_GameCamera {
     1000, // Far
   );
 
-  // Auto-sync Three.js camera position with controller state
-  watchEffect(() => {
-    const offsetX =
-      Math.sin(controller.angle.horizontal.value) *
-      controller.distance.value *
-      Math.cos(controller.angle.vertical.value);
-    const offsetZ =
-      Math.cos(controller.angle.horizontal.value) *
-      controller.distance.value *
-      Math.cos(controller.angle.vertical.value);
-    const offsetY = Math.sin(controller.angle.vertical.value) * controller.distance.value;
-
-    instance.position.set(
-      controller.target.x + offsetX,
-      offsetY + 1,
-      controller.target.z + offsetZ,
-    );
-  });
 
   /**
    * Handle window resize - update camera aspect ratio
@@ -62,7 +44,7 @@ export function useCamera(): I_GameCamera {
     instance.updateMatrixWorld(true);
 
     if (config.debug.enableConsoleLog) {
-      console.log('✅ [useCamera] Camera initialized');
+      console.log('      ↳ Camera positioned and ready');
     }
   }
 
@@ -87,10 +69,30 @@ export function useCamera(): I_GameCamera {
    */
   function destroy() {
     if (config.debug.enableConsoleLog) {
-      console.log('🧹 [useCamera] Destroying camera...');
+      console.log('      ↳ Cleaning up camera controller...');
     }
     controller.destroy();
   }
+
+  // Auto-sync Three.js camera position with controller state
+  watchEffect(() => {
+    const offsetX =
+      Math.sin(controller.angle.horizontal.value) *
+      controller.distance.value *
+      Math.cos(controller.angle.vertical.value);
+    const offsetZ =
+      Math.cos(controller.angle.horizontal.value) *
+      controller.distance.value *
+      Math.cos(controller.angle.vertical.value);
+    const offsetY = Math.sin(controller.angle.vertical.value) * controller.distance.value;
+
+    instance.position.set(
+      controller.target.x + offsetX,
+      offsetY + 1,
+      controller.target.z + offsetZ,
+    );
+  });
+
 
   // Setup resize listener (VueUse auto-cleanup)
   useEventListener('resize', handleResize);
@@ -100,7 +102,7 @@ export function useCamera(): I_GameCamera {
     instance,
 
     // Delegated controller state
-    controller: controller,
+    controller,
 
     // Methods
     start,

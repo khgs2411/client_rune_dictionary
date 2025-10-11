@@ -1,4 +1,5 @@
-import { SceneModule, SceneLifecycle } from '../scenes/PlaygroundScene';
+import { SceneModule } from '@/common/types';
+import { SceneLifecycle } from '@/core/SceneLifecycle';
 
 export abstract class GameScene {
   protected modules: SceneModule[] = [];

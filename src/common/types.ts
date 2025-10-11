@@ -1,5 +1,7 @@
 import { useCamera } from '@/composables/useCamera';
 import { Engine } from '@/core/Engine';
+import { SceneLifecycle } from '@/core/SceneLifecycle';
+import { Scene } from 'three';
 import { Reactive, Ref } from 'vue';
 
 export interface I_SceneConfig {
@@ -38,4 +40,15 @@ export interface I_CharacterControlsOptions {
 }
 export interface I_CameraControlsOptions {
   target?: TargetPosition;
+}
+export interface SceneModule {
+  init(context: I_ModuleContext): void;
+  update(delta: number): void;
+  destroy(): void;
+} // Context = everything a module might need
+
+export interface I_ModuleContext {
+  engine: Engine;
+  scene: Scene;
+  lifecycle: SceneLifecycle;
 }

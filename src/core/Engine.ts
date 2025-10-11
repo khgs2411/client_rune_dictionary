@@ -11,6 +11,8 @@ export class Engine {
   clock: Clock;
 
   constructor(canvas: HTMLCanvasElement) {
+    console.log('   ↳ Initializing Three.js engine...');
+
     // Create scene
     this.scene = new Scene();
     this.scene.background = new Color(0x87ceeb); // Sky blue for visibility
@@ -29,7 +31,7 @@ export class Engine {
     // Create clock for delta time
     this.clock = new Clock();
 
-    Lib.Log('🎮 [Engine] Initialized - Scene UUID:', this.scene.uuid);
+    console.log('   ↳ Engine initialized (Scene UUID:', this.scene.uuid + ')');
   }
 
   /**
@@ -51,7 +53,8 @@ export class Engine {
    * Clean up resources
    */
   cleanup(): void {
+    console.log('      ↳ Disposing WebGL renderer...');
     this.renderer.dispose();
-    Lib.Log('🧹 [Engine] Cleaned up');
+    console.log('      ↳ Engine cleanup complete');
   }
 }

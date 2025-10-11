@@ -15,7 +15,7 @@ export function useCharacter(options: CharacterOptions): I_GameCharacter {
   const config = useConfigStore();
 
   if (config.debug.enableConsoleLog) {
-    console.log('🎮 [useCharacter] Creating character entity...');
+    console.log('      ↳ Initializing character composable...');
   }
 
   // Initialize pure controller (state/input logic)
@@ -40,13 +40,13 @@ export function useCharacter(options: CharacterOptions): I_GameCharacter {
    */
   function destroy() {
     if (config.debug.enableConsoleLog) {
-      console.log('🧹 [useCharacter] Destroying character...');
+      console.log('      ↳ Cleaning up character controller...');
     }
     controller.destroy();
   }
 
   if (config.debug.enableConsoleLog) {
-    console.log('✅ [useCharacter] Character initialized');
+    console.log('      ↳ Character controller ready');
   }
 
   return {

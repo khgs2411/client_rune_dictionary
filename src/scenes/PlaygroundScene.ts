@@ -4,14 +4,13 @@ import { rgbToHex } from '@/composables/useTheme';
 import type { Engine } from '@/core/Engine';
 import type { I_GameScene } from '@/common/types';
 import { useSettingsStore } from '@/stores/settings.store';
-import { watch, type WatchStopHandle } from 'vue';
+import { watch } from 'vue';
 import { I_SceneConfig } from '@/common/types';
 import {
   Group,
   MeshStandardMaterial,
   Mesh,
   Vector3,
-  Material,
   AmbientLight,
   DirectionalLight,
   PlaneGeometry,
@@ -20,91 +19,8 @@ import {
   ConeGeometry,
   BoxGeometry,
   MeshBasicMaterial,
-  Scene,
-  Object3D,
 } from 'three';
 import { GameScene } from '../core/GameScene';
-
-export interface SceneModule {
-  init(context: ModuleContext): void;
-  update(delta: number): void;
-  destroy(): void;
-}
-
-// Context = everything a module might need
-interface ModuleContext {
-  engine: Engine;
-  scene: Scene;
-  lifecycle: SceneLifecycle;
-  // Can expand as needed
-}
-
-/**
- * Manages lifecycle of Three.js objects and Vue watchers
- * Handles automatic cleanup and disposal to prevent memory leaks
- */
-export class SceneLifecycle {
-  private watchers: WatchStopHandle[] = [];
-  private disposables: Object3D[] = [];
-
-  /**
-   * Register Vue watcher for automatic cleanup
-   * @returns this for fluent chaining
-   */
-  watch(watcher: WatchStopHandle): this {
-    this.watchers.push(watcher);
-    return this;
-  }
-
-  /**
-   * Register Three.js objects for automatic cleanup
-   * @returns this for fluent chaining
-   */
-  register(...objects: Object3D[]): this {
-    this.disposables.push(...objects);
-    return this;
-  }
-
-  /**
-   * Cleanup all registered resources
-   * Stops watchers, removes objects from scene, and disposes geometries/materials
-   */
-  cleanup(scene: Scene): void {
-    // Stop all Vue watchers
-    this.watchers.forEach((stop) => stop());
-
-    // Remove and dispose all registered objects
-    this.disposables.forEach((obj) => {
-      try {
-        scene.remove(obj);
-        this.dispose(obj);
-      } catch (e) {
-        console.warn('[SceneLifecycle] Failed to dispose object:', e);
-      }
-    });
-
-    // Clear arrays
-    this.watchers = [];
-    this.disposables = [];
-  }
-
-  /**
-   * Recursively dispose geometries and materials
-   * Handles Mesh objects (covers 90% of use cases)
-   */
-  private dispose(obj: Object3D): void {
-    obj.traverse((child) => {
-      if (child instanceof Mesh) {
-        child.geometry?.dispose();
-        if (Array.isArray(child.material)) {
-          child.material.forEach((m) => m.dispose());
-        } else {
-          child.material?.dispose();
-        }
-      }
-    });
-  }
-}
 
 export class PlaygroundScene extends GameScene implements I_GameScene {
   readonly name = 'PlaygroundScene';
@@ -129,28 +45,36 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
   }
 
   public start(): void {
-    console.log('🎬 [PlaygroundScene] Initializing...');
+    console.log('🎬 [PlaygroundScene] Initializing scene...');
 
     // Initialize settings store (must be done after Vue app is mounted)
+    console.log('   ↳ Loading settings store...');
     this.settings = useSettingsStore();
 
     // Initialize high-level entity composables
+    console.log('   ↳ Creating camera...');
     this.camera = useCamera();
+
+    console.log('   ↳ Creating character...');
     this.character = useCharacter({
       cameraAngleH: this.camera.controller.angle.horizontal,
     });
 
+    console.log('   ↳ Setting up scene elements...');
     this.setupLighting();
     this.createGround();
     this.createCharacterMesh();
     this.createObstacles();
     this.createDebugCube(); // Temporary debug helper
+
+    console.log('   ↳ Setting up theme watchers...');
     this.setupThemeWatchers();
 
     // Set initial camera lookAt and update matrices
+    console.log('   ↳ Initializing camera position...');
     this.camera.start();
 
-    console.log('✅ [PlaygroundScene] Initialized');
+    console.log('✅ [PlaygroundScene] Scene initialization complete');
   }
 
   update(delta: number): void {
@@ -176,16 +100,20 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
   }
 
   destroy(): void {
-    console.log('🧹 [PlaygroundScene] Cleaning up...');
+    console.log('🧹 [PlaygroundScene] Starting scene cleanup...');
 
     // Cleanup Vue composables
+    console.log('   ↳ Destroying character composable...');
     this.character.destroy();
+
+    console.log('   ↳ Destroying camera composable...');
     this.camera.destroy();
 
     // Lifecycle handles all Three.js cleanup (objects, watchers, disposal)
+    console.log('   ↳ Running lifecycle cleanup...');
     this.lifecycle.cleanup(this.engine.scene);
 
-    console.log('✅ [PlaygroundScene] Cleanup complete');
+    console.log('✅ [PlaygroundScene] Scene cleanup complete');
   }
 
   private setupThemeWatchers(): void {
@@ -243,8 +171,6 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
     directionalLight.shadow.camera.bottom = -25;
     this.engine.scene.add(directionalLight);
     this.lifecycle.register(directionalLight);
-
-    console.log('💡 [PlaygroundScene] Lighting setup complete');
   }
 
   private createGround(): void {
@@ -264,9 +190,6 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
     gridHelper.position.y = 0.01;
     this.engine.scene.add(gridHelper);
     this.lifecycle.register(gridHelper);
-
-    console.log('🌍 [PlaygroundScene] Ground created at y=0');
-    console.log('   ↳ Grid helper at y=0.01');
   }
 
   private createCharacterMesh(): void {
@@ -297,7 +220,6 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
 
     this.engine.scene.add(this.characterMesh);
     this.lifecycle.register(this.characterMesh);
-    console.log('🧍 [PlaygroundScene] Character mesh created at (0,1,0)');
   }
 
   private createObstacles(): void {
@@ -321,8 +243,6 @@ export class PlaygroundScene extends GameScene implements I_GameScene {
       this.engine.scene.add(obstacle);
       this.lifecycle.register(obstacle);
     });
-
-    console.log('🧱 [PlaygroundScene] Created', obstacleData.length, 'obstacles');
   }
 
   private createDebugCube(): void {
