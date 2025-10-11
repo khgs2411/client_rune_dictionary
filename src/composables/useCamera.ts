@@ -1,4 +1,4 @@
-import { I_GameCamera } from '@/common/types';
+import { I_GameCamera } from './composables.types';
 import { useConfigStore } from '@/stores/config.store';
 import { useEventListener } from '@vueuse/core';
 import { watchEffect } from 'vue';

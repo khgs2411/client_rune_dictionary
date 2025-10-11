@@ -1,4 +1,4 @@
-import { I_GameCharacter } from '@/common/types';
+import { I_GameCharacter } from './composables.types';
 import { useConfigStore } from '@/stores/config.store';
 import type { Ref } from 'vue';
 import { useCharacterController } from './useCharacterController';
