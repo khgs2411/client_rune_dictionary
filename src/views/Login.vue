@@ -64,8 +64,10 @@ import AuthAPI from '@/api/auth.api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuthStore } from '@/stores/auth.store';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 // Form state
 const username = ref(import.meta.env.DEV ? 'tal' : '');
@@ -89,6 +91,10 @@ async function handleLogin() {
 
     if (response.authorized) {
       console.log('✅ Login successful!');
+
+      // Set auth token with TTL
+      authStore.setAuth(username.value); // Using username as token for now
+
       // Navigate to game
       router.push('/game');
     } else {

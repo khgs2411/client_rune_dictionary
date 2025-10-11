@@ -71,10 +71,12 @@ import {
 } from '@/components/ui/sheet';
 import Button from '@/components/ui/button/Button.vue';
 import { useSettingsStore } from '@/stores/settings.store';
+import { useAuthStore } from '@/stores/auth.store';
 import { THEME_OPTIONS } from '@/composables/useTheme';
 import { computed, ref } from 'vue';
 
 const settings = useSettingsStore();
+const authStore = useAuthStore();
 const router = useRouter();
 
 const isOpen = ref(false);
@@ -82,8 +84,8 @@ const isOpen = ref(false);
 function handleLogout() {
   console.log('👋 Logging out...');
   isOpen.value = false; // Close the sheet
-  // TODO: Clear any auth tokens/session data here
-  router.push('/login');
+  authStore.logout(); // Clear auth tokens with TTL
+  router.push({ name: 'login' });
 }
 
 const showLogout = computed(() => router.currentRoute.value.name !== 'login');
