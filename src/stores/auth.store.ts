@@ -1,50 +1,56 @@
-import { useLocalStorage } from "@vueuse/core";
-import { acceptHMRUpdate, defineStore } from "pinia";
-import { WebsocketEntityData } from "topsyde-utils";
-import { computed, ref } from "vue";
+import { useLocalStorage, useNow } from "@vueuse/core";
+import { defineStore } from "pinia";
+import { computed, Ref } from "vue";
 
-export const useAuthStore = defineStore(
-	"authStore",
-	() => {
-		const username = useLocalStorage("username", "");
-		const password = ref(import.meta.env.VITE_API_KEY);
-		const _loading = ref(false);
-		const _authorized = useLocalStorage("authorized", false);
-		const _client = ref<WebsocketEntityData | null>(null);
+const TTL_MINUTES = 10;
+const TTL_MS = TTL_MINUTES * 60 * 1000;
 
-		const authorized = computed(() => _authorized.value);
-		const client = computed(() => _client.value);
+export const useAuthStore = defineStore('auth', () => {
+    // Store auth token and expiration timestamp
+    const authToken: Ref<string | null> = useLocalStorage('auth_token', null);
+    const expiresAt: Ref<number | null> = useLocalStorage('auth_expires_at', null);
 
-		function setAuthorized(value: boolean) {
-			_authorized.value = value;
-		}
+    // Get current time reactively
+    const now = useNow();
 
-		function setClient(value: WebsocketEntityData | null) {
-			_client.value = value;
-		}
+    // Check if auth is valid and not expired
+    const isAuthenticated = computed(() => {
+        if (!authToken.value || !expiresAt.value) {
+            return false;
+        }
+        return now.value.getTime() < expiresAt.value;
+    });
 
-		function setLoading(value: boolean) {
-			_loading.value = value;
-		}
+    // Set auth cookie and TTL
+    function setAuth(token: string) {
+        authToken.value = token;
+        expiresAt.value = Date.now() + TTL_MS;
+    }
 
-		const loading = computed(() => _loading.value);
+    // Refresh TTL if still valid
+    function refreshTTL() {
+        if (isAuthenticated.value) {
+            expiresAt.value = Date.now() + TTL_MS;
+            return true;
+        }
+        return false;
+    }
 
-		return {
-			username,
-			password,
-			loading,
-			authorized,
-			client,
-			setAuthorized,
-			setClient,
-			setLoading,
-		};
-	},
-	/* {
-		persist: true,
-	}, */
-);
+    // Clear auth
+    function logout() {
+        authToken.value = null;
+        expiresAt.value = null;
+    }
 
-if (import.meta.hot) {
-	import.meta.hot.accept(acceptHMRUpdate(useAuthStore, import.meta.hot));
-}
+    return {
+        // State
+        authToken,
+        expiresAt,
+        isAuthenticated,
+
+        // Actions
+        setAuth,
+        refreshTTL,
+        logout,
+    };
+});

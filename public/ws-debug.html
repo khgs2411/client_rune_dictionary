@@ -1,496 +1,512 @@
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>WebSocket Debug Tool</title>
-		<style>
-			body {
-				font-family: Arial, sans-serif;
-				max-width: 800px;
-				margin: 0 auto;
-				padding: 20px;
-			}
-			.container {
-				display: flex;
-				flex-direction: column;
-				gap: 10px;
-			}
-			.form-group {
-				display: flex;
-				flex-direction: column;
-				gap: 5px;
-			}
-			input,
-			button,
-			select {
-				padding: 8px;
-				font-size: 16px;
-			}
-			button {
-				cursor: pointer;
-				background-color: #4caf50;
-				color: white;
-				border: none;
-				border-radius: 4px;
-				transition: background-color 0.3s;
-			}
-			button:disabled {
-				background-color: #cccccc;
-				cursor: not-allowed;
-			}
-			#log {
-				margin-top: 20px;
-				border: 1px solid #ccc;
-				padding: 10px;
-				height: 300px;
-				overflow-y: auto;
-				background-color: #f9f9f9;
-			}
-			.success {
-				color: green;
-			}
-			.error {
-				color: red;
-			}
-			.info {
-				color: blue;
-			}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Debug Tool</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      input,
+      button,
+      select {
+        padding: 8px;
+        font-size: 16px;
+      }
+      button {
+        cursor: pointer;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      #log {
+        margin-top: 20px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        height: 300px;
+        overflow-y: auto;
+        background-color: #f9f9f9;
+      }
+      .success {
+        color: green;
+      }
+      .error {
+        color: red;
+      }
+      .info {
+        color: blue;
+      }
 
-			/* Connection status indicator */
-			.status-indicator {
-				display: flex;
-				align-items: center;
-				margin-top: 10px;
-				padding: 8px;
-				border-radius: 4px;
-				background-color: #f0f0f0;
-			}
-			.status-dot {
-				width: 12px;
-				height: 12px;
-				border-radius: 50%;
-				margin-right: 10px;
-				transition: background-color 0.3s;
-			}
-			.status-dot.disconnected {
-				background-color: #ff4444;
-			}
-			.status-dot.connecting {
-				background-color: #ffbb33;
-			}
-			.status-dot.connected {
-				background-color: #00c851;
-			}
+      /* Connection status indicator */
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+        padding: 8px;
+        border-radius: 4px;
+        background-color: #f0f0f0;
+      }
+      .status-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 10px;
+        transition: background-color 0.3s;
+      }
+      .status-dot.disconnected {
+        background-color: #ff4444;
+      }
+      .status-dot.connecting {
+        background-color: #ffbb33;
+      }
+      .status-dot.connected {
+        background-color: #00c851;
+      }
 
-			.status-text {
-				font-weight: bold;
-			}
+      .status-text {
+        font-weight: bold;
+      }
 
-			/* Button states */
-			#connect.connecting {
-				background-color: #ffbb33;
-			}
-			#connect.connected {
-				background-color: #00c851;
-			}
-			#disconnect.connected {
-				background-color: #ff4444;
-			}
+      /* Button states */
+      #connect.connecting {
+        background-color: #ffbb33;
+      }
+      #connect.connected {
+        background-color: #00c851;
+      }
+      #disconnect.connected {
+        background-color: #ff4444;
+      }
 
-			/* Quick connect buttons */
-			.quick-connect {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 10px;
-				margin-top: 10px;
-			}
-			.quick-connect button {
-				flex: 1;
-				min-width: 150px;
-			}
+      /* Quick connect buttons */
+      .quick-connect {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .quick-connect button {
+        flex: 1;
+        min-width: 150px;
+      }
 
-			/* Connection info */
-			.connection-info {
-				margin-top: 20px;
-				padding: 10px;
-				background-color: #f0f0f0;
-				border-radius: 4px;
-			}
-			.connection-info h3 {
-				margin-top: 0;
-			}
-		</style>
-	</head>
-	<body>
-		<h1>WebSocket Debug Tool</h1>
+      /* Connection info */
+      .connection-info {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+      }
+      .connection-info h3 {
+        margin-top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>WebSocket Debug Tool</h1>
 
-		<div class="container">
-			<div class="form-group">
-				<label for="wsUrl">WebSocket URL:</label>
-				<input type="text" id="wsUrl" value="wss://topsyde-gaming.duckdns.org:3000" />
-			</div>
+    <div class="container">
+      <div class="form-group">
+        <label for="wsUrl">WebSocket URL:</label>
+        <input type="text" id="wsUrl" value="wss://topsyde-gaming.duckdns.org:3000" />
+      </div>
 
-			<div class="form-group">
-				<label for="protocol">Protocol (optional):</label>
-				<input type="text" id="protocol" placeholder="e.g. 9991-YourUsername" />
-			</div>
+      <div class="form-group">
+        <label for="protocol">Protocol (optional):</label>
+        <input type="text" id="protocol" placeholder="e.g. 9991-YourUsername" />
+      </div>
 
-			<div class="quick-connect">
-				<button id="quickConnect1" title="Direct connection to port 3000">Direct (3000)</button>
-				<button id="quickConnect2" title="Try alternative port 443">Alt Port (443)</button>
-				<button id="quickConnect3" title="Try without protocol">No Protocol</button>
-				<button id="quickConnect4" title="Try with HTTP fetch first">HTTP+WS</button>
-			</div>
+      <div class="quick-connect">
+        <button id="quickConnect1" title="Direct connection to port 3000">Direct (3000)</button>
+        <button id="quickConnect2" title="Try alternative port 443">Alt Port (443)</button>
+        <button id="quickConnect3" title="Try without protocol">No Protocol</button>
+        <button id="quickConnect4" title="Try with HTTP fetch first">HTTP+WS</button>
+      </div>
 
-			<div class="status-indicator">
-				<div class="status-dot disconnected" id="statusDot"></div>
-				<div class="status-text" id="statusText">Disconnected</div>
-			</div>
+      <div class="status-indicator">
+        <div class="status-dot disconnected" id="statusDot"></div>
+        <div class="status-text" id="statusText">Disconnected</div>
+      </div>
 
-			<div style="display: flex; gap: 10px; margin-top: 10px">
-				<button id="connect">Connect</button>
-				<button id="disconnect" disabled>Disconnect</button>
-				<button id="clear">Clear Log</button>
-			</div>
-		</div>
+      <div style="display: flex; gap: 10px; margin-top: 10px">
+        <button id="connect">Connect</button>
+        <button id="disconnect" disabled>Disconnect</button>
+        <button id="clear">Clear Log</button>
+      </div>
+    </div>
 
-		<div id="log"></div>
+    <div id="log"></div>
 
-		<div class="connection-info">
-			<h3>Browser Information</h3>
-			<div id="browserInfo"></div>
+    <div class="connection-info">
+      <h3>Browser Information</h3>
+      <div id="browserInfo"></div>
 
-			<h3>Connection Test Results</h3>
-			<div id="testResults"></div>
-		</div>
+      <h3>Connection Test Results</h3>
+      <div id="testResults"></div>
+    </div>
 
-		<script>
-			// DOM Elements
-			const wsUrlInput = document.getElementById("wsUrl");
-			const protocolInput = document.getElementById("protocol");
-			const connectBtn = document.getElementById("connect");
-			const disconnectBtn = document.getElementById("disconnect");
-			const clearBtn = document.getElementById("clear");
-			const logEl = document.getElementById("log");
-			const statusDot = document.getElementById("statusDot");
-			const statusText = document.getElementById("statusText");
-			const quickConnect1 = document.getElementById("quickConnect1");
-			const quickConnect2 = document.getElementById("quickConnect2");
-			const quickConnect3 = document.getElementById("quickConnect3");
-			const quickConnect4 = document.getElementById("quickConnect4");
-			const browserInfoEl = document.getElementById("browserInfo");
-			const testResultsEl = document.getElementById("testResults");
+    <script>
+      // DOM Elements
+      const wsUrlInput = document.getElementById('wsUrl');
+      const protocolInput = document.getElementById('protocol');
+      const connectBtn = document.getElementById('connect');
+      const disconnectBtn = document.getElementById('disconnect');
+      const clearBtn = document.getElementById('clear');
+      const logEl = document.getElementById('log');
+      const statusDot = document.getElementById('statusDot');
+      const statusText = document.getElementById('statusText');
+      const quickConnect1 = document.getElementById('quickConnect1');
+      const quickConnect2 = document.getElementById('quickConnect2');
+      const quickConnect3 = document.getElementById('quickConnect3');
+      const quickConnect4 = document.getElementById('quickConnect4');
+      const browserInfoEl = document.getElementById('browserInfo');
+      const testResultsEl = document.getElementById('testResults');
 
-			// WebSocket instance
-			let ws = null;
+      // WebSocket instance
+      let ws = null;
 
-			// Connection states
-			const CONNECTION_STATES = {
-				DISCONNECTED: "disconnected",
-				CONNECTING: "connecting",
-				CONNECTED: "connected",
-			};
+      // Connection states
+      const CONNECTION_STATES = {
+        DISCONNECTED: 'disconnected',
+        CONNECTING: 'connecting',
+        CONNECTED: 'connected',
+      };
 
-			// Display browser information
-			function showBrowserInfo() {
-				const info = [
-					`User Agent: ${navigator.userAgent}`,
-					`Protocol: ${window.location.protocol}`,
-					`Host: ${window.location.host}`,
-					`Origin: ${window.location.origin}`,
-					`Secure Context: ${window.isSecureContext ? "Yes" : "No"}`,
-				];
-				browserInfoEl.innerHTML = info.map((i) => `<div>${i}</div>`).join("");
-			}
+      // Display browser information
+      function showBrowserInfo() {
+        const info = [
+          `User Agent: ${navigator.userAgent}`,
+          `Protocol: ${window.location.protocol}`,
+          `Host: ${window.location.host}`,
+          `Origin: ${window.location.origin}`,
+          `Secure Context: ${window.isSecureContext ? 'Yes' : 'No'}`,
+        ];
+        browserInfoEl.innerHTML = info.map((i) => `<div>${i}</div>`).join('');
+      }
 
-			// Update UI based on connection state
-			function updateConnectionState(state) {
-				// Remove all state classes
-				statusDot.classList.remove(CONNECTION_STATES.DISCONNECTED, CONNECTION_STATES.CONNECTING, CONNECTION_STATES.CONNECTED);
-				connectBtn.classList.remove(CONNECTION_STATES.CONNECTING, CONNECTION_STATES.CONNECTED);
+      // Update UI based on connection state
+      function updateConnectionState(state) {
+        // Remove all state classes
+        statusDot.classList.remove(
+          CONNECTION_STATES.DISCONNECTED,
+          CONNECTION_STATES.CONNECTING,
+          CONNECTION_STATES.CONNECTED,
+        );
+        connectBtn.classList.remove(CONNECTION_STATES.CONNECTING, CONNECTION_STATES.CONNECTED);
 
-				// Add appropriate state class
-				statusDot.classList.add(state);
+        // Add appropriate state class
+        statusDot.classList.add(state);
 
-				// Update status text
-				switch (state) {
-					case CONNECTION_STATES.DISCONNECTED:
-						statusText.textContent = "Disconnected";
-						connectBtn.textContent = "Connect";
-						connectBtn.disabled = false;
-						disconnectBtn.disabled = true;
-						break;
-					case CONNECTION_STATES.CONNECTING:
-						statusText.textContent = "Connecting...";
-						connectBtn.textContent = "Connecting...";
-						connectBtn.classList.add(CONNECTION_STATES.CONNECTING);
-						connectBtn.disabled = true;
-						disconnectBtn.disabled = true;
-						break;
-					case CONNECTION_STATES.CONNECTED:
-						statusText.textContent = "Connected";
-						connectBtn.textContent = "Connected";
-						connectBtn.classList.add(CONNECTION_STATES.CONNECTED);
-						connectBtn.disabled = true;
-						disconnectBtn.disabled = false;
-						break;
-				}
-			}
+        // Update status text
+        switch (state) {
+          case CONNECTION_STATES.DISCONNECTED:
+            statusText.textContent = 'Disconnected';
+            connectBtn.textContent = 'Connect';
+            connectBtn.disabled = false;
+            disconnectBtn.disabled = true;
+            break;
+          case CONNECTION_STATES.CONNECTING:
+            statusText.textContent = 'Connecting...';
+            connectBtn.textContent = 'Connecting...';
+            connectBtn.classList.add(CONNECTION_STATES.CONNECTING);
+            connectBtn.disabled = true;
+            disconnectBtn.disabled = true;
+            break;
+          case CONNECTION_STATES.CONNECTED:
+            statusText.textContent = 'Connected';
+            connectBtn.textContent = 'Connected';
+            connectBtn.classList.add(CONNECTION_STATES.CONNECTED);
+            connectBtn.disabled = true;
+            disconnectBtn.disabled = false;
+            break;
+        }
+      }
 
-			// Log function
-			function log(message, type = "info") {
-				const entry = document.createElement("div");
-				entry.className = type;
-				entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-				logEl.appendChild(entry);
-				logEl.scrollTop = logEl.scrollHeight;
-			}
+      // Log function
+      function log(message, type = 'info') {
+        const entry = document.createElement('div');
+        entry.className = type;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        logEl.appendChild(entry);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
 
-			// Test HTTP connection first
-			async function testHttpConnection(url) {
-				try {
-					// Convert WebSocket URL to HTTP URL
-					const httpUrl = url.replace("wss://", "https://").replace("ws://", "http://");
-					log(`Testing HTTP connection to ${httpUrl}...`);
+      // Test HTTP connection first
+      async function testHttpConnection(url) {
+        try {
+          // Convert WebSocket URL to HTTP URL
+          const httpUrl = url.replace('wss://', 'https://').replace('ws://', 'http://');
+          log(`Testing HTTP connection to ${httpUrl}...`);
 
-					const response = await fetch(httpUrl, {
-						method: "OPTIONS",
-						mode: "cors",
-					});
+          const response = await fetch(httpUrl, {
+            method: 'OPTIONS',
+            mode: 'cors',
+          });
 
-					log(`HTTP connection successful: ${response.status} ${response.statusText}`, "success");
+          log(`HTTP connection successful: ${response.status} ${response.statusText}`, 'success');
 
-					// Log headers
-					const headers = [];
-					response.headers.forEach((value, key) => {
-						headers.push(`${key}: ${value}`);
-						if (key.toLowerCase().includes("cors") || key.toLowerCase().includes("access-control")) {
-							log(`CORS Header: ${key}: ${value}`, "info");
-						}
-					});
+          // Log headers
+          const headers = [];
+          response.headers.forEach((value, key) => {
+            headers.push(`${key}: ${value}`);
+            if (
+              key.toLowerCase().includes('cors') ||
+              key.toLowerCase().includes('access-control')
+            ) {
+              log(`CORS Header: ${key}: ${value}`, 'info');
+            }
+          });
 
-					return true;
-				} catch (error) {
-					log(`HTTP connection failed: ${error.message}`, "error");
-					return false;
-				}
-			}
+          return true;
+        } catch (error) {
+          log(`HTTP connection failed: ${error.message}`, 'error');
+          return false;
+        }
+      }
 
-			// Connect to WebSocket
-			async function connectWebSocket(url, protocol, testHttp = false) {
-				if (ws) {
-					log("Closing existing connection first...", "info");
-					ws.close();
-				}
+      // Connect to WebSocket
+      async function connectWebSocket(url, protocol, testHttp = false) {
+        if (ws) {
+          log('Closing existing connection first...', 'info');
+          ws.close();
+        }
 
-				url = url.trim();
-				protocol = protocol ? protocol.trim() : null;
+        url = url.trim();
+        protocol = protocol ? protocol.trim() : null;
 
-				log(`Attempting to connect to: ${url}${protocol ? " with protocol: " + protocol : ""}`, "info");
-				updateConnectionState(CONNECTION_STATES.CONNECTING);
+        log(
+          `Attempting to connect to: ${url}${protocol ? ' with protocol: ' + protocol : ''}`,
+          'info',
+        );
+        updateConnectionState(CONNECTION_STATES.CONNECTING);
 
-				// Optionally test HTTP connection first
-				if (testHttp) {
-					await testHttpConnection(url);
-				}
+        // Optionally test HTTP connection first
+        if (testHttp) {
+          await testHttpConnection(url);
+        }
 
-				try {
-					// Create WebSocket with or without protocol
-					ws = protocol ? new WebSocket(url, protocol) : new WebSocket(url);
+        try {
+          // Create WebSocket with or without protocol
+          ws = protocol ? new WebSocket(url, protocol) : new WebSocket(url);
 
-					// Event handlers
-					ws.onopen = () => {
-						log("Connection established successfully!", "success");
-						updateConnectionState(CONNECTION_STATES.CONNECTED);
+          // Event handlers
+          ws.onopen = () => {
+            log('Connection established successfully!', 'success');
+            updateConnectionState(CONNECTION_STATES.CONNECTED);
 
-						// Add connection to test results
-						const resultItem = document.createElement("div");
-						resultItem.className = "success";
-						resultItem.textContent = `✅ ${url}${protocol ? " (with protocol)" : " (no protocol)"} - Connected successfully`;
-						testResultsEl.appendChild(resultItem);
-					};
+            // Add connection to test results
+            const resultItem = document.createElement('div');
+            resultItem.className = 'success';
+            resultItem.textContent = `✅ ${url}${protocol ? ' (with protocol)' : ' (no protocol)'} - Connected successfully`;
+            testResultsEl.appendChild(resultItem);
+          };
 
-					ws.onclose = (event) => {
-						log(`Connection closed: Code ${event.code}, Reason: ${event.reason || "No reason provided"}`, "info");
-						updateConnectionState(CONNECTION_STATES.DISCONNECTED);
+          ws.onclose = (event) => {
+            log(
+              `Connection closed: Code ${event.code}, Reason: ${event.reason || 'No reason provided'}`,
+              'info',
+            );
+            updateConnectionState(CONNECTION_STATES.DISCONNECTED);
 
-						// Add connection to test results if it failed
-						if (event.code !== 1000) {
-							const resultItem = document.createElement("div");
-							resultItem.className = "error";
-							resultItem.textContent = `❌ ${url}${protocol ? " (with protocol)" : " (no protocol)"} - Failed with code ${event.code}`;
-							testResultsEl.appendChild(resultItem);
-						}
+            // Add connection to test results if it failed
+            if (event.code !== 1000) {
+              const resultItem = document.createElement('div');
+              resultItem.className = 'error';
+              resultItem.textContent = `❌ ${url}${protocol ? ' (with protocol)' : ' (no protocol)'} - Failed with code ${event.code}`;
+              testResultsEl.appendChild(resultItem);
+            }
 
-						ws = null;
-					};
+            ws = null;
+          };
 
-					ws.onerror = (error) => {
-						log(`Error: ${error}`, "error");
-						console.error("WebSocket error:", error);
-					};
+          ws.onerror = (error) => {
+            log(`Error: ${error}`, 'error');
+            console.error('WebSocket error:', error);
+          };
 
-					ws.onmessage = (event) => {
-						log(`Message received: ${event.data}`, "info");
-					};
-				} catch (error) {
-					log(`Failed to create WebSocket: ${error.message}`, "error");
-					console.error("WebSocket creation error:", error);
-					updateConnectionState(CONNECTION_STATES.DISCONNECTED);
+          ws.onmessage = (event) => {
+            log(`Message received: ${event.data}`, 'info');
+          };
+        } catch (error) {
+          log(`Failed to create WebSocket: ${error.message}`, 'error');
+          console.error('WebSocket creation error:', error);
+          updateConnectionState(CONNECTION_STATES.DISCONNECTED);
 
-					// Add connection to test results
-					const resultItem = document.createElement("div");
-					resultItem.className = "error";
-					resultItem.textContent = `❌ ${url}${protocol ? " (with protocol)" : " (no protocol)"} - Error: ${error.message}`;
-					testResultsEl.appendChild(resultItem);
-				}
-			}
+          // Add connection to test results
+          const resultItem = document.createElement('div');
+          resultItem.className = 'error';
+          resultItem.textContent = `❌ ${url}${protocol ? ' (with protocol)' : ' (no protocol)'} - Error: ${error.message}`;
+          testResultsEl.appendChild(resultItem);
+        }
+      }
 
-			// Connect button
-			connectBtn.addEventListener("click", () => {
-				connectWebSocket(wsUrlInput.value, protocolInput.value);
-			});
+      // Connect button
+      connectBtn.addEventListener('click', () => {
+        connectWebSocket(wsUrlInput.value, protocolInput.value);
+      });
 
-			// Quick connect buttons
-			quickConnect1.addEventListener("click", () => {
-				wsUrlInput.value = "wss://topsyde-gaming.duckdns.org:3000";
-				protocolInput.value = "9991-YourUsername";
-				connectWebSocket(wsUrlInput.value, protocolInput.value);
-			});
+      // Quick connect buttons
+      quickConnect1.addEventListener('click', () => {
+        wsUrlInput.value = 'wss://topsyde-gaming.duckdns.org:3000';
+        protocolInput.value = '9991-YourUsername';
+        connectWebSocket(wsUrlInput.value, protocolInput.value);
+      });
 
-			quickConnect2.addEventListener("click", () => {
-				wsUrlInput.value = "wss://topsyde-gaming.duckdns.org:443";
-				protocolInput.value = "9991-YourUsername";
-				connectWebSocket(wsUrlInput.value, protocolInput.value);
-			});
+      quickConnect2.addEventListener('click', () => {
+        wsUrlInput.value = 'wss://topsyde-gaming.duckdns.org:443';
+        protocolInput.value = '9991-YourUsername';
+        connectWebSocket(wsUrlInput.value, protocolInput.value);
+      });
 
-			quickConnect3.addEventListener("click", () => {
-				wsUrlInput.value = "wss://topsyde-gaming.duckdns.org:3000";
-				protocolInput.value = "";
-				connectWebSocket(wsUrlInput.value, "");
-			});
+      quickConnect3.addEventListener('click', () => {
+        wsUrlInput.value = 'wss://topsyde-gaming.duckdns.org:3000';
+        protocolInput.value = '';
+        connectWebSocket(wsUrlInput.value, '');
+      });
 
-			quickConnect4.addEventListener("click", () => {
-				wsUrlInput.value = "wss://topsyde-gaming.duckdns.org:3000";
-				protocolInput.value = "9991-YourUsername";
-				connectWebSocket(wsUrlInput.value, protocolInput.value, true);
-			});
+      quickConnect4.addEventListener('click', () => {
+        wsUrlInput.value = 'wss://topsyde-gaming.duckdns.org:3000';
+        protocolInput.value = '9991-YourUsername';
+        connectWebSocket(wsUrlInput.value, protocolInput.value, true);
+      });
 
-			// Add a button to test SSL certificate
-			const testSslBtn = document.createElement("button");
-			testSslBtn.textContent = "Test SSL Certificate";
-			testSslBtn.title = "Check if the SSL certificate is valid";
-			document.querySelector(".quick-connect").appendChild(testSslBtn);
+      // Add a button to test SSL certificate
+      const testSslBtn = document.createElement('button');
+      testSslBtn.textContent = 'Test SSL Certificate';
+      testSslBtn.title = 'Check if the SSL certificate is valid';
+      document.querySelector('.quick-connect').appendChild(testSslBtn);
 
-			// Add a button to test WebSocket with a public echo server
-			const testEchoBtn = document.createElement("button");
-			testEchoBtn.textContent = "Test Echo Server";
-			testEchoBtn.title = "Test connection to a public WebSocket echo server";
-			document.querySelector(".quick-connect").appendChild(testEchoBtn);
+      // Add a button to test WebSocket with a public echo server
+      const testEchoBtn = document.createElement('button');
+      testEchoBtn.textContent = 'Test Echo Server';
+      testEchoBtn.title = 'Test connection to a public WebSocket echo server';
+      document.querySelector('.quick-connect').appendChild(testEchoBtn);
 
-			// Add a button to test insecure WebSocket connection
-			const testInsecureBtn = document.createElement("button");
-			testInsecureBtn.textContent = "Test Insecure WS";
-			testInsecureBtn.title = "Test insecure WebSocket connection (ws:// instead of wss://)";
-			document.querySelector(".quick-connect").appendChild(testInsecureBtn);
+      // Add a button to test insecure WebSocket connection
+      const testInsecureBtn = document.createElement('button');
+      testInsecureBtn.textContent = 'Test Insecure WS';
+      testInsecureBtn.title = 'Test insecure WebSocket connection (ws:// instead of wss://)';
+      document.querySelector('.quick-connect').appendChild(testInsecureBtn);
 
-			testInsecureBtn.addEventListener("click", () => {
-				// Warning about mixed content
-				if (window.location.protocol === "https:") {
-					log("WARNING: Browsers block insecure WebSocket connections from secure pages (mixed content).", "error");
-					log("This test will likely fail if you're viewing this page over HTTPS.", "error");
-				}
+      testInsecureBtn.addEventListener('click', () => {
+        // Warning about mixed content
+        if (window.location.protocol === 'https:') {
+          log(
+            'WARNING: Browsers block insecure WebSocket connections from secure pages (mixed content).',
+            'error',
+          );
+          log("This test will likely fail if you're viewing this page over HTTPS.", 'error');
+        }
 
-				// Try insecure WebSocket connection
-				wsUrlInput.value = "ws://topsyde-gaming.duckdns.org:3000";
-				protocolInput.value = "";
-				log("Testing insecure WebSocket connection...");
-				connectWebSocket(wsUrlInput.value, "", false);
-			});
+        // Try insecure WebSocket connection
+        wsUrlInput.value = 'ws://topsyde-gaming.duckdns.org:3000';
+        protocolInput.value = '';
+        log('Testing insecure WebSocket connection...');
+        connectWebSocket(wsUrlInput.value, '', false);
+      });
 
-			testEchoBtn.addEventListener("click", () => {
-				// Use a public WebSocket echo server
-				wsUrlInput.value = "wss://echo.websocket.org";
-				protocolInput.value = "";
-				log("Testing connection to public WebSocket echo server...");
-				connectWebSocket(wsUrlInput.value, "", false);
-			});
+      testEchoBtn.addEventListener('click', () => {
+        // Use a public WebSocket echo server
+        wsUrlInput.value = 'wss://echo.websocket.org';
+        protocolInput.value = '';
+        log('Testing connection to public WebSocket echo server...');
+        connectWebSocket(wsUrlInput.value, '', false);
+      });
 
-			testSslBtn.addEventListener("click", async () => {
-				const domain = "topsyde-gaming.duckdns.org";
-				log(`Testing SSL certificate for ${domain}...`);
+      testSslBtn.addEventListener('click', async () => {
+        const domain = 'topsyde-gaming.duckdns.org';
+        log(`Testing SSL certificate for ${domain}...`);
 
-				try {
-					// Try to fetch the HTTPS site to check certificate
-					const response = await fetch(`https://${domain}:3000`, {
-						method: "GET",
-						mode: "no-cors", // This allows us to at least attempt the connection
-					});
+        try {
+          // Try to fetch the HTTPS site to check certificate
+          const response = await fetch(`https://${domain}:3000`, {
+            method: 'GET',
+            mode: 'no-cors', // This allows us to at least attempt the connection
+          });
 
-					log(`SSL certificate appears valid! Server responded.`, "success");
+          log(`SSL certificate appears valid! Server responded.`, 'success');
 
-					// Add to test results
-					const resultItem = document.createElement("div");
-					resultItem.className = "success";
-					resultItem.textContent = `✅ SSL certificate for ${domain}:3000 appears valid`;
-					testResultsEl.appendChild(resultItem);
-				} catch (error) {
-					log(`SSL certificate test failed: ${error.message}`, "error");
+          // Add to test results
+          const resultItem = document.createElement('div');
+          resultItem.className = 'success';
+          resultItem.textContent = `✅ SSL certificate for ${domain}:3000 appears valid`;
+          testResultsEl.appendChild(resultItem);
+        } catch (error) {
+          log(`SSL certificate test failed: ${error.message}`, 'error');
 
-					// Add to test results
-					const resultItem = document.createElement("div");
-					resultItem.className = "error";
-					resultItem.textContent = `❌ SSL certificate test failed: ${error.message}`;
-					testResultsEl.appendChild(resultItem);
+          // Add to test results
+          const resultItem = document.createElement('div');
+          resultItem.className = 'error';
+          resultItem.textContent = `❌ SSL certificate test failed: ${error.message}`;
+          testResultsEl.appendChild(resultItem);
 
-					// Try port 443 as fallback
-					try {
-						log(`Trying alternative port 443...`);
-						const response = await fetch(`https://${domain}:443`, {
-							method: "GET",
-							mode: "no-cors",
-						});
+          // Try port 443 as fallback
+          try {
+            log(`Trying alternative port 443...`);
+            const response = await fetch(`https://${domain}:443`, {
+              method: 'GET',
+              mode: 'no-cors',
+            });
 
-						log(`SSL certificate appears valid on port 443!`, "success");
+            log(`SSL certificate appears valid on port 443!`, 'success');
 
-						// Add to test results
-						const resultItem = document.createElement("div");
-						resultItem.className = "success";
-						resultItem.textContent = `✅ SSL certificate for ${domain}:443 appears valid`;
-						testResultsEl.appendChild(resultItem);
-					} catch (error) {
-						log(`SSL certificate test on port 443 failed: ${error.message}`, "error");
+            // Add to test results
+            const resultItem = document.createElement('div');
+            resultItem.className = 'success';
+            resultItem.textContent = `✅ SSL certificate for ${domain}:443 appears valid`;
+            testResultsEl.appendChild(resultItem);
+          } catch (error) {
+            log(`SSL certificate test on port 443 failed: ${error.message}`, 'error');
 
-						// Add to test results
-						const resultItem = document.createElement("div");
-						resultItem.className = "error";
-						resultItem.textContent = `❌ SSL certificate test on port 443 failed: ${error.message}`;
-						testResultsEl.appendChild(resultItem);
-					}
-				}
-			});
+            // Add to test results
+            const resultItem = document.createElement('div');
+            resultItem.className = 'error';
+            resultItem.textContent = `❌ SSL certificate test on port 443 failed: ${error.message}`;
+            testResultsEl.appendChild(resultItem);
+          }
+        }
+      });
 
-			// Disconnect
-			disconnectBtn.addEventListener("click", () => {
-				if (ws) {
-					log("Closing connection...", "info");
-					ws.close();
-					updateConnectionState(CONNECTION_STATES.DISCONNECTED);
-				}
-			});
+      // Disconnect
+      disconnectBtn.addEventListener('click', () => {
+        if (ws) {
+          log('Closing connection...', 'info');
+          ws.close();
+          updateConnectionState(CONNECTION_STATES.DISCONNECTED);
+        }
+      });
 
-			// Clear log
-			clearBtn.addEventListener("click", () => {
-				logEl.innerHTML = "";
-			});
+      // Clear log
+      clearBtn.addEventListener('click', () => {
+        logEl.innerHTML = '';
+      });
 
-			// Page load
-			window.addEventListener("load", () => {
-				log("WebSocket Debug Tool loaded. Enter a WebSocket URL and click Connect.", "info");
-				updateConnectionState(CONNECTION_STATES.DISCONNECTED);
-				showBrowserInfo();
-			});
-		</script>
-	</body>
+      // Page load
+      window.addEventListener('load', () => {
+        log('WebSocket Debug Tool loaded. Enter a WebSocket URL and click Connect.', 'info');
+        updateConnectionState(CONNECTION_STATES.DISCONNECTED);
+        showBrowserInfo();
+      });
+    </script>
+  </body>
 </html>

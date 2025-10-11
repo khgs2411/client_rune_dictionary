@@ -1,0 +1,124 @@
+import { I_SceneModule } from '@/scenes/scenes.types';
+import { SceneLifecycle } from '@/game/SceneLifecycle';
+import { useRxjs } from 'topsyde-utils';
+import {
+  SceneErrorPayload,
+  SceneLoadingEvent,
+  SceneLoadingProgressPayload,
+  SceneLoadingStartPayload,
+  ModuleLoadingProgressPayload,
+} from '@/common/events.types';
+import { useCamera } from '@/composables/useCamera';
+import { useCharacter } from '@/composables/useCharacter';
+
+/**
+ * Base class for game scenes with typed module registry support
+ * Subclasses should define their own ModuleRegistry interface
+ */
+export abstract class BaseScene<TModuleRegistry = Record<string, I_SceneModule>> {
+  protected modules: Partial<TModuleRegistry> = {};
+  protected initializedModules: Set<I_SceneModule> = new Set();
+  protected moduleNames: Map<I_SceneModule, string> = new Map(); // Track module names
+  protected lifecycle: SceneLifecycle = new SceneLifecycle();
+  protected rxjs = useRxjs('scene:loading');
+  protected moduleLoadingRxjs = useRxjs('module:loading'); // Module-level events
+
+  // High-level entity composables
+  public camera!: ReturnType<typeof useCamera>;
+  protected character!: ReturnType<typeof useCharacter>;
+
+  constructor() {
+    this.moduleLoadingRxjs.$subscribe({
+      loaded: (data: ModuleLoadingProgressPayload) => {
+        // Only handle events for this scene
+        if (data.sceneName !== this.name) return;
+
+        // Find the module by name and mark it as initialized
+        for (const [module, moduleName] of this.moduleNames.entries()) {
+          if (moduleName === data.moduleName) {
+            this.markModuleInitialized(module);
+            console.log(`✅ [${this.name}] Module "${data.moduleName}" initialized`);
+
+            // Emit scene-level progress update
+            this.loading('loaded', { loaded: this.initializedModules.size });
+            break;
+          }
+        }
+      },
+    })
+  }
+
+  /**
+   * Scene name (must be overridden by subclass)
+   */
+  abstract readonly name: string;
+
+  /**
+   * Add a module to the registry with type-safe key checking
+   */
+  protected addModule<K extends keyof TModuleRegistry>(key: K, module: TModuleRegistry[K]): this {
+    this.modules[key] = module;
+    this.moduleNames.set(module as I_SceneModule, String(key)); // Track module name
+    return this;
+  }
+
+  protected moduleCount(): number {
+    return Object.keys(this.modules).length;
+  }
+
+  /**
+   * Helper to iterate all modules (converts record to array)
+   */
+  protected forEachModule(callback: (module: I_SceneModule) => void): void {
+    Object.values(this.modules).forEach((module) => {
+      if (module) callback(module as I_SceneModule);
+    });
+  }
+
+  /**
+   * Helper to iterate only initialized modules (safe for update loop)
+   */
+  protected forEachInitializedModule(callback: (module: I_SceneModule) => void): void {
+    this.initializedModules.forEach((module) => {
+      callback(module);
+    });
+  }
+
+  /**
+   * Mark a module as initialized (called after module.start())
+   */
+  protected markModuleInitialized(module: I_SceneModule): void {
+    this.initializedModules.add(module);
+  }
+
+  /**
+   * Emit loading event with simple API
+   */
+  protected loading(
+    event: 'start',
+    data: Omit<SceneLoadingStartPayload, 'sceneName'>
+  ): void
+  protected loading(
+    event: 'loaded',
+    data: Omit<SceneLoadingProgressPayload, 'sceneName'>,
+  ): void
+  protected loading(
+    event: 'fail',
+    data: Omit<SceneErrorPayload, 'sceneName'>
+  ): void
+  protected loading<T extends Omit<SceneLoadingEvent, 'sceneName'>>(
+    event: 'start' | 'loaded' | 'fail',
+    data: T
+  ): void {
+    this.rxjs.$next(event, { sceneName: this.name, ...data });
+  }
+
+  public abstract start(): void;
+  public abstract update(...args: any): void;
+  public abstract destroy(): void;
+
+  protected abstract initializeComposables(): void;
+  protected abstract  registerModules(): void;
+  protected abstract  startModuleLoading(): void;
+  protected abstract  finalizeSetup(): void;
+}

@@ -12,28 +12,28 @@ This project can be deployed to GitHub Pages using the provided deployment scrip
 
 1. **Install dependencies (if not already done):**
 
-    ```sh
-    npm install
-    ```
+   ```sh
+   npm install
+   ```
 
 2. **Run the deployment script:**
 
-    ```sh
-    npm run deploy
-    ```
+   ```sh
+   npm run deploy
+   ```
 
-    This will:
+   This will:
 
-    - Prompt you to select a version bump (patch, minor, major).
-    - Update the version in `package.json` and `src/main.ts`.
-    - Commit and push the changes to the repository with a `[deploy]` tag in the commit message.
+   - Prompt you to select a version bump (patch, minor, major).
+   - Update the version in `package.json` and `src/main.ts`.
+   - Commit and push the changes to the repository with a `[deploy]` tag in the commit message.
 
 3. **GitHub Pages Setup:**
-    - Ensure your repository is configured to serve from the correct branch (usually `gh-pages` or `main`/`master` with `/docs` or `/dist` as the source).
-    - If you need to reset the GitHub Pages branch, use:
-        ```sh
-        npm run reset-gh-pages
-        ```
+   - Ensure your repository is configured to serve from the correct branch (usually `gh-pages` or `main`/`master` with `/docs` or `/dist` as the source).
+   - If you need to reset the GitHub Pages branch, use:
+     ```sh
+     npm run reset-gh-pages
+     ```
 
 ## Notes
 
