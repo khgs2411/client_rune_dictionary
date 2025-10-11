@@ -1,5 +1,5 @@
 import { I_CharacterControlsOptions } from '@/common/types';
-import { useConfigStore } from '@/stores/config.store';
+import { useGameConfig } from '@/stores/gameConfig.store';
 import { I_GameCharacter } from './composables.types';
 import { useCharacterController } from './useCharacterController';
 import { Vector3 } from 'three';
@@ -11,7 +11,7 @@ import { Vector3 } from 'three';
  * Wraps character controller and could handle Three.js mesh in the future
  */
 export function useCharacter(options: I_CharacterControlsOptions): I_GameCharacter {
-  const config = useConfigStore();
+  const config = useGameConfig();
 
   if (config.debug.enableConsoleLog) {
     console.log('      ↳ Initializing character composable...');

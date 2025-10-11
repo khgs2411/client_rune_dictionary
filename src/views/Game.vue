@@ -1,5 +1,8 @@
 <template>
   <div class="game-container">
+    <!-- WebSocket Manager - auto-connects on mount, disconnects on unmount -->
+    <WebSocketManager />
+
     <!-- Loading Screen -->
     <LoadingScreen />
 
@@ -13,10 +16,12 @@ import { Engine } from '@/game/Engine';
 import { PlaygroundScene } from '@/scenes/PlaygroundScene';
 import { I_GameScene, I_SceneConfig } from '@/scenes/scenes.types';
 import LoadingScreen from '@/components/LoadingScreen.vue';
+import WebSocketManager from '@/components/WebSocketManager.vue';
 import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
 import { ref, watch } from 'vue';
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
+
 let engine: Engine | null = null;
 let currentScene: I_GameScene | null = null;
 

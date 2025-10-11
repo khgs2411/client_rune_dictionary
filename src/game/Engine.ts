@@ -2,7 +2,7 @@ import { Camera, Clock, Color, LoadingManager, PCFSoftShadowMap, Scene, WebGLRen
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { useRxjs } from 'topsyde-utils';
 import { watch } from 'vue';
-import { useConfigStore } from '@/stores/config.store';
+import { useGameConfig } from '@/stores/gameConfig.store';
 
 /**
  * Core game engine that encapsulates js scene, renderer, and clock.
@@ -18,7 +18,7 @@ export class Engine {
   constructor(canvas: HTMLCanvasElement) {
     console.log('   ↳ Initializing Three.js engine...');
 
-    const config = useConfigStore();
+    const config = useGameConfig();
 
     // Create clock for delta time
     this.clock = new Clock();

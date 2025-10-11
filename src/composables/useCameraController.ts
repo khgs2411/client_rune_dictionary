@@ -1,4 +1,4 @@
-import { useConfigStore } from '@/stores/config.store';
+import { useGameConfig } from '@/stores/gameConfig.store';
 import { Vector3 } from 'three';
 import { reactive, ref, watchEffect } from 'vue';
 import { I_CameraControls } from './composables.types';
@@ -12,7 +12,7 @@ import { useCameraZoom } from './useCameraZoom';
  * Orchestrates rotation, zoom, mouse, and touch composables
  */
 export function useCameraController(): I_CameraControls {
-  const config = useConfigStore();
+  const config = useGameConfig();
 
   const target = reactive({ x: 0, z: 0, y: 0 })
 

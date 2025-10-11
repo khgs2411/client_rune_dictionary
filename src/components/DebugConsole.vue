@@ -11,7 +11,7 @@
         class="flex items-center justify-between px-4 py-2 border-b border-border bg-background/50 cursor-move select-none">
         <div class="flex items-center gap-2">
           <Icon icon="radix-icons:globe" class="h-4 w-4 text-primary" />
-          <h3 class="text-sm font-semibold">WebSocket Events</h3>
+          <h3 class="text-sm font-semibold">Console</h3>
         </div>
         <div class="flex items-center gap-1">
           <TooltipProvider :delay-duration="0">
@@ -87,12 +87,12 @@
 import Button from '@/components/ui/button/Button.vue';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Icon } from '@iconify/vue';
-import { useConfigStore } from '@/stores/config.store';
+import { useGameConfig } from '@/stores/gameConfig.store';
 import { nextTick, ref, watch } from 'vue';
 import { useRxjs } from 'topsyde-utils';
 import { useDraggable } from '@vueuse/core';
 
-const config = useConfigStore();
+const config = useGameConfig();
 
 // Draggable functionality
 const draggableContainer = ref<HTMLElement | null>(null);

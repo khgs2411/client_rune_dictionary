@@ -1,4 +1,4 @@
-import { useConfigStore } from '@/stores/config.store';
+import { useGameConfig } from '@/stores/gameConfig.store';
 import { ref, computed, type Ref } from 'vue';
 import { useEventListener } from '@vueuse/core';
 
@@ -17,7 +17,7 @@ export interface JoystickState {
  * Activates on left half of screen, provides normalized input
  */
 export function useJoystick(): JoystickState {
-  const config = useConfigStore();
+  const config = useGameConfig();
 
   // Joystick state
   const active = ref(false);

@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { useEventListener } from '@vueuse/core';
-import { useConfigStore } from '@/stores/config.store';
+import { useGameConfig } from '@/stores/gameConfig.store';
 import type { CameraRotation } from './useCameraRotation';
 import type { CameraZoom } from './useCameraZoom';
 
@@ -14,7 +14,7 @@ export function useCameraTouchInput(
   rotation: CameraRotation,
   zoom: CameraZoom
 ): CameraTouchInput {
-  const config = useConfigStore();
+  const config = useGameConfig();
 
   // Touch-specific state
   const isTouchDragging = ref(false);

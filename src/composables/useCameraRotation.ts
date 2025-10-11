@@ -1,5 +1,5 @@
 import { type Ref } from 'vue';
-import { useConfigStore } from '@/stores/config.store';
+import { useGameConfig } from '@/stores/gameConfig.store';
 
 export interface CameraRotation {
   updateHorizontal: (delta: number) => void;
@@ -16,7 +16,7 @@ export function useCameraRotation(
   angleV: Ref<number>,
   sensitivity = { h: 0.005, v: 0.005 }
 ): CameraRotation {
-  const config = useConfigStore();
+  const config = useGameConfig();
 
   const MIN_VERTICAL = config.camera.angleVMin;
   const MAX_VERTICAL = config.camera.angleVMax;

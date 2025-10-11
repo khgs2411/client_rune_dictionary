@@ -1,5 +1,5 @@
 import { I_GameCamera } from './composables.types';
-import { useConfigStore } from '@/stores/config.store';
+import { useGameConfig } from '@/stores/gameConfig.store';
 import { useEventListener } from '@vueuse/core';
 import { watchEffect } from 'vue';
 import { useCameraController } from './useCameraController';
@@ -10,7 +10,7 @@ import { PerspectiveCamera, Vector3 } from 'three';
  * Manages Three.js camera instance and wraps controller logic
  */
 export function useCamera(): I_GameCamera {
-  const config = useConfigStore();
+  const config = useGameConfig();
 
   if (config.debug.enableConsoleLog) {
     console.log('      ↳ Initializing camera composable...');

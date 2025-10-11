@@ -26,9 +26,9 @@ import GameSettings from '@/components/GameSettings.vue';
 import Button from '@/components/ui/button/Button.vue';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Icon } from '@iconify/vue';
-import { useConfigStore } from '@/stores/config.store';
+import { useGameConfig } from '@/stores/gameConfig.store';
 
-const config = useConfigStore();
+const config = useGameConfig();
 
 function toggleDebugger() {
   config.debug.showWebSocketDebugger = !config.debug.showWebSocketDebugger;

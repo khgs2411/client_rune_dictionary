@@ -1,4 +1,4 @@
-import { useConfigStore } from '@/stores/config.store';
+import { useGameConfig } from '@/stores/gameConfig.store';
 import { ref, computed, type Ref } from 'vue';
 import { useMagicKeys } from '@vueuse/core';
 
@@ -24,7 +24,7 @@ export interface CharacterMovement {
  * Handles keyboard + joystick input, camera-relative movement, and position updates
  */
 export function useCharacterMovement(): CharacterMovement {
-  const config = useConfigStore();
+  const config = useGameConfig();
 
   // Position and rotation
   const playerX = ref(0);

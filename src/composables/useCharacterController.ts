@@ -1,4 +1,4 @@
-import { useConfigStore } from '@/stores/config.store';
+import { useGameConfig } from '@/stores/gameConfig.store';
 import { useCharacterJump } from './useCharacterJump';
 import { useCharacterMovement } from './useCharacterMovement';
 import { useJoystick } from './useJoystick';
@@ -11,7 +11,7 @@ import { Vector3 } from 'three';
  * Orchestrates movement, jump, and joystick composables
  */
 export function useCharacterController(options: I_CharacterControlsOptions): I_CharacterControls {
-  const config = useConfigStore();
+  const config = useGameConfig();
   const { cameraAngleH } = options;
 
   if (config.debug.enableConsoleLog) {

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { reactive, ref } from "vue";
 
-export const useConfigStore = defineStore('config', () => {
+export const useGameConfig = defineStore('useGameConfig', () => {
 
 
     const character = reactive({
@@ -50,7 +50,7 @@ export const useConfigStore = defineStore('config', () => {
     const debug = reactive({
         enableConsoleLog: true, // Enable/disable console logs
         showStats: true, // Show/hide Three.js stats panel
-        showWebSocketDebugger: false, // Show/hide WebSocket event debugger
+        showWebSocketDebugger: true, // Show/hide WebSocket event debugger
     })
 
     return {

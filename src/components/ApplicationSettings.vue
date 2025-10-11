@@ -118,13 +118,13 @@ import Button from '@/components/ui/button/Button.vue';
 import Switch from '@/components/ui/switch/Switch.vue';
 import { useSettingsStore } from '@/stores/settings.store';
 import { useAuthStore } from '@/stores/auth.store';
-import { useConfigStore } from '@/stores/config.store';
+import { useGameConfig } from '@/stores/gameConfig.store';
 import { THEME_OPTIONS } from '@/composables/useTheme';
 import { computed, ref } from 'vue';
 
 const settings = useSettingsStore();
 const authStore = useAuthStore();
-const config = useConfigStore();
+const config = useGameConfig();
 const router = useRouter();
 
 const isOpen = ref(false);
