@@ -103,19 +103,20 @@ const { x, y } = useDraggable(draggableContainer, {
   handle,
 });
 
-interface DebugConsoleEvent {
+export interface I_DebugConsoleEvent {
   type: string;
   data: any;
   timestamp: string;
 }
 
-const events = ref<DebugConsoleEvent[]>([]);
+const events = ref<I_DebugConsoleEvent[]>([]);
 const eventListRef = ref<HTMLElement | null>(null);
 
+// Subscribe to WebSocket debug events
 useRxjs('debug', {
-  message(data: DebugConsoleEvent) {
-    events.value.push(data);
-  },
+	message(data: I_DebugConsoleEvent) {
+		events.value.push(data);
+	},
 });
 
 
@@ -146,13 +147,12 @@ watch(
   },
 );
 
-// Example: Add mock event for testing (remove when WebSocket is integrated)
+// Dev mode initialization message
 if (import.meta.env.DEV) {
-  // Expose addEvent globally for manual testing
-  events.value.push({
-    type: 'system',
-    data: 'WebSocketDebugger initialized (dev mode)',
-    timestamp: new Date().toLocaleTimeString(),
-  });
+	events.value.push({
+		type: 'system.debug.init',
+		data: 'DebugConsole initialized (dev mode)',
+		timestamp: new Date().toLocaleTimeString(),
+	});
 }
 </script>
