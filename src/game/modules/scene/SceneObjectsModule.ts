@@ -1,155 +1,147 @@
 import { RGBColor } from '@/common/types';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
-import { I_ModuleContext, I_ThemedSceneModule } from '@/scenes/scenes.types';
-import type { I_Interactable } from '../entity/interaction.types';
+import { I_InteractableModule, I_ModuleContext, I_ThemedSceneModule } from '@/scenes/scenes.types';
+import { InteractionEntityModule } from '../entity/InteractionEntityModule';
+import { VisualFeedbackEntityModule } from '../entity/VisualFeedbackEntityModule';
 import {
   BoxGeometry,
   SphereGeometry,
   CylinderGeometry,
   ConeGeometry,
   BufferGeometry,
-  InstancedMesh,
+  Mesh,
   MeshStandardMaterial,
-  Matrix4,
   Euler,
   Quaternion,
   Vector3,
 } from 'three';
 
-
-
 /**
- * Scene Objects Module
- * Manages static scene objects (houses, trees, obstacles, etc.) using instanced rendering
- * Groups objects by geometry + material properties for optimal performance
+ * Scene Objects Module (Regular Meshes)
+ * Manages scene objects as individual Mesh instances (NOT instanced rendering)
+ *
+ * Use this when:
+ * - Each object is unique (different positions, scales, rotations)
+ * - Objects need per-object interaction (some interactive, some not)
+ * - Objects need individual updates/animations
+ * - You have a small number of objects (< 100)
+ *
+ * For many identical objects, use SceneInstancedObjectsModule instead.
+ *
+ * Uses EntityModules for features:
+ * - InteractionEntityModule: Makes objects clickable/hoverable
+ * - VisualFeedbackEntityModule: Provides visual feedback for interactions
  */
-export class SceneObjectsModule extends SceneModule implements I_ThemedSceneModule {
+export class SceneObjectsModule extends SceneModule implements I_ThemedSceneModule, I_InteractableModule {
   private objectConfigs: I_SceneObjectConfig[];
-  private instancedMeshes: Map<string, InstancedMesh> = new Map();
+  private meshes: Mesh[] = [];
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
-  private interactables: I_Interactable[] = []; // Interactable objects for interaction system
 
-  constructor(objectConfigs: I_SceneObjectConfig[]) {
-    super('sceneObjects');
+  // Entity modules (pluggable features)
+  public ownsInteraction: boolean = false; // Will be set to true after dependency injection
+  public interaction!: InteractionEntityModule;
+  public visualFeedback?: VisualFeedbackEntityModule;
+
+  constructor(
+    objectConfigs: I_SceneObjectConfig[],
+    moduleName: string = 'sceneObjectsModule',
+  ) {
+    super(moduleName);
     this.objectConfigs = objectConfigs;
   }
 
- async start(context: I_ModuleContext): Promise<void> {
-    // Simulate async loading delay (for testing loading screen)
-      // Group objects by geometry + material properties
-      const groups = this.groupObjects();
+  async start(context: I_ModuleContext): Promise<void> {
+    this.objectConfigs.forEach((config, index) => {
+      // Create geometry and material
+      const geometry = this.createGeometry(config.geometry);
+      const material = this.createMaterial(config, context);
 
-      groups.forEach((configs, groupKey) => {
-        const sampleConfig = configs[0];
-        const geometry = this.createGeometry(sampleConfig.geometry);
-        const material = this.createMaterial(sampleConfig, context);
+      // Track themed materials for updateColors
+      if (config.material.useTheme) {
+        this.themedMaterials.push(material);
+      }
 
-        // Track themed materials for updateColors
-        if (sampleConfig.material.useTheme) {
-          this.themedMaterials.push(material);
-        }
+      // Create individual mesh
+      const mesh = new Mesh(geometry, material);
+      mesh.name = `scene-object-${index}`;
+      mesh.castShadow = config.castShadow ?? true;
+      mesh.receiveShadow = config.receiveShadow ?? true;
 
-        // Create instanced mesh
-        const instancedMesh = new InstancedMesh(geometry, material, configs.length);
-        instancedMesh.count = 0;
-        instancedMesh.castShadow = sampleConfig.castShadow ?? true;
-        instancedMesh.receiveShadow = sampleConfig.receiveShadow ?? true;
+      // Set transform
+      mesh.position.set(...config.position);
+      if (config.rotation) {
+        const euler = new Euler(...config.rotation);
+        mesh.rotation.copy(euler);
+      }
+      if (config.scale) {
+        mesh.scale.set(...config.scale);
+      }
 
-        // Set transforms for each instance
-        configs.forEach((config, index) => {
-          const matrix = new Matrix4();
-          const position = new Vector3(...config.position);
-          const euler = new Euler(...(config.rotation || [0, 0, 0]));
-          const quaternion = new Quaternion().setFromEuler(euler);
-          const scale = new Vector3(...(config.scale || [1, 1, 1]));
+      // Add to scene and lifecycle
+      context.scene.add(mesh);
+      context.lifecycle.register(mesh);
 
-          matrix.compose(position, quaternion, scale);
-          instancedMesh.setMatrixAt(instancedMesh.count++, matrix);
-        });
+      this.meshes.push(mesh);
 
-        instancedMesh.instanceMatrix.needsUpdate = true;
-
-        // Compute bounding sphere for proper frustum culling
-        instancedMesh.computeBoundingSphere();
-
-        // Add to scene and lifecycle
-        context.scene.add(instancedMesh);
-        context.lifecycle.register(instancedMesh);
-
-        this.instancedMeshes.set(groupKey, instancedMesh);
-
-        // Register as interactable
-        const interactable: I_Interactable = {
-          id: `scene-object-${groupKey}`,
-          object3D: instancedMesh,
-          metadata: {
-            name: `${sampleConfig.geometry.type} obstacle`,
+      // Register as interactable if config says so
+      if (config.interactive && this.interaction) {
+        const interactionConfig = config.interaction || {
+          hoverable: true,
+          clickable: true,
+          tooltip: {
+            title: `${config.geometry.type} object`,
             description: 'A scene object',
-            groupKey,
-            configs,
           },
         };
-        this.interactables.push(interactable);
-      });
 
-      // Emit loading complete event
-      this.initialized(context.sceneName)
+        this.interaction.register(`scene-object-${index}`, mesh, interactionConfig);
+      }
+    });
+
+    console.log(`📦 [SceneObjectsModule] Created ${this.meshes.length} objects`);
+
+    // Emit loading complete event
+    this.initialized(context.sceneName);
   }
 
-  update(delta: number): void {
-    // Static objects, nothing to update
+  public update(): void {
+    // No need to update interaction modules - they're managed by the scene
   }
 
   async destroy(): Promise<void> {
+    // No need to destroy interaction modules - they're managed by the scene
     // Lifecycle handles cleanup
     this.themedMaterials = [];
-    this.instancedMeshes.clear();
+    this.meshes = [];
   }
 
-  updateColors(hex: number): void {
+  public updateColors(hex: number): void {
     // Update all themed materials
     this.themedMaterials.forEach((material) => {
       material.color.setHex(hex);
     });
   }
 
+  public setInteractionEntityModule(interaction: InteractionEntityModule, feedback?: VisualFeedbackEntityModule): void {
+    this.interaction = interaction;
+    this.visualFeedback = feedback;
+    this.ownsInteraction = true; // Mark as ready
+  }
+
+
   /**
-   * Get all interactable objects for the interaction system
+   * Get all meshes (useful for custom logic)
    */
-  getInteractables(): I_Interactable[] {
-    return this.interactables;
+  getMeshes(): Mesh[] {
+    return this.meshes;
   }
 
   /**
-   * Group objects by their geometry + material properties
+   * Get mesh by index
    */
-  private groupObjects(): Map<string, I_SceneObjectConfig[]> {
-    const groups = new Map<string, I_SceneObjectConfig[]>();
-
-    this.objectConfigs.forEach((config) => {
-      const groupKey = this.generateGroupKey(config);
-      const existing = groups.get(groupKey) || [];
-      existing.push(config);
-      groups.set(groupKey, existing);
-    });
-
-    return groups;
-  }
-
-  /**
-   * Generate a unique key for grouping objects
-   */
-  private generateGroupKey(config: I_SceneObjectConfig): string {
-    const { geometry, material } = config;
-    return JSON.stringify({
-      geometryType: geometry.type,
-      geometryParams: geometry.params,
-      useThemeColor: material.useTheme ?? false,
-      staticColor: material.staticColor,
-      roughness: material.roughness ?? 0.8,
-      metalness: material.metalness ?? 0,
-    });
+  getMesh(index: number): Mesh | undefined {
+    return this.meshes[index];
   }
 
   /**
@@ -186,7 +178,7 @@ export class SceneObjectsModule extends SceneModule implements I_ThemedSceneModu
    */
   private createMaterial(
     config: I_SceneObjectConfig,
-    context: I_ModuleContext,
+    context: I_ModuleContext
   ): MeshStandardMaterial {
     const { material } = config;
 

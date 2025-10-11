@@ -1,5 +1,6 @@
 import { RGBColor } from "@/common/types";
 import { Dto } from "topsyde-utils";
+import type { I_InteractionEntityConfig } from "@/game/modules/entity/interaction.types";
 
 /**
  * Scene Object Configuration DTO
@@ -20,6 +21,10 @@ export interface I_SceneObjectConfig {
     };
     castShadow?: boolean;
     receiveShadow?: boolean;
+
+    // Interaction configuration (optional - makes object interactive)
+    interactive?: boolean; // If true, object can be clicked/hovered
+    interaction?: I_InteractionEntityConfig; // Interaction behavior config
 }
 
 /* export default class SceneObjectConfig extends Dto implements I_SceneObjectConfig {

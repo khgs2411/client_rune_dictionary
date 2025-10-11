@@ -6,13 +6,27 @@ import type { Object3D, Vector3 } from 'three';
  */
 
 /**
+ * Interaction configuration for an entity
+ * Defines what interactions are enabled and their behavior
+ */
+export interface I_InteractionEntityConfig {
+  hoverable?: boolean; // Enable hover detection (default: true)
+  clickable?: boolean; // Enable click detection (default: true)
+  tooltip?: {
+    title: string;
+    description?: string;
+  };
+  metadata?: Record<string, any>; // Custom game data (item type, NPC name, etc.)
+}
+
+/**
  * Base interactable object data
  * Keep minimal - extend as needed for specific use cases
  */
 export interface I_Interactable {
   id: string; // Unique identifier
   object3D: Object3D; // Three.js object for raycasting
-  metadata?: Record<string, any>; // Optional game data (item type, NPC name, etc.)
+  config: I_InteractionEntityConfig; // Interaction configuration
 }
 
 /**

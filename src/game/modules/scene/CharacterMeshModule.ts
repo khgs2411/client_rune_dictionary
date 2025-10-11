@@ -16,48 +16,48 @@ export class CharacterMeshModule extends SceneModule implements I_ThemedSceneMod
   private settings: SettingsStore;
   private characterController: I_CharacterControls;
 
-  constructor(settings: SettingsStore, characterController: I_CharacterControls) {
-    super(/* moduleName */ 'characterMesh');
+  constructor(settings: SettingsStore, characterController: I_CharacterControls, moduleName: string = 'characterMesh') {
+    super(moduleName);
     this.settings = settings;
     this.characterController = characterController;
   }
 
   async start(context: I_ModuleContext): Promise<void> {
     // Simulate async loading delay (for testing loading screen)
-      this.mesh = new Group();
+    this.mesh = new Group();
 
-      // Body (capsule)
-      const bodyGeometry = new CapsuleGeometry(0.5, 1, 8, 16);
-      this.bodyMaterial = new MeshStandardMaterial({
-        color: this.settings.theme.primary,
-      });
-      const body = new Mesh(bodyGeometry, this.bodyMaterial);
-      body.castShadow = true;
-      this.mesh.add(body);
+    // Body (capsule)
+    const bodyGeometry = new CapsuleGeometry(0.5, 1, 8, 16);
+    this.bodyMaterial = new MeshStandardMaterial({
+      color: this.settings.theme.primary,
+    });
+    const body = new Mesh(bodyGeometry, this.bodyMaterial);
+    body.castShadow = true;
+    this.mesh.add(body);
 
-      // Forward indicator (cone)
-      const coneGeometry = new ConeGeometry(0.2, 0.4, 8);
-      this.coneMaterial = new MeshStandardMaterial({
-        color: this.settings.theme.accent,
-      });
-      const cone = new Mesh(coneGeometry, this.coneMaterial);
-      cone.position.set(0, 0, 0.7);
-      cone.rotation.x = Math.PI / 2;
-      cone.castShadow = true;
-      this.mesh.add(cone);
+    // Forward indicator (cone)
+    const coneGeometry = new ConeGeometry(0.2, 0.4, 8);
+    this.coneMaterial = new MeshStandardMaterial({
+      color: this.settings.theme.accent,
+    });
+    const cone = new Mesh(coneGeometry, this.coneMaterial);
+    cone.position.set(0, 0, 0.7);
+    cone.rotation.x = Math.PI / 2;
+    cone.castShadow = true;
+    this.mesh.add(cone);
 
-      // Initial position
-      this.mesh.position.set(0, 1, 0);
+    // Initial position
+    this.mesh.position.set(0, 1, 0);
 
-      context.scene.add(this.mesh);
-      context.lifecycle.register(this.mesh);
+    context.scene.add(this.mesh);
+    context.lifecycle.register(this.mesh);
 
-      // Emit loading complete event
-      this.initialized(context.sceneName)
+    // Emit loading complete event
+    this.initialized(context.sceneName)
 
   }
 
-  update(delta: number): void {
+  public update(delta: number): void {
     // Sync mesh with controller state
     this.mesh.position.set(
       this.characterController.position.x.value,

@@ -1,6 +1,8 @@
 import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
 import { Engine } from '@/game/Engine';
+import { InteractionEntityModule } from '@/game/modules/entity/InteractionEntityModule';
+import { VisualFeedbackEntityModule } from '@/game/modules/entity/VisualFeedbackEntityModule';
 import { SceneLifecycle } from '@/game/SceneLifecycle';
 import { SettingsStore } from '@/stores/settings.store';
 import { Scene } from 'three';
@@ -32,8 +34,34 @@ export interface I_SceneConfig {
 
 export interface I_SceneModule {
   start(context: I_ModuleContext): Promise<void>;
-  update(delta: number): void;
   destroy(): Promise<void>;
+}
+
+export interface I_UpdateableModule extends I_SceneModule {
+  update(delta: number, ...args: any[]): void;
+
+}
+
+export function IsUpdateableModule(module: any): module is I_UpdateableModule {
+  return module.update && typeof module.update === 'function';
+}
+
+/**
+ * Interface for modules that can have interaction capabilities injected
+ * Used for dependency injection of shared InteractionEntityModule and VisualFeedbackEntityModule
+ */
+export interface I_InteractableModule extends I_SceneModule {
+  interaction?: InteractionEntityModule;
+  visualFeedback?: VisualFeedbackEntityModule;
+
+  ownsInteraction: boolean; // Changed from `true` to `boolean` for flexibility
+
+  setInteractionEntityModule(interaction: InteractionEntityModule, feedback?: VisualFeedbackEntityModule): void;
+
+}
+
+export function IsInteractableModule(module: any): module is I_InteractableModule {
+  return module.ownsInteraction !== null && module.ownsInteraction !== undefined;
 }
 
 export interface I_ThemedSceneModule extends I_SceneModule {

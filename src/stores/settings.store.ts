@@ -14,7 +14,6 @@ export const useSettingsStore = defineStore(
 	'settings',
 	() => {
 		// Color mode (dark/light)
-		const colorMode = useColorMode();
 
 		// Theme composable (self-contained, manages its own state + localStorage)
 		const theme = useTheme();
@@ -29,7 +28,7 @@ export const useSettingsStore = defineStore(
 
 		// Toggle dark/light mode
 		function toggleColorMode() {
-			colorMode.value = colorMode.value === 'dark' ? 'light' : 'dark';
+			theme.colorMode.value = theme.colorMode.value === 'dark' ? 'light' : 'dark';
 		}
 
 		// Update debug console settings
@@ -42,7 +41,6 @@ export const useSettingsStore = defineStore(
 
 		return {
 			// State
-			colorMode,
 			theme,
 			debugConsole,
 

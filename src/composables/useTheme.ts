@@ -1,5 +1,6 @@
 import { RGBColor } from '@/common/types';
 import { convert, OKLCH, sRGB } from '@texel/color';
+import { useColorMode } from '@vueuse/core';
 import { computed, ref } from 'vue';
 
 export type ColorTheme = 'neutral' | 'rose' | 'blue' | 'purple' | 'green' | 'yellow';
@@ -84,6 +85,7 @@ const THEME_STORAGE_KEY = 'color-theme';
  * Manages current theme, localStorage persistence, and provides reactive hex colors for Three.js
  */
 export function useTheme() {
+  const colorMode = useColorMode();
   const currentTheme = ref<ColorTheme>('neutral');
 
   // Reactive hex colors (re-compute when currentTheme changes)
@@ -171,6 +173,8 @@ export function useTheme() {
   });
 
   return {
+
+    colorMode,
     currentTheme,
     primary,
     primaryForeground,

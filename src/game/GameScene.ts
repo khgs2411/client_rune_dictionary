@@ -1,4 +1,4 @@
-import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
+import { I_InteractableModule, I_ModuleContext, I_SceneModule, I_UpdateableModule, IsInteractableModule, IsUpdateableModule } from '@/scenes/scenes.types';
 import { SceneLifecycle } from '@/game/SceneLifecycle';
 import { useRxjs } from 'topsyde-utils';
 import {
@@ -20,11 +20,15 @@ import type { SettingsStore } from '@/stores/settings.store';
  * Implements template pattern with default lifecycle implementations
  * Subclasses only need to override scene-specific logic
  */
-export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>> {
+export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneModule> = Record<string, I_SceneModule>> {
   private enabled = false;
   private modulesLoaded = false;
   protected modules: Partial<TModuleRegistry> = {};
+  protected updateableModules: Set<I_UpdateableModule> = new Set();
+  protected interactableModules: Set<I_InteractableModule> = new Set();
+
   protected initializedModules: Set<I_SceneModule> = new Set();
+  protected initializedUpdateableModules: Set<I_UpdateableModule> = new Set();
   protected moduleNames: Map<I_SceneModule, string> = new Map();
   protected lifecycle: SceneLifecycle = new SceneLifecycle();
   protected sceneEvents = useRxjs('scene:loading');
@@ -38,6 +42,7 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
 
   // Engine instance (set by subclass constructor)
   public abstract readonly engine: Engine;
+  abstract readonly name: string;
 
   constructor() {
     // Subscribe to module loading events
@@ -68,7 +73,25 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
   /**
    * Scene name (must be overridden by subclass)
    */
-  abstract readonly name: string;
+
+
+  /**
+   * Template method: Scene initialization flow
+   * Can be overridden for custom initialization order
+   */
+  public start(): void {
+    console.log(`🎬 [${this.name}] Initializing scene...`);
+
+    this.initializeComposables();
+    this.registerModules();
+    this.addSceneObjects();
+    this.forEachInteractableModule();
+    this.startModuleLoading();
+    this.finalizeSetup();
+
+    console.log(`✅ [${this.name}] Scene initialization complete`);
+  }
+
 
   /**
    * Add a module to the registry with type-safe key checking
@@ -76,6 +99,18 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
   protected addModule<K extends keyof TModuleRegistry>(key: K, module: TModuleRegistry[K]): this {
     this.modules[key] = module;
     this.moduleNames.set(module as I_SceneModule, String(key)); // Track module name
+    
+    this.updateableModules = Object.values(this.modules).reduce((acc, m) => {
+      if (IsUpdateableModule(m)) acc.add(m);
+      return acc;
+    }, new Set());
+
+    this.interactableModules = Object.values(this.modules).reduce((acc, m) => {
+      if (IsInteractableModule(m)) {
+        acc.add(m);
+      }
+      return acc;
+    }, new Set());
     return this;
   }
 
@@ -92,20 +127,24 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
     });
   }
 
-  /**
-   * Helper to iterate only initialized modules (safe for update loop)
-   */
-  protected forEachInitializedModule(callback: (module: I_SceneModule) => void): void {
-    this.initializedModules.forEach((module) => {
-      callback(module);
+
+  private forEachInteractableModule(): void {
+    this.interactableModules.forEach((module) => {
+      this.setupInteractableModules(module);
     });
   }
+
+  protected abstract setupInteractableModules(m:I_InteractableModule): void
+
 
   /**
    * Mark a module as initialized (called after module.start())
    */
   protected markModuleInitialized(module: I_SceneModule): void {
     this.initializedModules.add(module);
+    if (IsUpdateableModule(module)) {
+      this.initializedUpdateableModules.add(module);
+    }
   }
 
   /**
@@ -119,21 +158,6 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
     data: T
   ): void {
     this.sceneEvents.$next(event, { sceneName: this.name, ...data });
-  }
-
-  /**
-   * Template method: Scene initialization flow
-   * Can be overridden for custom initialization order
-   */
-  public start(): void {
-    console.log(`🎬 [${this.name}] Initializing scene...`);
-
-    this.initializeComposables();
-    this.registerModules();
-    this.startModuleLoading();
-    this.finalizeSetup();
-
-    console.log(`✅ [${this.name}] Scene initialization complete`);
   }
 
   /**
@@ -154,6 +178,12 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
    */
   protected abstract registerModules(): void;
 
+  /** Add scene objects (MUST be implemented by subclass)
+   * This is where scene-specific objects are added to the scene
+   */
+  protected abstract addSceneObjects(): void;
+
+
   /**
    * Start async module loading
    * Override only if you need custom context or loading logic
@@ -165,7 +195,7 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
     this.forEachModule((m) => m.start(context));
   }
 
-  private getModuleContext(): I_ModuleContext {
+  protected getModuleContext(): I_ModuleContext {
     return {
       engine: this.engine,
       sceneName: this.name,
@@ -193,7 +223,9 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
     if (!this.enabled) return;
     this.character.update(delta);
     this.camera.update(this.character.controller.getPosition());
-    this.forEachInitializedModule((m) => m.update(delta));
+    this.initializedUpdateableModules.forEach((module) => {
+      module.update(delta);
+    });
   }
 
   /**

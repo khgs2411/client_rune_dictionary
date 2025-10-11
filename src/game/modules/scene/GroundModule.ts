@@ -12,8 +12,8 @@ export class GroundModule extends SceneModule implements I_SceneModule {
   private groundMaterial!: MeshStandardMaterial;
   private settings: SettingsStore;
 
-  constructor(settings: SettingsStore) {
-    super('ground');
+  constructor(settings: SettingsStore, moduleName: string = 'ground') {
+    super(moduleName);
     this.settings = settings;
   }
 

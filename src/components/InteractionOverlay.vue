@@ -94,13 +94,13 @@ function onHoverStart() {
  * Handle hover hold - show tooltip
  */
 function onHoverHold(event: I_InteractionEvent) {
-  const metadata = event.interactable.metadata || {};
+  const config = event.interactable.config;
 
   tooltip.value = {
     x: event.screenPosition.x,
     y: event.screenPosition.y - 40, // Offset above cursor
-    title: metadata.name || event.interactable.id,
-    subtitle: metadata.description,
+    title: config.tooltip?.title || event.interactable.id,
+    subtitle: config.tooltip?.description,
   };
 }
 

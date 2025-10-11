@@ -18,7 +18,7 @@ export class DebugModule extends SceneModule implements I_SceneModule {
     const geometry = new BoxGeometry(2, 2, 2);
     const material = new MeshBasicMaterial({ color: 0xff0000 });
     const cube = new Mesh(geometry, material);
-    cube.position.set(10, 1, 0); // Moved to avoid z-fighting with scene objects
+    cube.position.set(10, 1, -8); // Moved to avoid z-fighting with scene objects
     context.scene.add(cube);
     context.lifecycle.register(cube);
 

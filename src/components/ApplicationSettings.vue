@@ -22,9 +22,9 @@
           <div class="space-y-2">
             <label class="text-xs text-muted-foreground">Mode</label>
             <Button @click="settings.toggleColorMode()" variant="outline" size="sm" class="w-full">
-              <Moon v-if="settings.colorMode === 'dark'" class="h-4 w-4 mr-2" />
+              <Moon v-if="settings.theme.colorMode === 'dark'" class="h-4 w-4 mr-2" />
               <Sun v-else class="h-4 w-4 mr-2" />
-              {{ settings.colorMode === 'dark' ? 'Dark Mode' : 'Light Mode' }}
+              {{ settings.theme.colorMode === 'dark' ? 'Dark Mode' : 'Light Mode' }}
             </Button>
           </div>
 
@@ -92,7 +92,11 @@
 
         <!-- Logout Button -->
         <div v-if="showLogout" class="pt-4 border-t border-border">
-          <Button @click="handleLogout" variant="destructive" size="sm" class="w-full text-destructive-foreground">
+          <Button
+            @click="handleLogout"
+            variant="destructive"
+            size="sm"
+            class="w-full text-destructive-foreground">
             <LogOut class="h-4 w-4 mr-2" />
             Logout
           </Button>
