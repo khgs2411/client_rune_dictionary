@@ -2,10 +2,13 @@
   <Teleport to="body">
     <div
       v-if="config.debug.showWebSocketDebugger"
-      class="fixed top-16 right-4 w-96 max-h-[60vh] bg-background/90 backdrop-blur-sm border border-border rounded-lg shadow-lg overflow-hidden flex flex-col z-40">
-      <!-- Header -->
+      ref="draggableContainer"
+      :style="{ left: `${x}px`, top: `${y}px` }"
+      class="fixed w-96 max-h-[60vh] bg-background/90 backdrop-blur-sm border border-border rounded-lg shadow-lg overflow-hidden flex flex-col z-40">
+      <!-- Header (Draggable Handle) -->
       <div
-        class="flex items-center justify-between px-4 py-2 border-b border-border bg-background/50">
+        ref="handle"
+        class="flex items-center justify-between px-4 py-2 border-b border-border bg-background/50 cursor-move select-none">
         <div class="flex items-center gap-2">
           <Icon icon="radix-icons:globe" class="h-4 w-4 text-primary" />
           <h3 class="text-sm font-semibold">WebSocket Events</h3>
@@ -87,20 +90,30 @@ import { Icon } from '@iconify/vue';
 import { useConfigStore } from '@/stores/config.store';
 import { nextTick, ref, watch } from 'vue';
 import { useRxjs } from 'topsyde-utils';
+import { useDraggable } from '@vueuse/core';
 
 const config = useConfigStore();
 
-interface WebSocketDebugEvent {
+// Draggable functionality
+const draggableContainer = ref<HTMLElement | null>(null);
+const handle = ref<HTMLElement | null>(null);
+
+const { x, y } = useDraggable(draggableContainer, {
+  initialValue: { x: window.innerWidth - 400 - 16, y: 64 }, // right: 16px (right-4), top: 64px (top-16)
+  handle,
+});
+
+interface DebugConsoleEvent {
   type: string;
   data: any;
   timestamp: string;
 }
 
-const events = ref<WebSocketDebugEvent[]>([]);
+const events = ref<DebugConsoleEvent[]>([]);
 const eventListRef = ref<HTMLElement | null>(null);
 
-useRxjs('ws:debug', {
-  message(data: WebSocketDebugEvent) {
+useRxjs('debug', {
+  message(data: DebugConsoleEvent) {
     events.value.push(data);
   },
 });

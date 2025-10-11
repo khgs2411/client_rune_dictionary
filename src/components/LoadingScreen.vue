@@ -69,8 +69,9 @@ import type {
 // Local reactive state (updated by RxJS events)
 const isLoading = ref(false);
 const progress = ref(0);
+const predefinedAssets = ref(1);
 const loadedAssets = ref(0);
-const totalAssets = ref(0);
+const totalAssets = ref(predefinedAssets.value);
 const currentAsset = ref('');
 const sceneName = ref('');
 const error = ref<string | null>(null);
@@ -88,8 +89,8 @@ const events = useRxjs('scene:loading', {
 function start(data: SceneLoadingStartPayload) {
   isLoading.value = true;
   progress.value = 0;
-  loadedAssets.value = 0;
-  totalAssets.value = data.totalAssets;
+  loadedAssets.value = 0 + predefinedAssets.value;
+  totalAssets.value += data.totalAssets;
   sceneName.value = data.sceneName;
   error.value = null;
   loadStartTime.value = performance.now();

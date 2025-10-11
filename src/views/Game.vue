@@ -3,7 +3,6 @@
     <!-- Loading Screen -->
     <LoadingScreen />
 
-
     <!-- Game Canvas -->
     <canvas ref="canvasRef" class="three-canvas" />
   </div>
@@ -98,9 +97,10 @@ function render() {
 
 // VueUse: Animation frame loop
 const { pause: pauseRenderLoop, resume: resumeRenderLoop } = useRafFn(render, {
+  // Don't start immediately
   immediate: false,
   fpsLimit: undefined,
-}); // Don't start immediately
+});
 
 // Watch window size changes and resize engine
 watch([width, height], () => {
