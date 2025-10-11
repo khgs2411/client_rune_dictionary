@@ -1,4 +1,5 @@
 import { Scene, Clock, WebGLRenderer, Color, PCFSoftShadowMap, Camera } from 'three';
+import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { Lib } from 'topsyde-utils';
 
 /**
@@ -9,35 +10,44 @@ export class Engine {
   scene: Scene;
   renderer: WebGLRenderer;
   clock: Clock;
+  stats:Stats;
 
   constructor(canvas: HTMLCanvasElement) {
     console.log('   ↳ Initializing Three.js engine...');
 
+    // Create clock for delta time
+    this.clock = new Clock();
+    this.stats = new Stats();
+    canvas.parentElement?.appendChild(this.stats.dom);
+    
     // Create scene
     this.scene = new Scene();
     this.scene.background = new Color(0x87ceeb); // Sky blue for visibility
 
     // Create renderer
-    this.renderer = new WebGLRenderer({
+    this.renderer = this.createRenderer(canvas);
+    console.log('   ↳ Engine initialized (Scene UUID:', this.scene.uuid + ')');
+  }
+
+  private createRenderer(canvas: HTMLCanvasElement) {
+    const renderer = new WebGLRenderer({
       canvas,
       antialias: true,
       alpha: false,
     });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = PCFSoftShadowMap;
 
-    // Create clock for delta time
-    this.clock = new Clock();
-
-    console.log('   ↳ Engine initialized (Scene UUID:', this.scene.uuid + ')');
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = PCFSoftShadowMap;
+    return renderer
   }
 
   /**
    * Render the scene with the provided camera
    */
   render(camera: Camera): void {
+    this.stats.update();
     this.renderer.render(this.scene, camera);
   }
 

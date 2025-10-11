@@ -1,6 +1,7 @@
 import { useCamera } from '@/composables/useCamera';
 import { Engine } from '@/core/Engine';
 import { SceneLifecycle } from '@/core/SceneLifecycle';
+import { useSettingsStore } from '@/stores/settings.store';
 import { Scene } from 'three';
 import { Reactive, Ref } from 'vue';
 
@@ -52,3 +53,5 @@ export interface I_ModuleContext {
   scene: Scene;
   lifecycle: SceneLifecycle;
 }
+
+export type SettingsStore = ReturnType<typeof useSettingsStore>;
