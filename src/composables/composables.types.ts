@@ -11,6 +11,14 @@ export interface I_GameComposable {
     destroy: () => void;
 }
 
+export interface I_JoystickControls {
+    active: Ref<boolean>;
+    x: Ref<number>;
+    y: Ref<number>;
+    startX: Ref<number>;
+    startY: Ref<number>;
+}
+
 export interface I_CharacterControls extends I_GameComposable {
     position: {
         x: Ref<number>;
@@ -20,13 +28,7 @@ export interface I_CharacterControls extends I_GameComposable {
     rotation: Ref<number>;
     speed: Ref<number>;
     isJumping: Ref<boolean>;
-    joystick: {
-        active: Ref<boolean>;
-        x: Ref<number>;
-        y: Ref<number>;
-        startX: Ref<number>;
-        startY: Ref<number>;
-    };
+    joystick: I_JoystickControls;
     getPosition: () => Vector3;
     update: (delta: number) => void;
 }
