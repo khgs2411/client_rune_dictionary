@@ -80,33 +80,43 @@ const loadingPercentage = computed(() => `${Math.round(progress.value)}%`);
 const isComplete = computed(() => progress.value >= 100 && !isLoading.value);
 
 useRxjs('scene:loading', {
-  start: (data: SceneLoadingStartPayload) => {
-    isLoading.value = true;
-    progress.value = 0;
-    loadedAssets.value = 0;
-    totalAssets.value = data.totalAssets;
-    sceneName.value = data.sceneName;
-    error.value = null;
-    loadStartTime.value = performance.now();
-    console.log(`🎬 [LoadingScreen] Loading ${data.sceneName}...`);
-  },
-  update: (data: SceneLoadingProgressPayload) => {
-    const progressPercent = totalAssets.value > 0 ? (data.loaded / totalAssets.value) * 100 : 0;
-    loadedAssets.value = data.loaded;
-    progress.value = progressPercent;
-    currentAsset.value = data.url || '';
-    console.log(`⏳ [LoadingScreen] Progress: ${progressPercent.toFixed(2)}%`);
-  },
-  complete: (data: SceneLoadedPayload) => {
-    isLoading.value = false;
-    progress.value = 100;
-    const loadTime = (performance.now() - loadStartTime.value).toFixed(0);
-    console.log(`✅ [LoadingScreen] ${data.sceneName} loaded in ${loadTime}ms`);
-  },
-  fail: (data: SceneErrorPayload) => {
-    isLoading.value = false;
-    error.value = data.error;
-    console.error(`❌ [LoadingScreen] Error loading ${data.sceneName}:`, data.error);
-  },
+  start,
+  update,
+  fail,
 });
+
+function start(data: SceneLoadingStartPayload) {
+  isLoading.value = true;
+  progress.value = 0;
+  loadedAssets.value = 0;
+  totalAssets.value = data.totalAssets;
+  sceneName.value = data.sceneName;
+  error.value = null;
+  loadStartTime.value = performance.now();
+  console.log(`🎬 [LoadingScreen] Loading ${data.sceneName}...`);
+}
+
+function update(data: SceneLoadingProgressPayload) {
+  const progressPercent = totalAssets.value > 0 ? (data.loaded / totalAssets.value) * 100 : 0;
+  loadedAssets.value = data.loaded;
+  progress.value = progressPercent;
+  currentAsset.value = data.url || '';
+  console.log(`⏳ [LoadingScreen] Progress: ${progressPercent.toFixed(2)}%`);
+  if(progressPercent >= 100) {
+    complete({ sceneName: data.sceneName });
+  }
+}
+
+function complete(data: SceneLoadedPayload) {
+  isLoading.value = false;
+  progress.value = 100;
+  const loadTime = (performance.now() - loadStartTime.value).toFixed(0);
+  console.log(`✅ [LoadingScreen] ${data.sceneName} loaded in ${loadTime}ms`);
+}
+
+function fail(data: SceneErrorPayload) {
+  isLoading.value = false;
+  error.value = data.error;
+  console.error(`❌ [LoadingScreen] Error loading ${data.sceneName}:`, data.error);
+}
 </script>

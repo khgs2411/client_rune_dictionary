@@ -1,7 +1,6 @@
 import { SettingsStore } from '@/stores/settings.store';
 import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
-
 import type { Engine } from '@/game/Engine';
 import { GameScene } from '@/scenes/BaseScene';
 import { CharacterMeshModule } from '@/game/modules/CharacterMeshModule';
@@ -12,7 +11,6 @@ import { SceneObjectsModule, type SceneObjectConfig } from '@/game/modules/Scene
 import { useSettingsStore } from '@/stores/settings.store';
 import { watch } from 'vue';
 import { I_GameScene, I_ModuleContext, I_SceneConfig } from './scenes.types';
-import { useRxjs } from 'topsyde-utils';
 
 /**
  * Module Registry for PlaygroundScene
@@ -35,7 +33,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
   // High-level entity composables
   public camera!: ReturnType<typeof useCamera>;
   private character!: ReturnType<typeof useCharacter>;
-  private rxjs$ = useRxjs('scene:loading');
 
   constructor(config: I_SceneConfig) {
     super();
@@ -98,29 +95,25 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
 
     const totalModules = this.moduleCount();
 
-    this.rxjs$.$next(
-      'start',
-      { sceneName: this.name, totalAssets: totalModules }
-    )
-    // Init all modules with progress tracking
+    // Emit loading start
+    this.loading('start', { totalAssets: totalModules });
+
+    // Init all modules with progress tracking (simulated delay for loading screen testing)
     let loadedModules = 0;
     this.forEachModule((m) => {
-      m.start(context);
+      const currentModule = loadedModules; // Capture current value
+      setTimeout(() => {
+        m.start(context);
+        this.markModuleInitialized(m); // Track that this module is ready
+        this.loading('update', { loaded: currentModule + 1 });
+      }, currentModule * 500); // Stagger: 0s, 1s, 2s, 3s, 4s
       loadedModules++;
-      this.rxjs$.$next('update',
-        {
-          sceneName: this.name,
-          loaded: loadedModules,
-        });
     });
 
     this.setLifecycleWatchers();
 
     this.camera.start();
 
-    // Emit loading complete (LoadingScreen.vue will hide itself)
-    this.rxjs$.$next('complete',
-      { sceneName: this.name, })
 
     console.log('✅ [PlaygroundScene] Scene initialization complete');
   }
@@ -132,8 +125,8 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
     // Update camera lookAt target
     this.camera.update(this.character.controller.getPosition());
 
-    // Update modules (character mesh sync happens in module)
-    this.forEachModule((m) => m.update(delta));
+    // Update only initialized modules (safe for async loading)
+    this.forEachInitializedModule((m) => m.update(delta));
   }
 
   destroy(): void {
