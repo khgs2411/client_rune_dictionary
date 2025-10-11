@@ -11,6 +11,7 @@ import { SceneObjectsModule, type SceneObjectConfig } from '@/game/modules/Scene
 import { useSettingsStore } from '@/stores/settings.store';
 import { watch } from 'vue';
 import { I_GameScene, I_ModuleContext, I_SceneConfig } from './scenes.types';
+import { SceneLoadingStartPayload } from '@/common/events.types';
 
 /**
  * Module Registry for PlaygroundScene
@@ -100,13 +101,13 @@ export class PlaygroundScene extends BaseScene<PlaygroundModuleRegistry> impleme
 
     // Init all modules with progress tracking (simulated delay for loading screen testing)
     let loadedModules = 0;
-    
+
     this.forEachModule((m) => {
       const currentModule = loadedModules; // Capture current value
       setTimeout(() => {
         m.start(context);
         this.markModuleInitialized(m); // Track that this module is ready
-        this.loading('update', { loaded: currentModule + 1 });
+        this.loading('loaded', { loaded: currentModule + 1 });
       }, currentModule * 500); // Stagger: 0s, 1s, 2s, 3s, 4s
       loadedModules++;
     });

@@ -80,11 +80,12 @@ const isComplete = computed(() => progress.value >= 100 && !isLoading.value);
 
 useRxjs('scene:loading', {
   start,
-  update,
+  loaded: update,
   fail,
 });
 
 function start(data: SceneLoadingStartPayload) {
+  console.log('event data', data);
   isLoading.value = true;
   progress.value = 0;
   loadedAssets.value = 0;
@@ -96,12 +97,13 @@ function start(data: SceneLoadingStartPayload) {
 }
 
 function update(data: SceneLoadingProgressPayload) {
+  console.log('event data', data);
   const progressPercent = totalAssets.value > 0 ? (data.loaded / totalAssets.value) * 100 : 0;
   loadedAssets.value = data.loaded;
   progress.value = progressPercent;
   currentAsset.value = data.assetName || '';
   console.log(`⏳ [LoadingScreen] Progress: ${progressPercent.toFixed(2)}%`);
-  if(progressPercent >= 100) {
+  if (progressPercent >= 100) {
     complete({ sceneName: data.sceneName });
   }
 }

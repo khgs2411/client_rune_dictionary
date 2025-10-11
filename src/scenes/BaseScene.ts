@@ -1,6 +1,7 @@
 import { I_SceneModule } from '@/scenes/scenes.types';
 import { SceneLifecycle } from '@/game/SceneLifecycle';
 import { useRxjs } from 'topsyde-utils';
+import { SceneErrorPayload, SceneLoadingEvent, SceneLoadingProgressPayload, SceneLoadingStartPayload } from '@/common/events.types';
 
 /**
  * Base class for game scenes with typed module registry support
@@ -57,14 +58,23 @@ export abstract class BaseScene<TModuleRegistry = Record<string, I_SceneModule>>
   /**
    * Emit loading event with simple API
    */
-  protected loading<T>(
-    event: 'start' | 'update' | 'fail',
-    data: T = {} as T
+  protected loading(
+    event: 'start',
+    data: Omit<SceneLoadingStartPayload, 'sceneName'>
+  ): void
+  protected loading(
+    event: 'loaded',
+    data: Omit<SceneLoadingProgressPayload, 'sceneName'>,
+  ): void
+  protected loading(
+    event: 'fail',
+    data: Omit<SceneErrorPayload, 'sceneName'>
+  ): void
+  protected loading<T extends Omit<SceneLoadingEvent, 'sceneName'>>(
+    event: 'start' | 'loaded' | 'fail',
+    data: T
   ): void {
-    this.rxjs.$next(event, {
-      sceneName: this.name,
-      ...data,
-    });
+    this.rxjs.$next(event, { sceneName: this.name, ...data });
   }
 
   abstract start(): void;
