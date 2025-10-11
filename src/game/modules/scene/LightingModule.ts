@@ -1,16 +1,13 @@
+import SceneModule from '@/game/SceneModule';
 import { I_ModuleContext } from '@/scenes/scenes.types';
 import { I_SceneModule } from '@/scenes/scenes.types';
 import { Light, AmbientLight, DirectionalLight } from 'three';
-import GameModule from '../GameModule';
 
-// ============================================================================
-// MODULES
-// ============================================================================
 /**
  * Lighting Module
  * Handles ambient and directional lights with shadow configuration
  */
-export class LightingModule extends GameModule implements I_SceneModule {
+export class LightingModule extends SceneModule implements I_SceneModule {
   private lights: Light[] = [];
 
   constructor(){

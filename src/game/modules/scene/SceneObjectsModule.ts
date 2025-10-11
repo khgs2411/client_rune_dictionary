@@ -1,4 +1,6 @@
 import { RGBColor } from '@/common/types';
+import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
+import SceneModule from '@/game/SceneModule';
 import { I_ModuleContext, I_ThemedSceneModule } from '@/scenes/scenes.types';
 import {
   BoxGeometry,
@@ -13,52 +15,20 @@ import {
   Quaternion,
   Vector3,
 } from 'three';
-import GameModule from '../GameModule';
 
-/**
- * Scene Object Configuration DTO
- */
-export interface SceneObjectConfig {
-  position: RGBColor;
-  rotation?: RGBColor; // Euler angles in radians
-  scale?: RGBColor; // Default [1, 1, 1]
-  geometry: {
-    type: 'box' | 'sphere' | 'cylinder' | 'cone';
-    params: number[]; // Geometry-specific parameters
-  };
-  material: {
-    useTheme?: boolean; // If true, uses theme color and updates on theme change
-    staticColor?: number; // If set, uses this fixed color
-    roughness?: number;
-    metalness?: number;
-  };
-  castShadow?: boolean;
-  receiveShadow?: boolean;
-}
 
-/**
- * Internal grouping key for instanced meshes
- */
-interface InstanceGroup {
-  geometryType: string;
-  geometryParams: string;
-  useThemeColor: boolean;
-  staticColor?: number;
-  roughness: number;
-  metalness: number;
-}
 
 /**
  * Scene Objects Module
  * Manages static scene objects (houses, trees, obstacles, etc.) using instanced rendering
  * Groups objects by geometry + material properties for optimal performance
  */
-export class SceneObjectsModule extends GameModule implements I_ThemedSceneModule {
-  private objectConfigs: SceneObjectConfig[];
+export class SceneObjectsModule extends SceneModule implements I_ThemedSceneModule {
+  private objectConfigs: I_SceneObjectConfig[];
   private instancedMeshes: Map<string, InstancedMesh> = new Map();
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
 
-  constructor(objectConfigs: SceneObjectConfig[]) {
+  constructor(objectConfigs: I_SceneObjectConfig[]) {
     super('sceneObjects');
     this.objectConfigs = objectConfigs;
   }
@@ -132,8 +102,8 @@ export class SceneObjectsModule extends GameModule implements I_ThemedSceneModul
   /**
    * Group objects by their geometry + material properties
    */
-  private groupObjects(): Map<string, SceneObjectConfig[]> {
-    const groups = new Map<string, SceneObjectConfig[]>();
+  private groupObjects(): Map<string, I_SceneObjectConfig[]> {
+    const groups = new Map<string, I_SceneObjectConfig[]>();
 
     this.objectConfigs.forEach((config) => {
       const groupKey = this.generateGroupKey(config);
@@ -148,7 +118,7 @@ export class SceneObjectsModule extends GameModule implements I_ThemedSceneModul
   /**
    * Generate a unique key for grouping objects
    */
-  private generateGroupKey(config: SceneObjectConfig): string {
+  private generateGroupKey(config: I_SceneObjectConfig): string {
     const { geometry, material } = config;
     return JSON.stringify({
       geometryType: geometry.type,
@@ -163,7 +133,7 @@ export class SceneObjectsModule extends GameModule implements I_ThemedSceneModul
   /**
    * Create Three.js geometry based on config
    */
-  private createGeometry(geometryConfig: SceneObjectConfig['geometry']): BufferGeometry {
+  private createGeometry(geometryConfig: I_SceneObjectConfig['geometry']): BufferGeometry {
     const { type, params } = geometryConfig;
 
     switch (type) {
@@ -193,7 +163,7 @@ export class SceneObjectsModule extends GameModule implements I_ThemedSceneModul
    * Create Three.js material based on config
    */
   private createMaterial(
-    config: SceneObjectConfig,
+    config: I_SceneObjectConfig,
     context: I_ModuleContext,
   ): MeshStandardMaterial {
     const { material } = config;

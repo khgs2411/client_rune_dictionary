@@ -2,13 +2,13 @@ import { type SettingsStore } from '@/stores/settings.store';
 import { I_ModuleContext } from '@/scenes/scenes.types';
 import { I_SceneModule } from '@/scenes/scenes.types';
 import { GridHelper, InstancedMesh, Mesh, MeshStandardMaterial, PlaneGeometry } from 'three';
-import GameModule from '../GameModule';
+import SceneModule from '@/game/SceneModule';
 
 /**
  * Ground Module
  * Handles ground plane and grid helper
  */
-export class GroundModule extends GameModule implements I_SceneModule {
+export class GroundModule extends SceneModule implements I_SceneModule {
   private groundMaterial!: MeshStandardMaterial;
   private settings: SettingsStore;
 

@@ -1,12 +1,13 @@
 import type { Engine } from '@/game/Engine';
 import { GameScene } from '@/game/GameScene';
-import { CharacterMeshModule } from '@/game/modules/CharacterMeshModule';
-import { DebugModule } from '@/game/modules/DebugModule';
-import { GroundModule } from '@/game/modules/GroundModule';
-import { LightingModule } from '@/game/modules/LightingModule';
-import { SceneObjectsModule, type SceneObjectConfig } from '@/game/modules/SceneObjectsModule';
+import { CharacterMeshModule } from '@/game/modules/scene/CharacterMeshModule';
+import { DebugModule } from '@/game/modules/scene/DebugModule';
+import { GroundModule } from '@/game/modules/scene/GroundModule';
+import { LightingModule } from '@/game/modules/scene/LightingModule';
+import { SceneObjectsModule, } from '@/game/modules/scene/SceneObjectsModule';
 import { watch } from 'vue';
 import { I_GameScene, I_SceneConfig } from './scenes.types';
+import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 
 /**
  * Module Registry for PlaygroundScene
@@ -25,7 +26,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
   readonly engine: Engine;
 
   // Scene object configurations
-  private readonly sceneObjectConfigs: SceneObjectConfig[] = [
+  private readonly sceneObjectConfigs: I_SceneObjectConfig[] = [
     // Themed obstacles (change color with theme)
     {
       position: [5, 1, 0],

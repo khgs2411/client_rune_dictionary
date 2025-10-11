@@ -2,14 +2,14 @@ import { type SettingsStore } from '@/stores/settings.store';
 import { I_CharacterControls } from '@/composables/composables.types';
 import { I_ModuleContext, I_ThemedSceneModule } from '@/scenes/scenes.types';
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
-import GameModule from '../GameModule';
+import SceneModule from '@/game/SceneModule';
 
 /**
  * Character Mesh Module
  * Handles the visual representation of the player character
  * Syncs with character controller state every frame
  */
-export class CharacterMeshModule extends GameModule implements I_ThemedSceneModule {
+export class CharacterMeshModule extends SceneModule implements I_ThemedSceneModule {
   private mesh!: Group;
   private bodyMaterial!: MeshStandardMaterial;
   private coneMaterial!: MeshStandardMaterial;
