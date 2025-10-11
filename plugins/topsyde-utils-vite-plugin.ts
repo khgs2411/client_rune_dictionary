@@ -7,6 +7,7 @@ import type { Plugin } from 'vite';
 export function topsydeUtilsPlugin(): Plugin {
   return {
     name: 'topsyde-utils-compatibility',
+    enforce: 'pre', // Run before Vite's default resolution
 
     // Disable sourcemaps for topsyde-utils
     transform(code, id) {
@@ -19,18 +20,22 @@ export function topsydeUtilsPlugin(): Plugin {
     },
 
     // Handle virtual modules for Node.js built-ins
-    resolveId(id) {
+    resolveId(id, importer) {
+      // Only intercept if imported from topsyde-utils
+      if (importer && importer.includes('node_modules/topsyde-utils')) {
+        if (id === 'path') {
+          return '\0virtual:path';
+        }
+        if (id === 'fs') {
+          return '\0virtual:fs';
+        }
+      }
+
       // Handle direct imports of virtual modules
       if (id === 'virtual:path' || id === 'virtual:fs') {
-        return '\0' + id; // Prefix with null byte to mark as virtual
+        return '\0' + id;
       }
-      // Handle aliased imports (path -> virtual:path)
-      if (id === 'path') {
-        return '\0virtual:path';
-      }
-      if (id === 'fs') {
-        return '\0virtual:fs';
-      }
+
       return null;
     },
 
