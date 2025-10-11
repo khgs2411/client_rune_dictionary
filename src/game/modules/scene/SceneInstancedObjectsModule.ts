@@ -2,8 +2,8 @@ import { RGBColor } from '@/common/types';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
 import { I_InteractableModule, I_ModuleContext, I_ThemedSceneModule } from '@/scenes/scenes.types';
-import { InteractionEntityModule } from '../entity/InteractionEntityModule';
-import { VisualFeedbackEntityModule } from '../entity/VisualFeedbackEntityModule';
+import { InteractionSystemModule } from '../entity/InteractionSystemModule';
+import type { I_InteractionEntityConfig } from '../entity/interaction.types';
 import {
   BoxGeometry,
   SphereGeometry,
@@ -16,6 +16,7 @@ import {
   Euler,
   Quaternion,
   Vector3,
+  Object3D,
   BufferGeometryEventMap,
   NormalBufferAttributes,
 } from 'three';
@@ -33,11 +34,6 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_Themed
   private objectConfigs: I_SceneObjectConfig[];
   private instancedMeshes: Map<string, InstancedMesh> = new Map();
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
-  
-  // Entity modules (pluggable features)
-  public ownsInteraction: boolean = false; // Will be set to true after dependency injection
-  public interaction!: InteractionEntityModule;
-  public visualFeedback?: VisualFeedbackEntityModule;
 
   constructor(
     objectConfigs: I_SceneObjectConfig[],
@@ -69,10 +65,6 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_Themed
       this.addToScene(context, instancedMesh);
 
       this.instancedMeshes.set(groupKey, instancedMesh);
-
-      // Register as interactable if config says so
-      this.registerInteractables(instancedMeshConfig, instancedMesh, groupKey);
-
     });
 
     // Emit loading complete event
@@ -97,31 +89,64 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_Themed
     });
   }
 
-  public setInteractionEntityModule(interaction: InteractionEntityModule, feedback?: VisualFeedbackEntityModule): void {
-    this.interaction = interaction;
-    this.visualFeedback = feedback;
-    this.ownsInteraction = true; // Mark as ready
+  /**
+   * Set the interaction system and auto-register all interactable objects
+   */
+  public setInteractionSystem(system: InteractionSystemModule): void {
+    this.getInteractableObjects().forEach(({ id, object, config }) => {
+      system.register(id, object, config);
+    });
+  }
+
+  /**
+   * Get all interactable objects from this module
+   * Called by setInteractionSystem to auto-register objects
+   * Note: All instances in an InstancedMesh group share the same interaction config
+   */
+  public getInteractableObjects(): Array<{
+    id: string;
+    object: Object3D;
+    config: I_InteractionEntityConfig;
+  }> {
+    const interactables: Array<{
+      id: string;
+      object: Object3D;
+      config: I_InteractionEntityConfig;
+    }> = [];
+
+    // Group objects by their interaction config
+    const groups = this.groupObjects();
+
+    groups.forEach((configs, groupKey) => {
+      const firstConfig = configs[0];
+
+      if (firstConfig.interactive) {
+        const instancedMesh = this.instancedMeshes.get(groupKey);
+
+        if (instancedMesh) {
+          interactables.push({
+            id: `scene-object-${groupKey}`,
+            object: instancedMesh,
+            config: firstConfig.interaction || {
+              hoverable: true,
+              clickable: true,
+              tooltip: {
+                title: `${firstConfig.geometry.type} obstacle`,
+                description: 'A scene object',
+              },
+            },
+          });
+        }
+      }
+    });
+
+    return interactables;
   }
 
 
   private addToScene(context: I_ModuleContext, instancedMesh: InstancedMesh) {
     context.scene.add(instancedMesh);
     context.lifecycle.register(instancedMesh);
-  }
-
-  private registerInteractables(instancedMeshConfig: I_SceneObjectConfig, instancedMesh: InstancedMesh, groupKey: string) {
-    if (instancedMeshConfig.interactive && this.interaction) {
-      const interactionConfig = instancedMeshConfig.interaction || {
-        hoverable: true,
-        clickable: true,
-        tooltip: {
-          title: `${instancedMeshConfig.geometry.type} obstacle`,
-          description: 'A scene object',
-        },
-      };
-
-      this.interaction.register(`scene-object-${groupKey}`, instancedMesh, interactionConfig);
-    }
   }
 
   private createInstancedMesh(geometry: BufferGeometry<NormalBufferAttributes, BufferGeometryEventMap>, material: MeshStandardMaterial, instancedMeshConfig: I_SceneObjectConfig, configs: I_SceneObjectConfig[]) {

@@ -114,6 +114,10 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
     return this;
   }
 
+  protected getModule<K extends keyof TModuleRegistry>(key: K): TModuleRegistry[K] | undefined {
+    return this.modules[key];
+  }
+
   protected moduleCount(): number {
     return Object.keys(this.modules).length;
   }

@@ -2,8 +2,8 @@ import { RGBColor } from '@/common/types';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
 import { I_InteractableModule, I_ModuleContext, I_ThemedSceneModule } from '@/scenes/scenes.types';
-import { InteractionEntityModule } from '../entity/InteractionEntityModule';
-import { VisualFeedbackEntityModule } from '../entity/VisualFeedbackEntityModule';
+import { InteractionSystemModule } from '../entity/InteractionSystemModule';
+import type { I_InteractionEntityConfig } from '../entity/interaction.types';
 import {
   BoxGeometry,
   SphereGeometry,
@@ -15,6 +15,7 @@ import {
   Euler,
   Quaternion,
   Vector3,
+  Object3D,
 } from 'three';
 
 /**
@@ -38,10 +39,6 @@ export class SceneObjectsModule extends SceneModule implements I_ThemedSceneModu
   private meshes: Mesh[] = [];
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
 
-  // Entity modules (pluggable features)
-  public ownsInteraction: boolean = false; // Will be set to true after dependency injection
-  public interaction!: InteractionEntityModule;
-  public visualFeedback?: VisualFeedbackEntityModule;
 
   constructor(
     objectConfigs: I_SceneObjectConfig[],
@@ -83,20 +80,6 @@ export class SceneObjectsModule extends SceneModule implements I_ThemedSceneModu
       context.lifecycle.register(mesh);
 
       this.meshes.push(mesh);
-
-      // Register as interactable if config says so
-      if (config.interactive && this.interaction) {
-        const interactionConfig = config.interaction || {
-          hoverable: true,
-          clickable: true,
-          tooltip: {
-            title: `${config.geometry.type} object`,
-            description: 'A scene object',
-          },
-        };
-
-        this.interaction.register(`scene-object-${index}`, mesh, interactionConfig);
-      }
     });
 
     console.log(`📦 [SceneObjectsModule] Created ${this.meshes.length} objects`);
@@ -123,12 +106,40 @@ export class SceneObjectsModule extends SceneModule implements I_ThemedSceneModu
     });
   }
 
-  public setInteractionEntityModule(interaction: InteractionEntityModule, feedback?: VisualFeedbackEntityModule): void {
-    this.interaction = interaction;
-    this.visualFeedback = feedback;
-    this.ownsInteraction = true; // Mark as ready
+  /**
+   * Set the interaction system and auto-register all interactable objects
+   */
+  public setInteractionSystem(system: InteractionSystemModule): void {
+    this.getInteractableObjects().forEach(({ id, object, config }) => {
+      system.register(id, object, config);
+    });
   }
 
+  /**
+   * Get all interactable objects from this module
+   * Called by setInteractionSystem to auto-register objects
+   */
+  public getInteractableObjects(): Array<{
+    id: string;
+    object: Object3D;
+    config: I_InteractionEntityConfig;
+  }> {
+    return this.meshes
+      .map((mesh, index) => ({ mesh, config: this.objectConfigs[index] }))
+      .filter(({ config }) => config.interactive)
+      .map(({ mesh, config }, filteredIndex) => ({
+        id: `scene-object-${filteredIndex}`,
+        object: mesh,
+        config: config.interaction || {
+          hoverable: true,
+          clickable: true,
+          tooltip: {
+            title: `${config.geometry.type} object`,
+            description: 'A scene object',
+          },
+        },
+      }));
+  }
 
   /**
    * Get all meshes (useful for custom logic)

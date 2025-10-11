@@ -14,6 +14,10 @@ export class Engine {
   clock: Clock;
   stats: Stats;
   loadingManager: LoadingManager;
+  size: {
+    width: number;
+    height: number;
+  }
 
   constructor(canvas: HTMLCanvasElement) {
     console.log('   ↳ Initializing Three.js engine...');
@@ -43,8 +47,44 @@ export class Engine {
 
     // Create renderer
     this.stats.begin();
+    this.size = {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
     this.renderer = this.createRenderer(canvas);
     console.log('   ↳ Engine initialized (Scene UUID:', this.scene.uuid + ')');
+  }
+
+
+
+  /**
+   * Render the scene with the provided camera
+   */
+  public render(camera: Camera): void {
+    this.stats.update();
+    this.renderer.render(this.scene, camera);
+  }
+
+  /**
+   * Handle window resize
+   */
+  public resize(): void {
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  }
+
+  /**
+   * Clean up resources
+   */
+  public cleanup(): void {
+    console.log('      ↳ Disposing WebGL renderer...');
+    this.renderer.dispose();
+    this.stats.end();
+    console.log('      ↳ Engine cleanup complete');
+  }
+
+  public isInBounds(x: number, y: number, z: number): boolean {
+    return x >= 0 && x < this.size.width && z >= 0 && z < this.size.width && y >= 0 && y < this.size.height
   }
 
   private createLoadingManager(): LoadingManager {
@@ -87,31 +127,5 @@ export class Engine {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFSoftShadowMap;
     return renderer
-  }
-
-  /**
-   * Render the scene with the provided camera
-   */
-  render(camera: Camera): void {
-    this.stats.update();
-    this.renderer.render(this.scene, camera);
-  }
-
-  /**
-   * Handle window resize
-   */
-  resize(): void {
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  }
-
-  /**
-   * Clean up resources
-   */
-  cleanup(): void {
-    console.log('      ↳ Disposing WebGL renderer...');
-    this.renderer.dispose();
-    this.stats.end();
-    console.log('      ↳ Engine cleanup complete');
   }
 }

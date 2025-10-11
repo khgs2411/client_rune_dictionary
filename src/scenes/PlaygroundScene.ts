@@ -6,8 +6,7 @@ import { GroundModule } from '@/game/modules/scene/GroundModule';
 import { LightingModule } from '@/game/modules/scene/LightingModule';
 import { SceneInstancedObjectsModule } from '@/game/modules/scene/SceneInstancedObjectsModule';
 import { SceneObjectsModule } from '@/game/modules/scene/SceneObjectsModule';
-import { InteractionEntityModule } from '@/game/modules/entity/InteractionEntityModule';
-import { VisualFeedbackEntityModule } from '@/game/modules/entity/VisualFeedbackEntityModule';
+import { InteractionSystemModule } from '@/game/modules/entity/InteractionSystemModule';
 import { watch } from 'vue';
 import { I_GameScene, I_InteractableModule, I_SceneConfig } from './scenes.types';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
@@ -19,6 +18,7 @@ import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 interface PlaygroundModuleRegistry extends Record<string, any> {
   lighting: LightingModule;
   ground: GroundModule;
+  interaction: InteractionSystemModule;
   instancedSceneObjects: SceneInstancedObjectsModule;
   sceneObjects: SceneObjectsModule;
   treeTrunks: SceneInstancedObjectsModule;
@@ -32,9 +32,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
   readonly name = 'PlaygroundScene';
   readonly engine: Engine;
 
-  // Shared entity modules (ONE instance for entire scene)
-  private interactionModule = new InteractionEntityModule();
-  private visualFeedbackModule = new VisualFeedbackEntityModule();
+  // Unified interaction system (ONE instance for entire scene)
 
   // Scene object configurations
   private readonly sceneObjectConfigs: I_SceneObjectConfig[] = [
@@ -85,8 +83,9 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
    * Register scene-specific modules
    */
   protected registerModules(): void {
-    this.addModule('lighting', new LightingModule());
-    this.addModule('ground', new GroundModule(this.settings));
+    this.addModule('interaction', new InteractionSystemModule('interaction'));
+    this.addModule('lighting', new LightingModule('lighting'));
+    this.addModule('ground', new GroundModule(this.settings, 'ground'));
   }
 
   protected addSceneObjects() {
@@ -144,30 +143,32 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
     );
   }
 
-  protected setupInteractableModules(m:I_InteractableModule): void {
-    m.setInteractionEntityModule(this.interactionModule, this.visualFeedbackModule)
+  protected setupInteractableModules(m: I_InteractableModule): void {
+    const interactionSystem = this.getModule('interaction');
+    if (interactionSystem) {
+      m.setInteractionSystem(interactionSystem);
+    }
   }
 
   /**
-   * Initialize shared entity modules (called ONCE per scene)
+   * Override update to include interaction system
    */
-  protected async startModuleLoading(): Promise<void> {
-    const context = this.getModuleContext();
-
-    // Initialize shared entity modules FIRST
-    await this.interactionModule.start(context);
-    await this.visualFeedbackModule.start(context);
-
-    // Then start normal module loading
-    super.startModuleLoading();
+  public update(delta: number): void {
+    super.update(delta);
+    const interactionSystem = this.getModule('interaction');
+    if (interactionSystem) {
+      interactionSystem.update(delta);
+    }
   }
 
   /**
-   * Override destroy to cleanup shared modules
+   * Override destroy to cleanup interaction system
    */
   public destroy(): void {
-    this.interactionModule.destroy();
-    this.visualFeedbackModule.destroy();
+    const interactionSystem = this.getModule('interaction');
+    if (interactionSystem) {
+      interactionSystem.destroy();
+    }
     super.destroy();
   }
 
