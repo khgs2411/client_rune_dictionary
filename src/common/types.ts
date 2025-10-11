@@ -4,7 +4,6 @@ import { useCharacterController } from '@/composables/useCharacterController';
 import { Engine } from '@/core/Engine';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { Reactive, Ref } from 'vue';
-import { TargetPosition } from './types';
 
 export interface I_SceneConfig {
   engine: Engine;
