@@ -20,9 +20,74 @@ import {
   ConeGeometry,
   BoxGeometry,
   MeshBasicMaterial,
+  Scene,
+  Object3D,
 } from 'three';
 
-export class PlaygroundScene implements I_GameScene {
+
+interface SceneModule {
+  init(context: ModuleContext): void
+  update(delta: number): void
+  destroy(): void
+}
+
+// Context = everything a module might need
+interface ModuleContext {
+  engine: Engine
+  scene: Scene
+  lifecycle: SceneLifecycle
+  // Can expand as needed
+}
+
+export class SceneLifecycle {
+  private watchers: WatchStopHandle[] = [];
+  private disposables: Object3D[] = [];
+
+  watch(watcher: WatchStopHandle): this {
+    this.watchers.push(watcher);
+    return this;
+  }
+
+  register(...objects: Object3D[]): this {
+    this.disposables.push(...objects);
+    return this;
+  }
+
+  cleanup(engine: Engine): void {
+    this.watchers.forEach(stop => stop());
+    this.disposables.forEach(obj => {
+      engine.scene.remove(obj);
+      this.dispose(obj);
+    });
+    this.watchers = [];
+    this.disposables = [];
+  }
+
+  private dispose(obj: Object3D): void {
+    obj.traverse(child => {
+      if (child instanceof Mesh) {
+        child.geometry?.dispose();
+        if (Array.isArray(child.material)) {
+          child.material.forEach(m => m.dispose());
+        } else {
+          child.material?.dispose();
+        }
+      }
+    });
+  }
+}
+
+export abstract class GameScene {
+  protected modules: SceneModule[] = [];
+
+
+  abstract start(): void;
+  abstract update(...args: any): void;
+  abstract destroy(): void;
+
+}
+
+export class PlaygroundScene extends GameScene implements I_GameScene {
   readonly name = 'PlaygroundScene';
   readonly engine: Engine;
 
@@ -44,6 +109,7 @@ export class PlaygroundScene implements I_GameScene {
   private watchers: WatchStopHandle[] = [];
 
   constructor(config: I_SceneConfig) {
+    super();
     this.engine = config.engine;
     this.start();
   }
