@@ -1,5 +1,5 @@
-import { useCameraController } from '@/composables/useCameraController';
-import { useCharacterController } from '@/composables/useCharacterController';
+import { useCamera } from '@/composables/useCamera';
+import { useCharacter } from '@/composables/useCharacter';
 import { rgbToHex } from '@/composables/useTheme';
 import type { Engine, I_GameScene } from '@/core/Engine';
 import { useSettingsStore } from '@/stores/settings.store';
@@ -7,18 +7,18 @@ import * as THREE from 'three';
 import { watch, type WatchStopHandle } from 'vue';
 import { I_SceneConfig } from '@/common/types';
 
-
 export class PlaygroundScene implements I_GameScene {
   readonly name = 'PlaygroundScene';
   readonly engine: Engine;
 
   private settings!: ReturnType<typeof useSettingsStore>;
 
-  // Use existing composables
-  private character$!: ReturnType<typeof useCharacterController>;
+  // High-level entity composables
+  public camera!: ReturnType<typeof useCamera>;
+  private character!: ReturnType<typeof useCharacter>;
 
   // Three.js objects
-  private character!: THREE.Group;
+  private characterMesh!: THREE.Group;
   private characterBodyMaterial!: THREE.MeshStandardMaterial;
   private characterConeMaterial!: THREE.MeshStandardMaterial;
   private ground!: THREE.Mesh;
@@ -27,7 +27,6 @@ export class PlaygroundScene implements I_GameScene {
   // Scene state
   private objects: THREE.Mesh[] = [];
   private watchers: WatchStopHandle[] = [];
-  public camera!: ReturnType<typeof useCameraController>;
 
 
 
@@ -42,17 +41,15 @@ export class PlaygroundScene implements I_GameScene {
     // Initialize settings store (must be done after Vue app is mounted)
     this.settings = useSettingsStore();
 
-    // Initialize camera composable and expose instance
-    this.camera = useCameraController();
-
-    // Initialize character with camera angle
-    this.character$ = useCharacterController({
-      cameraAngleH: this.camera.angle.horizontal,
+    // Initialize high-level entity composables
+    this.camera = useCamera();
+    this.character = useCharacter({
+      cameraAngleH: this.camera.controller.angle.horizontal,
     });
 
     this.setupLighting();
     this.createGround();
-    this.createCharacter();
+    this.createCharacterMesh();
     this.createObstacles();
     this.createDebugCube(); // Temporary debug helper
     this.setupThemeWatchers();
@@ -66,24 +63,24 @@ export class PlaygroundScene implements I_GameScene {
 
   update(delta: number): void {
     // Update character controller
-    this.character$.update(delta);
+    this.character.update(delta);
 
     // Just update lookAt target
     const lookAtTarget = new THREE.Vector3(
-      this.character$.position.x.value,
+      this.character.controller.position.x.value,
       1, // Fixed height for lookAt
-      this.character$.position.z.value
+      this.character.controller.position.z.value
     );
 
     this.camera.update(lookAtTarget);
 
     // Sync Three.js character mesh with composable state
-    this.character.position.set(
-      this.character$.position.x.value,
-      this.character$.position.y.value + 1, // Offset for capsule center
-      this.character$.position.z.value
+    this.characterMesh.position.set(
+      this.character.controller.position.x.value,
+      this.character.controller.position.y.value + 1, // Offset for capsule center
+      this.character.controller.position.z.value
     );
-    this.character.rotation.y = this.character$.rotation.value;
+    this.characterMesh.rotation.y = this.character.controller.rotation.value;
   }
 
   destroy(): void {
@@ -94,16 +91,16 @@ export class PlaygroundScene implements I_GameScene {
     this.watchers = [];
 
     // Cleanup composables
-    this.character$.destroy();
+    this.character.destroy();
     this.camera.destroy();
 
     // Remove objects from scene
-    this.engine.scene.remove(this.character);
+    this.engine.scene.remove(this.characterMesh);
     this.engine.scene.remove(this.ground);
     this.objects.forEach((obstacle) => this.engine.scene.remove(obstacle));
 
     // Dispose geometries and materials
-    this.character.traverse((child) => {
+    this.characterMesh.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         child.geometry.dispose();
         if (child.material instanceof THREE.Material) {
@@ -200,8 +197,8 @@ export class PlaygroundScene implements I_GameScene {
     console.log('   ↳ Grid helper at y=0.01');
   }
 
-  private createCharacter(): void {
-    this.character = new THREE.Group();
+  private createCharacterMesh(): void {
+    this.characterMesh = new THREE.Group();
 
     // Body (capsule)
     const bodyGeometry = new THREE.CapsuleGeometry(0.5, 1, 8, 16);
@@ -210,7 +207,7 @@ export class PlaygroundScene implements I_GameScene {
     });
     const body = new THREE.Mesh(bodyGeometry, this.characterBodyMaterial);
     body.castShadow = true;
-    this.character.add(body);
+    this.characterMesh.add(body);
 
     // Forward indicator (cone)
     const coneGeometry = new THREE.ConeGeometry(0.2, 0.4, 8);
@@ -221,13 +218,13 @@ export class PlaygroundScene implements I_GameScene {
     cone.position.set(0, 0, 0.7);
     cone.rotation.x = Math.PI / 2;
     cone.castShadow = true;
-    this.character.add(cone);
+    this.characterMesh.add(cone);
 
     // Set initial position
-    this.character.position.set(0, 1, 0);
+    this.characterMesh.position.set(0, 1, 0);
 
-    this.engine.scene.add(this.character);
-    console.log('🧍 [PlaygroundScene] Character created at (0,1,0)');
+    this.engine.scene.add(this.characterMesh);
+    console.log('🧍 [PlaygroundScene] Character mesh created at (0,1,0)');
   }
 
   private createObstacles(): void {

@@ -1,16 +1,39 @@
-import { Engine } from "@/core/Engine";
-import { Reactive, Ref } from "vue";
+import { useCameraController } from '@/composables/useCameraController';
+import { useCharacterController } from '@/composables/useCharacterController';
+import { Engine } from '@/core/Engine';
+import * as THREE from 'three';
+import { Reactive } from 'vue';
 
 export interface I_SceneConfig {
-    engine: Engine
+  engine: Engine;
 }
 
-
-
-
 export type TargetPosition = Reactive<{
-    x: number;
-    z: number;
-    y: number;
-}> 
+  x: number;
+  z: number;
+  y: number;
+}>;
 
+export interface I_GameCamera {
+  // Three.js instance
+  instance: THREE.PerspectiveCamera;
+
+  // Controller state
+  controller: ReturnType<typeof useCameraController>;
+
+  // Methods
+  start: () => void;
+  update: (lookAtVector: THREE.Vector3) => void;
+  reset: () => void;
+  destroy: () => void;
+}
+
+export interface I_GameCharacter {
+  // State (delegated from controller)
+  controller: ReturnType<typeof useCharacterController>;
+
+  // Methods
+  update: (delta: number) => void;
+  reset: () => void;
+  destroy: () => void;
+}
