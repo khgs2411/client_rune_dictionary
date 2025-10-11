@@ -31,9 +31,6 @@ export class PlaygroundScene extends BaseScene<PlaygroundModuleRegistry> impleme
 
   private settings!: SettingsStore;
 
-  // High-level entity composables
-  public camera!: ReturnType<typeof useCamera>;
-  private character!: ReturnType<typeof useCharacter>;
 
   // Scene object configurations
   private readonly sceneObjectConfigs: SceneObjectConfig[] = [
@@ -79,7 +76,7 @@ export class PlaygroundScene extends BaseScene<PlaygroundModuleRegistry> impleme
   /**
    * Phase 1: Initialize Vue composables (camera, character, settings)
    */
-  private initializeComposables(): void {
+  protected initializeComposables(): void {
     this.settings = useSettingsStore();
     this.camera = useCamera();
     this.character = useCharacter({
@@ -90,7 +87,7 @@ export class PlaygroundScene extends BaseScene<PlaygroundModuleRegistry> impleme
   /**
    * Phase 2: Register all scene modules
    */
-  private registerModules(): void {
+  protected registerModules(): void {
     this.addModule('lighting', new LightingModule(/* moduleName */));
     this.addModule('ground', new GroundModule(this.settings));
     this.addModule('sceneObjects', new SceneObjectsModule(this.sceneObjectConfigs));
@@ -105,7 +102,7 @@ export class PlaygroundScene extends BaseScene<PlaygroundModuleRegistry> impleme
    * Phase 3: Start async module loading
    * Modules control their own initialization and emit events when ready
    */
-  private startModuleLoading(): void {
+  protected startModuleLoading(): void {
     const context: I_ModuleContext = {
       engine: this.engine,
       scene: this.engine.scene,
@@ -124,7 +121,7 @@ export class PlaygroundScene extends BaseScene<PlaygroundModuleRegistry> impleme
   /**
    * Phase 4: Finalize setup (watchers, camera start)
    */
-  private finalizeSetup(): void {
+  protected finalizeSetup(): void {
     this.setLifecycleWatchers();
     this.camera.start();
   }

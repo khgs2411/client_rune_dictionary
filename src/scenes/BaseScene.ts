@@ -8,6 +8,8 @@ import {
   SceneLoadingStartPayload,
   ModuleLoadingProgressPayload,
 } from '@/common/events.types';
+import { useCamera } from '@/composables/useCamera';
+import { useCharacter } from '@/composables/useCharacter';
 
 /**
  * Base class for game scenes with typed module registry support
@@ -20,6 +22,10 @@ export abstract class BaseScene<TModuleRegistry = Record<string, I_SceneModule>>
   protected lifecycle: SceneLifecycle = new SceneLifecycle();
   protected rxjs = useRxjs('scene:loading');
   protected moduleLoadingRxjs = useRxjs('module:loading'); // Module-level events
+
+  // High-level entity composables
+  public camera!: ReturnType<typeof useCamera>;
+  protected character!: ReturnType<typeof useCharacter>;
 
   constructor() {
     this.moduleLoadingRxjs.$subscribe({
@@ -107,7 +113,12 @@ export abstract class BaseScene<TModuleRegistry = Record<string, I_SceneModule>>
     this.rxjs.$next(event, { sceneName: this.name, ...data });
   }
 
-  abstract start(): void;
-  abstract update(...args: any): void;
-  abstract destroy(): void;
+  public abstract start(): void;
+  public abstract update(...args: any): void;
+  public abstract destroy(): void;
+
+  protected abstract initializeComposables(): void;
+  protected abstract  registerModules(): void;
+  protected abstract  startModuleLoading(): void;
+  protected abstract  finalizeSetup(): void;
 }

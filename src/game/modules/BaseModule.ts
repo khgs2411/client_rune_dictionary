@@ -3,7 +3,6 @@ import { useRxjs } from "topsyde-utils";
 export default class BaseModule {
     public readonly name: string = this.constructor.name;
     protected rxjs = useRxjs('module:loading');
-
     constructor(moduleName: string) {
         this.name = moduleName;
     }
@@ -14,6 +13,6 @@ export default class BaseModule {
                 moduleName: this.name,
                 sceneName: sceneName,
             });
-        }, Math.random() * 2000 + 500); // Simulated delay
+        }, Math.random() * 1000 + 500); // Simulated delay
     }
 }
