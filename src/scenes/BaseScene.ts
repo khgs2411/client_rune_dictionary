@@ -17,6 +17,10 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
     return this;
   }
 
+  protected moduleCount(): number {
+    return Object.keys(this.modules).length;
+  }
+
   /**
    * Helper to iterate all modules (converts record to array)
    */

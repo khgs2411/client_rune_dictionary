@@ -91,11 +91,11 @@ useRxjs('scene:loading', {
     console.log(`🎬 [LoadingScreen] Loading ${data.sceneName}...`);
   },
   update: (data: SceneLoadingProgressPayload) => {
+    const progressPercent = totalAssets.value > 0 ? (data.loaded / totalAssets.value) * 100 : 0;
     loadedAssets.value = data.loaded;
-    totalAssets.value = data.total;
-    progress.value = data.progress;
+    progress.value = progressPercent;
     currentAsset.value = data.url || '';
-    console.log(`⏳ [LoadingScreen] Progress: ${data.progress.toFixed(1)}%`);
+    console.log(`⏳ [LoadingScreen] Progress: ${progressPercent.toFixed(2)}%`);
   },
   complete: (data: SceneLoadedPayload) => {
     isLoading.value = false;

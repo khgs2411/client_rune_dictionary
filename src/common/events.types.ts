@@ -18,14 +18,11 @@ export interface SceneLoadingStartPayload {
 export interface SceneLoadingProgressPayload {
   sceneName: string;
   loaded: number;
-  total: number;
-  progress: number; // 0-100
   url?: string; // Currently loading asset
 }
 
 export interface SceneLoadedPayload {
   sceneName: string;
-  loadTime: number; // milliseconds
 }
 
 export interface SceneErrorPayload {

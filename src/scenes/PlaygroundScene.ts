@@ -46,12 +46,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
   public start(): void {
     console.log('🎬 [PlaygroundScene] Initializing scene...');
 
-
-    this.rxjs$.$next(
-      'start',
-      { sceneName: this.name, totalAssets: 5 }
-    )
-
     this.settings = useSettingsStore();
 
     this.camera = useCamera();
@@ -102,19 +96,21 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
       new CharacterMeshModule(this.settings, this.character.controller),
     );
 
+    const totalModules = this.moduleCount();
+
+    this.rxjs$.$next(
+      'start',
+      { sceneName: this.name, totalAssets: totalModules }
+    )
     // Init all modules with progress tracking
     let loadedModules = 0;
-    const totalModules = 5;
     this.forEachModule((m) => {
       m.start(context);
       loadedModules++;
-      const progressPercent = totalModules > 0 ? (loadedModules / totalModules) * 100 : 0;
       this.rxjs$.$next('update',
         {
           sceneName: this.name,
           loaded: loadedModules,
-          total: totalModules,
-          progress: progressPercent,
         });
     });
 
@@ -124,7 +120,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
 
     // Emit loading complete (LoadingScreen.vue will hide itself)
     this.rxjs$.$next('complete',
-      { sceneName: this.name, loadTime: 0 })
+      { sceneName: this.name, })
 
     console.log('✅ [PlaygroundScene] Scene initialization complete');
   }
