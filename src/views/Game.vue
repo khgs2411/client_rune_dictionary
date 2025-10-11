@@ -1,13 +1,16 @@
 <template>
   <div class="game-container">
     <!-- WebSocket Manager - auto-connects on mount, disconnects on unmount -->
-    <WebSocketManager />
+    <WebSocketManager></WebSocketManager>
 
     <!-- Loading Screen -->
-    <LoadingScreen />
+    <LoadingScreen>></LoadingScreen>
+
+    <!-- Interaction Overlay (POW effects, tooltips) -->
+    <InteractionOverlay></InteractionOverlay>
 
     <!-- Game Canvas -->
-    <canvas ref="canvasRef" class="three-canvas" />
+    <canvas ref="canvasRef" class="three-canvas"></canvas>
   </div>
 </template>
 
@@ -17,6 +20,7 @@ import { PlaygroundScene } from '@/scenes/PlaygroundScene';
 import { I_GameScene, I_SceneConfig } from '@/scenes/scenes.types';
 import LoadingScreen from '@/components/LoadingScreen.vue';
 import WebSocketManager from '@/components/WebSocketManager.vue';
+import InteractionOverlay from '@/components/InteractionOverlay.vue';
 import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
 import { ref, watch } from 'vue';
 
@@ -54,6 +58,18 @@ function start() {
   console.log('✅ [Game] Game initialization complete');
 }
 
+function render() {
+  if (!engine || !currentScene) return;
+
+  const delta = engine.clock.getDelta();
+
+  // Update scene
+  currentScene.update(delta);
+
+  // Render
+  engine.render(currentScene.camera.instance);
+}
+
 function destroy() {
   console.log('🧹 [Game] Starting cleanup...');
 
@@ -62,6 +78,12 @@ function destroy() {
   pauseRenderLoop();
 
   // Cleanup playground scene
+  cleanupGame();
+
+  console.log('✅ [Game] Cleanup complete');
+}
+
+function cleanupGame() {
   if (currentScene) {
     console.log('   ↳ Destroying scene...');
     currentScene.destroy();
@@ -74,8 +96,6 @@ function destroy() {
     engine.cleanup();
     engine = null;
   }
-
-  console.log('✅ [Game] Cleanup complete');
 }
 
 function tryOnReload(cb: Function) {
@@ -85,18 +105,6 @@ function tryOnReload(cb: Function) {
       cb();
     });
   }
-}
-
-function render() {
-  if (!engine || !currentScene) return;
-
-  const delta = engine.clock.getDelta();
-
-  // Update scene
-  currentScene.update(delta);
-
-  // Render
-  engine.render(currentScene.camera.instance);
 }
 
 // VueUse: Animation frame loop

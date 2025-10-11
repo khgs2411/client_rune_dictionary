@@ -1,4 +1,5 @@
 import { useCamera } from '@/composables/useCamera';
+import { useCharacter } from '@/composables/useCharacter';
 import { Engine } from '@/game/Engine';
 import { SceneLifecycle } from '@/game/SceneLifecycle';
 import { SettingsStore } from '@/stores/settings.store';
@@ -46,4 +47,6 @@ export interface I_ModuleContext {
   lifecycle: SceneLifecycle;
   settings: SettingsStore;
   sceneName: string;
+  camera?: ReturnType<typeof useCamera>; // Optional: for modules that need camera (interaction, etc.)
+  character?: ReturnType<typeof useCharacter>; // Optional: for modules that need character (interaction, etc.)
 }

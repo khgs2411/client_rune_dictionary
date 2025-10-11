@@ -159,16 +159,22 @@ export abstract class GameScene<TModuleRegistry = Record<string, I_SceneModule>>
    * Override only if you need custom context or loading logic
    */
   protected startModuleLoading(): void {
-    const context: I_ModuleContext = {
-      engine: this.engine,
-      scene: this.engine.scene,
-      lifecycle: this.lifecycle,
-      settings: this.settings,
-      sceneName: this.name,
-    };
+    const context: I_ModuleContext = this.getModuleContext()
 
     this.loading('start', { totalAssets: this.moduleCount() });
     this.forEachModule((m) => m.start(context));
+  }
+
+  private getModuleContext(): I_ModuleContext {
+    return {
+      engine: this.engine,
+      sceneName: this.name,
+      scene: this.engine.scene,
+      lifecycle: this.lifecycle,
+      settings: this.settings,
+      camera: this.camera, // Pass camera for modules that need it (interaction, etc.)
+      character: this.character, // Pass character for modules that need it (interaction, etc.)
+    };
   }
 
   /**

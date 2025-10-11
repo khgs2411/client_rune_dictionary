@@ -176,9 +176,6 @@ export const useWebSocketConnection = () => {
 		try {
 			const message: WebsocketStructuredMessage = JSON.parse(event.data);
 
-			console.log('[WS] handleMessage called with:', message);
-
-			// Route message through event system (also handles debug emission)
 			// routeMessage(message);
 			emit({
 				type: message.type,

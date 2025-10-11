@@ -2,6 +2,7 @@ import { RGBColor } from '@/common/types';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
 import { I_ModuleContext, I_ThemedSceneModule } from '@/scenes/scenes.types';
+import type { I_Interactable } from '../entity/interaction.types';
 import {
   BoxGeometry,
   SphereGeometry,
@@ -27,6 +28,7 @@ export class SceneObjectsModule extends SceneModule implements I_ThemedSceneModu
   private objectConfigs: I_SceneObjectConfig[];
   private instancedMeshes: Map<string, InstancedMesh> = new Map();
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
+  private interactables: I_Interactable[] = []; // Interactable objects for interaction system
 
   constructor(objectConfigs: I_SceneObjectConfig[]) {
     super('sceneObjects');
@@ -76,6 +78,19 @@ export class SceneObjectsModule extends SceneModule implements I_ThemedSceneModu
         context.lifecycle.register(instancedMesh);
 
         this.instancedMeshes.set(groupKey, instancedMesh);
+
+        // Register as interactable
+        const interactable: I_Interactable = {
+          id: `scene-object-${groupKey}`,
+          object3D: instancedMesh,
+          metadata: {
+            name: `${sampleConfig.geometry.type} obstacle`,
+            description: 'A scene object',
+            groupKey,
+            configs,
+          },
+        };
+        this.interactables.push(interactable);
       });
 
       // Emit loading complete event
@@ -97,6 +112,13 @@ export class SceneObjectsModule extends SceneModule implements I_ThemedSceneModu
     this.themedMaterials.forEach((material) => {
       material.color.setHex(hex);
     });
+  }
+
+  /**
+   * Get all interactable objects for the interaction system
+   */
+  getInteractables(): I_Interactable[] {
+    return this.interactables;
   }
 
   /**

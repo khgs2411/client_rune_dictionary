@@ -4,7 +4,9 @@ import { CharacterMeshModule } from '@/game/modules/scene/CharacterMeshModule';
 import { DebugModule } from '@/game/modules/scene/DebugModule';
 import { GroundModule } from '@/game/modules/scene/GroundModule';
 import { LightingModule } from '@/game/modules/scene/LightingModule';
-import { SceneObjectsModule, } from '@/game/modules/scene/SceneObjectsModule';
+import { SceneObjectsModule } from '@/game/modules/scene/SceneObjectsModule';
+import { InteractionModule } from '@/game/modules/scene/InteractionModule';
+import { VisualFeedbackModule } from '@/game/modules/scene/VisualFeedbackModule';
 import { watch } from 'vue';
 import { I_GameScene, I_SceneConfig } from './scenes.types';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
@@ -19,6 +21,8 @@ interface PlaygroundModuleRegistry {
   sceneObjects: SceneObjectsModule;
   debug: DebugModule;
   characterMesh: CharacterMeshModule;
+  interaction: InteractionModule;
+  visualFeedback: VisualFeedbackModule;
 }
 
 export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> implements I_GameScene {
@@ -62,6 +66,8 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
     this.addModule('lighting', new LightingModule());
     this.addModule('ground', new GroundModule(this.settings));
     this.addModule('sceneObjects', new SceneObjectsModule(this.sceneObjectConfigs));
+    this.addModule('interaction', new InteractionModule());
+    this.addModule('visualFeedback', new VisualFeedbackModule());
     this.addModule('debug', new DebugModule());
     this.addModule(
       'characterMesh',
@@ -75,6 +81,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
   protected finalizeSetup(): void {
     super.finalizeSetup();
     this.setLifecycleWatchers();
+    this.registerInteractables();
   }
 
   private setLifecycleWatchers(): void {
@@ -99,5 +106,18 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
       this.settings.theme.primary,
       this.settings.theme.accent,
     );
+  }
+
+  /**
+   * Register all interactable objects with the interaction system
+   */
+  private registerInteractables(): void {
+    // Register scene objects as interactable
+    const interactables = this.modules.sceneObjects?.getInteractables() || [];
+    interactables.forEach((interactable) => {
+      this.modules.interaction?.register(interactable);
+    });
+
+    console.log(`🎯 [PlaygroundScene] Registered ${interactables.length} interactable objects`);
   }
 }
