@@ -34,8 +34,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_Themed
 
   constructor(
     objectConfigs: I_SceneObjectConfig[],
-    moduleName: string = 'instancedSceneObjects',
-
+    moduleName?: string,
   ) {
     super(moduleName);
     this.objectConfigs = objectConfigs;

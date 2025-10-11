@@ -10,7 +10,7 @@ import { Light, AmbientLight, DirectionalLight } from 'three';
 export class LightingModule extends SceneModule implements I_SceneModule {
   private lights: Light[] = [];
 
-  constructor(moduleName: string = 'lighting') {
+  constructor(moduleName?: string) {
     super(moduleName);
   }
 

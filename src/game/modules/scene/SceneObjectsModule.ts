@@ -42,7 +42,7 @@ export class SceneObjectsModule extends SceneModule implements I_ThemedSceneModu
 
   constructor(
     objectConfigs: I_SceneObjectConfig[],
-    moduleName: string = 'sceneObjectsModule',
+    moduleName?: string,
   ) {
     super(moduleName);
     this.objectConfigs = objectConfigs;

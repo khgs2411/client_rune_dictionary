@@ -65,8 +65,8 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
       complete: (data: SceneLoadedPayload) => {
         if (data.sceneName !== this.name) return;
 
-        // Register interactable objects AFTER all modules are loaded
-        this.setupEveryInteractableModule();
+        // Run module setup logic once all modules are loaded
+        this.setupModules();
 
         this.modulesLoaded = true;
         this.enabled = this.modulesLoaded;
@@ -101,19 +101,23 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
    */
   protected addModule<K extends keyof TModuleRegistry>(key: K, module: TModuleRegistry[K]): this {
     this.modules[key] = module;
-    this.moduleNames.set(module as I_SceneModule, String(key)); // Track module name
-    
-    this.updateableModules = Object.values(this.modules).reduce((acc, m) => {
-      if (IsUpdateableModule(m)) acc.add(m);
-      return acc;
-    }, new Set());
 
-    this.interactableModules = Object.values(this.modules).reduce((acc, m) => {
-      if (IsInteractableModule(m)) {
-        acc.add(m);
-      }
-      return acc;
-    }, new Set());
+    // Auto-set module name from registry key
+    const moduleName = String(key);
+    if ('setName' in module && typeof module.setName === 'function') {
+      module.setName(moduleName);
+    }
+
+    this.moduleNames.set(module as I_SceneModule, moduleName); // Track module name
+
+    if (IsUpdateableModule(module)) {
+      this.updateableModules.add(module);
+    }
+    if (IsInteractableModule(module)) {
+      this.interactableModules.add(module);
+    }
+
+    console.log(`➕ [${this.name}] Added module: "${moduleName}"`);
     return this;
   }
 
@@ -135,6 +139,11 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
   }
 
 
+  private setupModules() {
+    // Register interactable objects after all modules are loaded
+    this.setupEveryInteractableModule();
+  }
+
   private setupEveryInteractableModule(): void {
     console.log(`🔗 [${this.name}] Setting up ${this.interactableModules.size} interactable modules...`);
     this.interactableModules.forEach((module) => {
@@ -149,8 +158,29 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
     });
   }
 
-  protected abstract setupInteractableModules(m:I_InteractableModule): void
-  protected abstract disposeInteractableModules(m:I_InteractableModule): void
+  /**
+   * Setup interactable modules (default implementation)
+   * Override only if you need custom behavior
+   */
+  protected setupInteractableModules(m: I_InteractableModule): void {
+    // Default: look for 'interaction' module in registry
+    const interactionSystem = this.getModule('interaction' as keyof TModuleRegistry);
+    if (interactionSystem && 'register' in interactionSystem) {
+      m.setInteractionSystem(interactionSystem as any);
+    }
+  }
+
+  /**
+   * Dispose interactable modules (default implementation)
+   * Override only if you need custom behavior
+   */
+  protected disposeInteractableModules(m: I_InteractableModule): void {
+    // Default: look for 'interaction' module in registry
+    const interactionSystem = this.getModule('interaction' as keyof TModuleRegistry);
+    if (interactionSystem && 'unregister' in interactionSystem) {
+      m.clearInteractionSystem(interactionSystem as any);
+    }
+  }
 
 
   /**

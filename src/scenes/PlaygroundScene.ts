@@ -8,7 +8,7 @@ import { SceneInstancedObjectsModule } from '@/game/modules/scene/SceneInstanced
 import { SceneObjectsModule } from '@/game/modules/scene/SceneObjectsModule';
 import { InteractionSystemModule } from '@/game/modules/entity/InteractionSystemModule';
 import { watch } from 'vue';
-import { I_GameScene, I_InteractableModule, I_SceneConfig } from './scenes.types';
+import { I_GameScene, I_SceneConfig } from './scenes.types';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 
 /**
@@ -83,15 +83,15 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
    * Register scene-specific modules
    */
   protected registerModules(): void {
-    this.addModule('interaction', new InteractionSystemModule('interaction'));
-    this.addModule('lighting', new LightingModule('lighting'));
-    this.addModule('ground', new GroundModule(this.settings, 'ground'));
+    this.addModule('interaction', new InteractionSystemModule());
+    this.addModule('lighting', new LightingModule());
+    this.addModule('ground', new GroundModule(this.settings));
+    this.addModule('characterMesh', new CharacterMeshModule(this.settings, this.character.controller));
   }
 
   protected addSceneObjects() {
     this.addModule('instancedSceneObjects', new SceneInstancedObjectsModule(
       this.sceneObjectConfigs,
-      'instancedSceneObjects',
     ));
 
     // Unique interactive object (regular mesh) - use shared modules
@@ -108,7 +108,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
           }
         }
       },
-    ], 'sceneObjects'));
+    ]));
 
     // Tree trunks (brown cylinders) - instanced for performance (use shared modules)
     this.addModule('treeTrunks', new SceneInstancedObjectsModule([
@@ -117,7 +117,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
       { position: [14, 0.75, -1], geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] }, material: { staticColor: 0x654321 } },
       { position: [10, 0.75, -3], geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] }, material: { staticColor: 0x654321 } },
       { position: [13, 0.75, -2], geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] }, material: { staticColor: 0x654321 } },
-    ], 'treeTrunks',));
+    ]));
 
     // Tree leaves (green cones) - instanced (use shared modules)
     this.addModule('treeLeaves', new SceneInstancedObjectsModule([
@@ -126,7 +126,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
       { position: [14, 2, -1], geometry: { type: 'cone', params: [0.8, 1.5, 8] }, material: { staticColor: 0x228b22, roughness: 0.9 } },
       { position: [10, 2, -3], geometry: { type: 'cone', params: [0.8, 1.5, 8] }, material: { staticColor: 0x228b22, roughness: 0.9 } },
       { position: [13, 2, -2], geometry: { type: 'cone', params: [0.8, 1.5, 8] }, material: { staticColor: 0x228b22, roughness: 0.9 } },
-    ], 'treeLeaves',));
+    ]));
 
     // Bushes (green spheres) - instanced (use shared modules)
     this.addModule('bushes', new SceneInstancedObjectsModule([
@@ -134,27 +134,9 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
       { position: [11, 0.3, -1], geometry: { type: 'sphere', params: [0.4, 8, 8] }, material: { staticColor: 0x2d5016, roughness: 1.0 } },
       { position: [15, 0.3, 0], geometry: { type: 'sphere', params: [0.4, 8, 8] }, material: { staticColor: 0x2d5016, roughness: 1.0 } },
       { position: [9, 0.3, -4], geometry: { type: 'sphere', params: [0.4, 8, 8] }, material: { staticColor: 0x2d5016, roughness: 1.0 } },
-    ], 'bushes',));
+    ]));
 
     this.addModule('debug', new DebugModule());
-    this.addModule(
-      'characterMesh',
-      new CharacterMeshModule(this.settings, this.character.controller)
-    );
-  }
-
-  protected setupInteractableModules(m: I_InteractableModule): void {
-    const interactionSystem = this.getModule('interaction');
-    if (interactionSystem) {
-      m.setInteractionSystem(interactionSystem);
-    }
-  }
-
-  protected disposeInteractableModules(m: I_InteractableModule): void {
-    const interactionSystem = this.getModule('interaction');
-    if (interactionSystem) {
-      m.clearInteractionSystem(interactionSystem);
-    }
   }
 
   /**

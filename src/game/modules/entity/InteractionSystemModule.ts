@@ -14,7 +14,7 @@ export class InteractionSystemModule extends SceneModule implements I_Updateable
   private interaction = new InteractionEntityModule();
   private visualFeedback = new VisualFeedbackEntityModule();
 
-  constructor(moduleName: string = 'interactionSystem') {
+  constructor(moduleName?: string) {
     super(moduleName);
   }
 
@@ -51,7 +51,7 @@ export class InteractionSystemModule extends SceneModule implements I_Updateable
   /**
    * Enable/disable the interaction system
    */
-  setEnabled(enabled: boolean): void {
+  public setEnabled(enabled: boolean): void {
     this.interaction.setEnabled(enabled);
   }
 }

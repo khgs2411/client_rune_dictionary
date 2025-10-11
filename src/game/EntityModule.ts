@@ -46,7 +46,7 @@ export abstract class EntityModule {
    * Update loop (called every frame)
    * Optional - override if entity module needs per-frame updates
    */
-  update(delta: number): void {
+  update(delta: number, ...args: any[]): void {
     // Default: no per-frame updates
   }
 
