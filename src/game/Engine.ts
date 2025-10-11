@@ -1,6 +1,6 @@
 import { Camera, Clock, Color, LoadingManager, PCFSoftShadowMap, Scene, WebGLRenderer } from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
-import { useSceneLoader } from '@/composables/useSceneLoader';
+import { useRxjs } from 'topsyde-utils';
 
 /**
  * Core game engine that encapsulates js scene, renderer, and clock.
@@ -12,7 +12,6 @@ export class Engine {
   clock: Clock;
   stats: Stats;
   loadingManager: LoadingManager;
-  private sceneLoader: ReturnType<typeof useSceneLoader>;
 
   constructor(canvas: HTMLCanvasElement) {
     console.log('   ↳ Initializing Three.js engine...');
@@ -27,7 +26,6 @@ export class Engine {
     this.scene.background = new Color(0x87ceeb); // Sky blue for visibility
 
     // Setup loading system
-    this.sceneLoader = useSceneLoader();
     this.loadingManager = this.createLoadingManager();
 
     // Create renderer
@@ -55,7 +53,8 @@ export class Engine {
     };
 
     manager.onError = (url) => {
-      this.sceneLoader.emitLoadingError('Unknown', `Failed to load: ${url}`, url);
+      const rxjs$ = useRxjs('scene:loading');
+      rxjs$.$next('fail', { sceneName: "Engine", error: 'Failed to load: ' + url, url })
       console.error('📦 [LoadingManager] Error loading:', url);
     };
 

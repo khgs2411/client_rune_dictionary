@@ -14,7 +14,7 @@ import { PlaygroundScene } from '@/scenes/PlaygroundScene';
 import { I_GameScene, I_SceneConfig } from '@/scenes/scenes.types';
 import LoadingScreen from '@/components/LoadingScreen.vue';
 import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
-import { nextTick, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let engine: Engine | null = null;
@@ -38,9 +38,8 @@ function start() {
   engine = new Engine(canvasRef.value);
   console.log('   ↳ Scene UUID:', engine.scene.uuid);
 
-  console.log('   ↳ LoadingScreen subscription ready');
-
   // Create and load playground scene
+  // LoadingScreen.vue (mounted first) listens to events emitted by the scene
   const config: I_SceneConfig = { engine };
   currentScene = new PlaygroundScene(config);
 

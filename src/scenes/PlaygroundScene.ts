@@ -1,7 +1,7 @@
 import { SettingsStore } from '@/stores/settings.store';
 import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
-import { useSceneLoader } from '@/composables/useSceneLoader';
+
 import type { Engine } from '@/game/Engine';
 import { GameScene } from '@/scenes/BaseScene';
 import { CharacterMeshModule } from '@/game/modules/CharacterMeshModule';
@@ -12,6 +12,7 @@ import { SceneObjectsModule, type SceneObjectConfig } from '@/game/modules/Scene
 import { useSettingsStore } from '@/stores/settings.store';
 import { watch } from 'vue';
 import { I_GameScene, I_ModuleContext, I_SceneConfig } from './scenes.types';
+import { useRxjs } from 'topsyde-utils';
 
 /**
  * Module Registry for PlaygroundScene
@@ -34,6 +35,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
   // High-level entity composables
   public camera!: ReturnType<typeof useCamera>;
   private character!: ReturnType<typeof useCharacter>;
+  private rxjs$ = useRxjs('scene:loading');
 
   constructor(config: I_SceneConfig) {
     super();
@@ -44,9 +46,11 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
   public start(): void {
     console.log('🎬 [PlaygroundScene] Initializing scene...');
 
-    // Emit loading start event
-    const loader = useSceneLoader();
-    loader.emitLoadingStart(this.name, 5); // 5 modules to load
+
+    this.rxjs$.$next(
+      'start',
+      { sceneName: this.name, totalAssets: 5 }
+    )
 
     this.settings = useSettingsStore();
 
@@ -98,21 +102,29 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
       new CharacterMeshModule(this.settings, this.character.controller),
     );
 
-    // Init all modules
+    // Init all modules with progress tracking
     let loadedModules = 0;
     const totalModules = 5;
     this.forEachModule((m) => {
       m.start(context);
       loadedModules++;
-      loader.emitLoadingProgress(this.name, loadedModules, totalModules);
+      const progressPercent = totalModules > 0 ? (loadedModules / totalModules) * 100 : 0;
+      this.rxjs$.$next('update',
+        {
+          sceneName: this.name,
+          loaded: loadedModules,
+          total: totalModules,
+          progress: progressPercent,
+        });
     });
 
     this.setLifecycleWatchers();
 
     this.camera.start();
 
-    // Emit loading complete
-    loader.emitLoadingComplete(this.name);
+    // Emit loading complete (LoadingScreen.vue will hide itself)
+    this.rxjs$.$next('complete',
+      { sceneName: this.name, loadTime: 0 })
 
     console.log('✅ [PlaygroundScene] Scene initialization complete');
   }
