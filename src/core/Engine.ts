@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Lib } from 'topsyde-utils';
 
 export interface GameScene {
   readonly name: string;
@@ -49,29 +50,16 @@ export class Engine {
     // Create clock for delta time
     this.clock = new THREE.Clock();
 
-    console.log('🎮 [Engine] Initialized - Scene UUID:', this.scene.uuid);
-    console.trace('Stack trace for Engine creation:');
+    Lib.Log('🎮 [Engine] Initialized - Scene UUID:', this.scene.uuid);
   }
 
   /**
    * Render the scene with the provided camera
    */
   render(camera: THREE.Camera): void {
-    // Debug first few renders
-    if (!this.renderCount) this.renderCount = 0;
-    if (this.renderCount < 2) {
-      console.log('🎨 [Engine] Render #' + this.renderCount, {
-        sceneChildren: this.scene.children.length,
-        cameraPosition: camera.position.toArray(),
-        sceneUUID: this.scene.uuid
-      });
-      this.renderCount++;
-    }
-
     this.renderer.render(this.scene, camera);
   }
 
-  private renderCount?: number;
 
   /**
    * Handle window resize
@@ -86,6 +74,6 @@ export class Engine {
    */
   cleanup(): void {
     this.renderer.dispose();
-    console.log('🧹 [Engine] Cleaned up');
+    Lib.Log('🧹 [Engine] Cleaned up');
   }
 }

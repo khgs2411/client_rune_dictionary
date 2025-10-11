@@ -18,7 +18,6 @@ let currentScene: GameScene | null = null;
 // VueUse: Auto-reactive window size
 const { width, height } = useWindowSize();
 
-
 function start() {
   if (!canvasRef.value) return;
 
@@ -76,23 +75,20 @@ function tryOnReload(cb: Function) {
   }
 }
 
+function render() {
+  if (!engine || !currentScene) return;
+
+  const delta = engine.clock.getDelta();
+
+  // Update scene
+  currentScene.update(delta);
+
+  // Render
+  engine.render(currentScene.camera);
+}
+
 // VueUse: Animation frame loop
-const { pause: pauseRenderLoop, resume: resumeRenderLoop } = useRafFn(
-  () => {
-    if (!engine || !currentScene) return;
-
-    const delta = engine.clock.getDelta();
-
-    // Update scene
-    currentScene.update(delta);
-
-    // Render
-    engine.render(currentScene.camera);
-  },
-  { immediate: false },
-); // Don't start immediately
-
-
+const { pause: pauseRenderLoop, resume: resumeRenderLoop } = useRafFn(render, { immediate: false }); // Don't start immediately
 
 // Watch window size changes and resize engine
 watch([width, height], () => {

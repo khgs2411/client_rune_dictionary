@@ -232,9 +232,7 @@ export class PlaygroundScene implements GameScene {
     this.character.position.set(0, 1, 0);
 
     this.engine.scene.add(this.character);
-
-    console.log('👤 [PlaygroundScene] Character created at:', this.character.position.toArray());
-    console.log('   ↳ Scene children count:', this.engine.scene.children.length);
+    console.log('🧍 [PlaygroundScene] Character created at (0,1,0)');
   }
 
   private createObstacles(): void {
@@ -267,13 +265,8 @@ export class PlaygroundScene implements GameScene {
     const geometry = new THREE.BoxGeometry(2, 2, 2);
     const material = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Bright red, unlit
     const cube = new THREE.Mesh(geometry, material);
-    cube.position.set(0, 1, 0); // At origin, y=1
+    cube.position.set(5, 1, 0); // At origin, y=1
     this.engine.scene.add(cube);
-
-    console.log('🔴 [PlaygroundScene] Debug cube at origin (0, 1, 0) - should be BRIGHT RED');
-    console.log('   ↳ Cube parent scene UUID:', cube.parent?.uuid);
-    console.log('   ↳ Engine scene UUID:', this.engine.scene.uuid);
-    console.log('   ↳ Cube is in correct scene:', cube.parent === this.engine.scene);
   }
 
 }
