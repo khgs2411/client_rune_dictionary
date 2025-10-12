@@ -206,46 +206,55 @@ export function useTheme() {
   // Reactive hex colors (re-compute when currentTheme changes)
   const primary = computed(() => {
     currentTheme.value; // Track dependency
+    colorMode.value;
     return rgbToHex(parseOklchColor('--primary'));
   });
 
   const primaryForeground = computed(() => {
     currentTheme.value;
+    colorMode.value;
     return rgbToHex(parseOklchColor('--primary-foreground'));
   });
 
   const accent = computed(() => {
     currentTheme.value;
+    colorMode.value;
     return rgbToHex(parseOklchColor('--accent'));
   });
 
   const accentForeground = computed(() => {
     currentTheme.value;
+    colorMode.value;
     return rgbToHex(parseOklchColor('--accent-foreground'));
   });
 
   const background = computed(() => {
     currentTheme.value;
+    colorMode.value;
     return rgbToHex(parseOklchColor('--background'));
   });
 
   const foreground = computed(() => {
     currentTheme.value;
+    colorMode.value;
     return rgbToHex(parseOklchColor('--foreground'));
   });
 
   const muted = computed(() => {
     currentTheme.value;
+    colorMode.value;
     return rgbToHex(parseOklchColor('--muted'));
   });
 
   const card = computed(() => {
     currentTheme.value;
+    colorMode.value;
     return rgbToHex(parseOklchColor('--card'));
   });
 
   const border = computed(() => {
     currentTheme.value;
+    colorMode.value;
     return rgbToHex(parseOklchColor('--border'));
   });
 

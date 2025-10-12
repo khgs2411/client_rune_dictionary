@@ -20,6 +20,7 @@ export interface I_SceneObjectConfig {
   geometry: Partial<SceneObjectGeometryConfig>;
   material: {
     useTheme?: boolean; // If true, uses theme color and updates on theme change
+    reactiveColor?: string; // If true, changes color to the key from theme on theme change
     staticColor?: number; // If set, uses this fixed color
     roughness?: number;
     metalness?: number;

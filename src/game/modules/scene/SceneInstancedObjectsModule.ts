@@ -35,6 +35,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
   private objectConfigs: I_SceneObjectConfig[];
   private instancedMeshes: Map<string, InstancedMesh> = new Map();
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
+  private reactiveColoredMaterials: { material: MeshStandardMaterial, config: I_SceneObjectConfig }[] = []; // Materials that respond to interaction color changes
   private physicsIds: Map<string, string[]> = new Map(); // Track physics IDs for cleanup
   private settings: ApplicationSettings;
 
@@ -56,6 +57,10 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
       // Track themed materials for updateColors
       if (instancedMeshConfig.material.useTheme) {
         this.themedMaterials.push(material);
+      }
+
+      if (instancedMeshConfig.material.reactiveColor) {
+        this.reactiveColoredMaterials.push({ material, config: instancedMeshConfig });
       }
 
       // Create instanced mesh
@@ -125,7 +130,14 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
   public onThemeChange(theme: I_ThemeColors): void {
     // Update all themed materials
     this.themedMaterials.forEach((material) => {
-      material.color.setHex(theme.primaryForeground);
+      material.color.setHex(theme.accent);
+    });
+    // Update all reactive colored materials
+    this.reactiveColoredMaterials.forEach(({ material, config }) => {
+      console.log(theme[config.material.reactiveColor as keyof I_ThemeColors]);
+      if (config.material.reactiveColor) {
+        material.color.setHex(theme[config.material.reactiveColor as keyof I_ThemeColors] || theme.accent);
+      }
     });
   }
 
@@ -250,6 +262,8 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     let color: number;
     if (material.useTheme) {
       color = this.settings.theme.primaryForeground;
+    } else if (material.reactiveColor) {
+      color = this.settings.theme[material.reactiveColor as keyof I_ThemeColors] || this.settings.theme.accent;
     } else if (material.staticColor !== undefined) {
       color = material.staticColor;
     } else {

@@ -41,7 +41,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
    */
   protected registerModules(): void {
     this.addModule('lighting', new LightingModule());
-    this.addModule('ground', new SceneInstancedObjectsModule([{ material: { staticColor: this.settings.theme.background }, geometry: { type: 'plane', params: [100, 100] }, position: [0, 0, 0] }]));
+    this.addModule('ground', new SceneInstancedObjectsModule([{ material: { reactiveColor: 'background' }, geometry: { type: 'plane', params: [100, 100] }, position: [0, 0, 0] }]));
     this.addModule('characterMesh', new CharacterModule(this.character.controller));
   }
 
@@ -212,7 +212,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     this.lifecycle.watch(
       watch(
         () => this.settings.theme.colorMode,
-        () => {
+        (newValue) => {
           console.log('🌗 [PlaygroundScene] Dark mode toggled, updating colors...');
           this.updateMaterialColors();
         },
@@ -233,6 +233,8 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       card: this.settings.theme.card,
       border: this.settings.theme.border,
     };
+
+    console.log('Updated theme colors:', theme.background);
 
     // Update all modules with the same unified API
     this.getModule('instancedSceneObjects')?.onThemeChange?.(theme);
