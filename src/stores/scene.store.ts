@@ -20,4 +20,4 @@ export const useSceneStore = defineStore('scene', () => {
     function getScene(sceneName: string): I_SceneReference | undefined {
         return scenes.get(sceneName);
     }
-})
+}, { persist: true })
