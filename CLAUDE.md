@@ -47,12 +47,14 @@ The game uses a **custom imperative architecture** with Three.js, not declarativ
 #### Core Classes
 
 1. **Engine** (`src/game/Engine.ts`)
+
    - Encapsulates Three.js `Scene`, `WebGLRenderer`, `Clock`, and `LoadingManager`
    - Does NOT own the camera (each scene creates its own)
    - Provides `render()`, `resize()`, and `cleanup()` methods
    - Initialized once per game session in [Game.vue](src/views/Game.vue)
 
 2. **GameScene** (`src/game/GameScene.ts`)
+
    - Abstract base class implementing the **Template Pattern**
    - Manages scene lifecycle: `start()` → `update(delta)` → `destroy()`
    - Contains typed module registry (`Partial<TModuleRegistry>`)
@@ -60,13 +62,28 @@ The game uses a **custom imperative architecture** with Three.js, not declarativ
    - Owns high-level entity composables (`camera`, `character`, `settings`)
    - Subclasses only override `registerModules()` and optionally customize lifecycle steps
 
-3. **GameModule** (`src/game/GameModule.ts`)
-   - Base class for scene modules (lighting, ground, objects, etc.)
+3. **SceneModule** (`src/game/SceneModule.ts`)
+
+   - Base class for **high-level scene infrastructure** (lighting, ground, objects, etc.)
    - Lifecycle: `start(context)` → `update(delta)` → `destroy()`
    - Emits loading events via RxJS for loading screen coordination
-   - Receives `I_ModuleContext` with `engine`, `scene`, `lifecycle`, `settings`, `sceneName`
+   - Receives `I_ModuleContext` with `engine`, `scene`, `lifecycle`, `settings`, `sceneName`, `services`
 
-4. **SceneLifecycle** (`src/game/SceneLifecycle.ts`)
+4. **EntityModule** (`src/game/EntityModule.ts`)
+
+   - Base class for **low-level entity features** (interactions, collision, health, etc.)
+   - Composable modules that can be attached to individual game entities
+   - Not tracked in module registry - managed by parent SceneModules
+   - Examples: `InteractableModule`, `VisualFeedbackModule`
+
+5. **ModuleRegistry** (`src/game/ModuleRegistry.ts`)
+
+   - Utility class for type-safe module management
+   - Automatically tracks updateable modules for performance
+   - Manages initialization state and provides query methods
+   - Performance-optimized: no `filter()` calls in update loop
+
+6. **SceneLifecycle** (`src/game/SceneLifecycle.ts`)
    - Manages cleanup of Three.js objects and Vue watchers
    - Fluent API: `lifecycle.register(mesh1, mesh2).watch(watcher)`
    - Automatically disposes geometries/materials and stops watchers on cleanup
@@ -110,6 +127,7 @@ The game separates **high-level entities** from **low-level controllers**:
 - **Sub-controllers** (`useCameraRotation`, `useCameraZoom`, `useCharacterMovement`, etc.) - Granular concerns
 
 This separation enables:
+
 - Testable controller logic (no Three.js dependencies)
 - Reusable controllers across different rendering contexts
 - Clear ownership (entity owns instance, controller owns state)
@@ -145,12 +163,12 @@ public start(): void {
 }
 ```
 
-#### 2. Module Pattern
+#### 2. Module Pattern (SceneModule vs EntityModule)
 
-Each module is self-contained and receives `I_ModuleContext`:
+**SceneModules** are high-level scene infrastructure:
 
 ```typescript
-export class LightingModule extends GameModule implements I_SceneModule {
+export class LightingModule extends SceneModule implements I_SceneModule {
   async start(context: I_ModuleContext): Promise<void> {
     const light = new DirectionalLight();
     context.scene.add(light);
@@ -158,12 +176,61 @@ export class LightingModule extends GameModule implements I_SceneModule {
     this.initialized(context.sceneName); // Notify loading complete
   }
 
-  update(delta: number): void { /* animate lights */ }
-  async destroy(): Promise<void> { /* cleanup */ }
+  update(delta: number): void {
+    /* animate lights */
+  }
+  async destroy(): Promise<void> {
+    /* cleanup */
+  }
 }
 ```
 
-#### 3. Loading System
+**EntityModules** are composable entity features:
+
+```typescript
+export class SceneObjectsModule extends SceneModule {
+  async start(context: I_ModuleContext): Promise<void> {
+    // Create objects
+    const box = new Mesh(new BoxGeometry(), new MeshStandardMaterial());
+    context.scene.add(box);
+    context.lifecycle.register(box);
+
+    // Register with interaction service (no boilerplate needed!)
+    context.services.interaction.register('box-1', box, {
+      hoverable: true,
+      clickable: true,
+      tooltip: { title: 'Mysterious Box' },
+    });
+
+    this.initialized(context.sceneName);
+  }
+}
+```
+
+#### 3. Service Layer Pattern
+
+GameScene provides shared services via the `services` property in `I_ModuleContext`:
+
+```typescript
+// GameScene initialization
+protected services = {
+  interaction: new InteractionService(),
+};
+
+// Modules access services via context
+async start(context: I_ModuleContext): Promise<void> {
+  // Register interactable objects
+  context.services.interaction.register('my-object', mesh, config);
+}
+```
+
+**Current Services:**
+
+- **InteractionService** - Centralized interaction detection and visual feedback
+  - Eliminates need for `I_InteractableModule` interface boilerplate
+  - Modules simply call `context.services.interaction.register()`
+
+#### 4. Loading System
 
 Uses RxJS observables (`topsyde-utils`) for coordination:
 
@@ -176,13 +243,13 @@ Uses RxJS observables (`topsyde-utils`) for coordination:
 
 The [LoadingScreen.vue](src/components/LoadingScreen.vue) component subscribes to these events and shows progress.
 
-#### 4. Composable Entity Pattern
+#### 5. Composable Entity Pattern
 
 ```typescript
 // High-level entity (owns Three.js instance)
 export function useCamera(): I_GameCamera {
   const controller = useCameraController(); // Pure state logic
-  const instance = new PerspectiveCamera();  // Three.js instance
+  const instance = new PerspectiveCamera(); // Three.js instance
 
   function update(targetPosition: Vector3) {
     controller.update(); // Update state
@@ -199,19 +266,21 @@ export function useCamera(): I_GameCamera {
 Current stores:
 
 - **auth.store.ts** - Authentication state
+- **websocket.store.ts** - WebSocket connection state and client data
 - **settings.store.ts** - User settings and theme preferences
-- **config.store.ts** - App configuration (debug flags, etc.)
+- **gameConfig.store.ts** - App configuration (debug flags, stats visibility, etc.)
 
-Reference `src_deprecated/stores/` for old WebSocket and match state patterns.
+Reference `src_deprecated/stores/` for old WebSocket and match state patterns (being modernized).
 
 ### Backend Integration
 
 - **axios** for REST API calls ([auth.api.ts](src/api/auth.api.ts))
-- **topsyde-utils 1.0.209** - Custom package for WebSocket utilities, RxJS helpers, game logic
+- **topsyde-utils 1.0.210** - Custom package for WebSocket utilities, RxJS helpers, game logic
 - **Custom Vite Plugin** ([plugins/topsyde-utils-vite-plugin.ts](plugins/topsyde-utils-vite-plugin.ts))
   - Provides Node.js module compatibility in browser
   - Mocks `path`, `fs` modules for topsyde-utils
   - Disables sourcemaps for topsyde-utils (prevents dev warnings)
+- **WebSocket Integration** - Real-time multiplayer via `websocket.store.ts` and `WebSocketManager.vue`
 
 ### Directory Structure
 
@@ -220,14 +289,24 @@ src/
 ├── game/                    # Core game engine
 │   ├── Engine.ts           # Three.js engine wrapper
 │   ├── GameScene.ts        # Abstract scene base class
-│   ├── GameModule.ts       # Module base class
+│   ├── SceneModule.ts      # High-level scene module base class
+│   ├── EntityModule.ts     # Low-level entity module base class
+│   ├── ModuleRegistry.ts   # Type-safe module management
 │   ├── SceneLifecycle.ts   # Cleanup manager
-│   └── modules/            # Reusable scene modules
-│       ├── LightingModule.ts
-│       ├── GroundModule.ts
-│       ├── SceneObjectsModule.ts
-│       ├── CharacterMeshModule.ts
-│       └── DebugModule.ts
+│   ├── modules/            # Reusable scene modules
+│   │   ├── scene/          # Scene infrastructure modules
+│   │   │   ├── LightingModule.ts
+│   │   │   ├── GroundModule.ts
+│   │   │   ├── SceneObjectsModule.ts
+│   │   │   ├── SceneInstancedObjectsModule.ts
+│   │   │   ├── CharacterMeshModule.ts
+│   │   │   └── DebugModule.ts
+│   │   └── entity/         # Entity feature modules
+│   │       ├── InteractableModule.ts
+│   │       ├── VisualFeedbackModule.ts
+│   │       └── interaction.types.ts
+│   └── services/           # Scene services
+│       └── InteractionService.ts
 ├── scenes/                  # Concrete scene implementations
 │   ├── PlaygroundScene.ts  # Main game scene
 │   └── scenes.types.ts     # Scene interfaces
@@ -249,8 +328,11 @@ src/
 │   └── VirtualJoystick.vue # Mobile touch controls
 ├── stores/                  # Pinia state management
 │   ├── auth.store.ts
+│   ├── websocket.store.ts  # WebSocket connection state
 │   ├── settings.store.ts   # User preferences + theme
-│   └── config.store.ts     # App config (debug flags, etc.)
+│   └── gameConfig.store.ts # App config (debug flags, etc.)
+├── data/                    # Data transfer objects
+│   └── sceneObjectConfig.dto.ts
 ├── views/                   # Page components
 │   ├── Game.vue            # Main game view (canvas + engine)
 │   └── Login.vue
@@ -303,13 +385,48 @@ compose/                     # Deployment scripts
 
 #### Creating New Modules
 
-1. Extend `GameModule` base class
+**For SceneModules** (high-level infrastructure):
+
+1. Extend `SceneModule` base class
 2. Implement `I_SceneModule` interface:
    - `async start(context)` - Initialize and add to scene
    - `update(delta)` - Update each frame (optional)
    - `async destroy()` - Cleanup (optional if using lifecycle.register)
 3. Register Three.js objects with `context.lifecycle.register(...objects)`
 4. Call `this.initialized(context.sceneName)` when ready
+5. Add to scene via `scene.addModule('myModule', new MyModule())`
+
+**For EntityModules** (composable entity features):
+
+1. Extend `EntityModule` base class
+2. Implement `I_EntityModule` interface:
+   - `async start(context)` - Initialize with scene context
+   - `async destroy()` - Cleanup
+3. Attach to entities before calling `start()`
+4. Use within SceneModules, not registered in scene directly
+
+**Using Services** (like InteractionService):
+
+Instead of creating complex interfaces, use services via `context.services`:
+
+```typescript
+// Old way (complex, lots of boilerplate)
+class MyModule extends SceneModule implements I_InteractableModule {
+  setInteractionSystem(system) {
+    /* ... */
+  }
+  clearInteractionSystem() {
+    /* ... */
+  }
+}
+
+// New way (simple, clean)
+class MyModule extends SceneModule {
+  async start(context: I_ModuleContext) {
+    context.services.interaction.register('my-object', mesh, config);
+  }
+}
+```
 
 #### Component Patterns
 
@@ -380,11 +497,11 @@ The [src_deprecated/](src_deprecated/) folder contains the complete old PrimeVue
 
 ### Common Patterns
 
-#### Adding a New Game Module
+#### Adding a New SceneModule
 
 ```typescript
-// 1. Create module class in src/game/modules/
-export class MyModule extends GameModule implements I_SceneModule {
+// 1. Create module class in src/game/modules/scene/
+export class MyModule extends SceneModule implements I_SceneModule {
   async start(context: I_ModuleContext): Promise<void> {
     // Create Three.js objects
     const mesh = new Mesh(geometry, material);
@@ -392,6 +509,12 @@ export class MyModule extends GameModule implements I_SceneModule {
 
     // Register for auto-cleanup
     context.lifecycle.register(mesh);
+
+    // Use services (e.g., interactions)
+    context.services.interaction.register('my-mesh', mesh, {
+      hoverable: true,
+      clickable: true,
+    });
 
     // Notify loading complete
     this.initialized(context.sceneName);
@@ -416,6 +539,36 @@ interface PlaygroundModuleRegistry {
 protected registerModules(): void {
   // ... existing modules
   this.addModule('myModule', new MyModule());
+}
+```
+
+#### Adding a New Service
+
+```typescript
+// 1. Create service class in src/game/services/
+export class MyService implements I_SceneService {
+  async start(ctx: I_ModuleContext): Promise<void> {
+    // Initialize service
+  }
+
+  update(delta: number): void {
+    // Optional: update logic
+  }
+
+  async destroy(): Promise<void> {
+    // Cleanup
+  }
+}
+
+// 2. Add to GameScene services
+protected services = {
+  interaction: new InteractionService(),
+  myService: new MyService(), // Add here
+};
+
+// 3. Use in modules via context
+async start(context: I_ModuleContext) {
+  context.services.myService.doSomething();
 }
 ```
 
@@ -489,5 +642,8 @@ tryOnUnmounted(() => destroy());
 - **Always use VueUse** for common tasks (event listeners, window size, RAF, etc.)
 - **Mobile-first mindset** - test on touch devices, use virtual joystick
 - **Register all Three.js objects** with `lifecycle.register()` to prevent memory leaks
-- **Emit loading events** from modules via `this.initialized(sceneName)`
+- **Emit loading events** from SceneModules via `this.initialized(sceneName)`
 - **Use RxJS from topsyde-utils** for event coordination (`useRxjs(channel)`)
+- **Prefer Services over Interfaces** - Use `context.services.X` instead of creating `I_XModule` interfaces
+- **SceneModules vs EntityModules** - High-level infrastructure vs. composable entity features
+- **ModuleRegistry handles tracking** - Don't manually manage module collections or filter updateable modules
