@@ -58,13 +58,13 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
           material: { useTheme: true, roughness: 0.8 },
         },
         {
-          position: [-8, 1.5, 5],
+          position: [8, 1, 5],
           scale: [3, 3, 2],
           geometry: { type: 'box', params: [1, 1, 1] },
           material: { useTheme: true, roughness: 0.8 },
         },
         {
-          position: [0, 0.75, -10],
+          position: [0, 1, -10],
           scale: [4, 1.5, 1.5],
           geometry: { type: 'box', params: [1, 1, 1] },
           material: { staticColor: 0x8b4513, roughness: 0.9 }, // Brown
