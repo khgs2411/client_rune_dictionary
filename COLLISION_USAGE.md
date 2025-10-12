@@ -35,7 +35,7 @@ async start(context: I_ModuleContext): Promise<void> {
 ### Example 2: Dynamic Player (Movable)
 
 ```typescript
-// In your CharacterMeshModule
+// In your CharacterModule
 async start(context: I_ModuleContext): Promise<void> {
   const playerMesh = new Mesh(new SphereGeometry(0.5), new MeshStandardMaterial());
   context.scene.add(playerMesh);
@@ -258,8 +258,8 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
 To make your character respect collision boundaries, you need to register the character mesh:
 
 ```typescript
-// In CharacterMeshModule.ts
-export class CharacterMeshModule extends SceneModule implements I_SceneModule {
+// In CharacterModule.ts
+export class CharacterModule extends SceneModule implements I_SceneModule {
   private characterMesh!: Mesh;
 
   async start(context: I_ModuleContext): Promise<void> {

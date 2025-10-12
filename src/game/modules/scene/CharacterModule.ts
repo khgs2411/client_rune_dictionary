@@ -12,7 +12,7 @@ import { useGameConfigStore } from '@/stores/gameConfig.store';
  * Handles the visual representation of the player character
  * Syncs with character controller state every frame
  */
-export class CharacterMeshModule extends SceneModule implements I_SceneModule {
+export class CharacterModule extends SceneModule implements I_SceneModule {
   private mesh!: Group;
   private bodyMaterial!: MeshStandardMaterial;
   private coneMaterial!: MeshStandardMaterial;
@@ -44,7 +44,7 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
   async start(context: I_ModuleContext): Promise<void> {
     // Get physics world and RAPIER module from service
     if (!context.services.physics.isReady()) {
-      console.error('[CharacterMeshModule] Physics service not ready!');
+      console.error('[CharacterModule] Physics service not ready!');
       return;
     }
     this.world = context.services.physics.getWorld();
@@ -96,7 +96,7 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     this.characterControllerRapier.enableSnapToGround(0.5); // Snap distance
     this.characterControllerRapier.setApplyImpulsesToDynamicBodies(true);
 
-    console.log('✅ [CharacterMeshModule] Rapier physics initialized');
+    console.log('✅ [CharacterModule] Rapier physics initialized');
   }
 
   public update(delta: number): void {

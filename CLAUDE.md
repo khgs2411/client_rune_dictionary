@@ -97,7 +97,7 @@ interface PlaygroundModuleRegistry {
   lighting: LightingModule;
   ground: GroundModule;
   sceneObjects: SceneObjectsModule;
-  characterMesh: CharacterMeshModule;
+  characterMesh: CharacterModule;
 }
 
 export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
@@ -299,7 +299,7 @@ src/
 │   │   │   ├── GroundModule.ts
 │   │   │   ├── SceneObjectsModule.ts
 │   │   │   ├── SceneInstancedObjectsModule.ts
-│   │   │   ├── CharacterMeshModule.ts
+│   │   │   ├── CharacterModule.ts
 │   │   │   └── DebugModule.ts
 │   │   └── entity/         # Entity feature modules
 │   │       ├── InteractableModule.ts

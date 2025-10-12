@@ -1,7 +1,7 @@
 import { I_ThemeColors } from '@/composables/useTheme';
 import type { Engine } from '@/game/Engine';
 import { GameScene } from '@/game/GameScene';
-import { CharacterMeshModule } from '@/game/modules/scene/CharacterMeshModule';
+import { CharacterModule } from '@/game/modules/scene/CharacterModule';
 import { DebugModule } from '@/game/modules/scene/DebugModule';
 import { GroundModule } from '@/game/modules/scene/GroundModule';
 import { LightingModule } from '@/game/modules/scene/LightingModule';
@@ -23,7 +23,7 @@ interface PlaygroundModuleRegistry extends Record<string, any> {
   treeLeaves: SceneInstancedObjectsModule;
   bushes: SceneInstancedObjectsModule;
   debug: DebugModule;
-  characterMesh: CharacterMeshModule;
+  characterMesh: CharacterModule;
 }
 
 export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
@@ -45,7 +45,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     this.addModule('ground', new GroundModule(this.settings));
     this.addModule(
       'characterMesh',
-      new CharacterMeshModule(this.settings, this.character.controller),
+      new CharacterModule(this.settings, this.character.controller),
     );
   }
 
