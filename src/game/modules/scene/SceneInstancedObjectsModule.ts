@@ -66,7 +66,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
       this.addCollisions(context, groupKey, instancedMesh);
 
       // Add to scene and lifecycle
-      this.addToScene(context, instancedMesh);
+      this.addGridHelper(context, instancedMesh);
 
       this.instancedMeshes.set(groupKey, instancedMesh);
     });
@@ -92,7 +92,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     });
   }
 
-  public addToScene(context: I_ModuleContext, instancedMesh: InstancedMesh) {
+  public addGridHelper(context: I_ModuleContext, instancedMesh: InstancedMesh) {
     context.scene.add(instancedMesh);
     context.lifecycle.register(instancedMesh);
   }

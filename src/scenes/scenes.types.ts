@@ -61,7 +61,7 @@ export interface I_SceneModule {
    */
   onThemeChange?(theme: I_ThemeColors): void;
 
-  addToScene?(context: I_ModuleContext, ...args: any[]): void;
+  addGridHelper?(context: I_ModuleContext, ...args: any[]): void;
 }
 
 /**

@@ -14,13 +14,29 @@ export class GroundModule extends SceneModule implements I_SceneModule {
   private groundMaterial!: MeshStandardMaterial;
   private settings: ApplicationSettings;
 
-  constructor( moduleName?: string) {
+  constructor(moduleName?: string) {
     super(moduleName);
     this.settings = useSettingsStore();
   }
 
   async start(context: I_ModuleContext): Promise<void> {
     // Create ground plane (visual)
+    const ground = this.createGround();
+
+    this.addToScene(context, ground);
+
+    // Create Rapier ground collider (physics)
+    this.addPhysics(context);
+
+    // Add grid helper
+
+    this.addGridHelper(context);
+
+    // Emit loading complete event
+    super.start(context);
+  }
+
+  private createGround() {
     const geometry = new PlaneGeometry(100, 100);
     this.groundMaterial = new MeshStandardMaterial({
       color: this.settings.theme.background,
@@ -30,10 +46,10 @@ export class GroundModule extends SceneModule implements I_SceneModule {
     ground.count = 1;
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
-    context.scene.add(ground);
-    context.lifecycle.register(ground);
+    return ground;
+  }
 
-    // Create Rapier ground collider (physics)
+  private addPhysics(context: I_ModuleContext) {
     if (context.services.physics.isReady()) {
       const RAPIER = context.services.physics.getRapier();
       const world = context.services.physics.getWorld();
@@ -49,17 +65,16 @@ export class GroundModule extends SceneModule implements I_SceneModule {
 
       console.log('✅ [GroundModule] Rapier ground collider created');
     }
-
-    // Add grid helper
-    const gridHelper = new GridHelper(50, 50);
-    gridHelper.position.y = 0.01;
-    this.addToScene(context, gridHelper);
-
-    // Emit loading complete event
-    super.start(context);
   }
 
-  public addToScene(context: I_ModuleContext, gridHelper: GridHelper) {
+  public addToScene(context: I_ModuleContext, ground: InstancedMesh) {
+    context.scene.add(ground);
+    context.lifecycle.register(ground);
+  }
+
+  public addGridHelper(context: I_ModuleContext,) {
+    const gridHelper = new GridHelper(50, 50);
+    gridHelper.position.y = 0.01;
     context.scene.add(gridHelper);
     context.lifecycle.register(gridHelper);
   }

@@ -60,7 +60,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     // Create Rapier physics components
     this.createPhysicsBody();
 
-    this.addToScene(context);
+    this.addGridHelper(context);
 
     // Emit loading complete event
     super.start(context);
@@ -157,7 +157,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     }
   }
 
-  public addToScene(context: I_ModuleContext) {
+  public addGridHelper(context: I_ModuleContext) {
     context.scene.add(this.mesh);
     context.lifecycle.register(this.mesh);
   }

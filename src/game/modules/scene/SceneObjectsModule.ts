@@ -77,7 +77,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
       this.addColission(config, context, index, mesh);
 
       // Add to scene and lifecycle
-      this.addToScene(context, mesh);
+      this.addGridHelper(context, mesh);
 
       this.meshes.push(mesh);
     });
@@ -255,7 +255,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
     }
   }
 
-  public addToScene(context: I_ModuleContext, mesh: Mesh) {
+  public addGridHelper(context: I_ModuleContext, mesh: Mesh) {
     context.scene.add(mesh);
     context.lifecycle.register(mesh);
   }

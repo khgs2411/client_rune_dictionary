@@ -28,14 +28,14 @@ export class PhysicsService extends SceneModule {
     super.start(context);
   }
 
-  update(delta: number): void {
+  public update(delta: number): void {
     if (!this.isInitialized) return;
 
     // Step the physics simulation
     this.world.step();
   }
 
-  async destroy(): Promise<void> {
+  public async destroy(): Promise<void> {
     if (this.world) {
       this.world.free();
     }
@@ -46,7 +46,7 @@ export class PhysicsService extends SceneModule {
   /**
    * Get the Rapier world instance
    */
-  getWorld(): RAPIER_TYPE.World {
+  public getWorld(): RAPIER_TYPE.World {
     if (!this.isInitialized) {
       throw new Error('[PhysicsService] Physics world not initialized. Call start() first.');
     }
@@ -56,7 +56,7 @@ export class PhysicsService extends SceneModule {
   /**
    * Get the Rapier module (for creating bodies, colliders, etc.)
    */
-  getRapier(): typeof RAPIER_TYPE {
+  public getRapier(): typeof RAPIER_TYPE {
     if (!this.isInitialized) {
       throw new Error('[PhysicsService] Physics not initialized. Call start() first.');
     }
@@ -66,7 +66,7 @@ export class PhysicsService extends SceneModule {
   /**
    * Check if physics is ready
    */
-  isReady(): boolean {
+  public isReady(): boolean {
     return this.isInitialized;
   }
 }
