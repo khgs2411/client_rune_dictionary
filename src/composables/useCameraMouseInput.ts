@@ -22,7 +22,8 @@ export function useCameraMouseInput(rotation: CameraRotation, zoom: CameraZoom):
     target: document.body,
     preventContextMenu: true,
     trackScroll: true,
-    scrollSensitivity: 0.01,
+    scrollSensitivity: 0.005, // Smooth zoom (rawDelta per scroll tick)
+    autoResetScroll: true, // Reset scroll delta each frame
     supportPointerLock: true,
   });
 
@@ -60,9 +61,9 @@ export function useCameraMouseInput(rotation: CameraRotation, zoom: CameraZoom):
     }
   });
 
-  // Handle scroll - zoom camera
+  // Handle scroll - zoom camera (use rawDelta for smooth incremental zoom)
   mouse.on('scroll', (event: I_MouseScrollEvent) => {
-    zoom.update(event.scrollDelta);
+    zoom.update(event.rawDelta);
   });
 
   // Handle pointer lock change

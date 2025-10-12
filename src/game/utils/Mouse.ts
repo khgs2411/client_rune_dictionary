@@ -24,7 +24,8 @@ export interface I_MouseEvent {
 }
 
 export interface I_MouseScrollEvent extends I_MouseEvent {
-  scrollDelta: number;
+  scrollDelta: number; // Accumulated scroll delta (for tracking total scroll)
+  rawDelta: number;    // Raw wheel delta from this event (for incremental zoom)
 }
 
 export interface I_MouseDragEvent extends I_MouseEvent {
@@ -331,16 +332,20 @@ export class Mouse {
       event.preventDefault();
     }
 
-    // Accumulate scroll delta
-    this._scrollDelta += event.deltaY * this.config.scrollSensitivity;
+    // Calculate raw delta for this event
+    const rawDelta = event.deltaY * this.config.scrollSensitivity;
 
-    // Emit scroll event
+    // Accumulate scroll delta (for total tracking)
+    this._scrollDelta += rawDelta;
+
+    // Emit scroll event with both raw and accumulated deltas
     this.emit('scroll', {
       position: this._position.clone(),
       normalizedPosition: this._normalizedPosition.clone(),
       delta: this._delta.clone(),
       buttons: new Set(this._buttons),
       scrollDelta: this._scrollDelta,
+      rawDelta, // Incremental delta for this specific scroll event
     });
   }
 
