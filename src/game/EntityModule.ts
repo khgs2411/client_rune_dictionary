@@ -1,4 +1,4 @@
-import type { I_EntityModule, I_ModuleContext, I_SceneModule, I_UpdateableModule } from '@/scenes/scenes.types';
+import type { I_EntityModule, I_ModuleContext } from '@/scenes/scenes.types';
 
 /**
  * EntityModule Base Class

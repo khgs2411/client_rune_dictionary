@@ -1,7 +1,8 @@
 import { RGBColor } from '@/common/types';
+import { I_ThemeColors } from '@/composables/useTheme';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
-import { I_ModuleContext, I_ThemedModule } from '@/scenes/scenes.types';
+import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
 import {
   BoxGeometry,
   BufferGeometry,
@@ -23,11 +24,11 @@ import {
  * Manages static scene objects (houses, trees, obstacles, etc.) using instanced rendering
  * Groups objects by geometry + material properties for optimal performance
  *
- * Uses EntityModules for features:
- * - InteractionEntityModule: Makes objects clickable/hoverable
- * - VisualFeedbackEntityModule: Provides visual feedback for interactions
+ * Refactored to:
+ * - Use onThemeChange() optional hook instead of I_ThemedModule interface
+ * - Simplified lifecycle
  */
-export class SceneInstancedObjectsModule extends SceneModule implements I_ThemedModule {
+export class SceneInstancedObjectsModule extends SceneModule implements I_SceneModule {
   private objectConfigs: I_SceneObjectConfig[];
   private instancedMeshes: Map<string, InstancedMesh> = new Map();
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
@@ -67,21 +68,19 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_Themed
     this.initialized(context.sceneName);
   }
 
-  public update(delta: number): void {
-    // No need to update interaction modules - they're managed by the scene
-  }
-
   public async destroy(): Promise<void> {
-    // No need to destroy interaction modules - they're managed by the scene
     // Lifecycle handles cleanup
     this.themedMaterials = [];
     this.instancedMeshes.clear();
   }
 
-  public updateColors(hex: number): void {
+  /**
+   * Optional lifecycle hook: React to theme changes
+   */
+  public onThemeChange(theme: I_ThemeColors): void {
     // Update all themed materials
     this.themedMaterials.forEach((material) => {
-      material.color.setHex(hex);
+      material.color.setHex(theme.primaryForeground);
     });
   }
 

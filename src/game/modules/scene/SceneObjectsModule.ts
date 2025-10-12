@@ -1,7 +1,8 @@
 import { RGBColor } from '@/common/types';
+import { I_ThemeColors } from '@/composables/useTheme';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
-import { I_InteractableModule, I_ModuleContext, I_ThemedModule } from '@/scenes/scenes.types';
+import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
 import {
   BoxGeometry,
   BufferGeometry,
@@ -10,11 +11,8 @@ import {
   Euler,
   Mesh,
   MeshStandardMaterial,
-  Object3D,
   SphereGeometry
 } from 'three';
-import type { I_InteractionEntityConfig } from '../entity/interaction.types';
-import { InteractionSystemModule } from './InteractionSystemModule';
 
 /**
  * Scene Objects Module (Regular Meshes)
@@ -28,15 +26,15 @@ import { InteractionSystemModule } from './InteractionSystemModule';
  *
  * For many identical objects, use SceneInstancedObjectsModule instead.
  *
- * Uses EntityModules for features:
- * - InteractionEntityModule: Makes objects clickable/hoverable
- * - VisualFeedbackEntityModule: Provides visual feedback for interactions
+ * Refactored to:
+ * - Remove I_InteractableModule interface (no more boilerplate!)
+ * - Use ctx.services.interaction directly
+ * - Use onThemeChange() optional hook instead of I_ThemedModule interface
  */
-export class SceneObjectsModule extends SceneModule implements I_ThemedModule, I_InteractableModule {
+export class SceneObjectsModule extends SceneModule implements I_SceneModule {
   private objectConfigs: I_SceneObjectConfig[];
   private meshes: Mesh[] = [];
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
-
 
   constructor(
     objectConfigs: I_SceneObjectConfig[],
@@ -52,7 +50,7 @@ export class SceneObjectsModule extends SceneModule implements I_ThemedModule, I
       const geometry = this.createGeometry(config.geometry);
       const material = this.createMaterial(config, context);
 
-      // Track themed materials for updateColors
+      // Track themed materials for onThemeChange
       if (config.material.useTheme) {
         this.themedMaterials.push(material);
       }
@@ -77,6 +75,18 @@ export class SceneObjectsModule extends SceneModule implements I_ThemedModule, I
       context.scene.add(mesh);
       context.lifecycle.register(mesh);
 
+      // Register with interaction service if interactive
+      if (config.interactive) {
+        context.services.interaction.register(`scene-object-${index}`, mesh, config.interaction || {
+          hoverable: true,
+          clickable: true,
+          tooltip: {
+            title: `${config.geometry.type} object`,
+            description: 'A scene object',
+          },
+        });
+      }
+
       this.meshes.push(mesh);
     });
 
@@ -86,63 +96,20 @@ export class SceneObjectsModule extends SceneModule implements I_ThemedModule, I
     this.initialized(context.sceneName);
   }
 
-  public update(): void {
-    // No need to update interaction modules - they're managed by the scene
-  }
-
   async destroy(): Promise<void> {
-    // No need to destroy interaction modules - they're managed by the scene
-    // Lifecycle handles cleanup
+    // Lifecycle handles mesh cleanup
     this.themedMaterials = [];
     this.meshes = [];
   }
 
-  public updateColors(hex: number): void {
+  /**
+   * Optional lifecycle hook: React to theme changes
+   */
+  public onThemeChange(theme: I_ThemeColors): void {
     // Update all themed materials
     this.themedMaterials.forEach((material) => {
-      material.color.setHex(hex);
+      material.color.setHex(theme.primaryForeground);
     });
-  }
-
-  /**
-   * Set the interaction system and auto-register all interactable objects
-   */
-  public setInteractionSystem(system: InteractionSystemModule): void {
-    this.getInteractableObjects().forEach(({ id, object, config }) => {
-      system.register(id, object, config);
-    });
-  }
-
-  public clearInteractionSystem(system: InteractionSystemModule): void {
-    this.getInteractableObjects().forEach(({ id }) => {
-      system.unregister(id);
-    });
-  }
-
-  /**
-   * Get all interactable objects from this module
-   * Called by setInteractionSystem to auto-register objects
-   */
-  public getInteractableObjects(): Array<{
-    id: string;
-    object: Object3D;
-    config: I_InteractionEntityConfig;
-  }> {
-    return this.meshes
-      .map((mesh, index) => ({ mesh, config: this.objectConfigs[index] }))
-      .filter(({ config }) => config.interactive)
-      .map(({ mesh, config }, filteredIndex) => ({
-        id: `scene-object-${filteredIndex}`,
-        object: mesh,
-        config: config.interaction || {
-          hoverable: true,
-          clickable: true,
-          tooltip: {
-            title: `${config.geometry.type} object`,
-            description: 'A scene object',
-          },
-        },
-      }));
   }
 
   /**

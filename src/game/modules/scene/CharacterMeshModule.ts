@@ -1,15 +1,16 @@
 import { type SettingsStore } from '@/stores/settings.store';
 import { I_CharacterControls } from '@/composables/composables.types';
-import { I_ModuleContext, I_ThemedModule } from '@/scenes/scenes.types';
+import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
 import SceneModule from '@/game/SceneModule';
+import { I_ThemeColors } from '@/composables/useTheme';
 
 /**
  * Character Mesh Module
  * Handles the visual representation of the player character
  * Syncs with character controller state every frame
  */
-export class CharacterMeshModule extends SceneModule implements I_ThemedModule {
+export class CharacterMeshModule extends SceneModule implements I_SceneModule {
   private mesh!: Group;
   private bodyMaterial!: MeshStandardMaterial;
   private coneMaterial!: MeshStandardMaterial;
@@ -71,9 +72,12 @@ export class CharacterMeshModule extends SceneModule implements I_ThemedModule {
     // Lifecycle handles cleanup
   }
 
-  // Public API for theme updates
-  updateColors(bodyColor: number, coneColor: number): void {
-    this.bodyMaterial.color.setHex(bodyColor);
-    this.coneMaterial.color.setHex(coneColor);
+  /**
+   * Optional lifecycle hook: React to theme changes
+   * Extracts primary (body) and accent (cone) colors from theme
+   */
+  onThemeChange(theme: I_ThemeColors): void {
+    this.bodyMaterial.color.setHex(theme.primary);
+    this.coneMaterial.color.setHex(theme.accent);
   }
 }

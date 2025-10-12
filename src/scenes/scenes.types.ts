@@ -1,115 +1,90 @@
 import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
 import { Engine } from '@/game/Engine';
-import { InteractionSystemModule } from '@/game/modules/scene/InteractionSystemModule';
 import { SceneLifecycle } from '@/game/SceneLifecycle';
 import { SettingsStore } from '@/stores/settings.store';
-import { Object3D, Scene } from 'three';
-import type { I_InteractionEntityConfig } from '@/game/modules/entity/interaction.types';
+import { Scene } from 'three';
+import type { InteractionService } from '@/game/services/InteractionService';
+import { I_ThemeColors } from '@/composables/useTheme';
 
+
+/**
+ * Core scene interface
+ */
 export interface I_GameScene {
   readonly name: string;
   readonly camera: ReturnType<typeof useCamera>;
   readonly engine: Engine;
 
-  /**
-   * Initialize the scene (lights, objects, etc.)
-   */
   start(): void;
-
-  /**
-   * Called every frame with delta time.
-   */
   update(delta: number): void;
-
-  /**
-   * Clean up resources, remove event listeners, etc.
-   */
   destroy(): void;
 }
 
+/**
+ * Configuration for creating a scene
+ */
 export interface I_SceneConfig {
   engine: Engine;
 }
 
-export interface I_HasModules<TModuleRegistry extends Record<string, I_SceneModule> = Record<string, I_SceneModule>> {
-  modulesLoaded: boolean;
-
-  modules: Partial<TModuleRegistry>;
-  initializedModules: Set<I_SceneModule>;
-  moduleNames: Map<I_SceneModule, string>;
-  addModule<K extends keyof TModuleRegistry>(key: K, module: TModuleRegistry[K]): this
-  getModule<K extends keyof TModuleRegistry>(key: K): TModuleRegistry[K] | undefined
-  moduleCount(): number;
-  forEachModule(callback: (module: I_SceneModule) => void | Promise<void>): void | Promise<void>;
-}
-
-export interface I_HasUpdateableModules<T extends Record<string, I_SceneModule> = Record<string, I_SceneModule>> extends I_HasModules<T> {
-  updateableModules: Set<I_UpdateableModule>;
-  initializedUpdateableModules: Set<I_UpdateableModule>;
-}
-
-export interface I_HasInteractableModules<T extends Record<string, I_SceneModule> = Record<string, I_SceneModule>> extends I_HasModules<T> {
-  interactableModules: Set<I_InteractableModule>;
-}
-
+/**
+ * Base module interface - all modules implement this
+ * Optional lifecycle hooks via duck typing (no need for separate interfaces)
+ */
 export interface I_SceneModule {
+  /**
+   * Initialize the module
+   */
   start(context: I_ModuleContext): Promise<void>;
+
+  /**
+   * Cleanup the module
+   */
   destroy(): Promise<void>;
-}
 
-export interface I_EntityModule extends I_SceneModule { }
+  /**
+   * Optional: Update each frame (only implement if needed)
+   */
+  update?(delta: number, ...args: any[]): void | Promise<void>;
 
-export interface I_UpdateableModule extends I_SceneModule {
-  update(delta: number, ...args: any[]): Promise<void>;
-
-}
-
-export function IsUpdateableModule(module: any): module is I_UpdateableModule {
-  return module.update && typeof module.update === 'function';
+  /**
+   * Optional: React to theme changes (only implement if needed)
+   * Receives full theme object - modules extract what they need
+   */
+  onThemeChange?(theme: I_ThemeColors): void;
 }
 
 /**
- * Interface for modules that can have interaction capabilities injected
- * Used for dependency injection of shared InteractionSystemModule
- *
- * Modules implementing this interface can:
- * - Declare which objects are interactable
- * - Automatically register those objects with the interaction system
+ * Entity modules - lightweight features managed by scene modules
  */
-export interface I_InteractableModule extends I_SceneModule {
-  /**
-   * Set the interaction system and auto-register all interactable objects
-   */
-  setInteractionSystem(system: InteractionSystemModule): void;
-  clearInteractionSystem(system: InteractionSystemModule): void;
-
-  /**
-   * Get all interactable objects from this module
-   * Called by setInteractionSystem to auto-register objects
-   */
-  getInteractableObjects(): Array<{
-    id: string;
-    object: Object3D;
-    config: I_InteractionEntityConfig;
-  }>;
+export interface I_EntityModule {
+  start(context: I_ModuleContext): Promise<void>;
+  destroy(): Promise<void>;
+  update?(delta: number): void;
 }
 
-export function IsInteractableModule(module: any): module is I_InteractableModule {
-  return typeof module.setInteractionSystem === 'function' && typeof module.getInteractableObjects === 'function' && typeof module.clearInteractionSystem === 'function';
+/**
+ * Services available to modules via context
+ * This is how cross-cutting concerns (interaction, audio, etc.) are shared
+ */
+export interface I_ModuleServices {
+  interaction: InteractionService;
+  // Future: audio?: AudioService;
+  // Future: physics?: PhysicsService;
 }
 
-export interface I_ThemedModule extends I_SceneModule {
-  updateColors(...args: any): void;
-}
-
-// Context = everything a module might need
+/**
+ * Context passed to modules during initialization
+ * Contains everything a module might need
+ */
 export interface I_ModuleContext {
   engine: Engine;
   scene: Scene;
   lifecycle: SceneLifecycle;
   settings: SettingsStore;
   sceneName: string;
-  camera?: ReturnType<typeof useCamera>; // Optional: for modules that need camera (interaction, etc.)
-  character?: ReturnType<typeof useCharacter>; // Optional: for modules that need character (interaction, etc.)
+  services: I_ModuleServices;
+  camera?: ReturnType<typeof useCamera>; // Optional: for modules that need camera
+  character?: ReturnType<typeof useCharacter>; // Optional: for modules that need character
 }

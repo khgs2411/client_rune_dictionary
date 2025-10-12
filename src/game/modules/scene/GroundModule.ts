@@ -3,6 +3,7 @@ import { I_ModuleContext } from '@/scenes/scenes.types';
 import { I_SceneModule } from '@/scenes/scenes.types';
 import { GridHelper, InstancedMesh, Mesh, MeshStandardMaterial, PlaneGeometry } from 'three';
 import SceneModule from '@/game/SceneModule';
+import { I_ThemeColors } from '@/composables/useTheme';
 
 /**
  * Ground Module
@@ -43,16 +44,14 @@ export class GroundModule extends SceneModule implements I_SceneModule {
 
   }
 
-  update(delta: number): void {
-    // Static ground, nothing to update
-  }
-
   async destroy(): Promise<void> {
     // Lifecycle handles cleanup
   }
 
-  // Public API for theme updates
-  updateColors(color: number): void {
-    this.groundMaterial.color.setHex(color);
+  /**
+   * Optional lifecycle hook: React to theme changes
+   */
+  onThemeChange(theme: I_ThemeColors): void {
+    this.groundMaterial.color.setHex(theme.background);
   }
 }

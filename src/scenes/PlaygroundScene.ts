@@ -6,10 +6,10 @@ import { GroundModule } from '@/game/modules/scene/GroundModule';
 import { LightingModule } from '@/game/modules/scene/LightingModule';
 import { SceneInstancedObjectsModule } from '@/game/modules/scene/SceneInstancedObjectsModule';
 import { SceneObjectsModule } from '@/game/modules/scene/SceneObjectsModule';
-import { InteractionSystemModule } from '@/game/modules/scene/InteractionSystemModule';
 import { watch } from 'vue';
-import { I_GameScene, I_SceneConfig } from './scenes.types';
+import { I_SceneConfig } from './scenes.types';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
+import { I_ThemeColors } from '@/composables/useTheme';
 
 /**
  * Module Registry for PlaygroundScene
@@ -18,7 +18,6 @@ import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 interface PlaygroundModuleRegistry extends Record<string, any> {
   lighting: LightingModule;
   ground: GroundModule;
-  interaction: InteractionSystemModule;
   instancedSceneObjects: SceneInstancedObjectsModule;
   sceneObjects: SceneObjectsModule;
   treeTrunks: SceneInstancedObjectsModule;
@@ -28,11 +27,9 @@ interface PlaygroundModuleRegistry extends Record<string, any> {
   characterMesh: CharacterMeshModule;
 }
 
-export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> implements I_GameScene {
+export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
   readonly name = 'PlaygroundScene';
   readonly engine: Engine;
-
-  // Unified interaction system (ONE instance for entire scene)
 
   // Scene object configurations
   private readonly sceneObjectConfigs: I_SceneObjectConfig[] = [
@@ -81,9 +78,9 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
 
   /**
    * Register scene-specific modules
+   * Note: No need to register InteractionSystemModule - it's now a service!
    */
   protected registerModules(): void {
-    this.addModule('interaction', new InteractionSystemModule());
     this.addModule('lighting', new LightingModule());
     this.addModule('ground', new GroundModule(this.settings));
     this.addModule('characterMesh', new CharacterMeshModule(this.settings, this.character.controller));
@@ -171,16 +168,26 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> impleme
   }
 
   private updateMaterialColors(): void {
-    // Update scene objects (only themed ones will change)
-    this.modules.instancedSceneObjects?.updateColors(this.settings.theme.primaryForeground);
-    this.modules.sceneObjects?.updateColors(this.settings.theme.primaryForeground);
+    // Build theme colors object from settings
+    const theme: I_ThemeColors = {
+      primary: this.settings.theme.primary,
+      primaryForeground: this.settings.theme.primaryForeground,
+      accent: this.settings.theme.accent,
+      accentForeground: this.settings.theme.accentForeground,
+      background: this.settings.theme.background,
+      foreground: this.settings.theme.foreground,
+      muted: this.settings.theme.muted,
+      card: this.settings.theme.card,
+      border: this.settings.theme.border,
+    };
 
-    this.modules.ground?.updateColors(this.settings.theme.background);
-
-    // Update character mesh colors
-    this.modules.characterMesh?.updateColors(
-      this.settings.theme.primary,
-      this.settings.theme.accent,
-    );
+    // Update all modules with the same unified API
+    this.getModule('instancedSceneObjects')?.onThemeChange?.(theme);
+    this.getModule('sceneObjects')?.onThemeChange?.(theme);
+    this.getModule('treeTrunks')?.onThemeChange?.(theme);
+    this.getModule('treeLeaves')?.onThemeChange?.(theme);
+    this.getModule('bushes')?.onThemeChange?.(theme);
+    this.getModule('ground')?.onThemeChange?.(theme);
+    this.getModule('characterMesh')?.onThemeChange?.(theme);
   }
 }

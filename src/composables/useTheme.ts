@@ -3,6 +3,21 @@ import { convert, OKLCH, sRGB } from '@texel/color';
 import { useColorMode } from '@vueuse/core';
 import { computed, ref } from 'vue';
 
+/**
+ * Theme colors interface
+ * Represents the computed hex color values from the theme system
+ */
+export interface I_ThemeColors {
+  primary: number;
+  primaryForeground: number;
+  accent: number;
+  accentForeground: number;
+  background: number;
+  foreground: number;
+  muted: number;
+  card: number;
+  border: number;
+}
 export type ColorTheme = 'neutral' | 'rose' | 'blue' | 'purple' | 'green' | 'yellow';
 
 /**
