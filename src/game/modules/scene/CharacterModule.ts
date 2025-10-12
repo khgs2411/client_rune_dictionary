@@ -24,8 +24,8 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
   private rigidBody!: RAPIER_TYPE.RigidBody;
   private collider!: RAPIER_TYPE.Collider;
   private characterControllerRapier!: RAPIER_TYPE.KinematicCharacterController;
-  private world!: RAPIER_TYPE.World;
-  private RAPIER!: typeof RAPIER_TYPE;
+  private context!: I_ModuleContext;
+
 
   // Vertical velocity for gravity (Rapier handles this)
   private verticalVelocity: number = 0;
@@ -46,8 +46,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
       console.error('[CharacterModule] Physics service not ready!');
       return;
     }
-    this.world = context.services.physics.getWorld();
-    this.RAPIER = context.services.physics.getRapier();
+
 
     // Create visual mesh
     this.mesh = new Group();
@@ -58,17 +57,18 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     this.mesh.position.set(0, 1, 0);
 
     // Create Rapier physics components
-    this.createPhysicsBody();
+    this.createPhysicsBody(context);
 
     this.addGridHelper(context);
 
+    this.context = context;
     // Emit loading complete event
     super.start(context);
   }
   /**
    * Create Rapier physics body and character controller
    */
-  private createPhysicsBody(): void {
+  private createPhysicsBody(context: I_ModuleContext): void {
     // Visual capsule: CapsuleGeometry(radius=0.5, cylinderHeight=1)
     // Total visual height = cylinderHeight + 2*radius = 1 + 2*0.5 = 2 units
     // Center at geometric center, extends from -1 to +1 on local Y axis
@@ -79,16 +79,19 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     // Center at geometric center, extends from -1 to +1 on local Y axis
 
     // Position at Y=1 so center is at Y=1, meaning bottom is at Y=0 (ground level)
-    const rigidBodyDesc = this.RAPIER.RigidBodyDesc.kinematicPositionBased();
+
+    const world = context.services.physics.getWorld();
+    const RAPIER = context.services.physics.getRapier();
+    const rigidBodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased();
     rigidBodyDesc.setTranslation(0, 1, 0);
-    this.rigidBody = this.world.createRigidBody(rigidBodyDesc);
+    this.rigidBody = world.createRigidBody(rigidBodyDesc);
 
     // Create capsule collider matching visual geometry
-    const colliderDesc = this.RAPIER.ColliderDesc.capsule(0.5, 0.5); // halfHeight=0.5, radius=0.5
-    this.collider = this.world.createCollider(colliderDesc, this.rigidBody);
+    const colliderDesc = RAPIER.ColliderDesc.capsule(0.5, 0.5); // halfHeight=0.5, radius=0.5
+    this.collider = world.createCollider(colliderDesc, this.rigidBody);
 
     // Create Rapier character controller
-    this.characterControllerRapier = this.world.createCharacterController(0.01);
+    this.characterControllerRapier = world.createCharacterController(0.01);
 
     // Configure character controller properties
     this.characterControllerRapier.enableAutostep(0.5, 0.2, true); // Max step height, min width, include dynamic bodies
@@ -112,7 +115,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     this.verticalVelocity -= this.config.character.jumpGravity * delta;
 
     // Calculate desired position change
-    const desiredMovement = new this.RAPIER.Vector3(
+    const desiredMovement = new (this.context.services.physics.getRapier()).Vector3(
       this.characterController.position.x.value - currentPos.x,
       this.verticalVelocity * delta,
       this.characterController.position.z.value - currentPos.z,
@@ -186,8 +189,8 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
 
   async destroy(): Promise<void> {
     // Remove Rapier physics components
-    if (this.world && this.rigidBody) {
-      this.world.removeRigidBody(this.rigidBody);
+    if (this.context.services.physics.getWorld() && this.rigidBody) {
+      this.context.services.physics.getWorld().removeRigidBody(this.rigidBody);
     }
 
     // Lifecycle handles Three.js mesh cleanup
