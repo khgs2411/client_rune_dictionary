@@ -106,6 +106,29 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
     console.log(`✅ [${this.name}] Scene initialization complete`);
   }
 
+
+  /**
+   * Update loop
+   * Can be overridden for custom update order
+   */
+  public update(delta: number): void {
+    if (!this.enabled) return;
+
+    // Update character and camera
+    this.character.update(delta);
+    this.camera.update(this.character.controller.getPosition());
+
+    // Update services
+    this.updateAllServices(delta);
+
+    // Update only initialized updateable modules (performance optimization)
+    this.registry.getInitializedUpdateable().forEach((module) => {
+      if (module.update) {
+        module.update(delta);
+      }
+    });
+  }
+
   /**
    * Add a module to the registry with type-safe key checking
    */
@@ -170,6 +193,14 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
     }
   }
 
+  protected updateAllServices(delta: number): void {
+    for (const service of Object.values(this.services)) {
+      if (service.update) {
+        service.update(delta);
+      }
+    }
+  }
+
   protected async destroyAllServices(): Promise<void> {
     for (const service of Object.values(this.services)) {
       await service.destroy();
@@ -220,29 +251,6 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
     this.camera.start();
   }
 
-  /**
-   * Update loop
-   * Can be overridden for custom update order
-   */
-  public update(delta: number): void {
-    if (!this.enabled) return;
-
-    // Update character and camera
-    this.character.update(delta);
-    this.camera.update(this.character.controller.getPosition());
-
-    // Update services
-    this.services.interaction.update(delta);
-    this.services.collision.update(delta);
-    this.services.vfx.update(delta);
-
-    // Update only initialized updateable modules (performance optimization)
-    this.registry.getInitializedUpdateable().forEach((module) => {
-      if (module.update) {
-        module.update(delta);
-      }
-    });
-  }
 
   /**
    * Cleanup
