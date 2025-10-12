@@ -11,6 +11,7 @@ import {
   Object3D,
   PlaneGeometry,
   SphereGeometry,
+  Vector3,
 } from 'three';
 
 // Dynamic WASM import (loaded at runtime)
@@ -203,20 +204,29 @@ export class PhysicsService extends SceneModule {
   public registerStaticFromMesh(id: string, mesh: Mesh | InstancedMesh | Object3D): void {
     this.assertReady();
 
-    // Extract world position and rotation
-    const worldPosition = mesh.getWorldPosition(new this.RAPIER.Vector3(0, 0, 0) as any);
+    // Extract world position and rotation using Three.js Vector3
+    const worldPosition = mesh.getWorldPosition(new Vector3());
     const worldRotation = mesh.rotation;
 
     // Get geometry info
     const geometry = (mesh as Mesh | InstancedMesh).geometry;
     const colliderDesc = this.createColliderFromGeometry(geometry, mesh.scale);
 
+    // For PlaneGeometry, don't apply rotation (planes are already horizontal cuboids in physics)
+
     // Create rigid body
-    const bodyDesc = this.RAPIER.RigidBodyDesc.fixed()
-      .setTranslation(worldPosition.x, worldPosition.y, worldPosition.z)
-      .setRotation(
+    const bodyDesc = this.RAPIER.RigidBodyDesc.fixed().setTranslation(
+      worldPosition.x,
+      worldPosition.y,
+      worldPosition.z
+    );
+
+    const shouldApplyRotation = !(geometry instanceof PlaneGeometry);
+    if (shouldApplyRotation) {
+      bodyDesc.setRotation(
         this.eulerToQuaternion({ x: worldRotation.x, y: worldRotation.y, z: worldRotation.z })
       );
+    }
 
     const body = this.world.createRigidBody(bodyDesc);
     const collider = this.world.createCollider(colliderDesc, body);
@@ -481,6 +491,16 @@ export class PhysicsService extends SceneModule {
       // CapsuleGeometry: total height = height (cylinder part) + 2*radius (hemispheres)
       const totalHeight = (params.height + params.radius * 2) * scale.y;
       const halfHeight = (totalHeight - radius * 2) / 2;
+
+      console.log('[PhysicsService] Capsule extraction:', {
+        'params.radius': params.radius,
+        'params.height': params.height,
+        'scale': scale,
+        'radius (scaled)': radius,
+        'totalHeight': totalHeight,
+        'halfHeight': halfHeight,
+      });
+
       return this.RAPIER.ColliderDesc.capsule(halfHeight, radius);
     }
 
