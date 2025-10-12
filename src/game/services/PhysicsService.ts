@@ -7,9 +7,11 @@ import {
   ConeGeometry,
   CylinderGeometry,
   InstancedMesh,
+  Matrix4,
   Mesh,
   Object3D,
   PlaneGeometry,
+  Quaternion,
   SphereGeometry,
   Vector3,
 } from 'three';
@@ -257,6 +259,56 @@ export class PhysicsService extends SceneModule {
   }
 
   /**
+   * Register multiple static bodies from an InstancedMesh
+   * Creates a separate collider for each instance
+   * Returns array of created body IDs for tracking
+   */
+  public registerInstancedStatic(
+    idPrefix: string,
+    instancedMesh: InstancedMesh
+  ): string[] {
+    this.assertReady();
+
+    const instanceIds: string[] = [];
+    const { geometry } = this.extractMeshProperties(instancedMesh);
+    const matrix = new Matrix4();
+    const position = new Vector3();
+    const rotation = new Quaternion();
+    const scale = new Vector3();
+
+    for (let i = 0; i < instancedMesh.count; i++) {
+      instancedMesh.getMatrixAt(i, matrix);
+      matrix.decompose(position, rotation, scale);
+
+      // Create collider from geometry with this instance's scale
+      const colliderDesc = this.createColliderFromGeometry(geometry, {
+        x: scale.x,
+        y: scale.y,
+        z: scale.z,
+      });
+
+      // Create static body at this instance's position and rotation
+      const bodyDesc = this.RAPIER.RigidBodyDesc.fixed()
+        .setTranslation(position.x, position.y, position.z)
+        .setRotation({
+          x: rotation.x,
+          y: rotation.y,
+          z: rotation.z,
+          w: rotation.w,
+        });
+
+      const instanceId = `${idPrefix}-${i}`;
+      this.createAndRegisterBody(instanceId, bodyDesc, colliderDesc, null);
+      instanceIds.push(instanceId);
+    }
+
+    console.log(
+      `[PhysicsService] Registered ${instanceIds.length} static bodies from InstancedMesh: ${idPrefix}`
+    );
+    return instanceIds;
+  }
+
+  /**
    * Remove a physics body and clean up resources
    */
   public remove(id: string): void {
@@ -431,6 +483,12 @@ export class PhysicsService extends SceneModule {
       return this.RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
     }
 
+    // Validate scale
+    if (!this.isValidScale(scale)) {
+      console.warn(`[PhysicsService] Invalid scale detected:`, scale);
+      return this.RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
+    }
+
     if (geometry instanceof BoxGeometry) {
       const params = geometry.parameters;
       return this.RAPIER.ColliderDesc.cuboid(
@@ -457,18 +515,76 @@ export class PhysicsService extends SceneModule {
     }
 
     if (geometry instanceof CylinderGeometry) {
-      const params = geometry.parameters;
-      const avgRadius = ((params.radiusTop + params.radiusBottom) / 2) * scale.x;
-      return this.RAPIER.ColliderDesc.cylinder((params.height * scale.y) / 2, avgRadius);
+      const params = geometry.parameters as any; // Use any to handle different parameter formats
+
+      // CylinderGeometry can have either:
+      // - radiusTop & radiusBottom (standard Three.js)
+      // - radius (some Three.js versions or custom geometries)
+      let radiusTop: number;
+      let radiusBottom: number;
+
+      if (typeof params.radiusTop === 'number' && typeof params.radiusBottom === 'number') {
+        // Standard CylinderGeometry
+        radiusTop = params.radiusTop;
+        radiusBottom = params.radiusBottom;
+      } else if (typeof params.radius === 'number') {
+        // Uniform radius (treat as cylinder with same top/bottom)
+        radiusTop = radiusBottom = params.radius;
+      } else {
+        console.error('[PhysicsService] CylinderGeometry missing radius parameters:', params);
+        return this.RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
+      }
+
+      if (typeof params.height !== 'number') {
+        console.error('[PhysicsService] CylinderGeometry missing height:', params);
+        return this.RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
+      }
+
+      const avgRadius = ((radiusTop + radiusBottom) / 2) * scale.x;
+      const halfHeight = (params.height * scale.y) / 2;
+
+      // Validate computed dimensions
+      if (avgRadius <= 0 || halfHeight <= 0 || !isFinite(avgRadius) || !isFinite(halfHeight)) {
+        console.error(`[PhysicsService] Invalid cylinder dimensions after computation:`, {
+          avgRadius,
+          halfHeight,
+          scale
+        });
+        return this.RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
+      }
+
+      return this.RAPIER.ColliderDesc.cylinder(halfHeight, avgRadius);
     }
 
     if (geometry instanceof ConeGeometry) {
       const params = geometry.parameters;
-      // Approximate cone with cylinder
-      return this.RAPIER.ColliderDesc.cylinder(
-        (params.height * scale.y) / 2,
-        (params.radius * scale.x) / 2
-      );
+
+      // Check if parameters exist
+      if (!params || typeof params.radius !== 'number' || typeof params.height !== 'number') {
+        console.error('[PhysicsService] ConeGeometry missing valid parameters:', {
+          params,
+          hasParams: !!params,
+          radius: params?.radius,
+          height: params?.height
+        });
+        return this.RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
+      }
+
+      // Approximate cone with cylinder (use radius at base / 2 for better approximation)
+      const radius = (params.radius * scale.x) / 2;
+      const halfHeight = (params.height * scale.y) / 2;
+
+      // Validate computed dimensions
+      if (radius <= 0 || halfHeight <= 0 || !isFinite(radius) || !isFinite(halfHeight)) {
+        console.error(`[PhysicsService] Invalid cone dimensions after computation:`, {
+          radius,
+          halfHeight,
+          scale
+        });
+        return this.RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
+      }
+
+      return this.RAPIER.ColliderDesc.cylinder(halfHeight, radius);
     }
 
     if (geometry instanceof PlaneGeometry) {
@@ -476,13 +592,27 @@ export class PhysicsService extends SceneModule {
       // Plane as thin cuboid
       return this.RAPIER.ColliderDesc.cuboid(
         (params.width * scale.x) / 2,
-        0.1 * scale.y, // Thin height
+        PHYSICS_CONSTANTS.PLANE_THICKNESS * scale.y,
         (params.height * scale.z) / 2
       );
     }
 
     console.warn(`[PhysicsService] Unsupported geometry type, using default box`);
     return this.RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
+  }
+
+  /**
+   * Validate scale values are positive and finite
+   */
+  private isValidScale(scale: { x: number; y: number; z: number }): boolean {
+    return (
+      isFinite(scale.x) &&
+      isFinite(scale.y) &&
+      isFinite(scale.z) &&
+      scale.x > 0 &&
+      scale.y > 0 &&
+      scale.z > 0
+    );
   }
 
   /**

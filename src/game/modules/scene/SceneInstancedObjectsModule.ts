@@ -33,6 +33,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
   private objectConfigs: I_SceneObjectConfig[];
   private instancedMeshes: Map<string, InstancedMesh> = new Map();
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
+  private physicsIds: Map<string, string[]> = new Map(); // Track physics IDs for cleanup
   private settings: ApplicationSettings;
 
   constructor(objectConfigs: I_SceneObjectConfig[], moduleName?: string) {
@@ -73,12 +74,42 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
 
   }
 
-  private addCollisions(context: I_ModuleContext, groupKey: string, instancedMesh: InstancedMesh) {}
+  private addCollisions(context: I_ModuleContext, groupKey: string, instancedMesh: InstancedMesh) {
+    // Check if physics service is ready
+    if (!context.services.physics.isReady()) {
+      console.warn(
+        `[SceneInstancedObjectsModule] Physics not ready, skipping collision for group ${groupKey}`,
+      );
+      return;
+    }
 
-  public async destroy(): Promise<void> {
-    // Lifecycle handles cleanup
+    // Register physics for all instances in this instanced mesh
+    const physicsIdPrefix = `scene-instanced-${this.id}-${groupKey}`;
+    const instanceIds = context.services.physics.registerInstancedStatic(
+      physicsIdPrefix,
+      instancedMesh
+    );
+
+    // Track for cleanup
+    this.physicsIds.set(groupKey, instanceIds);
+
+    console.log(
+      `✅ [SceneInstancedObjectsModule] Registered ${instanceIds.length} physics bodies for group ${groupKey}`,
+    );
+  }
+
+  public async destroy(context?: I_ModuleContext): Promise<void> {
+    // Remove all physics bodies
+    if (context?.services.physics) {
+      this.physicsIds.forEach((instanceIds) => {
+        instanceIds.forEach((id) => context.services.physics.remove(id));
+      });
+    }
+
+    // Lifecycle handles Three.js cleanup
     this.themedMaterials = [];
     this.instancedMeshes.clear();
+    this.physicsIds.clear();
   }
 
   /**
