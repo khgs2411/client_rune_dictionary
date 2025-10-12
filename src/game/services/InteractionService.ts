@@ -5,109 +5,12 @@ import type {
   I_InteractableBehaviors,
   I_HoverState,
   I_InteractionConfig,
-  ReactiveValue,
 } from '@/game/modules/entity/interaction.types';
-import { useEventListener } from '@vueuse/core';
-import { Camera, Intersection, Object3D, Raycaster, Vector2 } from 'three';
+import { Camera, Intersection, Object3D } from 'three';
 import type { VFXModule } from '@/game/modules/scene/VFXModule';
-
-/**
- * Fluent Builder for Interactable Registration
- * Provides clean API with behavior composition
- *
- * Supports reactive values via getter functions!
- * Example: .withHoverGlow(0xff8c00, () => gameConfig.interaction.hoverGlowIntensity)
- */
-class InteractableBuilder {
-  private id: string;
-  private object3D: Object3D;
-  private behaviors: I_InteractableBehaviors = {};
-  private service: InteractionService;
-  private buildScheduled = false;
-
-  constructor(id: string, object3D: Object3D, service: InteractionService) {
-    this.id = id;
-    this.object3D = object3D;
-    this.service = service;
-  }
-
-  /**
-   * Add hover glow behavior (emissive material change)
-   * @param intensity - Static number or getter function for reactive value
-   */
-  withHoverGlow(color: number = 0xff8c00, intensity: ReactiveValue<number> = 0.3): this {
-    this.behaviors.hoverGlow = { color, intensity };
-    this.scheduleAutoBuild();
-    return this;
-  }
-
-  /**
-   * Add click VFX behavior (POW! text sprite)
-   */
-  withClickVFX(text?: string, color?: string): this {
-    this.behaviors.clickVFX = { text: text || 'POW!', color };
-    this.scheduleAutoBuild();
-    return this;
-  }
-
-  /**
-   * Add tooltip behavior (world-space billboard)
-   */
-  withTooltip(title: string, description?: string): this {
-    this.behaviors.tooltip = { title, description };
-    this.scheduleAutoBuild();
-    return this;
-  }
-
-  /**
-   * Add camera shake behavior (screen shake on click)
-   * @param intensity - Static number or getter function for reactive value
-   * @param duration - Static number or getter function for reactive value
-   */
-  withCameraShake(intensity: ReactiveValue<number> = 0.1, duration: ReactiveValue<number> = 0.3): this {
-    this.behaviors.cameraShake = { intensity, duration };
-    this.scheduleAutoBuild();
-    return this;
-  }
-
-  /**
-   * Add particle effect behavior (particle burst on click)
-   * @param count - Static number or getter function for reactive value
-   * @param speed - Static number or getter function for reactive value
-   */
-  withParticleEffect(count: ReactiveValue<number> = 20, color?: number, speed?: ReactiveValue<number>): this {
-    this.behaviors.particleEffect = { count, color, speed };
-    this.scheduleAutoBuild();
-    return this;
-  }
-
-  /**
-   * Add custom callbacks (for complex business logic)
-   */
-  withCustomCallbacks(callbacks: I_InteractionCallbacks): this {
-    this.behaviors.customCallbacks = callbacks;
-    this.scheduleAutoBuild();
-    return this;
-  }
-
-  /**
-   * Manually trigger build (optional - auto-builds after microtask)
-   */
-  build(): void {
-    this.service._internalRegister(this.id, this.object3D, this.behaviors);
-  }
-
-  /**
-   * Auto-build after current sync execution completes
-   * Allows method chaining to complete before registration
-   */
-  private scheduleAutoBuild(): void {
-    if (!this.buildScheduled) {
-      this.buildScheduled = true;
-      Promise.resolve().then(() => this.build());
-    }
-  }
-}
+import { Raycast } from '@/game/utils/Raycast';
+import { Mouse } from '@/game/utils/Mouse';
+import { InteractableBuilder } from './InteractableBuilder';
 
 /**
  * Interaction Service (Refactored)
@@ -131,12 +34,12 @@ class InteractableBuilder {
  */
 export class InteractionService implements I_SceneService {
   private context!: I_ModuleContext;
-  private raycaster = new Raycaster();
-  private pointer = new Vector2();
+  private raycast = new Raycast();
+  private mouse!: Mouse;
   private interactables = new Map<string, I_InteractableObject>();
+  private interactableObjects: Object3D[] = []; // Cached array for raycasting (zero allocation per frame)
   private currentHover: I_HoverState | null = null;
   private pointerDirty = false;
-  private pointerDownPos: { x: number; y: number } | null = null;
 
   // Config
   private config: Required<I_InteractionConfig> = {
@@ -157,40 +60,25 @@ export class InteractionService implements I_SceneService {
   async start(ctx: I_ModuleContext): Promise<void> {
     this.context = ctx;
 
-    const canvas = ctx.engine.renderer.domElement;
+    // Initialize Mouse utility with optimized configuration
+    this.mouse = new Mouse({
+      target: ctx.engine.renderer.domElement,
+      preventContextMenu: true,
+      trackScroll: false, // Don't need scroll for interactions
+      dragThreshold: this.config.clickMaxDragDistance,
+    });
 
     // Event-driven raycasting (only when pointer moves!)
-    useEventListener(canvas, 'pointermove', (e: PointerEvent) => {
+    this.mouse.on('move', () => {
       if (!this.config.enabled) return;
-      this.updatePointerPosition(e, canvas);
       this.pointerDirty = true;
     });
 
-    // Click detection
-    useEventListener(canvas, 'pointerdown', (e: PointerEvent) => {
-      if (!this.config.enabled) return;
-      this.pointerDownPos = { x: e.clientX, y: e.clientY };
-    });
-
-    useEventListener(canvas, 'pointerup', (e: PointerEvent) => {
-      if (!this.config.enabled || !this.pointerDownPos) return;
-
-      // Check if this was a click (not a drag)
-      const dx = e.clientX - this.pointerDownPos.x;
-      const dy = e.clientY - this.pointerDownPos.y;
-      const dragDistance = Math.sqrt(dx * dx + dy * dy);
-
-      if (dragDistance <= this.config.clickMaxDragDistance) {
-        this.handleClick();
-      }
-
-      this.pointerDownPos = null;
-    });
+    // Click detection (Mouse utility handles drag threshold automatically)
+    this.mouse.on('click', this.handleClick.bind(this));
 
     // Clear hover when pointer leaves canvas
-    useEventListener(canvas, 'pointerleave', () => {
-      this.endHover();
-    });
+    this.mouse.on('leave', this.endHover.bind(this));
 
     console.log('✅ [InteractionService] Initialized (hybrid mode, hover threshold: %dms)', this.config.hoverHoldThreshold);
   }
@@ -200,7 +88,7 @@ export class InteractionService implements I_SceneService {
    * ONLY runs raycasting if pointer moved (event-driven)
    * Always checks hover-hold timing (lightweight)
    */
-  update(_delta: number): void {
+  public update(_delta: number): void {
     if (!this.config.enabled || !this.context.camera) return;
 
     // Raycast ONLY if pointer moved
@@ -223,14 +111,11 @@ export class InteractionService implements I_SceneService {
    * Cleanup
    */
   async destroy(): Promise<void> {
+    this.mouse.destroy();
     this.interactables.clear();
     this.currentHover = null;
     console.log('🧹 [InteractionService] Destroyed');
   }
-
-  // ============================================
-  // PUBLIC API
-  // ============================================
 
   /**
    * Register interactable with fluent builder API
@@ -244,25 +129,30 @@ export class InteractionService implements I_SceneService {
    *   .withTooltip('Mysterious Box');
    * ```
    */
-  register(id: string, object3D: Object3D): InteractableBuilder {
+  public register(id: string, object3D: Object3D): InteractableBuilder {
     return new InteractableBuilder(id, object3D, this);
   }
 
   /**
    * Unregister interactable
    */
-  unregister(id: string): void {
+  public unregister(id: string): void {
     const obj = this.interactables.get(id);
-    if (obj && this.currentHover?.object.id === id) {
+    if (!obj) return;
+
+    // Clear hover if this object is currently hovered
+    if (this.currentHover?.object.id === id) {
       this.endHover();
     }
-    this.interactables.delete(id);
+
+    // Remove from both data structures
+    this.removeInteractable(id);
   }
 
   /**
    * Enable/disable interaction system
    */
-  setEnabled(enabled: boolean): void {
+  public setEnabled(enabled: boolean): void {
     this.config.enabled = enabled;
     if (!enabled && this.currentHover) {
       this.endHover();
@@ -274,9 +164,34 @@ export class InteractionService implements I_SceneService {
   // ============================================
 
   /**
+   * Add interactable to both data structures (keeps them in sync)
+   */
+  private addInteractable(interactable: I_InteractableObject): void {
+    this.interactables.set(interactable.id, interactable);
+    this.interactableObjects.push(interactable.object3D);
+  }
+
+  /**
+   * Remove interactable from both data structures (keeps them in sync)
+   */
+  private removeInteractable(id: string): void {
+    const interactable = this.interactables.get(id);
+    if (!interactable) return;
+
+    // Remove from map
+    this.interactables.delete(id);
+
+    // Remove from array (find index and splice)
+    const index = this.interactableObjects.indexOf(interactable.object3D);
+    if (index !== -1) {
+      this.interactableObjects.splice(index, 1);
+    }
+  }
+
+  /**
    * Internal registration (called by builder)
    */
-  _internalRegister(id: string, object3D: Object3D, behaviors: I_InteractableBehaviors): void {
+  public _internalRegister(id: string, object3D: Object3D, behaviors: I_InteractableBehaviors): void {
     const callbacks = this.buildCallbacks(object3D, behaviors);
 
     // Derive hoverable/clickable from behaviors
@@ -295,14 +210,17 @@ export class InteractionService implements I_SceneService {
       behaviors.customCallbacks?.onClick
     );
 
-    this.interactables.set(id, {
+    const interactable: I_InteractableObject = {
       id,
       object3D,
       callbacks,
       behaviors,
       hoverable,
       clickable,
-    });
+    };
+
+    // Add to both data structures
+    this.addInteractable(interactable);
 
     console.log('  ↳ Registered interactable:', id, behaviors);
   }
@@ -466,22 +384,11 @@ export class InteractionService implements I_SceneService {
   }
 
   /**
-   * Update pointer position (normalized device coordinates)
-   */
-  private updatePointerPosition(event: PointerEvent, canvas: HTMLCanvasElement): void {
-    const rect = canvas.getBoundingClientRect();
-    this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-  }
-
-  /**
    * Perform raycast (only when pointer moves)
+   * Uses cached array for zero allocation per frame
    */
   private performRaycast(camera: Camera): void {
-    this.raycaster.setFromCamera(this.pointer, camera);
-
-    const objects = Array.from(this.interactables.values()).map((i) => i.object3D);
-    const intersects = this.raycaster.intersectObjects(objects, true);
+    const intersects = this.raycast.fromCamera(this.mouse.normalizedPositionRef, camera, this.interactableObjects);
 
     if (intersects.length > 0) {
       const interactable = this.findInteractable(intersects[0].object);
@@ -554,15 +461,18 @@ export class InteractionService implements I_SceneService {
   }
 
   /**
-   * Handle click (pointer up with minimal drag)
+   * Handle click (Mouse utility ensures this is a click, not a drag)
    */
   private handleClick(): void {
-    if (!this.currentHover || !this.currentHover.object.clickable) return;
+    if (!this.currentHover || !this.currentHover.object.clickable || !this.config.enabled) return;
 
     // Perform fresh raycast for accurate click position
     if (this.context.camera) {
-      this.raycaster.setFromCamera(this.pointer, this.context.camera.instance);
-      const intersects = this.raycaster.intersectObject(this.currentHover.object.object3D, true);
+      const intersects = this.raycast.fromCamera(
+        this.mouse.normalizedPositionRef,
+        this.context.camera.instance,
+        [this.currentHover.object.object3D]
+      );
 
       if (intersects.length > 0) {
         this.currentHover.object.callbacks.onClick?.(intersects[0]);

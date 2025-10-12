@@ -1,9 +1,9 @@
 import { Vec3 } from '@/common/types';
 import { I_ThemeColors } from '@/composables/useTheme';
-import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
+import { I_SceneObjectConfig, SceneObjectGeometryConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
 import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
-import { useGameConfig } from '@/stores/gameConfig.store';
+import { GameConfig, useGameConfig } from '@/stores/gameConfig.store';
 import {
   BoxGeometry,
   BufferGeometry,
@@ -59,54 +59,16 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
       }
 
       // Create individual mesh
-      const mesh = new Mesh(geometry, material);
-      mesh.name = `scene-object-${index}`;
-      mesh.castShadow = config.castShadow ?? true;
-      mesh.receiveShadow = config.receiveShadow ?? true;
+      const mesh = this.createMesh(geometry, material, index, config);
 
       // Set transform
-      mesh.position.set(...config.position);
-      if (config.rotation) {
-        const euler = new Euler(...config.rotation);
-        mesh.rotation.copy(euler);
-      }
-      if (config.scale) {
-        mesh.scale.set(...config.scale);
-      }
+      this.setTransform(mesh, config);
 
       // Add to scene and lifecycle
-      context.scene.add(mesh);
-      context.lifecycle.register(mesh);
+      this.addToScene(context, mesh);
 
       // Register with interaction service if interactive (using fluent API!)
-      if (config.interactive) {
-        const tooltipConfig = config.interaction?.tooltip || {
-          title: `${config.geometry.type} object`,
-          description: 'A scene object',
-        };
-
-        const builder = context.services.interaction.register(`scene-object-${index}`, mesh);
-
-        // Apply hover glow with REACTIVE intensity! ✨
-        builder.withHoverGlow(0xff8c00, () => gameConfig.interaction.hoverGlowIntensity);
-
-        // Apply click VFX
-        builder.withClickVFX();
-
-        // Apply camera shake with REACTIVE values! ✨
-        // Always register (behavior checks intensity at runtime)
-        builder.withCameraShake(
-          () => gameConfig.interaction.cameraShakeIntensity,
-          0.3 // Duration can be static
-        );
-
-        // Apply particle effect with REACTIVE count! ✨
-        // Always register (behavior checks count at runtime)
-        builder.withParticleEffect(() => gameConfig.interaction.particleCount);
-
-        // Apply tooltip
-        builder.withTooltip(tooltipConfig.title, tooltipConfig.description);
-      }
+      this.addInteractable(config, context, index, mesh, gameConfig);
 
       this.meshes.push(mesh);
     });
@@ -115,6 +77,61 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
 
     // Emit loading complete event
     super.start(context);
+  }
+
+  private addInteractable(config: I_SceneObjectConfig, context: I_ModuleContext, index: number, mesh: Mesh, gameConfig: GameConfig) {
+    if (config.interactive) {
+      const tooltipConfig = config.interaction?.tooltip || {
+        title: `${config.geometry.type} object`,
+        description: 'A scene object',
+      };
+
+      const builder = context.services.interaction.register(`scene-object-${index}`, mesh);
+
+      // Apply hover glow with REACTIVE intensity! ✨
+      builder.withHoverGlow(0xff8c00, () => gameConfig.interaction.hoverGlowIntensity);
+
+      // Apply click VFX
+      builder.withClickVFX();
+
+      // Apply camera shake with REACTIVE values! ✨
+      // Always register (behavior checks intensity at runtime)
+      builder.withCameraShake(
+        () => gameConfig.interaction.cameraShakeIntensity,
+        0.3 // Duration can be static
+      );
+
+      // Apply particle effect with REACTIVE count! ✨
+      // Always register (behavior checks count at runtime)
+      builder.withParticleEffect(() => gameConfig.interaction.particleCount);
+
+      // Apply tooltip
+      builder.withTooltip(tooltipConfig.title, tooltipConfig.description);
+    }
+  }
+
+  private addToScene(context: I_ModuleContext, mesh: Mesh) {
+    context.scene.add(mesh);
+    context.lifecycle.register(mesh);
+  }
+
+  private setTransform(mesh: Mesh, config: I_SceneObjectConfig) {
+    mesh.position.set(...config.position);
+    if (config.rotation) {
+      const euler = new Euler(...config.rotation);
+      mesh.rotation.copy(euler);
+    }
+    if (config.scale) {
+      mesh.scale.set(...config.scale);
+    }
+  }
+
+  private createMesh(geometry: BufferGeometry, material: MeshStandardMaterial, index: number, config: I_SceneObjectConfig) {
+    const mesh = new Mesh(geometry, material);
+    mesh.name = `scene-object-${index}`;
+    mesh.castShadow = config.castShadow ?? true;
+    mesh.receiveShadow = config.receiveShadow ?? true;
+    return mesh;
   }
 
   async destroy(): Promise<void> {

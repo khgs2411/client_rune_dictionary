@@ -1,11 +1,16 @@
-import { ref, type Ref } from 'vue';
-import { useEventListener, usePointerLock } from '@vueuse/core';
+import { ref, onUnmounted, type Ref } from 'vue';
+import {
+  Mouse,
+  type I_MouseEvent,
+  type I_MouseScrollEvent,
+} from '@/game/utils/Mouse';
 import { useGameConfig } from '@/stores/gameConfig.store';
 import type { CameraRotation } from './useCameraRotation';
 import type { CameraZoom } from './useCameraZoom';
 
 export interface CameraMouseInput {
   isDragging: Ref<boolean>;
+  mouse: Mouse;
 }
 
 /**
@@ -19,83 +24,72 @@ export function useCameraMouseInput(
   const config = useGameConfig();
   const isDragging = ref(false);
 
-  // Create a ref for document.body to use with usePointerLock
-  const targetElement = ref(document.body);
+  // Create mouse utility with pointer lock support
+  const mouse = new Mouse({
+    target: document.body,
+    preventContextMenu: true,
+    trackScroll: true,
+    scrollSensitivity: 0.01,
+    supportPointerLock: true,
+  });
 
-  // VueUse: Pointer lock for MMO-style camera (hide cursor on drag)
-  const { isSupported, lock, unlock } = usePointerLock(targetElement);
-
-  /**
-   * Handle mouse down - start camera rotation on right-click
-   */
-  function onMouseDown(e: MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Only right mouse button
-    if (e.button === 2) {
+  // Handle right-click down - request pointer lock and start dragging
+  mouse.on('down', (event: I_MouseEvent) => {
+    if (event.button === 2) {
       isDragging.value = true;
 
       // Request pointer lock for MMO-style camera (hides cursor)
-      if (isSupported.value) {
-        if (config.debug.enableConsoleLog) {
-          console.log('🔒 [CameraMouseInput] Requesting pointer lock...');
-        }
-        lock(e);
-      } else if (config.debug.enableConsoleLog) {
-        console.warn('⚠️ [CameraMouseInput] Pointer lock not supported');
+      if (config.debug.enableConsoleLog) {
+        console.log('🔒 [CameraMouseInput] Requesting pointer lock...');
       }
+      mouse.requestPointerLock();
     }
-  }
+  });
 
-  /**
-   * Handle mouse move - update camera rotation
-   */
-  function onMouseMove(e: MouseEvent) {
+  // Handle mouse move - update camera rotation when dragging
+  mouse.on('move', (event: I_MouseEvent) => {
     if (!isDragging.value) return;
 
-    // Use movementX/Y for pointer lock (relative mouse movement)
-    rotation.update(e.movementX, e.movementY);
-  }
+    // Use delta from mouse utility (works with pointer lock)
+    rotation.update(event.delta.x, event.delta.y);
+  });
 
-  /**
-   * Handle mouse up - stop camera rotation
-   */
-  function onMouseUp(e: MouseEvent) {
-    if (e.button === 2) {
+  // Handle right-click up - exit pointer lock and stop dragging
+  mouse.on('up', (event: I_MouseEvent) => {
+    if (event.button === 2) {
       isDragging.value = false;
 
       // Exit pointer lock (show cursor)
       if (config.debug.enableConsoleLog) {
         console.log('🔓 [CameraMouseInput] Releasing pointer lock...');
       }
-      unlock();
+      mouse.exitPointerLock();
     }
-  }
+  });
 
-  /**
-   * Prevent context menu on right-click
-   */
-  function onContextMenu(e: MouseEvent) {
-    e.preventDefault();
-  }
+  // Handle scroll - zoom camera
+  mouse.on('scroll', (event: I_MouseScrollEvent) => {
+    zoom.update(event.scrollDelta);
+  });
 
-  /**
-   * Handle mouse wheel - zoom camera
-   */
-  function onWheel(e: WheelEvent) {
-    zoom.update(e.deltaY * 0.01);
-    e.preventDefault();
-  }
+  // Handle pointer lock change
+  mouse.on('pointerlockchange', () => {
+    if (!mouse.isPointerLocked && isDragging.value) {
+      // Pointer lock was exited externally (e.g., user pressed ESC)
+      isDragging.value = false;
+      if (config.debug.enableConsoleLog) {
+        console.log('🔓 [CameraMouseInput] Pointer lock released externally');
+      }
+    }
+  });
 
-  // Setup event listeners (VueUse auto-cleanup)
-  useEventListener('mousedown', onMouseDown);
-  useEventListener('mousemove', onMouseMove);
-  useEventListener('mouseup', onMouseUp);
-  useEventListener('contextmenu', onContextMenu);
-  useEventListener('wheel', onWheel, { passive: false });
+  // Cleanup on unmount
+  onUnmounted(() => {
+    mouse.destroy();
+  });
 
   return {
     isDragging,
+    mouse,
   };
 }

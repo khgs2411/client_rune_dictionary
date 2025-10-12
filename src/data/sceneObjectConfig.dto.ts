@@ -1,6 +1,11 @@
 import { RGBColor } from "@/common/types";
-import { Dto } from "topsyde-utils";
-import type { I_InteractionEntityConfig } from "@/game/modules/entity/interaction.types";
+import type { I_InteractableBehaviors } from "@/game/modules/entity/interaction.types";
+import { BufferGeometry, BufferGeometryEventMap, NormalBufferAttributes } from "three";
+
+export type SceneObjectGeometryConfig = BufferGeometry<NormalBufferAttributes, BufferGeometryEventMap> & {
+    type: 'box' | 'sphere' | 'cylinder' | 'cone';
+    params: number[]; // Geometry-specific parameters
+};
 
 /**
  * Scene Object Configuration DTO
@@ -9,10 +14,7 @@ export interface I_SceneObjectConfig {
     position: RGBColor;
     rotation?: RGBColor; // Euler angles in radians
     scale?: RGBColor; // Default [1, 1, 1]
-    geometry: {
-        type: 'box' | 'sphere' | 'cylinder' | 'cone';
-        params: number[]; // Geometry-specific parameters
-    };
+    geometry: Partial<SceneObjectGeometryConfig>;
     material: {
         useTheme?: boolean; // If true, uses theme color and updates on theme change
         staticColor?: number; // If set, uses this fixed color
@@ -24,7 +26,7 @@ export interface I_SceneObjectConfig {
 
     // Interaction configuration (optional - makes object interactive)
     interactive?: boolean; // If true, object can be clicked/hovered
-    interaction?: I_InteractionEntityConfig; // Interaction behavior config
+    interaction?: I_InteractableBehaviors; // Interaction behavior config
 }
 
 /* export default class SceneObjectConfig extends Dto implements I_SceneObjectConfig {

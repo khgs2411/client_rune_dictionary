@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { reactive, ref } from "vue";
-
+export type GameConfig = ReturnType<typeof useGameConfig>;
 export const useGameConfig = defineStore('useGameConfig', () => {
 
 

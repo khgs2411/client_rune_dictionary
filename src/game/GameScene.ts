@@ -159,7 +159,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
       cameraAngleH: this.camera.controller.angle.horizontal,
     });
 
-    // Initialize interaction service
+
     this.initializeAllServices()
   }
 
