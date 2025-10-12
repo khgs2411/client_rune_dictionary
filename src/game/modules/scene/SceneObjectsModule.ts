@@ -3,6 +3,7 @@ import { I_ThemeColors } from '@/composables/useTheme';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
 import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
+import { useGameConfig } from '@/stores/gameConfig.store';
 import {
   BoxGeometry,
   BufferGeometry,
@@ -45,6 +46,8 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
   }
 
   async start(context: I_ModuleContext): Promise<void> {
+    const gameConfig = useGameConfig();
+
     this.objectConfigs.forEach((config, index) => {
       // Create geometry and material
       const geometry = this.createGeometry(config.geometry);
@@ -75,16 +78,33 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
       context.scene.add(mesh);
       context.lifecycle.register(mesh);
 
-      // Register with interaction service if interactive
+      // Register with interaction service if interactive (using fluent API!)
       if (config.interactive) {
-        context.services.interaction.register(`scene-object-${index}`, mesh, config.interaction || {
-          hoverable: true,
-          clickable: true,
-          tooltip: {
-            title: `${config.geometry.type} object`,
-            description: 'A scene object',
-          },
-        });
+        const tooltipConfig = config.interaction?.tooltip || {
+          title: `${config.geometry.type} object`,
+          description: 'A scene object',
+        };
+
+        const builder = context.services.interaction.register(`scene-object-${index}`, mesh);
+
+        // Apply hover glow (reactive to gameConfig)
+        builder.withHoverGlow(0xff8c00, gameConfig.interaction.hoverGlowIntensity);
+
+        // Apply click VFX
+        builder.withClickVFX();
+
+        // Apply camera shake if enabled (reactive to gameConfig)
+        if (gameConfig.interaction.cameraShakeIntensity > 0) {
+          builder.withCameraShake(gameConfig.interaction.cameraShakeIntensity, 0.3);
+        }
+
+        // Apply particle effect if enabled (reactive to gameConfig)
+        if (gameConfig.interaction.particleCount > 0) {
+          builder.withParticleEffect(gameConfig.interaction.particleCount);
+        }
+
+        // Apply tooltip
+        builder.withTooltip(tooltipConfig.title, tooltipConfig.description);
       }
 
       this.meshes.push(mesh);

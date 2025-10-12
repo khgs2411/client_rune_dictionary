@@ -76,6 +76,7 @@ export interface I_EntityModule {
  */
 export interface I_ModuleServices extends Record<string, I_SceneService> {
   interaction: InteractionService;
+  vfx: import('@/game/modules/scene/VFXModule').VFXModule;
   // Future: audio?: AudioService;
   // Future: physics?: PhysicsService;
 }

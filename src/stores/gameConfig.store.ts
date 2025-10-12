@@ -53,9 +53,16 @@ export const useGameConfig = defineStore('useGameConfig', () => {
         showWebSocketDebugger: true, // Show/hide WebSocket event debugger
     })
 
+    const interaction = reactive({
+        hoverGlowIntensity: 0.3, // Hover glow emissive intensity (0 = off, 1 = max)
+        cameraShakeIntensity: 0.1, // Camera shake intensity (0 = off, 0.5 = max)
+        particleCount: 20, // Particle burst count (0 = off, 50 = max)
+    })
+
     return {
         character,
         camera,
         debug,
+        interaction,
     }
 },);

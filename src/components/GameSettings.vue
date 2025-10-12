@@ -35,6 +35,74 @@
           </div>
         </div>
 
+        <!-- Interaction Settings Section -->
+        <div class="pt-4 border-t border-border space-y-6">
+          <h3 class="text-sm font-semibold text-primary">Interaction Settings</h3>
+
+          <!-- Hover Glow Intensity -->
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <label class="text-sm font-medium">Hover Glow Intensity</label>
+              <span class="text-sm text-muted-foreground font-mono">{{
+                config.interaction.hoverGlowIntensity
+              }}</span>
+            </div>
+            <Slider
+              v-model="hoverGlowIntensityValue"
+              :min="0"
+              :max="1"
+              :step="0.1"
+              class="w-full"
+              @update:model-value="updateHoverGlowIntensity" />
+            <div class="flex justify-between text-xs text-muted-foreground">
+              <span>Off (0)</span>
+              <span>Max (1)</span>
+            </div>
+          </div>
+
+          <!-- Camera Shake Intensity -->
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <label class="text-sm font-medium">Camera Shake Intensity</label>
+              <span class="text-sm text-muted-foreground font-mono">{{
+                config.interaction.cameraShakeIntensity
+              }}</span>
+            </div>
+            <Slider
+              v-model="cameraShakeIntensityValue"
+              :min="0"
+              :max="0.5"
+              :step="0.05"
+              class="w-full"
+              @update:model-value="updateCameraShakeIntensity" />
+            <div class="flex justify-between text-xs text-muted-foreground">
+              <span>Off (0)</span>
+              <span>Max (0.5)</span>
+            </div>
+          </div>
+
+          <!-- Particle Count -->
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <label class="text-sm font-medium">Particle Burst Count</label>
+              <span class="text-sm text-muted-foreground font-mono">{{
+                config.interaction.particleCount
+              }}</span>
+            </div>
+            <Slider
+              v-model="particleCountValue"
+              :min="0"
+              :max="50"
+              :step="5"
+              class="w-full"
+              @update:model-value="updateParticleCount" />
+            <div class="flex justify-between text-xs text-muted-foreground">
+              <span>Off (0)</span>
+              <span>Max (50)</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Jump Settings Section -->
         <div class="pt-4 border-t border-border space-y-6">
           <h3 class="text-sm font-semibold text-primary">Jump Settings</h3>
@@ -130,6 +198,9 @@ const speedValue = ref([config.character.moveSpeed]);
 const jumpVelocityValue = ref([config.character.jumpInitialVelocity]);
 const jumpGravityValue = ref([config.character.jumpGravity]);
 const jumpMaxFallSpeedValue = ref([config.character.jumpMaxFallSpeed]);
+const hoverGlowIntensityValue = ref([config.interaction.hoverGlowIntensity]);
+const cameraShakeIntensityValue = ref([config.interaction.cameraShakeIntensity]);
+const particleCountValue = ref([config.interaction.particleCount]);
 
 // Update config when sliders change
 function updateSpeed(value: number[] | undefined) {
@@ -150,6 +221,21 @@ function updateJumpGravity(value: number[] | undefined) {
 function updateJumpMaxFallSpeed(value: number[] | undefined) {
   if (!value) return;
   config.character.jumpMaxFallSpeed = value[0];
+}
+
+function updateHoverGlowIntensity(value: number[] | undefined) {
+  if (!value) return;
+  config.interaction.hoverGlowIntensity = value[0];
+}
+
+function updateCameraShakeIntensity(value: number[] | undefined) {
+  if (!value) return;
+  config.interaction.cameraShakeIntensity = value[0];
+}
+
+function updateParticleCount(value: number[] | undefined) {
+  if (!value) return;
+  config.interaction.particleCount = value[0];
 }
 
 // Sync with store changes (in case modified elsewhere)
@@ -178,6 +264,27 @@ watch(
   () => config.character.jumpMaxFallSpeed,
   (newValue) => {
     jumpMaxFallSpeedValue.value = [newValue];
+  },
+);
+
+watch(
+  () => config.interaction.hoverGlowIntensity,
+  (newValue) => {
+    hoverGlowIntensityValue.value = [newValue];
+  },
+);
+
+watch(
+  () => config.interaction.cameraShakeIntensity,
+  (newValue) => {
+    cameraShakeIntensityValue.value = [newValue];
+  },
+);
+
+watch(
+  () => config.interaction.particleCount,
+  (newValue) => {
+    particleCountValue.value = [newValue];
   },
 );
 </script>

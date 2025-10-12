@@ -1,61 +1,86 @@
-import type { Object3D, Vector3 } from 'three';
+import type { Intersection, Object3D } from 'three';
 
 /**
- * Interaction System Types
- * Extensible foundation for all object interactions (hover, click, drag, etc.)
+ * Interaction System Types (Refactored)
+ * Callback-based architecture with behavior composition
  */
 
 /**
- * Interaction configuration for an entity
- * Defines what interactions are enabled and their behavior
+ * Interaction callbacks - direct function references (no events!)
  */
-export interface I_InteractionEntityConfig {
-  hoverable?: boolean; // Enable hover detection (default: true)
-  clickable?: boolean; // Enable click detection (default: true)
+export interface I_InteractionCallbacks {
+  onHoverStart?: (intersection: Intersection) => void;
+  onHoverEnd?: () => void;
+  onClick?: (intersection: Intersection) => void;
+  onHoverHold?: (duration: number) => void;
+}
+
+/**
+ * Pre-built behaviors for common interaction patterns
+ * These generate callbacks automatically
+ */
+export interface I_InteractableBehaviors {
+  // Hover glow behavior
+  hoverGlow?: {
+    color: number;
+    intensity: number;
+  };
+
+  // Click VFX behavior (spawns text sprite)
+  clickVFX?: {
+    text: string;
+    color?: string;
+  };
+
+  // Tooltip behavior (shows world-space billboard)
   tooltip?: {
     title: string;
     description?: string;
   };
-  metadata?: Record<string, any>; // Custom game data (item type, NPC name, etc.)
+
+  // Camera shake behavior (shake on click)
+  cameraShake?: {
+    intensity: number;
+    duration: number;
+  };
+
+  // Particle effect behavior (particle burst on click)
+  particleEffect?: {
+    count: number;
+    color?: number;
+    speed?: number;
+  };
+
+  // Custom callbacks (merged with generated callbacks)
+  customCallbacks?: I_InteractionCallbacks;
 }
 
 /**
- * Base interactable object data
- * Keep minimal - extend as needed for specific use cases
+ * Internal interactable object data
  */
-export interface I_Interactable {
-  id: string; // Unique identifier
-  object3D: Object3D; // Three.js object for raycasting
-  config: I_InteractionEntityConfig; // Interaction configuration
+export interface I_InteractableObject {
+  id: string;
+  object3D: Object3D;
+  callbacks: I_InteractionCallbacks;
+  behaviors: I_InteractableBehaviors;
+  hoverable: boolean;
+  clickable: boolean;
 }
 
 /**
- * Interaction events
- * Emitted by InteractionModule via RxJS
- */
-export interface I_InteractionEvent {
-  type: 'hover-start' | 'hover-end' | 'click' | 'hover-hold';
-  interactable: I_Interactable;
-  worldPosition: Vector3; // 3D position of interaction point
-  screenPosition: { x: number; y: number }; // 2D screen coordinates (for UI overlay)
-  timestamp: number;
-}
-
-/**
- * Hover state tracking
+ * Hover state tracking (internal)
  */
 export interface I_HoverState {
-  interactable: I_Interactable;
+  object: I_InteractableObject;
   startTime: number;
-  worldPosition: Vector3;
-  screenPosition: { x: number; y: number };
+  hoverHoldFired: boolean;
 }
 
 /**
- * Configuration for InteractionModule
+ * Configuration for InteractionService
  */
 export interface I_InteractionConfig {
   hoverHoldThreshold?: number; // ms before hover-hold fires (default: 500)
   clickMaxDragDistance?: number; // pixels - max mouse movement to count as click (default: 5)
-  enabled?: boolean; // Can disable/enable interaction system
+  enabled?: boolean;
 }

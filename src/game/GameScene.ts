@@ -16,6 +16,7 @@ import type { Engine } from '@/game/Engine';
 import type { SettingsStore } from '@/stores/settings.store';
 import { ModuleRegistry } from '@/game/ModuleRegistry';
 import { InteractionService } from '@/game/services/InteractionService';
+import { VFXModule } from '@/game/modules/scene/VFXModule';
 
 /**
  * Base class for game scenes with typed module registry support
@@ -25,6 +26,7 @@ import { InteractionService } from '@/game/services/InteractionService';
  * Refactored to use:
  * - ModuleRegistry utility (eliminates duplicate code)
  * - InteractionService (eliminates I_InteractableModule boilerplate)
+ * - VFXModule for visual effects (Three.js object pooling)
  * - Optional lifecycle hooks (no need for I_UpdateableModule, I_ThemedModule interfaces)
  */
 export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneModule> = Record<string, I_SceneModule>> {
@@ -40,6 +42,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
   // Services (shared across modules)
   protected services = {
     interaction: new InteractionService(),
+    vfx: new VFXModule(),
   };
 
   // High-level entity composables
@@ -227,8 +230,9 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
     this.character.update(delta);
     this.camera.update(this.character.controller.getPosition());
 
-    // Update interaction service
+    // Update services
     this.services.interaction.update(delta);
+    this.services.vfx.update(delta);
 
     // Update only initialized updateable modules (performance optimization)
     this.registry.getInitializedUpdateable().forEach((module) => {

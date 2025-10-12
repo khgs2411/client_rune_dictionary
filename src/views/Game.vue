@@ -6,10 +6,7 @@
     <!-- Loading Screen -->
     <LoadingScreen>></LoadingScreen>
 
-    <!-- Interaction Overlay (POW effects, tooltips) -->
-    <InteractionOverlay></InteractionOverlay>
-
-    <!-- Game Canvas -->
+    <!-- Game Canvas (Interactions now rendered in Three.js!) -->
     <canvas ref="canvasRef" class="three-canvas"></canvas>
   </div>
 </template>
@@ -20,7 +17,6 @@ import { PlaygroundScene } from '@/scenes/PlaygroundScene';
 import { I_GameScene, I_SceneConfig } from '@/scenes/scenes.types';
 import LoadingScreen from '@/components/LoadingScreen.vue';
 import WebSocketManager from '@/components/WebSocketManager.vue';
-import InteractionOverlay from '@/components/InteractionOverlay.vue';
 import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
 import { ref, watch } from 'vue';
 
