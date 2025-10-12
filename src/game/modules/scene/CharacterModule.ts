@@ -5,7 +5,7 @@ import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial, Vecto
 import SceneModule from '@/game/SceneModule';
 import { I_ThemeColors } from '@/composables/useTheme';
 import type * as RAPIER_TYPE from '@dimforge/rapier3d';
-import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { GameConfig, useGameConfigStore } from '@/stores/gameConfig.store';
 
 /**
  * Character Mesh Module
@@ -17,8 +17,8 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
   private bodyMaterial!: MeshStandardMaterial;
   private coneMaterial!: MeshStandardMaterial;
   private settings: SettingsStore;
+  private config: GameConfig;
   private characterController: I_CharacterControls;
-  private config: ReturnType<typeof useGameConfigStore>;
 
   // Rapier physics components
   private rigidBody!: RAPIER_TYPE.RigidBody;
@@ -31,14 +31,14 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
   private verticalVelocity: number = 0;
 
   constructor(
-    settings: SettingsStore,
+    context:I_ModuleContext,
     characterController: I_CharacterControls,
     moduleName: string = 'characterMesh',
   ) {
     super(moduleName);
-    this.settings = settings;
+    this.settings = context.settings;
+    this.config = context.config;
     this.characterController = characterController;
-    this.config = useGameConfigStore();
   }
 
   async start(context: I_ModuleContext): Promise<void> {

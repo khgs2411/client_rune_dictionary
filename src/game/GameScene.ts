@@ -18,7 +18,7 @@ import { ModuleRegistry } from '@/game/ModuleRegistry';
 import { InteractionService } from '@/game/services/InteractionService';
 import { VFXModule } from '@/game/modules/scene/VFXModule';
 import { PhysicsService } from '@/game/services/PhysicsService';
-import { GameConfig } from '@/stores/gameConfig.store';
+import { GameConfig, useGameConfigStore } from '@/stores/gameConfig.store';
 
 /**
  * Base class for game scenes with typed module registry support
@@ -65,6 +65,8 @@ export abstract class GameScene<
 
   constructor() {
     // Subscribe to module loading events
+
+
     this.moduleEvents.$subscribe({
       loaded: (data: ModuleLoadingProgressPayload) => {
         if (data.sceneName !== this.name) return;
@@ -183,6 +185,7 @@ export abstract class GameScene<
    */
   protected async initializeServices(): Promise<void> {
     this.settings = useSettingsStore();
+    this.config = useGameConfigStore();
     this.camera = useCamera();
     this.character = useCharacter({
       cameraAngleH: this.camera.controller.angle.horizontal,
@@ -240,11 +243,11 @@ export abstract class GameScene<
       sceneName: this.name,
       scene: this.engine.scene,
       lifecycle: this.lifecycle,
-      settings: this.settings,
-      config: this.config,
       services: this.services, // Pass services (interaction, etc.)
       camera: this.camera,
       character: this.character,
+      settings: this.settings,
+      config: this.config,
     };
   }
 
