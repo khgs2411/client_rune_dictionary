@@ -114,9 +114,9 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
 
     // Calculate desired position change
     const desiredMovement = new this.RAPIER.Vector3(
-      (this.characterController.position.x.value - currentPos.x),
+      this.characterController.position.x.value - currentPos.x,
       this.verticalVelocity * delta,
-      (this.characterController.position.z.value - currentPos.z)
+      this.characterController.position.z.value - currentPos.z,
     );
 
     // Let Rapier compute collision-corrected movement

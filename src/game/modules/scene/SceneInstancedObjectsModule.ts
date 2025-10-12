@@ -71,9 +71,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     super.start(context);
   }
 
-  private addCollisions(context: I_ModuleContext, groupKey: string, instancedMesh: InstancedMesh) {
-   
-  }
+  private addCollisions(context: I_ModuleContext, groupKey: string, instancedMesh: InstancedMesh) {}
 
   public async destroy(): Promise<void> {
     // Lifecycle handles cleanup

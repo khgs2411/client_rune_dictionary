@@ -241,7 +241,7 @@ export abstract class GameScene<
       scene: this.engine.scene,
       lifecycle: this.lifecycle,
       settings: this.settings,
-      config:this.config,
+      config: this.config,
       services: this.services, // Pass services (interaction, etc.)
       camera: this.camera,
       character: this.character,
