@@ -19,6 +19,7 @@ import { InteractionService } from '@/game/services/InteractionService';
 import { VFXModule } from '@/game/modules/scene/VFXModule';
 import { PhysicsService } from '@/game/services/PhysicsService';
 import { GameConfig, useGameConfigStore } from '@/stores/gameConfig.store';
+import { SceneStore, useSceneStore } from '@/stores/scene.store';
 
 /**
  * Base class for game scenes with typed module registry support
@@ -35,6 +36,7 @@ export abstract class GameScene<
   TModuleRegistry extends Record<string, I_SceneModule> = Record<string, I_SceneModule>,
 > {
   private enabled = false;
+  public modulesLoaded = false;
 
   protected lifecycle: SceneLifecycle = new SceneLifecycle();
   protected sceneEvents = useRxjs('scene:loading');
@@ -54,10 +56,10 @@ export abstract class GameScene<
   protected character!: ReturnType<typeof useCharacter>;
   protected settings: ApplicationSettings;
   protected config: GameConfig;
+  protected store: SceneStore;
   public camera!: ReturnType<typeof useCamera>;
 
   // Status flags
-  public modulesLoaded = false;
 
   // Engine instance (set by subclass constructor)
   public abstract readonly engine: Engine;
@@ -67,37 +69,9 @@ export abstract class GameScene<
     // Subscribe to module loading events
     this.settings = useSettingsStore();
     this.config = useGameConfigStore();
-
-    this.moduleEvents.$subscribe({
-      loaded: (data: ModuleLoadingProgressPayload) => {
-        if (data.sceneName !== this.name) return;
-
-        // Find module by name and mark as initialized
-        this.registry.forEach((module) => {
-          if (this.registry.getModuleName(module) === data.moduleName) {
-            this.registry.markInitialized(module);
-            this.loading('loaded', {
-              loaded: this.registry.initializedCount(),
-              assetName: data.moduleName,
-            });
-          }
-        });
-      },
-    });
-
-    this.sceneEvents.$subscribe({
-      complete: (data: SceneLoadedPayload) => {
-        if (data.sceneName !== this.name) return;
-
-        this.modulesLoaded = true;
-        this.enabled = this.modulesLoaded;
-      },
-    });
+    this.store = useSceneStore();
+    this.subscribe();
   }
-
-  /**
-   * Scene name (must be overridden by subclass)
-   */
 
   /**
    * Template method: Scene initialization flow
@@ -255,6 +229,35 @@ export abstract class GameScene<
    */
   protected finalizeSetup(): void {
     this.camera.start();
+  }
+
+
+  private subscribe() {
+    this.moduleEvents.$subscribe({
+      loaded: (data: ModuleLoadingProgressPayload) => {
+        if (data.sceneName !== this.name) return;
+
+        // Find module by name and mark as initialized
+        this.registry.forEach((module) => {
+          if (this.registry.getModuleName(module) === data.moduleName) {
+            this.registry.markInitialized(module);
+            this.loading('loaded', {
+              loaded: this.registry.initializedCount(),
+              assetName: data.moduleName,
+            });
+          }
+        });
+      },
+    });
+
+    this.sceneEvents.$subscribe({
+      complete: (data: SceneLoadedPayload) => {
+        if (data.sceneName !== this.name) return;
+
+        this.modulesLoaded = true;
+        this.enabled = this.modulesLoaded;
+      },
+    });
   }
 
   /**
