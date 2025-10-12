@@ -89,6 +89,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
     // Emit loading complete event
     super.start(context);
   }
+  
   addColission(config: I_SceneObjectConfig, context: I_ModuleContext, index: number, mesh: Mesh<BufferGeometry<NormalBufferAttributes, BufferGeometryEventMap>, MeshStandardMaterial, Object3DEventMap>) {
     // Check if physics service is ready
     if (!context.services.physics.isReady()) {

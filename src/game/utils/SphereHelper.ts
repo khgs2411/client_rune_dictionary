@@ -14,7 +14,6 @@ export class SphereHelper extends LineSegments {
     super(geometry, material);
 
     this.sphere = sphere;
-    this.type = 'SphereHelper';
 
     this.updateGeometry();
   }
@@ -76,7 +75,7 @@ export class SphereHelper extends LineSegments {
   /**
    * Dispose of the geometry
    */
-  public override dispose(): void {
+  public dispose(): void {
     this.geometry.dispose();
     (this.material as LineBasicMaterial).dispose();
   }
