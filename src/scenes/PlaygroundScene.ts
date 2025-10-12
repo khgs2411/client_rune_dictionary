@@ -100,7 +100,8 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
         interactive: true,
         interaction: {
           clickVFX: {
-            text: "BANG"
+            text: "BANG",
+            color: hexNumberToString(this.settings.theme.accent)
           },
           cameraShake: {
             duration: 0.5,
