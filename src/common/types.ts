@@ -1,10 +1,8 @@
 import { Reactive, Ref } from 'vue';
 
-export type TargetPosition = Reactive<{
-  x: number;
-  z: number;
-  y: number;
-}>;
+export type PositionVector3 = { x: number; y: number; z: number };
+
+export type TargetPosition = Reactive<PositionVector3>;
 
 export interface I_CharacterControlsOptions {
   cameraAngleH: Ref<number>;

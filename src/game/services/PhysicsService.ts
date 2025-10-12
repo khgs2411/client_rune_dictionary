@@ -1,12 +1,17 @@
 import { I_ModuleContext } from '@/scenes/scenes.types';
 import SceneModule from '../SceneModule';
 import type * as RAPIER_TYPE from '@dimforge/rapier3d';
+import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { watch } from 'vue';
 import {
   BoxGeometry,
   CapsuleGeometry,
   ConeGeometry,
   CylinderGeometry,
+  EdgesGeometry,
   InstancedMesh,
+  LineBasicMaterial,
+  LineSegments,
   Matrix4,
   Mesh,
   Object3D,
@@ -15,13 +20,11 @@ import {
   SphereGeometry,
   Vector3,
 } from 'three';
+import { PositionVector3 } from '@/common/types';
 
 // Dynamic WASM import (loaded at runtime)
 const RAPIER = import('@dimforge/rapier3d') as any;
 
-// ============================================================================
-// Constants
-// ============================================================================
 
 const PHYSICS_CONSTANTS = {
   CONTROLLER_OFFSET: 0.01,
@@ -31,12 +34,8 @@ const PHYSICS_CONSTANTS = {
   PLANE_THICKNESS: 0.1,
 } as const;
 
-// ============================================================================
-// Config Types (Simple API)
-// ============================================================================
 
-type Vector3Like = { x: number; y: number; z: number } | [number, number, number];
-type PositionVector3 = { x: number; y: number; z: number };
+type Vector3Like = PositionVector3 | [number, number, number];
 
 interface BaseBodyConfig {
   position?: Vector3Like;
@@ -60,6 +59,7 @@ interface KinematicConfig extends BaseBodyConfig {
   maxStepHeight?: number;
   minStepWidth?: number;
   snapToGroundDistance?: number;
+  controller?: boolean;
 }
 
 interface MovementResult {
@@ -69,9 +69,6 @@ interface MovementResult {
   isGrounded: boolean;
 }
 
-// ============================================================================
-// PhysicsService - Simple Rapier Facade
-// ============================================================================
 
 /**
  * PhysicsService
@@ -96,6 +93,10 @@ export class PhysicsService extends SceneModule {
   private colliders = new Map<string, RAPIER_TYPE.Collider>();
   private kinematicControllers = new Map<string, RAPIER_TYPE.KinematicCharacterController>();
 
+  // Debug wireframes
+  private debugWireframes = new Map<string, LineSegments>();
+  private debugMaterial = new LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
+
   // ============================================================================
   // Lifecycle
   // ============================================================================
@@ -109,12 +110,36 @@ export class PhysicsService extends SceneModule {
     this.world = new this.RAPIER.World(gravity);
 
     this.isInitialized = true;
+
+    // Watch global debug setting and toggle wireframe visibility
+    this.addEventListeners(context);
+
     console.log('✅ [PhysicsService] Initialized');
+  }
+
+  private addEventListeners(context: I_ModuleContext) {
+    const gameConfig = useGameConfigStore();
+    const stopWatch = watch(
+      () => gameConfig.debug.showPhysicsDebug,
+      (newValue) => {
+        this.setDebugWireframesVisible(newValue);
+        console.log(`[PhysicsService] Debug wireframes ${newValue ? 'shown' : 'hidden'}`);
+      },
+      { immediate: true } // Run immediately with current value
+    );
+
+    // Register watcher for cleanup
+    context.lifecycle.watch(stopWatch);
   }
 
   public update(delta: number): void {
     if (!this.isInitialized) return;
     this.world.step();
+
+    // Update debug wireframes if any exist
+    if (this.debugWireframes.size > 0) {
+      this.updateDebugWireframes();
+    }
   }
 
   public async destroy(): Promise<void> {
@@ -143,27 +168,25 @@ export class PhysicsService extends SceneModule {
    * Register a static physics body (ground, walls, obstacles)
    * Static bodies never move and are optimized for collision detection
    */
-  public registerStatic(id: string, config: StaticBodyConfig): void {
+  public registerStatic(id: string, config: StaticBodyConfig, options?: { showDebug?: boolean }): void {
     this.assertReady();
 
     const position = this.toVector3(config.position ?? [0, 0, 0]);
     const rotation = this.toVector3(config.rotation ?? [0, 0, 0]);
 
-    // Create rigid body
+    // Create rigid body descriptor
     const bodyDesc = this.RAPIER.RigidBodyDesc.fixed()
       .setTranslation(position.x, position.y, position.z)
       .setRotation(this.eulerToQuaternion(rotation));
 
-    const body = this.world.createRigidBody(bodyDesc);
-
-    // Create collider based on shape
+    // Create collider descriptor based on shape
     const colliderDesc = this.createColliderDesc(config);
-    const collider = this.world.createCollider(colliderDesc, body);
 
-    this.bodies.set(id, body);
-    this.colliders.set(id, collider);
+    // Use unified body creation (supports debug wireframes)
+    const showDebug = this.shouldShowDebug(options?.showDebug);
+    this.createAndRegisterBody(id, bodyDesc, colliderDesc, null, showDebug);
 
-    console.log(`[PhysicsService] Registered static body: ${id}`);
+    console.log(`[PhysicsService] Registered static body: ${id}${showDebug ? ' (with debug wireframe)' : ''}`);
   }
 
   /**
@@ -188,42 +211,33 @@ export class PhysicsService extends SceneModule {
     const collider = this.world.createCollider(colliderDesc, body);
 
     // Create character controller
-    const controller = this.world.createCharacterController(0.01);
+    if (config.controller) this.createKinematicController(config, id, body, collider);
 
-    // Configure character controller
-    if (config.enableAutostep) {
-      const maxStepHeight = config.maxStepHeight ?? 0.5;
-      const minStepWidth = config.minStepWidth ?? 0.2;
-      controller.enableAutostep(maxStepHeight, minStepWidth, true);
-    }
+    console.log(`[PhysicsService] Registered kinematic body: ${id}`);
+  }
 
-    if (config.enableSnapToGround) {
-      const snapDistance = config.snapToGroundDistance ?? 0.5;
-      controller.enableSnapToGround(snapDistance);
-    }
-
-    controller.setApplyImpulsesToDynamicBodies(true);
+  private createKinematicController(config: KinematicConfig, id: string, body: RAPIER_TYPE.RigidBody, collider: RAPIER_TYPE.Collider) {
+    const controller = this.createController(config);
 
     this.bodies.set(id, body);
     this.colliders.set(id, collider);
     this.kinematicControllers.set(id, controller);
-
-    console.log(`[PhysicsService] Registered kinematic body: ${id}`);
   }
 
   /**
    * Register a static body from a Three.js mesh or instanced mesh
    * Automatically extracts geometry type, size, position, rotation, and scale
    */
-  public registerStaticFromMesh(id: string, mesh: Mesh | InstancedMesh | Object3D): void {
+  public registerStaticFromMesh(id: string, mesh: Mesh | InstancedMesh | Object3D, options?: { showDebug?: boolean }): void {
     this.assertReady();
 
     const { position, rotation, geometry, scale } = this.extractMeshProperties(mesh);
     const colliderDesc = this.createColliderFromGeometry(geometry, scale);
     const bodyDesc = this.createStaticBodyDesc(position, rotation, geometry);
 
-    this.createAndRegisterBody(id, bodyDesc, colliderDesc, null);
-    console.log(`[PhysicsService] Registered static body from mesh: ${id}`);
+    const showDebug = this.shouldShowDebug(options?.showDebug);
+    this.createAndRegisterBody(id, bodyDesc, colliderDesc, null, showDebug);
+    console.log(`[PhysicsService] Registered static body from mesh: ${id}${showDebug ? ' (with debug wireframe)' : ''}`);
   }
 
   /**
@@ -240,6 +254,7 @@ export class PhysicsService extends SceneModule {
       maxStepHeight?: number;
       minStepWidth?: number;
       snapToGroundDistance?: number;
+      showDebug?: boolean;
     }
   ): void {
     this.assertReady();
@@ -253,9 +268,10 @@ export class PhysicsService extends SceneModule {
       pos.z
     );
 
-    const controller = this.createCharacterController(options);
-    this.createAndRegisterBody(id, bodyDesc, colliderDesc, controller);
-    console.log(`[PhysicsService] Registered kinematic body from mesh: ${id}`);
+    const controller = this.createController(options);
+    const showDebug = this.shouldShowDebug(options?.showDebug);
+    this.createAndRegisterBody(id, bodyDesc, colliderDesc, controller, showDebug);
+    console.log(`[PhysicsService] Registered kinematic body from mesh: ${id}${showDebug ? ' (with debug wireframe)' : ''}`);
   }
 
   /**
@@ -265,7 +281,8 @@ export class PhysicsService extends SceneModule {
    */
   public registerInstancedStatic(
     idPrefix: string,
-    instancedMesh: InstancedMesh
+    instancedMesh: InstancedMesh,
+    options?: { showDebug?: boolean }
   ): string[] {
     this.assertReady();
 
@@ -275,6 +292,7 @@ export class PhysicsService extends SceneModule {
     const position = new Vector3();
     const rotation = new Quaternion();
     const scale = new Vector3();
+    const showDebug = this.shouldShowDebug(options?.showDebug);
 
     for (let i = 0; i < instancedMesh.count; i++) {
       instancedMesh.getMatrixAt(i, matrix);
@@ -298,12 +316,12 @@ export class PhysicsService extends SceneModule {
         });
 
       const instanceId = `${idPrefix}-${i}`;
-      this.createAndRegisterBody(instanceId, bodyDesc, colliderDesc, null);
+      this.createAndRegisterBody(instanceId, bodyDesc, colliderDesc, null, showDebug);
       instanceIds.push(instanceId);
     }
 
     console.log(
-      `[PhysicsService] Registered ${instanceIds.length} static bodies from InstancedMesh: ${idPrefix}`
+      `[PhysicsService] Registered ${instanceIds.length} static bodies from InstancedMesh: ${idPrefix}${showDebug ? ' (with debug wireframes)' : ''}`
     );
     return instanceIds;
   }
@@ -322,6 +340,14 @@ export class PhysicsService extends SceneModule {
     if (body) {
       this.world.removeRigidBody(body);
       this.bodies.delete(id);
+    }
+
+    // Remove debug wireframe if exists
+    const wireframe = this.debugWireframes.get(id);
+    if (wireframe) {
+      this.context?.scene.remove(wireframe);
+      wireframe.geometry.dispose();
+      this.debugWireframes.delete(id);
     }
 
     this.colliders.delete(id);
@@ -432,6 +458,20 @@ export class PhysicsService extends SceneModule {
     if (!this.isInitialized) {
       throw new Error('[PhysicsService] Physics not initialized. Call start() first.');
     }
+  }
+
+  /**
+   * Determine if debug wireframes should be created
+   * Per-object flag can disable wireframes entirely, otherwise always create them
+   * (visibility is controlled by global setting)
+   */
+  private shouldShowDebug(perObjectFlag?: boolean): boolean {
+    // If explicitly disabled per-object, don't create wireframe at all
+    if (perObjectFlag === false) {
+      return false;
+    }
+    // Otherwise always create wireframe (visibility controlled by global setting)
+    return true;
   }
 
   private toVector3(v: Vector3Like): { x: number; y: number; z: number } {
@@ -660,14 +700,15 @@ export class PhysicsService extends SceneModule {
   /**
    * Create and configure a character controller
    */
-  private createCharacterController(options?: {
+  private createController(options?: {
     enableAutostep?: boolean;
     enableSnapToGround?: boolean;
     maxStepHeight?: number;
     minStepWidth?: number;
     snapToGroundDistance?: number;
+    controllerOffset?: number;
   }): RAPIER_TYPE.KinematicCharacterController {
-    const controller = this.world.createCharacterController(PHYSICS_CONSTANTS.CONTROLLER_OFFSET);
+    const controller = this.world.createCharacterController(options?.controllerOffset ?? PHYSICS_CONSTANTS.CONTROLLER_OFFSET);
 
     if (options?.enableAutostep) {
       const maxStepHeight = options.maxStepHeight ?? PHYSICS_CONSTANTS.DEFAULT_STEP_HEIGHT;
@@ -692,7 +733,8 @@ export class PhysicsService extends SceneModule {
     id: string,
     bodyDesc: RAPIER_TYPE.RigidBodyDesc,
     colliderDesc: RAPIER_TYPE.ColliderDesc,
-    controller: RAPIER_TYPE.KinematicCharacterController | null
+    controller: RAPIER_TYPE.KinematicCharacterController | null,
+    showDebug?: boolean
   ): void {
     const body = this.world.createRigidBody(bodyDesc);
     const collider = this.world.createCollider(colliderDesc, body);
@@ -703,6 +745,89 @@ export class PhysicsService extends SceneModule {
     if (controller) {
       this.kinematicControllers.set(id, controller);
     }
+
+    // Create debug wireframe if requested
+    if (showDebug && this.context) {
+      this.createDebugWireframe(id, colliderDesc, body);
+    }
+  }
+
+  /**
+   * Create debug wireframe for a collider
+   */
+  private createDebugWireframe(
+    id: string,
+    colliderDesc: RAPIER_TYPE.ColliderDesc,
+    body: RAPIER_TYPE.RigidBody
+  ): void {
+    // Get collider shape info from descriptor
+    const shape = (colliderDesc as any).shape;
+    let geometry: BoxGeometry | SphereGeometry | CapsuleGeometry | CylinderGeometry;
+
+    // Create geometry based on collider type
+    if (shape?.type === 'Cuboid') {
+      const hx = shape.halfExtents.x;
+      const hy = shape.halfExtents.y;
+      const hz = shape.halfExtents.z;
+      geometry = new BoxGeometry(hx * 2, hy * 2, hz * 2);
+    } else if (shape?.type === 'Ball') {
+      const radius = shape.radius;
+      geometry = new SphereGeometry(radius, 16, 12);
+    } else if (shape?.type === 'Capsule') {
+      const radius = shape.radius;
+      const halfHeight = shape.halfHeight;
+      // CapsuleGeometry height is just the cylinder part
+      geometry = new CapsuleGeometry(radius, halfHeight * 2, 8, 16);
+    } else if (shape?.type === 'Cylinder') {
+      const radius = shape.radius;
+      const halfHeight = shape.halfHeight;
+      geometry = new CylinderGeometry(radius, radius, halfHeight * 2, 16);
+    } else {
+      // Default to box for unknown types
+      geometry = new BoxGeometry(1, 1, 1);
+    }
+
+    // Create wireframe
+    const edges = new EdgesGeometry(geometry);
+    const wireframe = new LineSegments(edges, this.debugMaterial);
+
+    // Position wireframe at body position
+    const pos = body.translation();
+    const rot = body.rotation();
+    wireframe.position.set(pos.x, pos.y, pos.z);
+    wireframe.quaternion.set(rot.x, rot.y, rot.z, rot.w);
+
+    // Set initial visibility based on global setting
+    const gameConfig = useGameConfigStore();
+    wireframe.visible = gameConfig.debug.showPhysicsDebug;
+
+    // Add to scene and track
+    this.context.scene.add(wireframe);
+    this.debugWireframes.set(id, wireframe);
+  }
+
+  /**
+   * Toggle debug wireframes on/off globally
+   */
+  public setDebugWireframesVisible(visible: boolean): void {
+    this.debugWireframes.forEach(wireframe => {
+      wireframe.visible = visible;
+    });
+  }
+
+  /**
+   * Update debug wireframe positions (call in update loop if bodies move)
+   */
+  private updateDebugWireframes(): void {
+    this.debugWireframes.forEach((wireframe, id) => {
+      const body = this.bodies.get(id);
+      if (body) {
+        const pos = body.translation();
+        const rot = body.rotation();
+        wireframe.position.set(pos.x, pos.y, pos.z);
+        wireframe.quaternion.set(rot.x, rot.y, rot.z, rot.w);
+      }
+    });
   }
 
   private eulerToQuaternion(

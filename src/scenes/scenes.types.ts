@@ -1,14 +1,12 @@
 import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
-import { Engine } from '@/game/Engine';
-import { SceneLifecycle } from '@/game/SceneLifecycle';
-import { ApplicationSettings as ApplicationSettings } from '@/stores/settings.store';
-import { Scene } from 'three';
-import type { InteractionService } from '@/game/services/InteractionService';
 import { I_ThemeColors } from '@/composables/useTheme';
+import { Engine } from '@/game/Engine';
 import { VFXModule } from '@/game/modules/scene/VFXModule';
+import { SceneLifecycle } from '@/game/SceneLifecycle';
+import type { InteractionService } from '@/game/services/InteractionService';
 import { PhysicsService } from '@/game/services/PhysicsService';
-import { GameConfig } from '@/stores/gameConfig.store';
+import { Scene } from 'three';
 
 /**
  * Core scene interface
