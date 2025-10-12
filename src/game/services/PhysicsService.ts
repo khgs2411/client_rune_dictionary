@@ -18,6 +18,18 @@ import {
 const RAPIER = import('@dimforge/rapier3d') as any;
 
 // ============================================================================
+// Constants
+// ============================================================================
+
+const PHYSICS_CONSTANTS = {
+  CONTROLLER_OFFSET: 0.01,
+  DEFAULT_STEP_HEIGHT: 0.5,
+  DEFAULT_STEP_WIDTH: 0.2,
+  DEFAULT_SNAP_DISTANCE: 0.5,
+  PLANE_THICKNESS: 0.1,
+} as const;
+
+// ============================================================================
 // Config Types (Simple API)
 // ============================================================================
 
@@ -204,36 +216,11 @@ export class PhysicsService extends SceneModule {
   public registerStaticFromMesh(id: string, mesh: Mesh | InstancedMesh | Object3D): void {
     this.assertReady();
 
-    // Extract world position and rotation using Three.js Vector3
-    const worldPosition = mesh.getWorldPosition(new Vector3());
-    const worldRotation = mesh.rotation;
+    const { position, rotation, geometry, scale } = this.extractMeshProperties(mesh);
+    const colliderDesc = this.createColliderFromGeometry(geometry, scale);
+    const bodyDesc = this.createStaticBodyDesc(position, rotation, geometry);
 
-    // Get geometry info
-    const geometry = (mesh as Mesh | InstancedMesh).geometry;
-    const colliderDesc = this.createColliderFromGeometry(geometry, mesh.scale);
-
-    // For PlaneGeometry, don't apply rotation (planes are already horizontal cuboids in physics)
-
-    // Create rigid body
-    const bodyDesc = this.RAPIER.RigidBodyDesc.fixed().setTranslation(
-      worldPosition.x,
-      worldPosition.y,
-      worldPosition.z
-    );
-
-    const shouldApplyRotation = !(geometry instanceof PlaneGeometry);
-    if (shouldApplyRotation) {
-      bodyDesc.setRotation(
-        this.eulerToQuaternion({ x: worldRotation.x, y: worldRotation.y, z: worldRotation.z })
-      );
-    }
-
-    const body = this.world.createRigidBody(bodyDesc);
-    const collider = this.world.createCollider(colliderDesc, body);
-
-    this.bodies.set(id, body);
-    this.colliders.set(id, collider);
-
+    this.createAndRegisterBody(id, bodyDesc, colliderDesc, null);
     console.log(`[PhysicsService] Registered static body from mesh: ${id}`);
   }
 
@@ -255,43 +242,17 @@ export class PhysicsService extends SceneModule {
   ): void {
     this.assertReady();
 
+    const { geometry, scale } = this.extractMeshProperties(mesh);
     const pos = this.toVector3(position);
-
-    // Get geometry info from mesh
-    const geometry = (mesh as Mesh).geometry;
-    const colliderDesc = this.createColliderFromGeometry(geometry, mesh.scale);
-
-    // Create kinematic rigid body
+    const colliderDesc = this.createColliderFromGeometry(geometry, scale);
     const bodyDesc = this.RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(
       pos.x,
       pos.y,
       pos.z
     );
 
-    const body = this.world.createRigidBody(bodyDesc);
-    const collider = this.world.createCollider(colliderDesc, body);
-
-    // Create character controller
-    const controller = this.world.createCharacterController(0.01);
-
-    // Configure character controller
-    if (options?.enableAutostep) {
-      const maxStepHeight = options.maxStepHeight ?? 0.5;
-      const minStepWidth = options.minStepWidth ?? 0.2;
-      controller.enableAutostep(maxStepHeight, minStepWidth, true);
-    }
-
-    if (options?.enableSnapToGround) {
-      const snapDistance = options.snapToGroundDistance ?? 0.5;
-      controller.enableSnapToGround(snapDistance);
-    }
-
-    controller.setApplyImpulsesToDynamicBodies(true);
-
-    this.bodies.set(id, body);
-    this.colliders.set(id, collider);
-    this.kinematicControllers.set(id, controller);
-
+    const controller = this.createCharacterController(options);
+    this.createAndRegisterBody(id, bodyDesc, colliderDesc, controller);
     console.log(`[PhysicsService] Registered kinematic body from mesh: ${id}`);
   }
 
@@ -492,15 +453,6 @@ export class PhysicsService extends SceneModule {
       const totalHeight = (params.height + params.radius * 2) * scale.y;
       const halfHeight = (totalHeight - radius * 2) / 2;
 
-      console.log('[PhysicsService] Capsule extraction:', {
-        'params.radius': params.radius,
-        'params.height': params.height,
-        'scale': scale,
-        'radius (scaled)': radius,
-        'totalHeight': totalHeight,
-        'halfHeight': halfHeight,
-      });
-
       return this.RAPIER.ColliderDesc.capsule(halfHeight, radius);
     }
 
@@ -531,6 +483,96 @@ export class PhysicsService extends SceneModule {
 
     console.warn(`[PhysicsService] Unsupported geometry type, using default box`);
     return this.RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
+  }
+
+  /**
+   * Extract position, rotation, geometry, and scale from a Three.js mesh
+   */
+  private extractMeshProperties(mesh: Mesh | InstancedMesh | Object3D) {
+    const worldPosition = mesh.getWorldPosition(new Vector3());
+    const worldRotation = mesh.rotation;
+    const worldScale = mesh.scale;
+
+    // Extract geometry (if available)
+    let geometry = null;
+    if ('geometry' in mesh) {
+      geometry = mesh.geometry;
+    }
+
+    return {
+      position: { x: worldPosition.x, y: worldPosition.y, z: worldPosition.z },
+      rotation: { x: worldRotation.x, y: worldRotation.y, z: worldRotation.z },
+      scale: { x: worldScale.x, y: worldScale.y, z: worldScale.z },
+      geometry,
+    };
+  }
+
+  /**
+   * Create a static body descriptor with optional rotation
+   * Skips rotation for PlaneGeometry since planes are converted to horizontal cuboids
+   */
+  private createStaticBodyDesc(
+    position: { x: number; y: number; z: number },
+    rotation: { x: number; y: number; z: number },
+    geometry: any
+  ): RAPIER_TYPE.RigidBodyDesc {
+    const bodyDesc = this.RAPIER.RigidBodyDesc.fixed().setTranslation(position.x, position.y, position.z);
+
+    // For PlaneGeometry, don't apply rotation (planes are already horizontal cuboids in physics)
+    const shouldApplyRotation = !(geometry instanceof PlaneGeometry);
+    if (shouldApplyRotation) {
+      bodyDesc.setRotation(this.eulerToQuaternion(rotation));
+    }
+
+    return bodyDesc;
+  }
+
+  /**
+   * Create and configure a character controller
+   */
+  private createCharacterController(options?: {
+    enableAutostep?: boolean;
+    enableSnapToGround?: boolean;
+    maxStepHeight?: number;
+    minStepWidth?: number;
+    snapToGroundDistance?: number;
+  }): RAPIER_TYPE.KinematicCharacterController {
+    const controller = this.world.createCharacterController(PHYSICS_CONSTANTS.CONTROLLER_OFFSET);
+
+    if (options?.enableAutostep) {
+      const maxStepHeight = options.maxStepHeight ?? PHYSICS_CONSTANTS.DEFAULT_STEP_HEIGHT;
+      const minStepWidth = options.minStepWidth ?? PHYSICS_CONSTANTS.DEFAULT_STEP_WIDTH;
+      controller.enableAutostep(maxStepHeight, minStepWidth, true);
+    }
+
+    if (options?.enableSnapToGround) {
+      const snapDistance = options.snapToGroundDistance ?? PHYSICS_CONSTANTS.DEFAULT_SNAP_DISTANCE;
+      controller.enableSnapToGround(snapDistance);
+    }
+
+    controller.setApplyImpulsesToDynamicBodies(true);
+
+    return controller;
+  }
+
+  /**
+   * Create body and collider, then register in tracking maps
+   */
+  private createAndRegisterBody(
+    id: string,
+    bodyDesc: RAPIER_TYPE.RigidBodyDesc,
+    colliderDesc: RAPIER_TYPE.ColliderDesc,
+    controller: RAPIER_TYPE.KinematicCharacterController | null
+  ): void {
+    const body = this.world.createRigidBody(bodyDesc);
+    const collider = this.world.createCollider(colliderDesc, body);
+
+    this.bodies.set(id, body);
+    this.colliders.set(id, collider);
+
+    if (controller) {
+      this.kinematicControllers.set(id, controller);
+    }
   }
 
   private eulerToQuaternion(
