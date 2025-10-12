@@ -132,9 +132,9 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     this.themedMaterials.forEach((material) => {
       material.color.setHex(theme.accent);
     });
+    
     // Update all reactive colored materials
     this.reactiveColoredMaterials.forEach(({ material, config }) => {
-      console.log(theme[config.material.reactiveColor as keyof I_ThemeColors]);
       if (config.material.reactiveColor) {
         material.color.setHex(theme[config.material.reactiveColor as keyof I_ThemeColors] || theme.accent);
       }

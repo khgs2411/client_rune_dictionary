@@ -234,7 +234,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       border: this.settings.theme.border,
     };
 
-    console.log('Updated theme colors:', theme.background);
 
     // Update all modules with the same unified API
     this.getModule('instancedSceneObjects')?.onThemeChange?.(theme);
