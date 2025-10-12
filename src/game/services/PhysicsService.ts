@@ -748,7 +748,7 @@ export class PhysicsService extends SceneModule {
 
     // Create debug wireframe if requested
     if (showDebug && this.context) {
-      this.createDebugWireframe(id, colliderDesc, body);
+      this.createDebugWireframe(id, collider, body);
     }
   }
 
@@ -757,33 +757,43 @@ export class PhysicsService extends SceneModule {
    */
   private createDebugWireframe(
     id: string,
-    colliderDesc: RAPIER_TYPE.ColliderDesc,
+    collider: RAPIER_TYPE.Collider,
     body: RAPIER_TYPE.RigidBody
   ): void {
-    // Get collider shape info from descriptor
-    const shape = (colliderDesc as any).shape;
+    // Get collider shape from the actual collider (not descriptor)
+    const shapeType = collider.shapeType();
+    console.log(`[PhysicsService] Creating wireframe for ${id}, shape type:`, shapeType);
+
     let geometry: BoxGeometry | SphereGeometry | CapsuleGeometry | CylinderGeometry;
 
-    // Create geometry based on collider type
-    if (shape?.type === 'Cuboid') {
-      const hx = shape.halfExtents.x;
-      const hy = shape.halfExtents.y;
-      const hz = shape.halfExtents.z;
-      geometry = new BoxGeometry(hx * 2, hy * 2, hz * 2);
-    } else if (shape?.type === 'Ball') {
+    // Create geometry based on collider type (Rapier ShapeType enum)
+    // ShapeType: 0=Ball, 1=Cuboid, 2=Capsule, 3=Segment, 4=Triangle, 5=TriMesh, etc.
+    if (shapeType === 1) { // Cuboid
+      const shape = collider.shape as RAPIER_TYPE.Cuboid;
+      const halfExtents = shape.halfExtents;
+      console.log(`[PhysicsService] Cuboid wireframe for ${id}: halfExtents`, halfExtents);
+      geometry = new BoxGeometry(halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2);
+    } else if (shapeType === 0) { // Ball
+      const shape = collider.shape as RAPIER_TYPE.Ball;
       const radius = shape.radius;
+      console.log(`[PhysicsService] Ball wireframe for ${id}: radius`, radius);
       geometry = new SphereGeometry(radius, 16, 12);
-    } else if (shape?.type === 'Capsule') {
+    } else if (shapeType === 2) { // Capsule
+      const shape = collider.shape as RAPIER_TYPE.Capsule;
       const radius = shape.radius;
       const halfHeight = shape.halfHeight;
+      console.log(`[PhysicsService] Capsule wireframe for ${id}:`, { radius, halfHeight });
       // CapsuleGeometry height is just the cylinder part
       geometry = new CapsuleGeometry(radius, halfHeight * 2, 8, 16);
-    } else if (shape?.type === 'Cylinder') {
+    } else if (shapeType === 6) { // Cylinder
+      const shape = collider.shape as RAPIER_TYPE.Cylinder;
       const radius = shape.radius;
       const halfHeight = shape.halfHeight;
+      console.log(`[PhysicsService] Cylinder wireframe for ${id}:`, { radius, halfHeight });
       geometry = new CylinderGeometry(radius, radius, halfHeight * 2, 16);
     } else {
       // Default to box for unknown types
+      console.warn(`[PhysicsService] Unknown shape type ${shapeType} for ${id}, using default box`);
       geometry = new BoxGeometry(1, 1, 1);
     }
 
@@ -797,6 +807,8 @@ export class PhysicsService extends SceneModule {
     wireframe.position.set(pos.x, pos.y, pos.z);
     wireframe.quaternion.set(rot.x, rot.y, rot.z, rot.w);
 
+    console.log(`[PhysicsService] Wireframe ${id} positioned at:`, { x: pos.x, y: pos.y, z: pos.z });
+
     // Set initial visibility based on global setting
     const gameConfig = useGameConfigStore();
     wireframe.visible = gameConfig.debug.showPhysicsDebug;
@@ -804,6 +816,7 @@ export class PhysicsService extends SceneModule {
     // Add to scene and track
     this.context.scene.add(wireframe);
     this.debugWireframes.set(id, wireframe);
+    console.log(`[PhysicsService] ✅ Wireframe ${id} added to scene (visible: ${wireframe.visible})`);
   }
 
   /**

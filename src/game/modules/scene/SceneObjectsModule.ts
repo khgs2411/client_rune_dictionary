@@ -1,6 +1,6 @@
 import { Vec3 } from '@/common/types';
 import { I_ThemeColors } from '@/composables/useTheme';
-import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
+import { I_SceneObjectConfig, SceneObjectGeometryConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
 import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
 import { GameConfig, useGameConfigStore } from '@/stores/gameConfig.store';
@@ -15,6 +15,7 @@ import {
   MeshStandardMaterial,
   NormalBufferAttributes,
   Object3DEventMap,
+  PlaneGeometry,
   SphereGeometry,
 } from 'three';
 import { Guards } from 'topsyde-utils';
@@ -242,10 +243,12 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
   /**
    * Create Three.js geometry based on config
    */
-  private createGeometry(geometryConfig: I_SceneObjectConfig['geometry']): BufferGeometry {
+  private createGeometry(geometryConfig: Partial<SceneObjectGeometryConfig>): BufferGeometry {
     const { type, params } = geometryConfig;
 
     switch (type) {
+      case 'plane':
+        return new PlaneGeometry(...(params as [number, number]));
       case 'box':
         // params: [width, height, depth]
         return new BoxGeometry(...(params as Vec3));

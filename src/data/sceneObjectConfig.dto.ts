@@ -6,7 +6,7 @@ export type SceneObjectGeometryConfig = BufferGeometry<
   NormalBufferAttributes,
   BufferGeometryEventMap
 > & {
-  type: 'box' | 'sphere' | 'cylinder' | 'cone';
+  type: 'plane' | 'box' | 'sphere' | 'cylinder' | 'cone';
   params: number[]; // Geometry-specific parameters
 };
 

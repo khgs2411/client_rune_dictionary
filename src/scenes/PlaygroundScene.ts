@@ -3,7 +3,6 @@ import type { Engine } from '@/game/Engine';
 import { GameScene } from '@/game/GameScene';
 import { CharacterModule } from '@/game/modules/scene/CharacterModule';
 import { DebugModule } from '@/game/modules/scene/DebugModule';
-import { GroundModule } from '@/game/modules/scene/GroundModule';
 import { LightingModule } from '@/game/modules/scene/LightingModule';
 import { SceneInstancedObjectsModule } from '@/game/modules/scene/SceneInstancedObjectsModule';
 import { SceneObjectsModule } from '@/game/modules/scene/SceneObjectsModule';
@@ -16,7 +15,7 @@ import { I_SceneConfig } from './scenes.types';
  */
 interface PlaygroundModuleRegistry extends Record<string, any> {
   lighting: LightingModule;
-  ground: GroundModule;
+  ground: SceneInstancedObjectsModule;
   instancedSceneObjects: SceneInstancedObjectsModule;
   sceneObjects: SceneObjectsModule;
   treeTrunks: SceneInstancedObjectsModule;
@@ -42,7 +41,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
    */
   protected registerModules(): void {
     this.addModule('lighting', new LightingModule());
-    this.addModule('ground', new GroundModule());
+    this.addModule('ground', new SceneInstancedObjectsModule([{ material: { staticColor: this.settings.theme.background }, geometry: { type: 'plane', params: [100, 100] }, position: [0, 0, 0] }]));
     this.addModule('characterMesh', new CharacterModule(this.character.controller));
   }
 

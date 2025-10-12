@@ -11,10 +11,12 @@ import {
   ConeGeometry,
   CylinderGeometry,
   Euler,
+  GridHelper,
   InstancedMesh,
   Matrix4,
   MeshStandardMaterial,
   NormalBufferAttributes,
+  PlaneGeometry,
   Quaternion,
   SphereGeometry,
   Vector3,
@@ -67,7 +69,12 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
       this.addCollisions(context, groupKey, instancedMesh);
 
       // Add to scene and lifecycle
-      this.addGridHelper(context, instancedMesh);
+      this.addToScene(context, instancedMesh);
+
+      // Optionally add grid helper for plane geometries (e.g. ground)
+      if (instancedMeshConfig.geometry.type === 'plane') {
+        this.addGridHelper(context, instancedMeshConfig);
+      }
 
       this.instancedMeshes.set(groupKey, instancedMesh);
     });
@@ -122,9 +129,16 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     });
   }
 
-  public addGridHelper(context: I_ModuleContext, instancedMesh: InstancedMesh) {
+  public addToScene(context: I_ModuleContext, instancedMesh: InstancedMesh) {
     context.scene.add(instancedMesh);
     context.lifecycle.register(instancedMesh);
+  }
+
+  private addGridHelper(context: I_ModuleContext, instancedMeshConfig: I_SceneObjectConfig) {
+    const gridHelper = new GridHelper(instancedMeshConfig.geometry?.params?.[0] || 50, instancedMeshConfig.geometry?.params?.[1] || 50);
+    gridHelper.position.y = 0.01;
+    context.scene.add(gridHelper);
+    context.lifecycle.register(gridHelper);
   }
 
   private createInstancedMesh(
@@ -138,6 +152,10 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     instancedMesh.castShadow = instancedMeshConfig.castShadow ?? true;
     instancedMesh.receiveShadow = instancedMeshConfig.receiveShadow ?? true;
 
+    if (instancedMeshConfig.geometry.type === 'plane') {
+      instancedMesh.rotation.x = -Math.PI / 2;
+    }
+
     // Set transforms for each instance
     configs.forEach((config, index) => {
       const matrix = new Matrix4();
@@ -145,6 +163,8 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
       const euler = new Euler(...(config.rotation || [0, 0, 0]));
       const quaternion = new Quaternion().setFromEuler(euler);
       const scale = new Vector3(...(config.scale || [1, 1, 1]));
+
+
 
       matrix.compose(position, quaternion, scale);
       instancedMesh.setMatrixAt(instancedMesh.count++, matrix);
@@ -193,8 +213,10 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
    */
   private createGeometry(geometryConfig: I_SceneObjectConfig['geometry']): BufferGeometry {
     const { type, params } = geometryConfig;
-
+    console.log(params);
     switch (type) {
+      case 'plane':
+        return new PlaneGeometry((params as [number, number])[0], (params as [number, number])[1]);
       case 'box':
         // params: [width, height, depth]
         return new BoxGeometry(...(params as RGBColor));

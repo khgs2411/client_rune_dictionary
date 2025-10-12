@@ -39,12 +39,12 @@ export class LightingModule extends SceneModule implements I_SceneModule {
     directionalLight.shadow.bias = -0.0001;
     directionalLight.shadow.normalBias = 0.02;
 
-    this.addGridHelper(context, directionalLight);
+    this.addToScene(context, directionalLight);
     this.lights.push(directionalLight);
 
   }
 
-  public addGridHelper(context: I_ModuleContext, directionalLight: DirectionalLight): void {
+  public addToScene(context: I_ModuleContext, directionalLight: DirectionalLight): void {
     context.scene.add(directionalLight);
     context.lifecycle.register(directionalLight);
   }

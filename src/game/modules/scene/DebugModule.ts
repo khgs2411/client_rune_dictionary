@@ -18,10 +18,10 @@ export class DebugModule extends SceneModule implements I_SceneModule {
     const material = new MeshBasicMaterial({ color: 0xff0000 });
     const cube = new Mesh(geometry, material);
     cube.position.set(10, 1, -8); // Moved to avoid z-fighting with scene objects
-    this.addGridHelper(context, cube);
+    this.addToScene(context, cube);
   }
 
-  public addGridHelper(context: I_ModuleContext, cube: Mesh) {
+  public addToScene(context: I_ModuleContext, cube: Mesh) {
     context.scene.add(cube);
     context.lifecycle.register(cube);
   }
