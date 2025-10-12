@@ -93,6 +93,106 @@ function rgbToHex(rgb: RGBColor): number {
   return (r << 16) | (g << 8) | b;
 }
 
+/**
+ * ============================================================================
+ * Color Conversion Utilities
+ * ============================================================================
+ */
+
+/**
+ * Converts a hex string (e.g., "#654321" or "654321") to Three.js hex number
+ * @param hexString - Hex color string with or without #
+ * @returns Three.js hex color number (e.g., 0x654321 = 6636321)
+ * @example
+ * hexStringToNumber("#654321") // 6636321
+ * hexStringToNumber("654321")  // 6636321
+ */
+export function hexStringToNumber(hexString: string): number {
+  const cleaned = hexString.replace('#', '');
+  return parseInt(cleaned, 16);
+}
+
+/**
+ * Converts Three.js hex number to hex string
+ * @param hexNumber - Three.js hex color number (e.g., 0x654321 or 6636321)
+ * @returns Hex string with # prefix (e.g., "#654321")
+ * @example
+ * hexNumberToString(0x654321) // "#654321"
+ * hexNumberToString(6636321)  // "#654321"
+ */
+export function hexNumberToString(hexNumber: number): string {
+  return '#' + hexNumber.toString(16).padStart(6, '0');
+}
+
+/**
+ * Converts RGB tuple (0-1 range) to hex string
+ * @param rgb - RGB color as [r, g, b] where each value is 0-1
+ * @returns Hex string with # prefix (e.g., "#654321")
+ * @example
+ * rgbToHexString([0.396, 0.263, 0.129]) // "#654321"
+ */
+export function rgbToHexString(rgb: RGBColor): string {
+  const r = Math.round(rgb[0] * 255);
+  const g = Math.round(rgb[1] * 255);
+  const b = Math.round(rgb[2] * 255);
+  return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+}
+
+/**
+ * Converts hex string to RGB tuple (0-1 range)
+ * @param hexString - Hex color string with or without #
+ * @returns RGB color as [r, g, b] where each value is 0-1
+ * @example
+ * hexStringToRgb("#654321") // [0.396, 0.263, 0.129]
+ */
+export function hexStringToRgb(hexString: string): RGBColor {
+  const hex = hexStringToNumber(hexString);
+  const r = ((hex >> 16) & 255) / 255;
+  const g = ((hex >> 8) & 255) / 255;
+  const b = (hex & 255) / 255;
+  return [r, g, b];
+}
+
+/**
+ * Converts Three.js hex number to RGB tuple (0-1 range)
+ * @param hexNumber - Three.js hex color number (e.g., 0x654321 or 6636321)
+ * @returns RGB color as [r, g, b] where each value is 0-1
+ * @example
+ * hexNumberToRgb(0x654321) // [0.396, 0.263, 0.129]
+ */
+export function hexNumberToRgb(hexNumber: number): RGBColor {
+  const r = ((hexNumber >> 16) & 255) / 255;
+  const g = ((hexNumber >> 8) & 255) / 255;
+  const b = (hexNumber & 255) / 255;
+  return [r, g, b];
+}
+
+/**
+ * Converts RGB values (0-255 range) to Three.js hex number
+ * @param r - Red (0-255)
+ * @param g - Green (0-255)
+ * @param b - Blue (0-255)
+ * @returns Three.js hex color number
+ * @example
+ * rgb255ToHex(101, 67, 33) // 6636321 (0x654321)
+ */
+export function rgb255ToHex(r: number, g: number, b: number): number {
+  return (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b);
+}
+
+/**
+ * Converts RGB tuple (0-255 range) to hex string
+ * @param r - Red (0-255)
+ * @param g - Green (0-255)
+ * @param b - Blue (0-255)
+ * @returns Hex string with # prefix
+ * @example
+ * rgb255ToHexString(101, 67, 33) // "#654321"
+ */
+export function rgb255ToHexString(r: number, g: number, b: number): string {
+  return hexNumberToString(rgb255ToHex(r, g, b));
+}
+
 const THEME_STORAGE_KEY = 'color-theme';
 
 /**

@@ -30,6 +30,7 @@ export class InteractableBuilder {
    * Add click VFX behavior (POW! text sprite)
    */
   public withClickVFX(text?: string, color?: string): this {
+    console.log('Registering click VFX with text:', text, color);
     this.behaviors.clickVFX = { text: text || 'POW!', color };
     this.scheduleAutoBuild();
     return this;

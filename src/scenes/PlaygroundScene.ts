@@ -1,3 +1,5 @@
+import { hexNumberToString, I_ThemeColors } from '@/composables/useTheme';
+import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import type { Engine } from '@/game/Engine';
 import { GameScene } from '@/game/GameScene';
 import { CharacterMeshModule } from '@/game/modules/scene/CharacterMeshModule';
@@ -8,8 +10,6 @@ import { SceneInstancedObjectsModule } from '@/game/modules/scene/SceneInstanced
 import { SceneObjectsModule } from '@/game/modules/scene/SceneObjectsModule';
 import { watch } from 'vue';
 import { I_SceneConfig } from './scenes.types';
-import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
-import { I_ThemeColors } from '@/composables/useTheme';
 
 /**
  * Module Registry for PlaygroundScene
@@ -99,7 +99,13 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
         material: { staticColor: 0xff00ff, roughness: 0.2, metalness: 0.8 }, // Shiny pink sphere
         interactive: true,
         interaction: {
-
+          clickVFX: {
+            text: "BANG"
+          },
+          cameraShake: {
+            duration: 0.5,
+            intensity: 0.2
+          }
         }
       },
     ]));

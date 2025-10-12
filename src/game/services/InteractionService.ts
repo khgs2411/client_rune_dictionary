@@ -213,12 +213,16 @@ export class InteractionService implements I_SceneService {
       behaviors.customCallbacks?.onClick
     );
 
+    // FIX: If object is clickable but not hoverable, make it hoverable!
+    // (click detection requires hover tracking)
+    const isHoverable = hoverable || clickable;
+
     const interactable: I_InteractableObject = {
       id,
       object3D,
       callbacks,
       behaviors,
-      hoverable,
+      hoverable: isHoverable, // Use computed hoverable (includes clickable objects)
       clickable,
     };
 
@@ -292,14 +296,20 @@ export class InteractionService implements I_SceneService {
   ): void {
     if (behaviors.clickVFX) {
       const { text, color } = behaviors.clickVFX;
+      const originalClick = callbacks.onClick;
 
       callbacks.onClick = (intersection) => {
         vfx?.showClickEffect(intersection.point, text, color);
         behaviors.customCallbacks?.onClick?.(intersection);
+        originalClick?.(intersection); // Chain previous onClick
       };
     } else if (behaviors.customCallbacks?.onClick) {
-      // No VFX, but custom callback exists
-      callbacks.onClick = behaviors.customCallbacks.onClick;
+      // No VFX, but custom callback exists - still chain!
+      const originalClick = callbacks.onClick;
+      callbacks.onClick = (intersection) => {
+        behaviors.customCallbacks?.onClick?.(intersection);
+        originalClick?.(intersection);
+      };
     }
   }
 
