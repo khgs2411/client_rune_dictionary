@@ -48,7 +48,7 @@ export interface I_SceneModule {
   /**
    * Cleanup the module
    */
-  destroy(): Promise<void>;
+  destroy(context?: I_ModuleContext): Promise<void>;
 
   /**
    * Optional: Update each frame (only implement if needed)

@@ -350,7 +350,6 @@ export class VFXModule extends SceneModule implements I_SceneModule {
     PARTICLES: 5, // Particle burst systems
   } as const;
 
-  private context!: I_ModuleContext;
 
   // Object pools
   private textSpritePool: TextSprite[] = [];
@@ -370,7 +369,7 @@ export class VFXModule extends SceneModule implements I_SceneModule {
   // Camera shake state
   private cameraShake: { intensity: number; duration: number; elapsed: number } | null = null;
 
-  async start(context: I_ModuleContext): Promise<void> {
+  protected async init(context: I_ModuleContext): Promise<void> {
     this.context = context;
 
     // Pre-create text sprite pool
@@ -404,7 +403,6 @@ export class VFXModule extends SceneModule implements I_SceneModule {
       this.particlePool.length,
     );
 
-    super.start(context);
   }
 
   update(delta: number): void {

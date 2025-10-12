@@ -4,7 +4,6 @@ import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import SceneModule from '@/game/SceneModule';
 import { I_ThemeColors } from '@/composables/useTheme';
-import type * as RAPIER_TYPE from '@dimforge/rapier3d';
 import { GameConfig, useGameConfigStore } from '@/stores/gameConfig.store';
 
 /**
@@ -20,16 +19,8 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
   private config: GameConfig;
   private characterController: I_CharacterControls;
 
-  // Rapier physics components
-  private rigidBody!: RAPIER_TYPE.RigidBody;
-  private collider!: RAPIER_TYPE.Collider;
-  private physicsController!: RAPIER_TYPE.KinematicCharacterController;
-  private context!: I_ModuleContext;
-  private rapier!: typeof RAPIER_TYPE;
-
-
-
-  // Vertical velocity for gravity (Rapier handles this)
+  // Physics state
+  private readonly characterPhysicsId = 'player-character';
   private verticalVelocity: number = 0;
 
   constructor(
@@ -42,16 +33,11 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     this.characterController = characterController;
   }
 
-  async start(context: I_ModuleContext): Promise<void> {
-
-    this.context = context;
-    this.rapier = this.context.services.physics.getRapier()
-
+  protected async init(context: I_ModuleContext): Promise<void> {
     if (!context.services.physics.isReady()) {
       console.error('[CharacterModule] Physics service not ready!');
       return;
     }
-
 
     // Create visual mesh
     this.mesh = new Group();
@@ -61,48 +47,23 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     // Initial position (matches physics body center)
     this.mesh.position.set(0, 1, 0);
 
-    // Create Rapier physics components
-    this.createPhysicsBody(context);
+    // Register character physics using simple API
+    context.services.physics.registerKinematic(this.characterPhysicsId, {
+      shape: 'capsule',
+      radius: 0.5,
+      height: 2, // Total height = 2 (matches visual capsule)
+      position: [0, 1, 0], // Center at Y=1, bottom touches Y=0
+      enableAutostep: true,
+      enableSnapToGround: true,
+      maxStepHeight: 0.5,
+      minStepWidth: 0.2,
+      snapToGroundDistance: 0.5,
+    });
 
     this.addGridHelper(context);
 
-    // Emit loading complete event
-    super.start(context);
-  }
-  /**
-   * Create Rapier physics body and character controller
-   */
-  private createPhysicsBody(context: I_ModuleContext): void {
-    // Visual capsule: CapsuleGeometry(radius=0.5, cylinderHeight=1)
-    // Total visual height = cylinderHeight + 2*radius = 1 + 2*0.5 = 2 units
-    // Center at geometric center, extends from -1 to +1 on local Y axis
+    console.log('✅ [CharacterModule] Initialized with physics');
 
-    // Rapier capsule: capsule(halfHeight, radius)
-    // halfHeight is half of the cylinder part (not including hemispheres)
-    // Total physics height = 2*halfHeight + 2*radius = 2*0.5 + 2*0.5 = 2 units
-    // Center at geometric center, extends from -1 to +1 on local Y axis
-
-    // Position at Y=1 so center is at Y=1, meaning bottom is at Y=0 (ground level)
-
-    const world = context.services.physics.getWorld();
-    const RAPIER = context.services.physics.getRapier();
-    const rigidBodyDesc = RAPIER.RigidBodyDesc.kinematicPositionBased();
-    rigidBodyDesc.setTranslation(0, 1, 0);
-    this.rigidBody = world.createRigidBody(rigidBodyDesc);
-
-    // Create capsule collider matching visual geometry
-    const colliderDesc = RAPIER.ColliderDesc.capsule(0.5, 0.5); // halfHeight=0.5, radius=0.5
-    this.collider = world.createCollider(colliderDesc, this.rigidBody);
-
-    // Create Rapier character controller
-    this.physicsController = world.createCharacterController(0.01);
-
-    // Configure character controller properties
-    this.physicsController.enableAutostep(0.5, 0.2, true); // Max step height, min width, include dynamic bodies
-    this.physicsController.enableSnapToGround(0.5); // Snap distance
-    this.physicsController.setApplyImpulsesToDynamicBodies(true);
-
-    console.log('✅ [CharacterModule] Rapier physics initialized');
   }
 
   public update(delta: number): void {
@@ -110,51 +71,38 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
   }
 
   private updateMovement(delta: number) {
-    const currentPos = this.rigidBody.translation();
+    const currentPos = this.context.services.physics.getPosition(this.characterPhysicsId);
+    if (!currentPos) return;
 
     // Handle vertical velocity (gravity + jumping)
-    // Check if character wants to jump
     this.handleJumping(delta);
 
-    // Calculate desired position change
-    const desiredMovement = new this.rapier.Vector3(
-      this.characterController.position.x.value - currentPos.x,
-      this.verticalVelocity * delta,
-      this.characterController.position.z.value - currentPos.z
-    );
-
-    // Let Rapier compute collision-corrected movement
-    this.physicsController.computeColliderMovement(this.collider, desiredMovement);
-    const correctedMovement = this.physicsController.computedMovement();
-
-    // Apply physics-corrected position
-    const newPos = {
-      x: currentPos.x + correctedMovement.x,
-      y: currentPos.y + correctedMovement.y,
-      z: currentPos.z + correctedMovement.z,
+    // Calculate desired horizontal movement (from character controller)
+    const desiredMovement = {
+      x: this.characterController.position.x.value - currentPos.x,
+      y: this.verticalVelocity * delta,
+      z: this.characterController.position.z.value - currentPos.z,
     };
 
-    this.rigidBody.setNextKinematicTranslation(newPos);
-
-    // Check if grounded
-    const isGrounded = this.physicsController.computedGrounded();
+    // Let PhysicsService compute collision-corrected movement
+    const result = this.context.services.physics.moveKinematic(this.characterPhysicsId, desiredMovement);
 
     // Update visual mesh
-    this.mesh.position.set(newPos.x, newPos.y, newPos.z);
+    this.mesh.position.set(result.x, result.y, result.z);
     this.mesh.rotation.y = this.characterController.rotation.value;
 
     // Sync physics position back to character controller
-    this.characterController.position.x.value = newPos.x;
-    this.characterController.position.z.value = newPos.z;
-    this.characterController.position.y.value = newPos.y;
+    this.characterController.position.x.value = result.x;
+    this.characterController.position.z.value = result.z;
+    this.characterController.position.y.value = result.y;
 
     // Handle grounded state
-    if (isGrounded) {
+    if (result.isGrounded) {
       // Reset vertical velocity when grounded
       this.verticalVelocity = 0;
 
       // Update ground level for jump system
-      this.config.character.groundLevel = newPos.y;
+      this.config.character.groundLevel = result.y;
 
       // Reset jump flag when landed
       if (this.characterController.isJumping.value) {
@@ -200,11 +148,9 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     this.mesh.add(body);
   }
 
-  async destroy(): Promise<void> {
-    // Remove Rapier physics components
-    if (this.context.services.physics.getWorld() && this.rigidBody) {
-      this.context.services.physics.getWorld().removeRigidBody(this.rigidBody);
-    }
+  async destroy(context: I_ModuleContext): Promise<void> {
+    // Remove physics body using simple API
+    context.services.physics.remove(this.characterPhysicsId);
 
     // Lifecycle handles Three.js mesh cleanup
   }

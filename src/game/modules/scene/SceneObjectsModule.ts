@@ -19,7 +19,6 @@ import {
 } from 'three';
 import { Guards } from 'topsyde-utils';
 import { ReactiveValue } from '../entity/interaction.types';
-import type * as RAPIER_TYPE from '@dimforge/rapier3d';
 import { ApplicationSettings, useSettingsStore } from '@/stores/settings.store';
 
 /**
@@ -51,7 +50,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
     this.settings = useSettingsStore();
   }
 
-  async start(context: I_ModuleContext): Promise<void> {
+  protected async init(context: I_ModuleContext): Promise<void> {
     const gameConfig = useGameConfigStore();
 
     this.objectConfigs.forEach((config, index) => {
@@ -84,8 +83,6 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
 
     console.log(`📦 [SceneObjectsModule] Created ${this.meshes.length} objects`);
 
-    // Emit loading complete event
-    super.start(context);
   }
 
   addColission(
@@ -106,47 +103,34 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
       return;
     }
 
-    const world = context.services.physics.getWorld();
-    const RAPIER = context.services.physics.getRapier();
+    const objectId = `scene-object-${this.id}-${index}`;
 
-    // Create static rigid body at mesh position
-    const rigidBodyDesc = RAPIER.RigidBodyDesc.fixed();
-    rigidBodyDesc.setTranslation(mesh.position.x, mesh.position.y, mesh.position.z);
-
-    // Apply rotation if present
-    if (config.rotation) {
-      const euler = new Euler(...config.rotation);
-      rigidBodyDesc.setRotation({
-        x: euler.x,
-        y: euler.y,
-        z: euler.z,
-        w: 1,
-      });
-    }
-
-    const rigidBody = world.createRigidBody(rigidBodyDesc);
-
-    // Create collider based on geometry type
-    let colliderDesc: RAPIER_TYPE.ColliderDesc;
-
+    // Build physics config based on geometry type
     switch (config.geometry.type) {
       case 'box': {
         const [width, height, depth] = config.geometry.params as Vec3;
         const scaleX = config.scale?.[0] ?? 1;
         const scaleY = config.scale?.[1] ?? 1;
         const scaleZ = config.scale?.[2] ?? 1;
-        colliderDesc = RAPIER.ColliderDesc.cuboid(
-          (width * scaleX) / 2,
-          (height * scaleY) / 2,
-          (depth * scaleZ) / 2,
-        );
+
+        context.services.physics.registerStatic(objectId, {
+          shape: 'cuboid',
+          size: [width * scaleX, height * scaleY, depth * scaleZ],
+          position: [mesh.position.x, mesh.position.y, mesh.position.z],
+          rotation: config.rotation ? [...config.rotation] : undefined,
+        });
         break;
       }
 
       case 'sphere': {
         const [radius] = config.geometry.params as [number, number?, number?];
         const scale = config.scale?.[0] ?? 1;
-        colliderDesc = RAPIER.ColliderDesc.ball(radius * scale);
+
+        context.services.physics.registerStatic(objectId, {
+          shape: 'sphere',
+          radius: radius * scale,
+          position: [mesh.position.x, mesh.position.y, mesh.position.z],
+        });
         break;
       }
 
@@ -159,9 +143,15 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
         ];
         const scaleXZ = config.scale?.[0] ?? 1;
         const scaleY = config.scale?.[1] ?? 1;
-        // Use average radius for cylinder collider
         const avgRadius = ((radiusTop + radiusBottom) / 2) * scaleXZ;
-        colliderDesc = RAPIER.ColliderDesc.cylinder((height * scaleY) / 2, avgRadius);
+
+        context.services.physics.registerStatic(objectId, {
+          shape: 'cylinder',
+          radius: avgRadius,
+          height: height * scaleY,
+          position: [mesh.position.x, mesh.position.y, mesh.position.z],
+          rotation: config.rotation ? [...config.rotation] : undefined,
+        });
         break;
       }
 
@@ -169,22 +159,31 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
         const [radius, height] = config.geometry.params as [number, number, number?];
         const scaleXZ = config.scale?.[0] ?? 1;
         const scaleY = config.scale?.[1] ?? 1;
+
         // Approximate cone with cylinder (Rapier doesn't have native cone)
-        colliderDesc = RAPIER.ColliderDesc.cylinder((height * scaleY) / 2, (radius * scaleXZ) / 2);
+        context.services.physics.registerStatic(objectId, {
+          shape: 'cylinder',
+          radius: (radius * scaleXZ) / 2,
+          height: height * scaleY,
+          position: [mesh.position.x, mesh.position.y, mesh.position.z],
+          rotation: config.rotation ? [...config.rotation] : undefined,
+        });
         break;
       }
 
       default:
         console.warn(
-          `[SceneObjectsModule] Unknown geometry type: ${config.geometry.type}, using box collider`,
+          `[SceneObjectsModule] Unknown geometry type: ${config.geometry.type}, using default box collider`,
         );
-        colliderDesc = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
+        context.services.physics.registerStatic(objectId, {
+          shape: 'cuboid',
+          size: [1, 1, 1],
+          position: [mesh.position.x, mesh.position.y, mesh.position.z],
+        });
     }
 
-    world.createCollider(colliderDesc, rigidBody);
-
     console.log(
-      `✅ [SceneObjectsModule] Created Rapier collider for ${config.geometry.type} object ${index}`,
+      `✅ [SceneObjectsModule] Registered physics for ${config.geometry.type} object ${index}`,
     );
   }
 

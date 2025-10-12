@@ -4,7 +4,6 @@ import { I_SceneModule } from '@/scenes/scenes.types';
 import { GridHelper, InstancedMesh, Mesh, MeshStandardMaterial, PlaneGeometry } from 'three';
 import SceneModule from '@/game/SceneModule';
 import { I_ThemeColors } from '@/composables/useTheme';
-import type * as RAPIER_TYPE from '@dimforge/rapier3d';
 
 /**
  * Ground Module
@@ -13,17 +12,20 @@ import type * as RAPIER_TYPE from '@dimforge/rapier3d';
 export class GroundModule extends SceneModule implements I_SceneModule {
   private groundMaterial!: MeshStandardMaterial;
   private settings: ApplicationSettings;
+  private ground!: InstancedMesh;
+  private geometry!: PlaneGeometry;
+
 
   constructor(moduleName?: string) {
     super(moduleName);
     this.settings = useSettingsStore();
   }
 
-  async start(context: I_ModuleContext): Promise<void> {
+  protected async init(context: I_ModuleContext): Promise<void> {
     // Create ground plane (visual)
-    const ground = this.createGround();
+    this.createGround();
 
-    this.addToScene(context, ground);
+    this.addToScene(context, this.ground);
 
     // Create Rapier ground collider (physics)
     this.addPhysics(context);
@@ -32,38 +34,31 @@ export class GroundModule extends SceneModule implements I_SceneModule {
 
     this.addGridHelper(context);
 
-    // Emit loading complete event
-    super.start(context);
+
   }
 
   private createGround() {
-    const geometry = new PlaneGeometry(100, 100);
+    this.geometry = new PlaneGeometry(100, 100);
     this.groundMaterial = new MeshStandardMaterial({
       color: this.settings.theme.background,
     });
 
-    const ground = new InstancedMesh(geometry, this.groundMaterial, 1);
-    ground.count = 1;
-    ground.rotation.x = -Math.PI / 2;
-    ground.receiveShadow = true;
-    return ground;
+    this.ground = new InstancedMesh(this.geometry, this.groundMaterial, 1);
+    this.ground.count = 1;
+    this.ground.rotation.x = -Math.PI / 2;
+    this.ground.receiveShadow = true;
   }
 
   private addPhysics(context: I_ModuleContext) {
     if (context.services.physics.isReady()) {
-      const RAPIER = context.services.physics.getRapier();
-      const world = context.services.physics.getWorld();
+      // Register ground physics using simple API
+      context.services.physics.registerStatic('ground', {
+        shape: 'cuboid',
+        size: [100, 0.2, 100], // 100x0.2x100 box (width, height, depth)
+        position: [0, 0, 0],
+      });
 
-      // Create static rigid body at ground level (Y=0)
-      const groundBodyDesc = RAPIER.RigidBodyDesc.fixed();
-      groundBodyDesc.setTranslation(0, 0, 0);
-      const groundBody = world.createRigidBody(groundBodyDesc);
-
-      // Create large cuboid collider for ground (very thin box)
-      const groundColliderDesc = RAPIER.ColliderDesc.cuboid(50, 0.1, 50); // 100x0.2x100 box
-      world.createCollider(groundColliderDesc, groundBody);
-
-      console.log('✅ [GroundModule] Rapier ground collider created');
+      console.log('✅ [GroundModule] Ground physics registered');
     }
   }
 

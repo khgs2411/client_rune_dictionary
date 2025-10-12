@@ -11,7 +11,7 @@ export class DebugModule extends SceneModule implements I_SceneModule {
   constructor() {
     super('debug');
   }
-  async start(context: I_ModuleContext): Promise<void> {
+  protected async init(context: I_ModuleContext): Promise<void> {
     // Simulate async loading delay (for testing loading screen)
     // Bright red cube for debugging camera view
     const geometry = new BoxGeometry(2, 2, 2);
@@ -19,9 +19,6 @@ export class DebugModule extends SceneModule implements I_SceneModule {
     const cube = new Mesh(geometry, material);
     cube.position.set(10, 1, -8); // Moved to avoid z-fighting with scene objects
     this.addGridHelper(context, cube);
-
-    // Emit loading complete event
-    super.start(context);
   }
 
   public addGridHelper(context: I_ModuleContext, cube: Mesh) {

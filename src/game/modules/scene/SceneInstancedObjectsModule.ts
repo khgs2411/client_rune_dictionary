@@ -41,7 +41,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     this.settings = useSettingsStore();
   }
 
-  public async start(context: I_ModuleContext): Promise<void> {
+  protected async init(context: I_ModuleContext): Promise<void> {
     // Group objects by geometry + material properties
     const groups = this.groupObjects();
 
@@ -71,7 +71,6 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
       this.instancedMeshes.set(groupKey, instancedMesh);
     });
 
-    super.start(context);
   }
 
   private addCollisions(context: I_ModuleContext, groupKey: string, instancedMesh: InstancedMesh) {}

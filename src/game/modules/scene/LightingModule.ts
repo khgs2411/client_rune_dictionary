@@ -14,7 +14,7 @@ export class LightingModule extends SceneModule implements I_SceneModule {
     super(moduleName);
   }
 
-  async start(context: I_ModuleContext): Promise<void> {
+  protected async init(context: I_ModuleContext): Promise<void> {
     // Simulate async loading delay (for testing loading screen)
     // Ambient light
     const ambientLight = new AmbientLight(0xffffff, 0.5);
@@ -42,8 +42,6 @@ export class LightingModule extends SceneModule implements I_SceneModule {
     this.addGridHelper(context, directionalLight);
     this.lights.push(directionalLight);
 
-    // Emit loading complete event
-    super.start(context);
   }
 
   public addGridHelper(context: I_ModuleContext, directionalLight: DirectionalLight): void {
