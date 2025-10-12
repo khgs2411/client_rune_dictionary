@@ -14,7 +14,6 @@
 import DebugConsole from '@/components/DebugConsole.vue';
 import { RouterView } from 'vue-router';
 import Menu from './layout/Menu.vue';
-
 </script>
 
 <style scoped>

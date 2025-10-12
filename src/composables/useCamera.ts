@@ -27,7 +27,6 @@ export function useCamera(): I_GameCamera {
     1000, // Far
   );
 
-
   /**
    * Handle window resize - update camera aspect ratio
    */
@@ -92,7 +91,6 @@ export function useCamera(): I_GameCamera {
       controller.target.z + offsetZ,
     );
   });
-
 
   // Setup resize listener (VueUse auto-cleanup)
   useEventListener('resize', handleResize);

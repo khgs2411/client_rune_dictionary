@@ -8,7 +8,6 @@ import { BoxGeometry, Mesh, MeshBasicMaterial } from 'three';
  * Temporary debug visualization (red cube)
  */
 export class DebugModule extends SceneModule implements I_SceneModule {
-
   constructor() {
     super('debug');
   }
@@ -23,7 +22,6 @@ export class DebugModule extends SceneModule implements I_SceneModule {
 
     // Emit loading complete event
     super.start(context);
-
   }
 
   public addToScene(context: I_ModuleContext, cube: Mesh) {

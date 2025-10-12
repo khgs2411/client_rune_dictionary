@@ -40,7 +40,6 @@ export class GroundModule extends SceneModule implements I_SceneModule {
 
     // Emit loading complete event
     super.start(context);
-
   }
 
   public addToScene(context: I_ModuleContext, gridHelper: GridHelper) {

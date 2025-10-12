@@ -380,7 +380,11 @@ export class CollisionService implements I_SceneService {
   /**
    * Calculate overlap distance between two collidables
    */
-  private calculateOverlap(a: I_CollidableObject, b: I_CollidableObject, centerDistance: number): number {
+  private calculateOverlap(
+    a: I_CollidableObject,
+    b: I_CollidableObject,
+    centerDistance: number,
+  ): number {
     const aIsBox = a.bounds instanceof Box3;
     const bIsBox = b.bounds instanceof Box3;
 

@@ -102,7 +102,9 @@ function update(data: SceneLoadingProgressPayload) {
   loadedAssets.value = data.loaded;
   progress.value = progressPercent;
   currentAsset.value = data.assetName || '';
-  console.log(`⏳ [LoadingScreen] (${currentAsset.value}) Progress: ${progressPercent.toFixed(2)}%`);
+  console.log(
+    `⏳ [LoadingScreen] (${currentAsset.value}) Progress: ${progressPercent.toFixed(2)}%`,
+  );
   if (progressPercent >= 100) complete({ sceneName: data.sceneName });
 }
 

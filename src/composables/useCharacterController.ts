@@ -38,7 +38,6 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
     jump.update(movement.position.y, delta);
   }
 
-  
   /**
    * Returns the current position of the character as a `Vector3`.
    * The X and Z coordinates are taken from the movement state, while the Y coordinate is fixed at 1
@@ -51,7 +50,7 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
       movement.position.x.value,
       1, // Fixed height for lookAt
       movement.position.z.value,
-    )
+    );
   }
 
   /**

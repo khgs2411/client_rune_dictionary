@@ -134,7 +134,9 @@ export class Mouse {
 
     // Scroll
     if (this.config.trackScroll) {
-      target.addEventListener('wheel', this.boundHandlers.wheel as EventListener, { passive: false });
+      target.addEventListener('wheel', this.boundHandlers.wheel as EventListener, {
+        passive: false,
+      });
     }
 
     // Context menu
@@ -147,7 +149,10 @@ export class Mouse {
 
     // Pointer lock support
     if (this.config.supportPointerLock) {
-      document.addEventListener('pointerlockchange', this.boundHandlers.pointerLockChange as EventListener);
+      document.addEventListener(
+        'pointerlockchange',
+        this.boundHandlers.pointerLockChange as EventListener,
+      );
     }
 
     // Initialize dimensions
@@ -213,7 +218,7 @@ export class Mouse {
     // Update normalized device coordinates (-1 to 1)
     this._normalizedPosition.set(
       (newX / this.canvasWidth) * 2 - 1,
-      -(newY / this.canvasHeight) * 2 + 1
+      -(newY / this.canvasHeight) * 2 + 1,
     );
 
     // Emit move event
@@ -373,8 +378,14 @@ export class Mouse {
    * @param callback - Callback function to execute
    * @returns Unsubscribe function
    */
-  public on(event: 'move' | 'down' | 'up' | 'enter' | 'leave', callback: MouseEventCallback): () => void;
-  public on(event: 'click' | 'rightclick' | 'middleclick', callback: MouseEventCallback): () => void;
+  public on(
+    event: 'move' | 'down' | 'up' | 'enter' | 'leave',
+    callback: MouseEventCallback,
+  ): () => void;
+  public on(
+    event: 'click' | 'rightclick' | 'middleclick',
+    callback: MouseEventCallback,
+  ): () => void;
   public on(event: 'dragstart' | 'drag' | 'dragend', callback: MouseDragEventCallback): () => void;
   public on(event: 'scroll', callback: MouseScrollEventCallback): () => void;
   public on(event: 'pointerlockchange', callback: MouseEventCallback): () => void;
@@ -630,7 +641,10 @@ export class Mouse {
     window.removeEventListener('resize', this.boundHandlers.resize as EventListener);
 
     if (this.config.supportPointerLock) {
-      document.removeEventListener('pointerlockchange', this.boundHandlers.pointerLockChange as EventListener);
+      document.removeEventListener(
+        'pointerlockchange',
+        this.boundHandlers.pointerLockChange as EventListener,
+      );
     }
 
     // Exit pointer lock if active

@@ -16,7 +16,7 @@ import {
   NormalBufferAttributes,
   Quaternion,
   SphereGeometry,
-  Vector3
+  Vector3,
 } from 'three';
 
 /**
@@ -33,10 +33,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
   private instancedMeshes: Map<string, InstancedMesh> = new Map();
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
 
-  constructor(
-    objectConfigs: I_SceneObjectConfig[],
-    moduleName?: string,
-  ) {
+  constructor(objectConfigs: I_SceneObjectConfig[], moduleName?: string) {
     super(moduleName);
     this.objectConfigs = objectConfigs;
   }
@@ -56,7 +53,12 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
       }
 
       // Create instanced mesh
-      const instancedMesh: InstancedMesh = this.createInstancedMesh(geometry, material, instancedMeshConfig, configs);
+      const instancedMesh: InstancedMesh = this.createInstancedMesh(
+        geometry,
+        material,
+        instancedMeshConfig,
+        configs,
+      );
 
       this.addCollisions(context, groupKey, instancedMesh);
 
@@ -70,12 +72,11 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
   }
 
   private addCollisions(context: I_ModuleContext, groupKey: string, instancedMesh: InstancedMesh) {
-    const builder = context.services.collision.register(`scene-instanced-${this.id}-${groupKey}`, instancedMesh);
-    builder
-      .withBox()
-      .static()
-      .withWireframe()
-      .build();
+    const builder = context.services.collision.register(
+      `scene-instanced-${this.id}-${groupKey}`,
+      instancedMesh,
+    );
+    builder.withBox().static().withWireframe().build();
   }
 
   public async destroy(): Promise<void> {
@@ -99,7 +100,12 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     context.lifecycle.register(instancedMesh);
   }
 
-  private createInstancedMesh(geometry: BufferGeometry<NormalBufferAttributes, BufferGeometryEventMap>, material: MeshStandardMaterial, instancedMeshConfig: I_SceneObjectConfig, configs: I_SceneObjectConfig[]) {
+  private createInstancedMesh(
+    geometry: BufferGeometry<NormalBufferAttributes, BufferGeometryEventMap>,
+    material: MeshStandardMaterial,
+    instancedMeshConfig: I_SceneObjectConfig,
+    configs: I_SceneObjectConfig[],
+  ) {
     const instancedMesh = new InstancedMesh(geometry, material, configs.length);
     instancedMesh.count = 0;
     instancedMesh.castShadow = instancedMeshConfig.castShadow ?? true;
@@ -121,7 +127,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
 
     // Compute bounding sphere for proper frustum culling
     instancedMesh.computeBoundingSphere();
-    return instancedMesh
+    return instancedMesh;
   }
 
   /**
@@ -189,7 +195,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
    */
   private createMaterial(
     config: I_SceneObjectConfig,
-    context: I_ModuleContext
+    context: I_ModuleContext,
   ): MeshStandardMaterial {
     const { material } = config;
 

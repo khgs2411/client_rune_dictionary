@@ -1,4 +1,11 @@
-import { LineSegments, BufferGeometry, LineBasicMaterial, BufferAttribute, Sphere, Vector3 } from 'three';
+import {
+  LineSegments,
+  BufferGeometry,
+  LineBasicMaterial,
+  BufferAttribute,
+  Sphere,
+  Vector3,
+} from 'three';
 
 /**
  * Helper to visualize a Sphere (Three.js doesn't have this built-in)

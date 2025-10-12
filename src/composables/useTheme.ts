@@ -288,7 +288,6 @@ export function useTheme() {
   });
 
   return {
-
     colorMode,
     currentTheme,
     primary,

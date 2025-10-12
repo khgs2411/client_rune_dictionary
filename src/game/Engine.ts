@@ -1,4 +1,12 @@
-import { Camera, Clock, Color, LoadingManager, PCFSoftShadowMap, Scene, WebGLRenderer } from 'three';
+import {
+  Camera,
+  Clock,
+  Color,
+  LoadingManager,
+  PCFSoftShadowMap,
+  Scene,
+  WebGLRenderer,
+} from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { useRxjs } from 'topsyde-utils';
 import { watch } from 'vue';
@@ -17,7 +25,7 @@ export class Engine {
   size: {
     width: number;
     height: number;
-  }
+  };
 
   constructor(canvas: HTMLCanvasElement) {
     console.log('   ↳ Initializing Three.js engine...');
@@ -35,7 +43,7 @@ export class Engine {
       (showStats) => {
         this.stats.dom.style.display = showStats ? 'block' : 'none';
       },
-      { immediate: true }
+      { immediate: true },
     );
 
     // Create scene
@@ -54,8 +62,6 @@ export class Engine {
     this.renderer = this.createRenderer(canvas);
     console.log('   ↳ Engine initialized (Scene UUID:', this.scene.uuid + ')');
   }
-
-
 
   /**
    * Render the scene with the provided camera
@@ -84,7 +90,14 @@ export class Engine {
   }
 
   public isInBounds(x: number, y: number, z: number): boolean {
-    return x >= 0 && x < this.size.width && z >= 0 && z < this.size.width && y >= 0 && y < this.size.height
+    return (
+      x >= 0 &&
+      x < this.size.width &&
+      z >= 0 &&
+      z < this.size.width &&
+      y >= 0 &&
+      y < this.size.height
+    );
   }
 
   private createLoadingManager(): LoadingManager {
@@ -105,10 +118,9 @@ export class Engine {
       console.log('📦 [LoadingManager] All assets loaded');
     };
 
-
     manager.onError = (url) => {
       const rxjs$ = useRxjs('scene:loading');
-      rxjs$.$next('fail', { sceneName: "Engine", error: 'Failed to load: ' + url, url })
+      rxjs$.$next('fail', { sceneName: 'Engine', error: 'Failed to load: ' + url, url });
       console.error('📦 [LoadingManager] Error loading:', url);
     };
 
@@ -126,6 +138,6 @@ export class Engine {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFSoftShadowMap;
-    return renderer
+    return renderer;
   }
 }

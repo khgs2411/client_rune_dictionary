@@ -31,7 +31,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
   readonly name = 'PlaygroundScene';
   readonly engine: Engine;
 
-
   constructor(config: I_SceneConfig) {
     super();
     this.engine = config.engine;
@@ -45,12 +44,16 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
   protected registerModules(): void {
     this.addModule('lighting', new LightingModule());
     this.addModule('ground', new GroundModule(this.settings));
-    this.addModule('characterMesh', new CharacterMeshModule(this.settings, this.character.controller));
+    this.addModule(
+      'characterMesh',
+      new CharacterMeshModule(this.settings, this.character.controller),
+    );
   }
 
   protected addSceneObjects() {
-    this.addModule('instancedSceneObjects', new SceneInstancedObjectsModule(
-      [
+    this.addModule(
+      'instancedSceneObjects',
+      new SceneInstancedObjectsModule([
         {
           position: [5, 1, 0],
           scale: [2, 2, 2],
@@ -69,56 +72,124 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
           geometry: { type: 'box', params: [1, 1, 1] },
           material: { staticColor: 0x8b4513, roughness: 0.9 }, // Brown
         },
-      ],
-    ));
+      ]),
+    );
 
     // Unique interactive object (regular mesh) - use shared modules
-    this.addModule('sceneObjects', new SceneObjectsModule([
-      {
-        position: [-3, 1, 3], // Different position - not overlapping with boxes
-        geometry: { type: 'box', params: [2, 2, 2] }, // Increased segments for better raycast detection
-        material: { staticColor: 0xff00ff, roughness: 0.2, metalness: 0.8 }, // Shiny pink sphere
-        interactive: true,
-        interaction: {
-          clickVFX: true,
-          hoverGlow: true,
-          cameraShake: {
-            duration: 0.5,
-            intensity: 0.2
+    this.addModule(
+      'sceneObjects',
+      new SceneObjectsModule([
+        {
+          position: [-3, 1, 3], // Different position - not overlapping with boxes
+          geometry: { type: 'box', params: [2, 2, 2] }, // Increased segments for better raycast detection
+          material: { staticColor: 0xff00ff, roughness: 0.2, metalness: 0.8 }, // Shiny pink sphere
+          interactive: true,
+          interaction: {
+            clickVFX: true,
+            hoverGlow: true,
+            cameraShake: {
+              duration: 0.5,
+              intensity: 0.2,
+            },
+            tooltip: {
+              title: 'Another Themed Box',
+              description: 'Click me!',
+            },
           },
-          tooltip: {
-            title: 'Another Themed Box',
-            description: 'Click me!',
-          },
-        }
-      },
-    ]));
+        },
+      ]),
+    );
 
     // Tree trunks (brown cylinders) - instanced for performance (use shared modules)
-    this.addModule('treeTrunks', new SceneInstancedObjectsModule([
-      { position: [10, 0.75, 0], geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] }, material: { staticColor: 0x654321 } },
-      { position: [12, 0.75, 2], geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] }, material: { staticColor: 0x654321 } },
-      { position: [14, 0.75, -1], geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] }, material: { staticColor: 0x654321 } },
-      { position: [10, 0.75, -3], geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] }, material: { staticColor: 0x654321 } },
-      { position: [13, 0.75, -2], geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] }, material: { staticColor: 0x654321 } },
-    ]));
+    this.addModule(
+      'treeTrunks',
+      new SceneInstancedObjectsModule([
+        {
+          position: [10, 0.75, 0],
+          geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] },
+          material: { staticColor: 0x654321 },
+        },
+        {
+          position: [12, 0.75, 2],
+          geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] },
+          material: { staticColor: 0x654321 },
+        },
+        {
+          position: [14, 0.75, -1],
+          geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] },
+          material: { staticColor: 0x654321 },
+        },
+        {
+          position: [10, 0.75, -3],
+          geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] },
+          material: { staticColor: 0x654321 },
+        },
+        {
+          position: [13, 0.75, -2],
+          geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] },
+          material: { staticColor: 0x654321 },
+        },
+      ]),
+    );
 
     // Tree leaves (green cones) - instanced (use shared modules)
-    this.addModule('treeLeaves', new SceneInstancedObjectsModule([
-      { position: [10, 2, 0], geometry: { type: 'cone', params: [0.8, 1.5, 8] }, material: { staticColor: 0x228b22, roughness: 0.9 } },
-      { position: [12, 2, 2], geometry: { type: 'cone', params: [0.8, 1.5, 8] }, material: { staticColor: 0x228b22, roughness: 0.9 } },
-      { position: [14, 2, -1], geometry: { type: 'cone', params: [0.8, 1.5, 8] }, material: { staticColor: 0x228b22, roughness: 0.9 } },
-      { position: [10, 2, -3], geometry: { type: 'cone', params: [0.8, 1.5, 8] }, material: { staticColor: 0x228b22, roughness: 0.9 } },
-      { position: [13, 2, -2], geometry: { type: 'cone', params: [0.8, 1.5, 8] }, material: { staticColor: 0x228b22, roughness: 0.9 } },
-    ]));
+    this.addModule(
+      'treeLeaves',
+      new SceneInstancedObjectsModule([
+        {
+          position: [10, 2, 0],
+          geometry: { type: 'cone', params: [0.8, 1.5, 8] },
+          material: { staticColor: 0x228b22, roughness: 0.9 },
+        },
+        {
+          position: [12, 2, 2],
+          geometry: { type: 'cone', params: [0.8, 1.5, 8] },
+          material: { staticColor: 0x228b22, roughness: 0.9 },
+        },
+        {
+          position: [14, 2, -1],
+          geometry: { type: 'cone', params: [0.8, 1.5, 8] },
+          material: { staticColor: 0x228b22, roughness: 0.9 },
+        },
+        {
+          position: [10, 2, -3],
+          geometry: { type: 'cone', params: [0.8, 1.5, 8] },
+          material: { staticColor: 0x228b22, roughness: 0.9 },
+        },
+        {
+          position: [13, 2, -2],
+          geometry: { type: 'cone', params: [0.8, 1.5, 8] },
+          material: { staticColor: 0x228b22, roughness: 0.9 },
+        },
+      ]),
+    );
 
     // Bushes (green spheres) - instanced (use shared modules)
-    this.addModule('bushes', new SceneInstancedObjectsModule([
-      { position: [8, 0.3, 1], geometry: { type: 'sphere', params: [0.4, 8, 8] }, material: { staticColor: 0x2d5016, roughness: 1.0 } },
-      { position: [11, 0.3, -1], geometry: { type: 'sphere', params: [0.4, 8, 8] }, material: { staticColor: 0x2d5016, roughness: 1.0 } },
-      { position: [15, 0.3, 0], geometry: { type: 'sphere', params: [0.4, 8, 8] }, material: { staticColor: 0x2d5016, roughness: 1.0 } },
-      { position: [9, 0.3, -4], geometry: { type: 'sphere', params: [0.4, 8, 8] }, material: { staticColor: 0x2d5016, roughness: 1.0 } },
-    ]));
+    this.addModule(
+      'bushes',
+      new SceneInstancedObjectsModule([
+        {
+          position: [8, 0.3, 1],
+          geometry: { type: 'sphere', params: [0.4, 8, 8] },
+          material: { staticColor: 0x2d5016, roughness: 1.0 },
+        },
+        {
+          position: [11, 0.3, -1],
+          geometry: { type: 'sphere', params: [0.4, 8, 8] },
+          material: { staticColor: 0x2d5016, roughness: 1.0 },
+        },
+        {
+          position: [15, 0.3, 0],
+          geometry: { type: 'sphere', params: [0.4, 8, 8] },
+          material: { staticColor: 0x2d5016, roughness: 1.0 },
+        },
+        {
+          position: [9, 0.3, -4],
+          geometry: { type: 'sphere', params: [0.4, 8, 8] },
+          material: { staticColor: 0x2d5016, roughness: 1.0 },
+        },
+      ]),
+    );
 
     this.addModule('debug', new DebugModule());
   }

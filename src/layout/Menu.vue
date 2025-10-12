@@ -7,12 +7,22 @@
         <TooltipTrigger as-child>
           <Button variant="ghost" size="icon" class="h-8 w-8" @click="toggleDebugger">
             <Icon
-              :icon="config.debug.showWebSocketDebugger ? 'radix-icons:globe' : 'radix-icons:component-none'"
+              :icon="
+                config.debug.showWebSocketDebugger
+                  ? 'radix-icons:globe'
+                  : 'radix-icons:component-none'
+              "
               class="h-4 w-4" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{{ config.debug.showWebSocketDebugger ? 'Hide WebSocket Debugger' : 'Show WebSocket Debugger' }}</p>
+          <p>
+            {{
+              config.debug.showWebSocketDebugger
+                ? 'Hide WebSocket Debugger'
+                : 'Show WebSocket Debugger'
+            }}
+          </p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

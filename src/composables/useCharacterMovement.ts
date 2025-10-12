@@ -14,7 +14,7 @@ export interface CharacterMovement {
     delta: number,
     cameraAngleH: number,
     joystickInputX: number,
-    joystickInputZ: number
+    joystickInputZ: number,
   ) => void;
   reset: () => void;
 }
@@ -40,8 +40,16 @@ export function useCharacterMovement(): CharacterMovement {
     passive: false,
     onEventFired(e) {
       // Prevent default for WASD keys
-      if (e.key === 'w' || e.key === 'a' || e.key === 's' || e.key === 'd' ||
-          e.key === 'W' || e.key === 'A' || e.key === 'S' || e.key === 'D') {
+      if (
+        e.key === 'w' ||
+        e.key === 'a' ||
+        e.key === 's' ||
+        e.key === 'd' ||
+        e.key === 'W' ||
+        e.key === 'A' ||
+        e.key === 'S' ||
+        e.key === 'D'
+      ) {
         e.preventDefault();
         e.stopPropagation();
       }
@@ -59,7 +67,7 @@ export function useCharacterMovement(): CharacterMovement {
     delta: number,
     cameraAngleH: number,
     joystickInputX: number,
-    joystickInputZ: number
+    joystickInputZ: number,
   ) {
     let inputX = 0;
     let inputZ = 0;

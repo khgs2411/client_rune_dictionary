@@ -15,7 +15,7 @@ import {
   MeshStandardMaterial,
   NormalBufferAttributes,
   Object3DEventMap,
-  SphereGeometry
+  SphereGeometry,
 } from 'three';
 import { Guards } from 'topsyde-utils';
 import { ReactiveValue } from '../entity/interaction.types';
@@ -43,11 +43,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
   private meshes: Mesh[] = [];
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
 
-
-  constructor(
-    objectConfigs: I_SceneObjectConfig[],
-    moduleName?: string,
-  ) {
+  constructor(objectConfigs: I_SceneObjectConfig[], moduleName?: string) {
     super(moduleName);
     this.objectConfigs = objectConfigs;
   }
@@ -80,7 +76,6 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
       // Add to scene and lifecycle
       this.addToScene(context, mesh);
 
-
       this.meshes.push(mesh);
     });
 
@@ -89,11 +84,22 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
     // Emit loading complete event
     super.start(context);
   }
-  
-  addColission(config: I_SceneObjectConfig, context: I_ModuleContext, index: number, mesh: Mesh<BufferGeometry<NormalBufferAttributes, BufferGeometryEventMap>, MeshStandardMaterial, Object3DEventMap>) {
+
+  addColission(
+    config: I_SceneObjectConfig,
+    context: I_ModuleContext,
+    index: number,
+    mesh: Mesh<
+      BufferGeometry<NormalBufferAttributes, BufferGeometryEventMap>,
+      MeshStandardMaterial,
+      Object3DEventMap
+    >,
+  ) {
     // Check if physics service is ready
     if (!context.services.physics.isReady()) {
-      console.warn(`[SceneObjectsModule] Physics not ready, skipping collision for object ${index}`);
+      console.warn(
+        `[SceneObjectsModule] Physics not ready, skipping collision for object ${index}`,
+      );
       return;
     }
 
@@ -111,7 +117,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
         x: euler.x,
         y: euler.y,
         z: euler.z,
-        w: 1
+        w: 1,
       });
     }
 
@@ -129,7 +135,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
         colliderDesc = RAPIER.ColliderDesc.cuboid(
           (width * scaleX) / 2,
           (height * scaleY) / 2,
-          (depth * scaleZ) / 2
+          (depth * scaleZ) / 2,
         );
         break;
       }
@@ -142,7 +148,12 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
       }
 
       case 'cylinder': {
-        const [radiusTop, radiusBottom, height] = config.geometry.params as [number, number, number, number?];
+        const [radiusTop, radiusBottom, height] = config.geometry.params as [
+          number,
+          number,
+          number,
+          number?,
+        ];
         const scaleXZ = config.scale?.[0] ?? 1;
         const scaleY = config.scale?.[1] ?? 1;
         // Use average radius for cylinder collider
@@ -161,41 +172,63 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
       }
 
       default:
-        console.warn(`[SceneObjectsModule] Unknown geometry type: ${config.geometry.type}, using box collider`);
+        console.warn(
+          `[SceneObjectsModule] Unknown geometry type: ${config.geometry.type}, using box collider`,
+        );
         colliderDesc = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
     }
 
     world.createCollider(colliderDesc, rigidBody);
 
-    console.log(`✅ [SceneObjectsModule] Created Rapier collider for ${config.geometry.type} object ${index}`);
+    console.log(
+      `✅ [SceneObjectsModule] Created Rapier collider for ${config.geometry.type} object ${index}`,
+    );
   }
 
-  private addInteractable(config: I_SceneObjectConfig, context: I_ModuleContext, index: number, mesh: Mesh, gameConfig: GameConfig) {
+  private addInteractable(
+    config: I_SceneObjectConfig,
+    context: I_ModuleContext,
+    index: number,
+    mesh: Mesh,
+    gameConfig: GameConfig,
+  ) {
     if (config.interactive) {
       const tooltipConfig = config.interaction?.tooltip || {
         title: `${config.geometry.type} object`,
         description: 'A scene object',
       };
 
-      const builder = context.services.interaction.register(`scene-object-${this.id}-${index}`, mesh);
+      const builder = context.services.interaction.register(
+        `scene-object-${this.id}-${index}`,
+        mesh,
+      );
 
       // Apply hover glow with REACTIVE intensity! ✨
       if (config.interaction?.hoverGlow) {
-        const hoverGlow: { color?: number, intensity?: ReactiveValue<number> } = { color: undefined, intensity: undefined };
+        const hoverGlow: { color?: number; intensity?: ReactiveValue<number> } = {
+          color: undefined,
+          intensity: undefined,
+        };
         if (Guards.IsObject(config.interaction.hoverGlow)) {
           hoverGlow.color = config.interaction.hoverGlow.color;
           hoverGlow.intensity = config.interaction.hoverGlow.intensity;
         }
-        builder.withHoverGlow(hoverGlow.color || 0xff8c00, hoverGlow.intensity || (() => gameConfig.interaction.hoverGlowIntensity));
+        builder.withHoverGlow(
+          hoverGlow.color || 0xff8c00,
+          hoverGlow.intensity || (() => gameConfig.interaction.hoverGlowIntensity),
+        );
       }
 
       // Apply click VFX
       if (config.interaction?.clickVFX) {
-        const vfx: { text: string | undefined; color: string | undefined } = { text: undefined, color: undefined };
+        const vfx: { text: string | undefined; color: string | undefined } = {
+          text: undefined,
+          color: undefined,
+        };
         if (Guards.IsObject(config.interaction.clickVFX)) {
           vfx.text = config.interaction.clickVFX.text;
-          vfx.color = config.interaction.clickVFX.color
-        };
+          vfx.color = config.interaction.clickVFX.color;
+        }
         builder.withClickVFX(vfx.text, vfx.color);
       }
 
@@ -204,17 +237,18 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
       if (config.interaction?.cameraShake) {
         builder.withCameraShake(
           () => gameConfig.interaction.cameraShakeIntensity,
-          0.3 // Duration can be static
+          0.3, // Duration can be static
         );
       }
 
-
       // Apply particle effect with REACTIVE count! ✨
       // Always register (behavior checks count at runtime)
-      if (config.interaction?.particleEffect) builder.withParticleEffect(() => gameConfig.interaction.particleCount);
+      if (config.interaction?.particleEffect)
+        builder.withParticleEffect(() => gameConfig.interaction.particleCount);
 
       // Apply tooltip
-      if (config.interaction?.tooltip) builder.withTooltip(tooltipConfig.title, tooltipConfig.description);
+      if (config.interaction?.tooltip)
+        builder.withTooltip(tooltipConfig.title, tooltipConfig.description);
     }
   }
 
@@ -234,7 +268,12 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
     }
   }
 
-  private createMesh(geometry: BufferGeometry, material: MeshStandardMaterial, index: number, config: I_SceneObjectConfig) {
+  private createMesh(
+    geometry: BufferGeometry,
+    material: MeshStandardMaterial,
+    index: number,
+    config: I_SceneObjectConfig,
+  ) {
     const mesh = new Mesh(geometry, material);
     mesh.name = `scene-object-${index}`;
     mesh.castShadow = config.castShadow ?? true;
@@ -306,7 +345,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
    */
   private createMaterial(
     config: I_SceneObjectConfig,
-    context: I_ModuleContext
+    context: I_ModuleContext,
   ): MeshStandardMaterial {
     const { material } = config;
 

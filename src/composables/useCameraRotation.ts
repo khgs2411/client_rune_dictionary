@@ -14,7 +14,7 @@ export interface CameraRotation {
 export function useCameraRotation(
   angleH: Ref<number>,
   angleV: Ref<number>,
-  sensitivity = { h: 0.005, v: 0.005 }
+  sensitivity = { h: 0.005, v: 0.005 },
 ): CameraRotation {
   const config = useGameConfig();
 
@@ -34,7 +34,7 @@ export function useCameraRotation(
   function updateVertical(delta: number) {
     angleV.value = Math.max(
       MIN_VERTICAL,
-      Math.min(MAX_VERTICAL, angleV.value + delta * sensitivity.v)
+      Math.min(MAX_VERTICAL, angleV.value + delta * sensitivity.v),
     );
   }
 

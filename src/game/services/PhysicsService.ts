@@ -10,7 +10,7 @@ const RAPIER = import('@dimforge/rapier3d') as any;
  * Manages Rapier physics world for the game
  * Handles physics simulation step and world lifecycle
  */
-export class PhysicsService extends SceneModule{
+export class PhysicsService extends SceneModule {
   private world!: RAPIER_TYPE.World;
   private RAPIER!: typeof RAPIER_TYPE;
   private isInitialized = false;

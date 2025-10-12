@@ -4,8 +4,6 @@ import { I_GameCharacter } from './composables.types';
 import { useCharacterController } from './useCharacterController';
 import { Vector3 } from 'three';
 
-
-
 /**
  * High-level character entity composable
  * Wraps character controller and could handle Three.js mesh in the future
@@ -26,7 +24,6 @@ export function useCharacter(options: I_CharacterControlsOptions): I_GameCharact
   function update(delta: number) {
     controller.update(delta);
   }
-
 
   /**
    * Reset character to defaults

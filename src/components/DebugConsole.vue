@@ -172,7 +172,6 @@ const { x, y } = useDraggable(draggableContainer, {
   handle,
 });
 
-
 function clearEvents() {
   events.value = [];
   expandedEvents.value.clear();
@@ -211,7 +210,6 @@ function formatEventData(data: any): string {
   return String(data);
 }
 
-
 // Sync draggable position to settings (debounced and rounded)
 watchDebounced(
   [x, y],
@@ -240,7 +238,7 @@ usePointerSwipe(resizeHandle, {
       height: size.value.height,
     };
   },
-  
+
   onSwipe: (e) => {
     if (!isResizing.value) return;
 

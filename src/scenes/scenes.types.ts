@@ -10,7 +10,6 @@ import { VFXModule } from '@/game/modules/scene/VFXModule';
 import { CollisionService } from '@/game/services/CollisionService';
 import { PhysicsService } from '@/game/services/PhysicsService';
 
-
 /**
  * Core scene interface
  */
@@ -23,7 +22,6 @@ export interface I_GameScene {
   update(delta: number): void;
   destroy(): void;
 }
-
 
 export interface I_SceneService {
   start(ctx: I_ModuleContext): Promise<void> | void;

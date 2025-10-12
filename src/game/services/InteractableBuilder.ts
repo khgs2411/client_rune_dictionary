@@ -1,4 +1,8 @@
-import type { I_InteractableBehaviors, ReactiveValue, I_InteractionCallbacks } from '../modules/entity/interaction.types';
+import type {
+  I_InteractableBehaviors,
+  ReactiveValue,
+  I_InteractionCallbacks,
+} from '../modules/entity/interaction.types';
 
 /**
  * Fluent Builder for Interactable Configuration
@@ -50,7 +54,10 @@ export class InteractableBuilder {
    * @param intensity - Static number or getter function for reactive value
    * @param duration - Static number or getter function for reactive value
    */
-  public withCameraShake(intensity: ReactiveValue<number> = 0.1, duration: ReactiveValue<number> = 0.3): this {
+  public withCameraShake(
+    intensity: ReactiveValue<number> = 0.1,
+    duration: ReactiveValue<number> = 0.3,
+  ): this {
     this.behaviors.cameraShake = { intensity, duration };
     this.scheduleAutoBuild();
     return this;
@@ -61,7 +68,11 @@ export class InteractableBuilder {
    * @param count - Static number or getter function for reactive value
    * @param speed - Static number or getter function for reactive value
    */
-  public withParticleEffect(count: ReactiveValue<number> = 20, color?: number, speed?: ReactiveValue<number>): this {
+  public withParticleEffect(
+    count: ReactiveValue<number> = 20,
+    color?: number,
+    speed?: ReactiveValue<number>,
+  ): this {
     this.behaviors.particleEffect = { count, color, speed };
     this.scheduleAutoBuild();
     return this;

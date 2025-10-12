@@ -81,7 +81,10 @@ export class InteractionService implements I_SceneService {
     // Clear hover when pointer leaves canvas
     this.mouse.on('leave', this.endHover.bind(this));
 
-    console.log('✅ [InteractionService] Initialized (hybrid mode, hover threshold: %dms)', this.config.hoverHoldThreshold);
+    console.log(
+      '✅ [InteractionService] Initialized (hybrid mode, hover threshold: %dms)',
+      this.config.hoverHoldThreshold,
+    );
   }
 
   /**
@@ -244,7 +247,10 @@ export class InteractionService implements I_SceneService {
    * Build callbacks from behaviors (behavior composition)
    * Reactive values are evaluated at callback execution time!
    */
-  private buildCallbacks(object3D: Object3D, behaviors: I_InteractableBehaviors): I_InteractionCallbacks {
+  private buildCallbacks(
+    object3D: Object3D,
+    behaviors: I_InteractableBehaviors,
+  ): I_InteractionCallbacks {
     const callbacks: I_InteractionCallbacks = {};
     const vfx = this.getVFXModule();
 
@@ -265,10 +271,12 @@ export class InteractionService implements I_SceneService {
     callbacks: I_InteractionCallbacks,
     behaviors: I_InteractableBehaviors,
     object3D: Object3D,
-    vfx: VFXModule | null
+    vfx: VFXModule | null,
   ): void {
     if (behaviors.hoverGlow) {
-      const { color, intensity } = Guards.IsObject(behaviors.hoverGlow) ? behaviors.hoverGlow : { color: 0xff8c00, intensity: 0.2 };
+      const { color, intensity } = Guards.IsObject(behaviors.hoverGlow)
+        ? behaviors.hoverGlow
+        : { color: 0xff8c00, intensity: 0.2 };
 
       callbacks.onHoverStart = (intersection) => {
         // ✨ Evaluate intensity dynamically!
@@ -293,10 +301,12 @@ export class InteractionService implements I_SceneService {
   private buildClickVFXCallbacks(
     callbacks: I_InteractionCallbacks,
     behaviors: I_InteractableBehaviors,
-    vfx: VFXModule | null
+    vfx: VFXModule | null,
   ): void {
     if (behaviors.clickVFX) {
-      const { text, color } = Guards.IsObject(behaviors.clickVFX) ? behaviors.clickVFX : { text: undefined, color: undefined };
+      const { text, color } = Guards.IsObject(behaviors.clickVFX)
+        ? behaviors.clickVFX
+        : { text: undefined, color: undefined };
       const originalClick = callbacks.onClick;
 
       callbacks.onClick = (intersection) => {
@@ -321,7 +331,7 @@ export class InteractionService implements I_SceneService {
     callbacks: I_InteractionCallbacks,
     behaviors: I_InteractableBehaviors,
     object3D: Object3D,
-    vfx: VFXModule | null
+    vfx: VFXModule | null,
   ): void {
     if (behaviors.tooltip) {
       const { title, description } = behaviors.tooltip;
@@ -351,7 +361,7 @@ export class InteractionService implements I_SceneService {
   private buildCameraShakeCallbacks(
     callbacks: I_InteractionCallbacks,
     behaviors: I_InteractableBehaviors,
-    vfx: VFXModule | null
+    vfx: VFXModule | null,
   ): void {
     if (behaviors.cameraShake) {
       const { intensity, duration } = behaviors.cameraShake;
@@ -371,7 +381,7 @@ export class InteractionService implements I_SceneService {
   private buildParticleCallbacks(
     callbacks: I_InteractionCallbacks,
     behaviors: I_InteractableBehaviors,
-    vfx: VFXModule | null
+    vfx: VFXModule | null,
   ): void {
     if (behaviors.particleEffect) {
       const { count, color, speed } = behaviors.particleEffect;
@@ -383,7 +393,7 @@ export class InteractionService implements I_SceneService {
           intersection.point,
           this.resolveValue(count),
           color,
-          speed !== undefined ? this.resolveValue(speed) : undefined
+          speed !== undefined ? this.resolveValue(speed) : undefined,
         );
         originalClick?.(intersection);
       };
@@ -402,7 +412,11 @@ export class InteractionService implements I_SceneService {
    * Uses cached array for zero allocation per frame
    */
   private performRaycast(camera: Camera): void {
-    const intersects = this.raycast.fromCamera(this.mouse.normalizedPositionRef, camera, this.interactableObjects);
+    const intersects = this.raycast.fromCamera(
+      this.mouse.normalizedPositionRef,
+      camera,
+      this.interactableObjects,
+    );
 
     if (intersects.length > 0) {
       const interactable = this.findInteractable(intersects[0].object);
@@ -485,7 +499,7 @@ export class InteractionService implements I_SceneService {
       const intersects = this.raycast.fromCamera(
         this.mouse.normalizedPositionRef,
         this.context.camera.instance,
-        [this.currentHover.object.object3D]
+        [this.currentHover.object.object3D],
       );
 
       if (intersects.length > 0) {

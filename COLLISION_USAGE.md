@@ -88,25 +88,16 @@ Use layers to control which objects collide with each other:
 context.services.collision
   .register('player', playerMesh)
   .withBox()
-  .withLayer(0b0001)  // Binary notation
+  .withLayer(0b0001) // Binary notation
   .build();
 
 // Walls on layers 1 and 2 (binary: 0011)
 // This wall collides with both layer 1 (players) and layer 2 (enemies)
-context.services.collision
-  .register('wall', wallMesh)
-  .withBox()
-  .withLayer(0b0011)
-  .static()
-  .build();
+context.services.collision.register('wall', wallMesh).withBox().withLayer(0b0011).static().build();
 
 // Enemies on layer 2 only (binary: 0010)
 // This enemy only collides with walls, NOT with players
-context.services.collision
-  .register('enemy', enemyMesh)
-  .withBox()
-  .withLayer(0b0010)
-  .build();
+context.services.collision.register('enemy', enemyMesh).withBox().withLayer(0b0010).build();
 ```
 
 **Layer logic:** Objects collide if `(layer1 & layer2) !== 0`
@@ -120,38 +111,39 @@ Show collision bounds for specific objects:
 context.services.collision
   .register('player', playerMesh)
   .withSphere()
-  .withWireframe()  // Shows green collision bounds
+  .withWireframe() // Shows green collision bounds
   .build();
 
 // Custom color wireframe
 context.services.collision
   .register('enemy', enemyMesh)
   .withBox()
-  .withWireframe(0xff0000)  // Red wireframe
+  .withWireframe(0xff0000) // Red wireframe
   .build();
 
 // Multiple colored wireframes for different object types
 context.services.collision
   .register('player', playerMesh)
   .withSphere()
-  .withWireframe(0x00ff00)  // Green for player
+  .withWireframe(0x00ff00) // Green for player
   .build();
 
 context.services.collision
   .register('wall', wallMesh)
   .withBox()
   .static()
-  .withWireframe(0xffff00)  // Yellow for walls
+  .withWireframe(0xffff00) // Yellow for walls
   .build();
 
 context.services.collision
   .register('enemy', enemyMesh)
   .withBox()
-  .withWireframe(0xff0000)  // Red for enemies
+  .withWireframe(0xff0000) // Red for enemies
   .build();
 ```
 
 **Notes:**
+
 - Per-object wireframes work independently of global `debugDraw`
 - Wireframes update automatically as objects move
 - Use different colors to distinguish object types
@@ -191,8 +183,8 @@ import { Vector3 } from 'three';
 context.services.collision
   .register('custom', mesh)
   .withBox()
-  .withBoundsScale(1.2)  // Make collision bounds 20% larger
-  .withBoundsOffset(new Vector3(0, 0.5, 0))  // Offset bounds upward
+  .withBoundsScale(1.2) // Make collision bounds 20% larger
+  .withBoundsOffset(new Vector3(0, 0.5, 0)) // Offset bounds upward
   .build();
 ```
 
@@ -215,7 +207,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
     wallConfigs.forEach(({ id, pos }) => {
       const wall = new Mesh(
         new BoxGeometry(2, 2, 20),
-        new MeshStandardMaterial({ color: 0x808080 })
+        new MeshStandardMaterial({ color: 0x808080 }),
       );
       wall.position.set(pos[0], pos[1], pos[2]);
       context.scene.add(wall);
@@ -223,17 +215,13 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
       this.meshes.push(wall);
 
       // Register as static collidable
-      context.services.collision
-        .register(id, wall)
-        .withBox()
-        .static()
-        .build();
+      context.services.collision.register(id, wall).withBox().static().build();
     });
 
     // Create dynamic obstacles (can be pushed)
     const boxMesh = new Mesh(
       new BoxGeometry(1, 1, 1),
-      new MeshStandardMaterial({ color: 0xff0000 })
+      new MeshStandardMaterial({ color: 0xff0000 }),
     );
     boxMesh.position.set(5, 0.5, 0);
     context.scene.add(boxMesh);
@@ -278,7 +266,7 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     // Create character mesh
     this.characterMesh = new Mesh(
       new CapsuleGeometry(0.3, 1.0),
-      new MeshStandardMaterial({ color: 0x00ff00 })
+      new MeshStandardMaterial({ color: 0x00ff00 }),
     );
     context.scene.add(this.characterMesh);
     context.lifecycle.register(this.characterMesh);
@@ -286,9 +274,9 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     // Register collision for character
     context.services.collision
       .register('player', this.characterMesh)
-      .withSphere()  // Sphere is good for characters
-      .dynamic()     // Player can be pushed by collisions
-      .withLayer(0b0001)  // Player layer
+      .withSphere() // Sphere is good for characters
+      .dynamic() // Player can be pushed by collisions
+      .withLayer(0b0001) // Player layer
       .withCallbacks({
         onCollisionEnter: (other) => {
           // Play collision sound, show damage, etc.
@@ -343,11 +331,7 @@ const wallHeight = 3;
 const wallThickness = 0.5;
 
 // North wall
-context.services.collision
-  .register('wall-n', northWallMesh)
-  .withBox()
-  .static()
-  .build();
+context.services.collision.register('wall-n', northWallMesh).withBox().static().build();
 
 // Repeat for south, east, west...
 ```
@@ -360,7 +344,7 @@ context.services.collision
   .register('npc', npcMesh)
   .withSphere()
   .dynamic()
-  .withLayer(0b0010)  // Layer 2
+  .withLayer(0b0010) // Layer 2
   .withCallbacks({
     onCollisionEnter: (other) => {
       if (other.id === 'player') {
@@ -397,17 +381,20 @@ context.services.interaction
 ## Troubleshooting
 
 ### Objects pass through each other
+
 - Make sure both objects are registered with collision
 - Check layer compatibility: `(layer1 & layer2) !== 0`
 - Increase `boundsScale` if collision bounds are too small
 - Enable debug draw to visualize bounds
 
 ### Character gets stuck
+
 - Character might be colliding with ground - use layers to exclude ground
 - Reduce `boundsScale` to make collision bounds smaller
 - Check for overlapping static objects at spawn point
 
 ### Performance issues
+
 - Too many dynamic objects - consider making some static
 - Use spatial partitioning (not implemented yet, but planned)
 - Reduce collision checks with layer filtering

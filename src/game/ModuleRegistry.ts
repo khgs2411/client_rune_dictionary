@@ -134,7 +134,9 @@ export class ModuleRegistry<TModuleRegistry extends Record<string, I_SceneModule
   /**
    * Type guard for updateable modules
    */
-  private isUpdateable(module: any): module is I_SceneModule & { update: (delta: number, ...args: any[]) => void | Promise<void> } {
+  private isUpdateable(
+    module: any,
+  ): module is I_SceneModule & { update: (delta: number, ...args: any[]) => void | Promise<void> } {
     return typeof module.update === 'function';
   }
 }

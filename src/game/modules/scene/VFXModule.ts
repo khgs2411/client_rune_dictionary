@@ -272,7 +272,7 @@ class ParticleSystem {
       const velocity = new Vector3(
         Math.cos(angle) * speed + (Math.random() - 0.5),
         Math.random() * speed * 2,
-        Math.sin(angle) * speed + (Math.random() - 0.5)
+        Math.sin(angle) * speed + (Math.random() - 0.5),
       );
 
       this.particles.push({
@@ -358,7 +358,10 @@ export class VFXModule extends SceneModule implements I_SceneModule {
   private particlePool: ParticleSystem[] = [];
 
   // Active animations
-  private activeTextAnims = new Map<TextSprite, { startTime: number; duration: number; startPos: Vector3 }>();
+  private activeTextAnims = new Map<
+    TextSprite,
+    { startTime: number; duration: number; startPos: Vector3 }
+  >();
   private activeTooltip: TooltipBillboard | null = null;
 
   // Material cache for emissive glow
@@ -394,10 +397,11 @@ export class VFXModule extends SceneModule implements I_SceneModule {
       this.particlePool.push(particles);
     }
 
-    console.log('✨ [VFXModule] Initialized with pools (text: %d, tooltips: %d, particles: %d)',
+    console.log(
+      '✨ [VFXModule] Initialized with pools (text: %d, tooltips: %d, particles: %d)',
       this.textSpritePool.length,
       this.tooltipPool.length,
-      this.particlePool.length
+      this.particlePool.length,
     );
 
     super.start(context);
@@ -593,7 +597,12 @@ export class VFXModule extends SceneModule implements I_SceneModule {
   /**
    * Spawn particle burst effect
    */
-  spawnParticles(worldPosition: Vector3, count: number = 20, color: number = 0xffd700, speed: number = 3): void {
+  spawnParticles(
+    worldPosition: Vector3,
+    count: number = 20,
+    color: number = 0xffd700,
+    speed: number = 3,
+  ): void {
     const particles = this.particlePool.find((p) => p.isAvailable());
     if (!particles) {
       console.warn('[VFXModule] No available particle systems in pool');

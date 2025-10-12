@@ -45,7 +45,7 @@ declare module 'troika-three-text' {
         font?: string;
         characters?: string;
       },
-      callback?: () => void
+      callback?: () => void,
     ): void;
   }
 }

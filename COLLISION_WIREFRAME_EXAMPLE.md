@@ -10,7 +10,7 @@ context.services.collision
   .register('debug-box', boxMesh)
   .withBox()
   .static()
-  .withWireframe()  // Default green (0x00ff00)
+  .withWireframe() // Default green (0x00ff00)
   .build();
 ```
 
@@ -24,7 +24,7 @@ context.services.collision
   .register('player', playerMesh)
   .withSphere()
   .dynamic()
-  .withWireframe(0x00ff00)  // Green
+  .withWireframe(0x00ff00) // Green
   .build();
 
 // Walls - Yellow boxes
@@ -34,7 +34,7 @@ walls.forEach((id, index) => {
     .register(id, wallMeshes[index])
     .withBox()
     .static()
-    .withWireframe(0xffff00)  // Yellow
+    .withWireframe(0xffff00) // Yellow
     .build();
 });
 
@@ -44,7 +44,7 @@ enemies.forEach((enemy, index) => {
     .register(`enemy-${index}`, enemy.mesh)
     .withBox()
     .dynamic()
-    .withWireframe(0xff0000)  // Red
+    .withWireframe(0xff0000) // Red
     .build();
 });
 
@@ -54,13 +54,13 @@ collectibles.forEach((item, index) => {
     .register(`item-${index}`, item.mesh)
     .withSphere()
     .dynamic()
-    .withWireframe(0x00ffff)  // Cyan
+    .withWireframe(0x00ffff) // Cyan
     .withCallbacks({
       onCollisionEnter: (other) => {
         if (other.id === 'player') {
           collectItem(item);
         }
-      }
+      },
     })
     .build();
 });
@@ -76,7 +76,7 @@ context.services.collision
   .register('player', playerMesh)
   .withSphere()
   .dynamic()
-  .withWireframe(isDevelopment ? 0x00ff00 : undefined)  // Only in dev
+  .withWireframe(isDevelopment ? 0x00ff00 : undefined) // Only in dev
   .build();
 
 // Or use a debug flag
@@ -90,11 +90,7 @@ if (showCollisionBounds) {
     .withWireframe(0x00ff00)
     .build();
 } else {
-  context.services.collision
-    .register('player', playerMesh)
-    .withSphere()
-    .dynamic()
-    .build();
+  context.services.collision.register('player', playerMesh).withSphere().dynamic().build();
 }
 ```
 
@@ -114,7 +110,7 @@ export class EnemyModule extends SceneModule {
       .register(this.enemyId, enemyMesh)
       .withBox()
       .dynamic()
-      .withWireframe(0xffff00)  // Yellow when idle
+      .withWireframe(0xffff00) // Yellow when idle
       .withCallbacks({
         onCollisionEnter: (other) => {
           if (other.id === 'player') {
@@ -127,7 +123,7 @@ export class EnemyModule extends SceneModule {
             // Back to yellow
             this.updateWireframeColor(context, 0xffff00);
           }
-        }
+        },
       })
       .build();
   }
@@ -183,17 +179,13 @@ export class CollisionTestScene extends GameScene {
       },
     ];
 
-    objects.forEach(obj => {
-      const mesh = new Mesh(
-        obj.geometry,
-        new MeshStandardMaterial({ color: obj.color })
-      );
+    objects.forEach((obj) => {
+      const mesh = new Mesh(obj.geometry, new MeshStandardMaterial({ color: obj.color }));
       mesh.position.set(...obj.position);
       context.scene.add(mesh);
       context.lifecycle.register(mesh);
 
-      const builder = context.services.collision
-        .register(obj.id, mesh);
+      const builder = context.services.collision.register(obj.id, mesh);
 
       if (obj.shape === 'box') {
         builder.withBox();
@@ -208,7 +200,7 @@ export class CollisionTestScene extends GameScene {
       }
 
       builder
-        .withWireframe(obj.color)  // Match mesh color
+        .withWireframe(obj.color) // Match mesh color
         .build();
     });
   }
@@ -254,6 +246,7 @@ context.services.collision
 ## Performance Note
 
 Wireframes have minimal performance impact:
+
 - Only updates when bounds change (object moves)
 - Uses efficient LineSegments geometry
 - Sphere wireframes: 3 circles with 32 segments each

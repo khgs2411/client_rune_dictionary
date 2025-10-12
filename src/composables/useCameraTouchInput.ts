@@ -10,10 +10,7 @@ export interface CameraTouchInput {}
  * Camera touch input composable
  * Handles touch-based camera controls (rotation, pinch zoom)
  */
-export function useCameraTouchInput(
-  rotation: CameraRotation,
-  zoom: CameraZoom
-): CameraTouchInput {
+export function useCameraTouchInput(rotation: CameraRotation, zoom: CameraZoom): CameraTouchInput {
   const config = useGameConfig();
 
   // Touch-specific state
@@ -57,7 +54,7 @@ export function useCameraTouchInput(
       // Update rotation (use touch sensitivity from config)
       rotation.update(
         deltaX * config.camera.touchSensitivityMultiplier,
-        deltaY * config.camera.touchSensitivityMultiplier
+        deltaY * config.camera.touchSensitivityMultiplier,
       );
 
       // Update touch start position for next frame

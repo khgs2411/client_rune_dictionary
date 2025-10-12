@@ -14,7 +14,6 @@ export class LightingModule extends SceneModule implements I_SceneModule {
     super(moduleName);
   }
 
-
   async start(context: I_ModuleContext): Promise<void> {
     // Simulate async loading delay (for testing loading screen)
     // Ambient light
@@ -45,14 +44,12 @@ export class LightingModule extends SceneModule implements I_SceneModule {
 
     // Emit loading complete event
     super.start(context);
-
   }
 
   public addToScene(context: I_ModuleContext, directionalLight: DirectionalLight): void {
     context.scene.add(directionalLight);
     context.lifecycle.register(directionalLight);
   }
-
 
   async destroy(): Promise<void> {
     // Lifecycle handles cleanup

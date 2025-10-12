@@ -26,7 +26,11 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
   private world!: RAPIER_TYPE.World;
   private RAPIER!: typeof RAPIER_TYPE;
 
-  constructor(settings: SettingsStore, characterController: I_CharacterControls, moduleName: string = 'characterMesh') {
+  constructor(
+    settings: SettingsStore,
+    characterController: I_CharacterControls,
+    moduleName: string = 'characterMesh',
+  ) {
     super(moduleName);
     this.settings = settings;
     this.characterController = characterController;
@@ -87,14 +91,11 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     const desiredMovement = new this.RAPIER.Vector3(
       this.characterController.position.x.value - currentPos.x,
       this.characterController.position.y.value - currentPos.y,
-      this.characterController.position.z.value - currentPos.z
+      this.characterController.position.z.value - currentPos.z,
     );
 
     // Compute collision-corrected movement using Rapier
-    this.characterControllerRapier.computeColliderMovement(
-      this.collider,
-      desiredMovement
-    );
+    this.characterControllerRapier.computeColliderMovement(this.collider, desiredMovement);
 
     // Get the corrected movement (Rapier blocks collisions automatically)
     const correctedMovement = this.characterControllerRapier.computedMovement();
@@ -103,7 +104,7 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     const newPos = {
       x: currentPos.x + correctedMovement.x,
       y: currentPos.y + correctedMovement.y,
-      z: currentPos.z + correctedMovement.z
+      z: currentPos.z + correctedMovement.z,
     };
     this.rigidBody.setNextKinematicTranslation(newPos);
 
@@ -122,7 +123,6 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     context.scene.add(this.mesh);
     context.lifecycle.register(this.mesh);
   }
-
 
   private buildForwardIndicator() {
     const coneGeometry = new ConeGeometry(0.2, 0.4, 8);
@@ -145,7 +145,6 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     body.castShadow = true;
     this.mesh.add(body);
   }
-
 
   async destroy(): Promise<void> {
     // Remove Rapier physics components

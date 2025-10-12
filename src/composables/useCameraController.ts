@@ -14,7 +14,7 @@ import { useCameraZoom } from './useCameraZoom';
 export function useCameraController(): I_CameraControls {
   const config = useGameConfig();
 
-  const target = reactive({ x: 0, z: 0, y: 0 })
+  const target = reactive({ x: 0, z: 0, y: 0 });
 
   if (config.debug.enableConsoleLog) {
     console.log('         ↳ Camera controller initialized');
@@ -26,15 +26,14 @@ export function useCameraController(): I_CameraControls {
   const cameraAngleV = ref(config.camera.initialAngleV);
 
   // Compose smaller, focused composables (pass config sensitivity/limits)
-  const rotation = useCameraRotation(
-    cameraAngleH,
-    cameraAngleV,
-    { h: config.camera.mouseSensitivityH, v: config.camera.mouseSensitivityV }
-  );
-  const zoom = useCameraZoom(
-    cameraDistance,
-    { min: config.camera.zoomMin, max: config.camera.zoomMax }
-  );
+  const rotation = useCameraRotation(cameraAngleH, cameraAngleV, {
+    h: config.camera.mouseSensitivityH,
+    v: config.camera.mouseSensitivityV,
+  });
+  const zoom = useCameraZoom(cameraDistance, {
+    min: config.camera.zoomMin,
+    max: config.camera.zoomMax,
+  });
   const mouse = useCameraMouseInput(rotation, zoom);
   useCameraTouchInput(rotation, zoom); // Side effects only
 
@@ -45,9 +44,7 @@ export function useCameraController(): I_CameraControls {
     const offsetZ =
       Math.cos(cameraAngleH.value) * cameraDistance.value * Math.cos(cameraAngleV.value);
     const offsetY = Math.sin(cameraAngleV.value) * cameraDistance.value;
-
   });
-
 
   /**
    * Reset camera to defaults
@@ -67,7 +64,6 @@ export function useCameraController(): I_CameraControls {
   }
 
   function update(lookAtVector: Vector3) {
-
     target.x = lookAtVector.x;
     target.z = lookAtVector.z;
   }

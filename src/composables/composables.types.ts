@@ -5,58 +5,58 @@ import { useCameraController } from './useCameraController';
 import { useCharacterController } from './useCharacterController';
 
 export interface I_GameComposable {
-    start?: () => void;
-    update: (...args: any) => void;
-    reset: () => void;
-    destroy: () => void;
+  start?: () => void;
+  update: (...args: any) => void;
+  reset: () => void;
+  destroy: () => void;
 }
 
 export interface I_JoystickControls {
-    active: Ref<boolean>;
-    x: Ref<number>;
-    y: Ref<number>;
-    startX: Ref<number>;
-    startY: Ref<number>;
+  active: Ref<boolean>;
+  x: Ref<number>;
+  y: Ref<number>;
+  startX: Ref<number>;
+  startY: Ref<number>;
 }
 
 export interface I_CharacterControls extends I_GameComposable {
-    position: {
-        x: Ref<number>;
-        y: Ref<number>;
-        z: Ref<number>;
-    };
-    rotation: Ref<number>;
-    speed: Ref<number>;
-    isJumping: Ref<boolean>;
-    joystick: I_JoystickControls;
-    getPosition: () => Vector3;
-    update: (delta: number) => void;
+  position: {
+    x: Ref<number>;
+    y: Ref<number>;
+    z: Ref<number>;
+  };
+  rotation: Ref<number>;
+  speed: Ref<number>;
+  isJumping: Ref<boolean>;
+  joystick: I_JoystickControls;
+  getPosition: () => Vector3;
+  update: (delta: number) => void;
 }
 
 export interface I_CameraControls extends I_GameComposable {
-    angle: {
-        horizontal: Ref<number>;
-        vertical: Ref<number>;
-    };
-    distance: Ref<number>;
-    isDragging: Ref<boolean>;
-    target: TargetPosition;
+  angle: {
+    horizontal: Ref<number>;
+    vertical: Ref<number>;
+  };
+  distance: Ref<number>;
+  isDragging: Ref<boolean>;
+  target: TargetPosition;
 
-    update: (target: Vector3) => void;
+  update: (target: Vector3) => void;
 }
 
 export interface I_GameCamera extends I_GameComposable {
-    //js instance
-    instance: PerspectiveCamera;
+  //js instance
+  instance: PerspectiveCamera;
 
-    // Controller state
-    controller: ReturnType<typeof useCameraController>;
+  // Controller state
+  controller: ReturnType<typeof useCameraController>;
 
-    // Methods
-    start: () => void;
+  // Methods
+  start: () => void;
 }
 
 export interface I_GameCharacter extends I_GameComposable {
-    // State (delegated from controller)
-    controller: ReturnType<typeof useCharacterController>;
+  // State (delegated from controller)
+  controller: ReturnType<typeof useCharacterController>;
 }

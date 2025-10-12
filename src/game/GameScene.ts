@@ -31,7 +31,9 @@ import { PhysicsService } from '@/game/services/PhysicsService';
  * - VFXModule for visual effects (Three.js object pooling)
  * - Optional lifecycle hooks (no need for I_UpdateableModule, I_ThemedModule interfaces)
  */
-export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneModule> = Record<string, I_SceneModule>> {
+export abstract class GameScene<
+  TModuleRegistry extends Record<string, I_SceneModule> = Record<string, I_SceneModule>,
+> {
   private enabled = false;
 
   protected lifecycle: SceneLifecycle = new SceneLifecycle();
@@ -71,7 +73,10 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
         this.registry.forEach((module) => {
           if (this.registry.getModuleName(module) === data.moduleName) {
             this.registry.markInitialized(module);
-            this.loading('loaded', { loaded: this.registry.initializedCount(), assetName:data.moduleName });
+            this.loading('loaded', {
+              loaded: this.registry.initializedCount(),
+              assetName: data.moduleName,
+            });
           }
         });
       },
@@ -91,7 +96,6 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
    * Scene name (must be overridden by subclass)
    */
 
-
   /**
    * Template method: Scene initialization flow
    * Can be overridden for custom initialization order
@@ -107,7 +111,6 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
 
     console.log(`✅ [${this.name}] Scene initialization complete`);
   }
-
 
   /**
    * Update loop
@@ -169,7 +172,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
   protected loading(event: 'fail', data: Omit<SceneErrorPayload, 'sceneName'>): void;
   protected loading<T extends Omit<SceneLoadingEvent, 'sceneName'>>(
     event: 'start' | 'loaded' | 'fail',
-    data: T
+    data: T,
   ): void {
     this.sceneEvents.$next(event, { sceneName: this.name, ...data });
   }
@@ -220,13 +223,12 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
    */
   protected abstract addSceneObjects(): void;
 
-
   /**
    * Start async module loading
    * Override only if you need custom context or loading logic
    */
   protected startModuleLoading(): void {
-    const context: I_ModuleContext = this.getModuleContext()
+    const context: I_ModuleContext = this.getModuleContext();
 
     this.loading('start', { totalAssets: this.moduleCount() });
     this.forEachModule((m) => m.start(context));
@@ -252,7 +254,6 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
   protected finalizeSetup(): void {
     this.camera.start();
   }
-
 
   /**
    * Cleanup
