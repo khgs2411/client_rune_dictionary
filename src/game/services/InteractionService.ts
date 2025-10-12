@@ -130,7 +130,10 @@ export class InteractionService implements I_SceneService {
    * ```
    */
   public register(id: string, object3D: Object3D): InteractableBuilder {
-    return new InteractableBuilder(id, object3D, this);
+    // Builder auto-registers via callback when chaining completes
+    return new InteractableBuilder((behaviors) => {
+      this._register(id, object3D, behaviors);
+    });
   }
 
   /**
@@ -189,9 +192,9 @@ export class InteractionService implements I_SceneService {
   }
 
   /**
-   * Internal registration (called by builder)
+   * Internal registration (called by builder callback)
    */
-  public _internalRegister(id: string, object3D: Object3D, behaviors: I_InteractableBehaviors): void {
+  private _register(id: string, object3D: Object3D, behaviors: I_InteractableBehaviors): void {
     const callbacks = this.buildCallbacks(object3D, behaviors);
 
     // Derive hoverable/clickable from behaviors

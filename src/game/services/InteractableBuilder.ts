@@ -1,25 +1,19 @@
-import { Object3D } from 'three';
 import type { I_InteractableBehaviors, ReactiveValue, I_InteractionCallbacks } from '../modules/entity/interaction.types';
-import { InteractionService } from './InteractionService';
 
 /**
- * Fluent Builder for Interactable Registration
- * Provides clean API with behavior composition
+ * Fluent Builder for Interactable Configuration
+ * Pure data builder with no side effects
  *
  * Supports reactive values via getter functions!
  * Example: .withHoverGlow(0xff8c00, () => gameConfig.interaction.hoverGlowIntensity)
  */
 export class InteractableBuilder {
-  private id: string;
-  private object3D: Object3D;
   private behaviors: I_InteractableBehaviors = {};
-  private service: InteractionService;
-  private buildScheduled = false;
+  private manualBuild = false;
+  private onBuild?: (behaviors: I_InteractableBehaviors) => void;
 
-  public constructor(id: string, object3D: Object3D, service: InteractionService) {
-    this.id = id;
-    this.object3D = object3D;
-    this.service = service;
+  public constructor(onBuild?: (behaviors: I_InteractableBehaviors) => void) {
+    this.onBuild = onBuild;
   }
 
   /**
@@ -82,10 +76,10 @@ export class InteractableBuilder {
   }
 
   /**
-   * Manually trigger build (optional - auto-builds after microtask)
+   * Get the built configuration (for manual use)
    */
-  public build(): void {
-    this.service._internalRegister(this.id, this.object3D, this.behaviors);
+  public build(): I_InteractableBehaviors {
+    return this.behaviors;
   }
 
   /**
@@ -93,9 +87,9 @@ export class InteractableBuilder {
    * Allows method chaining to complete before registration
    */
   private scheduleAutoBuild(): void {
-    if (!this.buildScheduled) {
-      this.buildScheduled = true;
-      Promise.resolve().then(() => this.build());
+    if (!this.manualBuild && this.onBuild) {
+      this.manualBuild = true;
+      Promise.resolve().then(() => this.onBuild!(this.behaviors));
     }
   }
 }
