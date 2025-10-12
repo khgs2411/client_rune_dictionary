@@ -87,21 +87,22 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
 
         const builder = context.services.interaction.register(`scene-object-${index}`, mesh);
 
-        // Apply hover glow (reactive to gameConfig)
-        builder.withHoverGlow(0xff8c00, gameConfig.interaction.hoverGlowIntensity);
+        // Apply hover glow with REACTIVE intensity! ✨
+        builder.withHoverGlow(0xff8c00, () => gameConfig.interaction.hoverGlowIntensity);
 
         // Apply click VFX
         builder.withClickVFX();
 
-        // Apply camera shake if enabled (reactive to gameConfig)
-        if (gameConfig.interaction.cameraShakeIntensity > 0) {
-          builder.withCameraShake(gameConfig.interaction.cameraShakeIntensity, 0.3);
-        }
+        // Apply camera shake with REACTIVE values! ✨
+        // Always register (behavior checks intensity at runtime)
+        builder.withCameraShake(
+          () => gameConfig.interaction.cameraShakeIntensity,
+          0.3 // Duration can be static
+        );
 
-        // Apply particle effect if enabled (reactive to gameConfig)
-        if (gameConfig.interaction.particleCount > 0) {
-          builder.withParticleEffect(gameConfig.interaction.particleCount);
-        }
+        // Apply particle effect with REACTIVE count! ✨
+        // Always register (behavior checks count at runtime)
+        builder.withParticleEffect(() => gameConfig.interaction.particleCount);
 
         // Apply tooltip
         builder.withTooltip(tooltipConfig.title, tooltipConfig.description);

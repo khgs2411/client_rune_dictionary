@@ -5,6 +5,7 @@ import type {
   I_InteractableBehaviors,
   I_HoverState,
   I_InteractionConfig,
+  ReactiveValue,
 } from '@/game/modules/entity/interaction.types';
 import { useEventListener } from '@vueuse/core';
 import { Camera, Intersection, Object3D, Raycaster, Vector2 } from 'three';
@@ -13,6 +14,9 @@ import type { VFXModule } from '@/game/modules/scene/VFXModule';
 /**
  * Fluent Builder for Interactable Registration
  * Provides clean API with behavior composition
+ *
+ * Supports reactive values via getter functions!
+ * Example: .withHoverGlow(0xff8c00, () => gameConfig.interaction.hoverGlowIntensity)
  */
 class InteractableBuilder {
   private id: string;
@@ -29,8 +33,9 @@ class InteractableBuilder {
 
   /**
    * Add hover glow behavior (emissive material change)
+   * @param intensity - Static number or getter function for reactive value
    */
-  withHoverGlow(color: number = 0xff8c00, intensity: number = 0.3): this {
+  withHoverGlow(color: number = 0xff8c00, intensity: ReactiveValue<number> = 0.3): this {
     this.behaviors.hoverGlow = { color, intensity };
     this.scheduleAutoBuild();
     return this;
@@ -56,8 +61,10 @@ class InteractableBuilder {
 
   /**
    * Add camera shake behavior (screen shake on click)
+   * @param intensity - Static number or getter function for reactive value
+   * @param duration - Static number or getter function for reactive value
    */
-  withCameraShake(intensity: number = 0.1, duration: number = 0.3): this {
+  withCameraShake(intensity: ReactiveValue<number> = 0.1, duration: ReactiveValue<number> = 0.3): this {
     this.behaviors.cameraShake = { intensity, duration };
     this.scheduleAutoBuild();
     return this;
@@ -65,8 +72,10 @@ class InteractableBuilder {
 
   /**
    * Add particle effect behavior (particle burst on click)
+   * @param count - Static number or getter function for reactive value
+   * @param speed - Static number or getter function for reactive value
    */
-  withParticleEffect(count: number = 20, color?: number, speed?: number): this {
+  withParticleEffect(count: ReactiveValue<number> = 20, color?: number, speed?: ReactiveValue<number>): this {
     this.behaviors.particleEffect = { count, color, speed };
     this.scheduleAutoBuild();
     return this;
@@ -283,7 +292,15 @@ export class InteractionService implements I_SceneService {
   }
 
   /**
+   * Resolve reactive value (evaluate getter if function)
+   */
+  private resolveValue<T>(value: T | (() => T)): T {
+    return typeof value === 'function' ? (value as () => T)() : value;
+  }
+
+  /**
    * Build callbacks from behaviors (behavior composition)
+   * Reactive values are evaluated at callback execution time!
    */
   private buildCallbacks(object3D: Object3D, behaviors: I_InteractableBehaviors): I_InteractionCallbacks {
     const callbacks: I_InteractionCallbacks = {};
@@ -295,7 +312,8 @@ export class InteractionService implements I_SceneService {
       const { color, intensity } = behaviors.hoverGlow;
 
       callbacks.onHoverStart = (intersection) => {
-        vfx?.applyEmissive(object3D, color, intensity);
+        // ✨ Evaluate intensity dynamically!
+        vfx?.applyEmissive(object3D, color, this.resolveValue(intensity));
         behaviors.customCallbacks?.onHoverStart?.(intersection);
       };
 
@@ -350,7 +368,8 @@ export class InteractionService implements I_SceneService {
       const originalClick = callbacks.onClick;
 
       callbacks.onClick = (intersection) => {
-        vfx?.shakeCamera(intensity, duration);
+        // ✨ Evaluate intensity and duration dynamically!
+        vfx?.shakeCamera(this.resolveValue(intensity), this.resolveValue(duration));
         originalClick?.(intersection);
       };
     }
@@ -361,7 +380,13 @@ export class InteractionService implements I_SceneService {
       const originalClick = callbacks.onClick;
 
       callbacks.onClick = (intersection) => {
-        vfx?.spawnParticles(intersection.point, count, color, speed);
+        // ✨ Evaluate count and speed dynamically!
+        vfx?.spawnParticles(
+          intersection.point,
+          this.resolveValue(count),
+          color,
+          speed !== undefined ? this.resolveValue(speed) : undefined
+        );
         originalClick?.(intersection);
       };
     }

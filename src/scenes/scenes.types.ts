@@ -6,6 +6,7 @@ import { SettingsStore } from '@/stores/settings.store';
 import { Scene } from 'three';
 import type { InteractionService } from '@/game/services/InteractionService';
 import { I_ThemeColors } from '@/composables/useTheme';
+import { VFXModule } from '@/game/modules/scene/VFXModule';
 
 
 /**
@@ -76,7 +77,7 @@ export interface I_EntityModule {
  */
 export interface I_ModuleServices extends Record<string, I_SceneService> {
   interaction: InteractionService;
-  vfx: import('@/game/modules/scene/VFXModule').VFXModule;
+  vfx: VFXModule;
   // Future: audio?: AudioService;
   // Future: physics?: PhysicsService;
 }

@@ -9,6 +9,7 @@
         width: `${size.width}px`,
         height: `${size.height}px`,
       }"
+      @scroll.prevent.stop
       :class="[
         'fixed bg-background/90 backdrop-blur-sm border rounded-lg shadow-lg overflow-hidden flex flex-col z-40 transition-shadow',
         isResizing ? 'border-primary shadow-xl' : 'border-border',

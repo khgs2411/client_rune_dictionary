@@ -1,5 +1,6 @@
 import SceneModule from '@/game/SceneModule';
 import type { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
+import * as THREE from 'three';
 import {
   CanvasTexture,
   Color,
@@ -16,6 +17,7 @@ import {
   BufferGeometry,
   Float32BufferAttribute,
 } from 'three';
+import { Text } from 'troika-three-text';
 
 /**
  * Text Sprite - Flyweight pattern for reusable text effects
@@ -79,24 +81,20 @@ class TextSprite {
 }
 
 /**
- * Tooltip Billboard - Always faces camera
+ * Tooltip Billboard - Always faces camera (using troika-three-text for crisp rendering!)
  */
 class TooltipBillboard {
   group: Group;
-  private titleMesh!: Mesh;
-  private descriptionMesh!: Mesh;
+  private titleText!: Text;
+  private descriptionText!: Text;
   private backgroundMesh!: Mesh;
   private inUse = false;
-  private titleCanvas: HTMLCanvasElement;
-  private descriptionCanvas: HTMLCanvasElement;
 
   constructor() {
     this.group = new Group();
-    this.titleCanvas = document.createElement('canvas');
-    this.descriptionCanvas = document.createElement('canvas');
 
     this.createBackground();
-    this.createTextMeshes();
+    this.createTextObjects();
 
     this.group.visible = false;
   }
@@ -105,14 +103,16 @@ class TooltipBillboard {
     // Stylish rounded background with border
     const geometry = new PlaneGeometry(3, 1, 32, 32);
 
-    // Create a canvas for the background with rounded corners
+    // Create a canvas for the background with rounded corners (4x resolution)
     const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 256;
+    canvas.width = 2048; // 4x for crisp borders
+    canvas.height = 1024; // 4x
     const ctx = canvas.getContext('2d')!;
 
-    // Draw rounded rectangle background
-    const radius = 32;
+    // Define corner radius (4x for 4x canvas)
+    const radius = 160; // 40px corner radius * 4
+
+    // Draw rounded rectangle background (FULL canvas with proper rounding)
     ctx.beginPath();
     ctx.moveTo(radius, 0);
     ctx.lineTo(canvas.width - radius, 0);
@@ -125,109 +125,86 @@ class TooltipBillboard {
     ctx.quadraticCurveTo(0, 0, radius, 0);
     ctx.closePath();
 
-    // Fill with dark background
-    ctx.fillStyle = 'rgba(20, 20, 20, 0.95)';
+    // Fill with SOLID dark background (no transparency issues!)
+    ctx.fillStyle = 'rgba(20, 20, 20, 1.0)'; // Changed from 0.95 to 1.0 for solid fill
     ctx.fill();
 
-    // Add subtle border
+    // Add subtle border (4x width)
     ctx.strokeStyle = 'rgba(255, 140, 0, 0.6)';
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 16; // Was 4, now 4x
     ctx.stroke();
 
-    // Add subtle inner glow
+    // Add subtle inner glow (4x blur)
     ctx.shadowColor = 'rgba(255, 140, 0, 0.3)';
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 40; // Was 10, now 4x
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
     ctx.stroke();
 
     const texture = new CanvasTexture(canvas);
+    texture.minFilter = THREE.LinearFilter; // Smooth scaling
+    texture.magFilter = THREE.LinearFilter;
     const material = new MeshBasicMaterial({
       map: texture,
       transparent: true,
       side: DoubleSide,
+      depthWrite: false, // Prevent z-fighting with text
     });
 
     this.backgroundMesh = new Mesh(geometry, material);
+    this.backgroundMesh.renderOrder = -1; // Render background FIRST
     this.group.add(this.backgroundMesh);
   }
 
-  private createTextMeshes(): void {
-    // Title mesh
-    this.titleCanvas.width = 512;
-    this.titleCanvas.height = 128;
-    const titleTexture = new CanvasTexture(this.titleCanvas);
-    const titleMaterial = new MeshBasicMaterial({
-      map: titleTexture,
-      transparent: true,
-      side: DoubleSide,
-    });
-    const titleGeometry = new PlaneGeometry(2.8, 0.4);
-    this.titleMesh = new Mesh(titleGeometry, titleMaterial);
-    this.titleMesh.position.set(0, 0.2, 0.01);
-    this.group.add(this.titleMesh);
+  private createTextObjects(): void {
+    // Title text using troika-three-text (SDF rendering - crisp at any scale!)
+    this.titleText = new Text();
+    this.titleText.fontSize = 0.22; // World-space size
+    this.titleText.color = 0xffffff;
+    this.titleText.anchorX = 'center';
+    this.titleText.anchorY = 'middle';
+    this.titleText.position.set(0, 0.2, 0.02); // In front of background
+    this.titleText.renderOrder = 1;
 
-    // Description mesh
-    this.descriptionCanvas.width = 512;
-    this.descriptionCanvas.height = 128;
-    const descTexture = new CanvasTexture(this.descriptionCanvas);
-    const descMaterial = new MeshBasicMaterial({
-      map: descTexture,
-      transparent: true,
-      side: DoubleSide,
-    });
-    const descGeometry = new PlaneGeometry(2.8, 0.3);
-    this.descriptionMesh = new Mesh(descGeometry, descMaterial);
-    this.descriptionMesh.position.set(0, -0.15, 0.01);
-    this.group.add(this.descriptionMesh);
+    // Add subtle glow effect via material properties
+    this.titleText.outlineWidth = 0.01;
+    this.titleText.outlineColor = 0xff8c00; // Orange glow
+    this.titleText.outlineOpacity = 0.5;
+
+    this.group.add(this.titleText);
+
+    // Description text using troika-three-text
+    this.descriptionText = new Text();
+    this.descriptionText.fontSize = 0.14;
+    this.descriptionText.color = 0xcccccc;
+    this.descriptionText.anchorX = 'center';
+    this.descriptionText.anchorY = 'middle';
+    this.descriptionText.position.set(0, -0.15, 0.02);
+    this.descriptionText.renderOrder = 1;
+
+    // Subtle glow for description
+    this.descriptionText.outlineWidth = 0.005;
+    this.descriptionText.outlineColor = 0xffffff;
+    this.descriptionText.outlineOpacity = 0.3;
+
+    this.group.add(this.descriptionText);
   }
 
   setText(title: string, description?: string): void {
-    // Render title with better styling
-    const titleCtx = this.titleCanvas.getContext('2d')!;
-    titleCtx.clearRect(0, 0, this.titleCanvas.width, this.titleCanvas.height);
+    // Set title text (SDF rendering handles all the quality!)
+    this.titleText.text = title;
+    this.titleText.sync(); // Important: trigger rendering
 
-    // Title with gradient and glow
-    titleCtx.font = 'bold 56px Arial, sans-serif';
-    titleCtx.textAlign = 'center';
-    titleCtx.textBaseline = 'middle';
-
-    // Add glow effect
-    titleCtx.shadowColor = 'rgba(255, 140, 0, 0.8)';
-    titleCtx.shadowBlur = 15;
-    titleCtx.shadowOffsetX = 0;
-    titleCtx.shadowOffsetY = 0;
-
-    // Gradient fill
-    const gradient = titleCtx.createLinearGradient(0, 0, 0, 128);
-    gradient.addColorStop(0, '#ffffff');
-    gradient.addColorStop(1, '#ffcc99');
-    titleCtx.fillStyle = gradient;
-    titleCtx.fillText(title, 256, 64);
-
-    (this.titleMesh.material as MeshBasicMaterial).map!.needsUpdate = true;
-
-    // Render description (if provided)
-    this.descriptionMesh.visible = !!description;
+    // Set description text (if provided)
     if (description) {
-      const descCtx = this.descriptionCanvas.getContext('2d')!;
-      descCtx.clearRect(0, 0, this.descriptionCanvas.width, this.descriptionCanvas.height);
+      this.descriptionText.text = description;
+      this.descriptionText.visible = true;
+      this.descriptionText.sync();
 
-      descCtx.font = '36px Arial, sans-serif';
-      descCtx.textAlign = 'center';
-      descCtx.textBaseline = 'middle';
-
-      // Subtle glow for description
-      descCtx.shadowColor = 'rgba(255, 255, 255, 0.3)';
-      descCtx.shadowBlur = 8;
-
-      descCtx.fillStyle = '#cccccc';
-      descCtx.fillText(description, 256, 64);
-      (this.descriptionMesh.material as MeshBasicMaterial).map!.needsUpdate = true;
-
-      // Adjust background height
+      // Adjust background height for description
       this.backgroundMesh.scale.set(1, 1.3, 1);
     } else {
+      this.descriptionText.visible = false;
       this.backgroundMesh.scale.set(1, 0.7, 1);
     }
 

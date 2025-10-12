@@ -16,14 +16,24 @@ export interface I_InteractionCallbacks {
 }
 
 /**
+ * Reactive value type - can be static or a getter function
+ * Allows Vue reactivity integration!
+ */
+export type ReactiveValue<T> = T | (() => T);
+
+/**
  * Pre-built behaviors for common interaction patterns
  * These generate callbacks automatically
+ *
+ * Reactive values (intensity, count, etc.) can be:
+ * - Static numbers: intensity: 0.5
+ * - Getter functions: intensity: () => gameConfig.interaction.hoverGlowIntensity
  */
 export interface I_InteractableBehaviors {
   // Hover glow behavior
   hoverGlow?: {
     color: number;
-    intensity: number;
+    intensity: ReactiveValue<number>; // ✨ Reactive!
   };
 
   // Click VFX behavior (spawns text sprite)
@@ -40,15 +50,15 @@ export interface I_InteractableBehaviors {
 
   // Camera shake behavior (shake on click)
   cameraShake?: {
-    intensity: number;
-    duration: number;
+    intensity: ReactiveValue<number>; // ✨ Reactive!
+    duration: ReactiveValue<number>; // ✨ Reactive!
   };
 
   // Particle effect behavior (particle burst on click)
   particleEffect?: {
-    count: number;
+    count: ReactiveValue<number>; // ✨ Reactive!
     color?: number;
-    speed?: number;
+    speed?: ReactiveValue<number>; // ✨ Reactive!
   };
 
   // Custom callbacks (merged with generated callbacks)
