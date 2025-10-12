@@ -126,6 +126,44 @@ export class CollisionBuilder {
   }
 
   /**
+   * Configure which axes enforce collision boundaries
+   * @param x - Enable X-axis collision (default: true)
+   * @param y - Enable Y-axis collision (default: true)
+   * @param z - Enable Z-axis collision (default: true)
+   *
+   * @example
+   * ```typescript
+   * // Horizontal collision only (walls)
+   * .withAxes(true, false, true)
+   *
+   * // Vertical collision only (ground/platforms)
+   * .withAxes(false, true, false)
+   * ```
+   */
+  public withAxes(x: boolean, y: boolean, z: boolean): this {
+    this.config.collisionAxes = { x, y, z };
+    return this;
+  }
+
+  /**
+   * Shorthand: Enable horizontal collision only (X and Z axes)
+   * Useful for walls and barriers
+   */
+  public withHorizontalCollision(): this {
+    this.config.collisionAxes = { x: true, y: false, z: true };
+    return this;
+  }
+
+  /**
+   * Shorthand: Enable vertical collision only (Y axis)
+   * Useful for ground, platforms, and ceilings
+   */
+  public withVerticalCollision(): this {
+    this.config.collisionAxes = { x: false, y: true, z: false };
+    return this;
+  }
+
+  /**
    * Complete registration (auto-called when builder goes out of scope)
    */
   public build(): void {

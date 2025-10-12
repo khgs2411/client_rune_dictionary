@@ -154,6 +154,7 @@ export class CollisionService implements I_SceneService {
       boundsOffset: config.boundsOffset ?? new Vector3(),
       showWireframe: config.showWireframe ?? false,
       wireframeColor: config.wireframeColor ?? 0x00ff00,
+      collisionAxes: config.collisionAxes ?? { x: true, y: true, z: true },
     };
 
     // Create bounds
@@ -262,7 +263,15 @@ export class CollisionService implements I_SceneService {
           currentCollisions.get(b.id)?.add(a.id);
 
           // Enforce boundaries (push objects apart)
-          this.resolveBoundaries(a, b);
+          // Skip if both objects belong to the same entity (e.g., character's own colliders)
+          const bothFromSameEntity =
+            (a.id.startsWith('character-') && b.id.startsWith('character-')) ||
+            (a.id.includes('-body-') && b.id.includes('-feet-')) ||
+            (a.id.includes('-feet-') && b.id.includes('-body-'));
+
+          if (!bothFromSameEntity) {
+            this.resolveBoundaries(a, b);
+          }
 
           // Fire callbacks
           this.handleCollisionCallbacks(a, b);
@@ -354,15 +363,17 @@ export class CollisionService implements I_SceneService {
       pushAmountB = overlap / 2;
     }
 
-    // Apply push (only on X and Z, preserve Y)
+    // Apply push (only on enabled axes)
     if (pushAmountA > 0) {
-      a.object3D.position.x += pushDirection.x * pushAmountA;
-      a.object3D.position.z += pushDirection.z * pushAmountA;
+      if (a.config.collisionAxes.x) a.object3D.position.x += pushDirection.x * pushAmountA;
+      if (a.config.collisionAxes.y) a.object3D.position.y += pushDirection.y * pushAmountA;
+      if (a.config.collisionAxes.z) a.object3D.position.z += pushDirection.z * pushAmountA;
     }
 
     if (pushAmountB > 0) {
-      b.object3D.position.x -= pushDirection.x * pushAmountB;
-      b.object3D.position.z -= pushDirection.z * pushAmountB;
+      if (b.config.collisionAxes.x) b.object3D.position.x -= pushDirection.x * pushAmountB;
+      if (b.config.collisionAxes.y) b.object3D.position.y -= pushDirection.y * pushAmountB;
+      if (b.config.collisionAxes.z) b.object3D.position.z -= pushDirection.z * pushAmountB;
     }
   }
 

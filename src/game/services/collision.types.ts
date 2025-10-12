@@ -65,6 +65,24 @@ export interface I_CollisionConfig {
    * Default: 0x00ff00 (green)
    */
   wireframeColor?: number;
+
+  /**
+   * Which axes to enforce collision on
+   * Default: { x: true, y: true, z: true } (all axes)
+   *
+   * @example
+   * // Horizontal collision only (walls)
+   * collisionAxes: { x: true, y: false, z: true }
+   *
+   * @example
+   * // Vertical collision only (ground/platforms)
+   * collisionAxes: { x: false, y: true, z: false }
+   */
+  collisionAxes?: {
+    x?: boolean;
+    y?: boolean;
+    z?: boolean;
+  };
 }
 
 /**
