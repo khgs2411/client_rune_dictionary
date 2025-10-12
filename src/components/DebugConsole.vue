@@ -67,7 +67,7 @@
       </div>
 
       <!-- Event List -->
-      <div ref="eventListRef" class="flex-1 overflow-y-auto p-2 space-y-1">
+      <div ref="eventListRef" class="flex-1 overflow-y-auto p-2 space-y-1" @wheel.stop>
         <div v-if="events.length === 0" class="text-center text-sm text-muted-foreground py-8">
           No events yet. Waiting for WebSocket activity...
         </div>

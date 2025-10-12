@@ -7,7 +7,7 @@
         </Button>
       </slot>
     </SheetTrigger>
-    <SheetContent>
+    <SheetContent @wheel.stop>
       <SheetHeader>
         <SheetTitle class="text-primary">Settings</SheetTitle>
         <SheetDescription> Customize your game settings </SheetDescription>

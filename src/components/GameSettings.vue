@@ -7,7 +7,7 @@
         </Button>
       </slot>
     </SheetTrigger>
-    <SheetContent class="overflow-y-auto">
+    <SheetContent class="overflow-y-auto" @wheel.stop>
       <SheetHeader>
         <SheetTitle class="text-primary">Game Settings</SheetTitle>
         <SheetDescription>Configure your gameplay experience</SheetDescription>

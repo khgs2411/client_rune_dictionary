@@ -1,7 +1,8 @@
 <template>
   <div
     v-if="config.editor.enabled"
-    class="fixed top-20 right-4 z-40 bg-card/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-4 space-y-4 w-72">
+    class="fixed top-20 right-4 z-40 bg-card/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-4 space-y-4 w-72"
+    @wheel.stop>
     <!-- Header -->
     <div class="flex items-center justify-between">
       <h3 class="text-sm font-semibold text-primary flex items-center gap-2">
