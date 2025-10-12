@@ -7,7 +7,6 @@ import { Scene } from 'three';
 import type { InteractionService } from '@/game/services/InteractionService';
 import { I_ThemeColors } from '@/composables/useTheme';
 import { VFXModule } from '@/game/modules/scene/VFXModule';
-import { CollisionService } from '@/game/services/CollisionService';
 import { PhysicsService } from '@/game/services/PhysicsService';
 
 /**
@@ -80,7 +79,6 @@ export interface I_EntityModule {
 export interface I_ModuleServices extends Record<string, I_SceneService> {
   interaction: InteractionService;
   vfx: VFXModule;
-  collision: CollisionService;
   physics: PhysicsService;
   // Future: audio?: AudioService;
 }

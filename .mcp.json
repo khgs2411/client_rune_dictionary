@@ -21,10 +21,6 @@
       "env": {},
       "icon": "⚙️"
     },
-    "chrome-devtools": {
-      "command": "npx",
-      "args": ["chrome-devtools-mcp@latest"]
-    },
     "playwright": {
       "type": "stdio",
       "command": "npx",

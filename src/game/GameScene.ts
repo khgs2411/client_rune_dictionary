@@ -16,7 +16,6 @@ import type { Engine } from '@/game/Engine';
 import type { SettingsStore } from '@/stores/settings.store';
 import { ModuleRegistry } from '@/game/ModuleRegistry';
 import { InteractionService } from '@/game/services/InteractionService';
-import { CollisionService } from '@/game/services/CollisionService';
 import { VFXModule } from '@/game/modules/scene/VFXModule';
 import { PhysicsService } from '@/game/services/PhysicsService';
 
@@ -46,7 +45,6 @@ export abstract class GameScene<
   // Services (shared across modules)
   protected services = {
     interaction: new InteractionService(),
-    collision: new CollisionService(),
     vfx: new VFXModule(),
     physics: new PhysicsService(),
   };

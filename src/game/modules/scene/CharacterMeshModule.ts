@@ -50,8 +50,8 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     this.buildBody();
     this.buildForwardIndicator();
 
-    // Initial position
-    this.mesh.position.set(0, 1, 0);
+    // Initial position (matches physics body)
+    this.mesh.position.set(0, 2, 0);
 
     // Create Rapier physics components
     this.createPhysicsBody();
@@ -65,13 +65,20 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
    * Create Rapier physics body and character controller
    */
   private createPhysicsBody(): void {
-    // Create kinematic rigid body (controlled by character controller, not physics forces)
+    // Visual capsule: CapsuleGeometry(radius=0.5, cylinderHeight=1)
+    // Total visual height = cylinderHeight + 2*radius = 1 + 2*0.5 = 2 units
+
+    // Rapier capsule: capsule(halfHeight, radius)
+    // halfHeight is half of the cylinder part (not including hemispheres)
+    // Total physics height = 2*halfHeight + 2*radius = 2*0.5 + 2*0.5 = 2 units
+
+    // Position at Y=2 so bottom of capsule touches ground (Y=0)
     const rigidBodyDesc = this.RAPIER.RigidBodyDesc.kinematicPositionBased();
-    rigidBodyDesc.setTranslation(0, 1, 0);
+    rigidBodyDesc.setTranslation(0, 2, 0);
     this.rigidBody = this.world.createRigidBody(rigidBodyDesc);
 
-    // Create capsule collider (matches visual capsule)
-    const colliderDesc = this.RAPIER.ColliderDesc.capsule(0.5, 0.5); // Half-height 0.5, radius 0.5
+    // Create capsule collider matching visual geometry
+    const colliderDesc = this.RAPIER.ColliderDesc.capsule(0.5, 0.5); // halfHeight=0.5, radius=0.5
     this.collider = this.world.createCollider(colliderDesc, this.rigidBody);
 
     // Create Rapier character controller

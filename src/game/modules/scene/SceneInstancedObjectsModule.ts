@@ -72,11 +72,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
   }
 
   private addCollisions(context: I_ModuleContext, groupKey: string, instancedMesh: InstancedMesh) {
-    const builder = context.services.collision.register(
-      `scene-instanced-${this.id}-${groupKey}`,
-      instancedMesh,
-    );
-    builder.withBox().static().withWireframe().build();
+   
   }
 
   public async destroy(): Promise<void> {

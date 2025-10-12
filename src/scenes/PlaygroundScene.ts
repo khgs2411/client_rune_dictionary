@@ -1,5 +1,4 @@
-import { hexNumberToString, I_ThemeColors } from '@/composables/useTheme';
-import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
+import { I_ThemeColors } from '@/composables/useTheme';
 import type { Engine } from '@/game/Engine';
 import { GameScene } from '@/game/GameScene';
 import { CharacterMeshModule } from '@/game/modules/scene/CharacterMeshModule';
