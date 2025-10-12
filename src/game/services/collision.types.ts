@@ -53,6 +53,18 @@ export interface I_CollisionConfig {
    * Offset from object3D position
    */
   boundsOffset?: Vector3;
+
+  /**
+   * Show wireframe visualization for this specific object
+   * Overrides global debugDraw setting
+   */
+  showWireframe?: boolean;
+
+  /**
+   * Wireframe color (hex number)
+   * Default: 0x00ff00 (green)
+   */
+  wireframeColor?: number;
 }
 
 /**

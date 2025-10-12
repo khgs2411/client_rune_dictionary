@@ -37,9 +37,9 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     // Initial position
     this.mesh.position.set(0, 1, 0);
 
-    this.addToScene(context);
-
     this.addColission(context);
+
+    this.addToScene(context);
 
     // Emit loading complete event
     super.start(context);
@@ -53,6 +53,7 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
       .withCallbacks({
         onCollisionEnter: (other) => console.log('Hit:', other.id)
       })
+      .withWireframe()
       .build();
   }
 

@@ -6,6 +6,7 @@ import type {
 } from './collision.types';
 import { Box3, Sphere, Vector3, Object3D, BoxHelper, Box3Helper } from 'three';
 import { CollisionBuilder } from './CollisionBuilder';
+import { SphereHelper } from '@/game/utils/SphereHelper';
 
 /**
  * Collision Service
@@ -42,7 +43,7 @@ import { CollisionBuilder } from './CollisionBuilder';
 export class CollisionService implements I_SceneService {
   private context!: I_ModuleContext;
   private collidables = new Map<string, I_CollidableObject>();
-  private debugHelpers = new Map<string, BoxHelper | Box3Helper>();
+  private debugHelpers = new Map<string, BoxHelper | Box3Helper | SphereHelper>();
 
   private config: Required<I_CollisionServiceConfig> = {
     enabled: true,
@@ -76,10 +77,13 @@ export class CollisionService implements I_SceneService {
     // Detect and resolve collisions
     this.detectCollisions();
 
-    // Update debug visualization
+    // Update global debug visualization
     if (this.config.debugDraw) {
       this.updateDebugHelpers();
     }
+
+    // Update per-object wireframes (always, if enabled per-object)
+    this.updatePerObjectWireframes();
   }
 
   /**
@@ -148,6 +152,8 @@ export class CollisionService implements I_SceneService {
       callbacks: config.callbacks ?? {},
       boundsScale: config.boundsScale ?? 1.0,
       boundsOffset: config.boundsOffset ?? new Vector3(),
+      showWireframe: config.showWireframe ?? false,
+      wireframeColor: config.wireframeColor ?? 0x00ff00,
     };
 
     // Create bounds
@@ -162,6 +168,10 @@ export class CollisionService implements I_SceneService {
     };
 
     this.collidables.set(id, collidable);
+
+    // Note: Wireframe helpers are created during update() loop
+    // This avoids accessing this.context before service.start() is called
+
     console.log('  ↳ Registered collidable:', id, fullConfig);
   }
 
@@ -439,23 +449,71 @@ export class CollisionService implements I_SceneService {
 
   /**
    * Update debug helpers (visualize collision bounds)
+   * Only updates global debug helpers (per-object wireframes are handled separately)
    */
   private updateDebugHelpers(): void {
     for (const collidable of this.collidables.values()) {
+      // Skip if this object has its own wireframe
+      if (collidable.config.showWireframe) continue;
+
       if (!this.debugHelpers.has(collidable.id)) {
         // Create debug helper
-        if (collidable.bounds instanceof Box3) {
-          const helper = new Box3Helper(collidable.bounds, 0x00ff00);
-          this.context.scene.add(helper);
-          this.debugHelpers.set(collidable.id, helper);
-        }
-        // Note: Three.js doesn't have SphereHelper, would need custom geometry
+        this.createWireframeHelper(collidable);
       } else {
         // Update existing helper
-        const helper = this.debugHelpers.get(collidable.id);
-        if (helper && collidable.bounds instanceof Box3) {
-          (helper as any).box = collidable.bounds; // Update box reference
-        }
+        this.updateWireframeHelper(collidable);
+      }
+    }
+  }
+
+  /**
+   * Create wireframe helper for a collidable
+   */
+  private createWireframeHelper(collidable: I_CollidableObject): void {
+    // Safety check: Don't create helpers if context isn't initialized yet
+    if (!this.context) return;
+
+    const color = collidable.config.wireframeColor;
+
+    if (collidable.bounds instanceof Box3) {
+      const helper = new Box3Helper(collidable.bounds, color);
+      this.context.scene.add(helper);
+      this.debugHelpers.set(collidable.id, helper);
+    } else if (collidable.bounds instanceof Sphere) {
+      const helper = new SphereHelper(collidable.bounds, color);
+      this.context.scene.add(helper);
+      this.debugHelpers.set(collidable.id, helper);
+    }
+  }
+
+  /**
+   * Update existing wireframe helper
+   */
+  private updateWireframeHelper(collidable: I_CollidableObject): void {
+    const helper = this.debugHelpers.get(collidable.id);
+    if (!helper) return;
+
+    if (helper instanceof Box3Helper && collidable.bounds instanceof Box3) {
+      (helper as any).box = collidable.bounds; // Update box reference
+    } else if (helper instanceof SphereHelper && collidable.bounds instanceof Sphere) {
+      helper.sphere = collidable.bounds;
+      helper.updateGeometry();
+    }
+  }
+
+  /**
+   * Update per-object wireframes (objects with showWireframe: true)
+   */
+  private updatePerObjectWireframes(): void {
+    for (const collidable of this.collidables.values()) {
+      if (!collidable.config.showWireframe) continue;
+
+      // Create helper if it doesn't exist
+      if (!this.debugHelpers.has(collidable.id)) {
+        this.createWireframeHelper(collidable);
+      } else {
+        // Update existing helper
+        this.updateWireframeHelper(collidable);
       }
     }
   }

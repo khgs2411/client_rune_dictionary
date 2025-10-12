@@ -7,6 +7,7 @@ The CollisionService provides automatic collision detection and boundary enforce
 1. **Mark objects as "collidable"** using the fluent builder API
 2. **Objects with collision automatically enforce boundaries** - they push each other apart when overlapping
 3. **Static vs Dynamic** - Static objects are immovable walls, dynamic objects can be pushed
+4. **Optional wireframe visualization** - See collision bounds per-object with custom colors
 
 ## Quick Start
 
@@ -109,6 +110,52 @@ context.services.collision
 ```
 
 **Layer logic:** Objects collide if `(layer1 & layer2) !== 0`
+
+### Wireframe Visualization
+
+Show collision bounds for specific objects:
+
+```typescript
+// Green wireframe (default)
+context.services.collision
+  .register('player', playerMesh)
+  .withSphere()
+  .withWireframe()  // Shows green collision bounds
+  .build();
+
+// Custom color wireframe
+context.services.collision
+  .register('enemy', enemyMesh)
+  .withBox()
+  .withWireframe(0xff0000)  // Red wireframe
+  .build();
+
+// Multiple colored wireframes for different object types
+context.services.collision
+  .register('player', playerMesh)
+  .withSphere()
+  .withWireframe(0x00ff00)  // Green for player
+  .build();
+
+context.services.collision
+  .register('wall', wallMesh)
+  .withBox()
+  .static()
+  .withWireframe(0xffff00)  // Yellow for walls
+  .build();
+
+context.services.collision
+  .register('enemy', enemyMesh)
+  .withBox()
+  .withWireframe(0xff0000)  // Red for enemies
+  .build();
+```
+
+**Notes:**
+- Per-object wireframes work independently of global `debugDraw`
+- Wireframes update automatically as objects move
+- Use different colors to distinguish object types
+- Sphere collision shows 3 rings (XY, XZ, YZ planes)
 
 ### Collision Callbacks
 

@@ -58,6 +58,8 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
       // Create instanced mesh
       const instancedMesh: InstancedMesh = this.createInstancedMesh(geometry, material, instancedMeshConfig, configs);
 
+      this.addCollisions(context, groupKey, instancedMesh);
+
       // Add to scene and lifecycle
       this.addToScene(context, instancedMesh);
 
@@ -65,6 +67,14 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     });
 
     super.start(context);
+  }
+
+  private addCollisions(context: I_ModuleContext, groupKey: string, instancedMesh: InstancedMesh) {
+    const builder = context.services.collision.register(`scene-instanced-${this.id}-${groupKey}`, instancedMesh);
+    builder
+      .withBox()
+      .static()
+      .build();
   }
 
   public async destroy(): Promise<void> {

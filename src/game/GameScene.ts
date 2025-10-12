@@ -165,7 +165,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
   }
 
   protected async initializeAllServices(): Promise<void> {
-    for (const [name, service] of Object.entries(this.services)) {
+    for (const service of Object.values(this.services)) {
       await service.start(this.getModuleContext());
     }
   }

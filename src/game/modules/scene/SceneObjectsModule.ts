@@ -70,13 +70,15 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
       // Set transform
       this.setTransform(mesh, config);
 
-      // Add to scene and lifecycle
-      this.addToScene(context, mesh);
-
       // Register with interaction service if interactive (using fluent API!)
       this.addInteractable(config, context, index, mesh, gameConfig);
 
+      // Register with collision service if collidable
       this.addColission(config, context, index, mesh);
+
+      // Add to scene and lifecycle
+      this.addToScene(context, mesh);
+
 
       this.meshes.push(mesh);
     });
@@ -92,6 +94,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
     builder
       .withBox()
       .static()
+      .withWireframe()
       .build();
   }
 

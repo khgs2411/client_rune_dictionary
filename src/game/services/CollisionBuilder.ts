@@ -102,6 +102,30 @@ export class CollisionBuilder {
   }
 
   /**
+   * Show wireframe visualization for this object
+   * @param color - Optional hex color (default: 0x00ff00 green)
+   *
+   * @example
+   * ```typescript
+   * .withWireframe() // Green wireframe
+   * .withWireframe(0xff0000) // Red wireframe
+   * ```
+   */
+  public withWireframe(color: number = 0x00ff00): this {
+    this.config.showWireframe = true;
+    this.config.wireframeColor = color;
+    return this;
+  }
+
+  /**
+   * Hide wireframe visualization (default)
+   */
+  public withoutWireframe(): this {
+    this.config.showWireframe = false;
+    return this;
+  }
+
+  /**
    * Complete registration (auto-called when builder goes out of scope)
    */
   public build(): void {
