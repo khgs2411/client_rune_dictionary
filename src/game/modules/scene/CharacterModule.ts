@@ -23,8 +23,10 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
   // Rapier physics components
   private rigidBody!: RAPIER_TYPE.RigidBody;
   private collider!: RAPIER_TYPE.Collider;
-  private characterControllerRapier!: RAPIER_TYPE.KinematicCharacterController;
+  private physicsController!: RAPIER_TYPE.KinematicCharacterController;
   private context!: I_ModuleContext;
+  private rapier!: typeof RAPIER_TYPE;
+
 
 
   // Vertical velocity for gravity (Rapier handles this)
@@ -41,7 +43,10 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
   }
 
   async start(context: I_ModuleContext): Promise<void> {
-    // Get physics world and RAPIER module from service
+
+    this.context = context;
+    this.rapier = this.context.services.physics.getRapier()
+
     if (!context.services.physics.isReady()) {
       console.error('[CharacterModule] Physics service not ready!');
       return;
@@ -61,7 +66,6 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
 
     this.addGridHelper(context);
 
-    this.context = context;
     // Emit loading complete event
     super.start(context);
   }
@@ -91,39 +95,37 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     this.collider = world.createCollider(colliderDesc, this.rigidBody);
 
     // Create Rapier character controller
-    this.characterControllerRapier = world.createCharacterController(0.01);
+    this.physicsController = world.createCharacterController(0.01);
 
     // Configure character controller properties
-    this.characterControllerRapier.enableAutostep(0.5, 0.2, true); // Max step height, min width, include dynamic bodies
-    this.characterControllerRapier.enableSnapToGround(0.5); // Snap distance
-    this.characterControllerRapier.setApplyImpulsesToDynamicBodies(true);
+    this.physicsController.enableAutostep(0.5, 0.2, true); // Max step height, min width, include dynamic bodies
+    this.physicsController.enableSnapToGround(0.5); // Snap distance
+    this.physicsController.setApplyImpulsesToDynamicBodies(true);
 
     console.log('✅ [CharacterModule] Rapier physics initialized');
   }
 
   public update(delta: number): void {
+    this.updateMovement(delta);
+  }
+
+  private updateMovement(delta: number) {
     const currentPos = this.rigidBody.translation();
 
     // Handle vertical velocity (gravity + jumping)
     // Check if character wants to jump
-    if (this.characterController.isJumping.value && this.verticalVelocity === 0) {
-      // Use jump force from config
-      this.verticalVelocity = this.config.character.jumpInitialVelocity;
-    }
-
-    // Apply gravity from config (negative because downward)
-    this.verticalVelocity -= this.config.character.jumpGravity * delta;
+    this.handleJumping(delta);
 
     // Calculate desired position change
-    const desiredMovement = new (this.context.services.physics.getRapier()).Vector3(
+    const desiredMovement = new this.rapier.Vector3(
       this.characterController.position.x.value - currentPos.x,
       this.verticalVelocity * delta,
-      this.characterController.position.z.value - currentPos.z,
+      this.characterController.position.z.value - currentPos.z
     );
 
     // Let Rapier compute collision-corrected movement
-    this.characterControllerRapier.computeColliderMovement(this.collider, desiredMovement);
-    const correctedMovement = this.characterControllerRapier.computedMovement();
+    this.physicsController.computeColliderMovement(this.collider, desiredMovement);
+    const correctedMovement = this.physicsController.computedMovement();
 
     // Apply physics-corrected position
     const newPos = {
@@ -131,10 +133,11 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
       y: currentPos.y + correctedMovement.y,
       z: currentPos.z + correctedMovement.z,
     };
+
     this.rigidBody.setNextKinematicTranslation(newPos);
 
     // Check if grounded
-    const isGrounded = this.characterControllerRapier.computedGrounded();
+    const isGrounded = this.physicsController.computedGrounded();
 
     // Update visual mesh
     this.mesh.position.set(newPos.x, newPos.y, newPos.z);
@@ -158,6 +161,16 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
         this.characterController.isJumping.value = false;
       }
     }
+  }
+
+  private handleJumping(delta: number) {
+    if (this.characterController.isJumping.value && this.verticalVelocity === 0) {
+      // Use jump force from config
+      this.verticalVelocity = this.config.character.jumpInitialVelocity;
+    }
+
+    // Apply gravity from config (negative because downward)
+    this.verticalVelocity -= this.config.character.jumpGravity * delta;
   }
 
   public addGridHelper(context: I_ModuleContext) {
