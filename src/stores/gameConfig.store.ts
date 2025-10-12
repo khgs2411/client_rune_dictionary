@@ -60,11 +60,19 @@ export const useGameConfigStore = defineStore(
       particleCount: 20, // Particle burst count (0 = off, 50 = max)
     });
 
+    const editor = reactive({
+      enabled: false, // Toggle editor mode (enables object dragging, disables click behaviors)
+      showGrid: true, // Show grid when dragging objects
+      snapToGrid: 0.5, // Grid snap size in world units (0 = no snapping)
+      dragOpacity: 0.5, // Object opacity while dragging (0 = invisible, 1 = opaque)
+    });
+
     return {
       character,
       camera,
       debug,
       interaction,
+      editor,
     };
   },
   { persist: true },

@@ -12,6 +12,7 @@ export type SceneObjectGeometryConfig = BufferGeometry<
 
 /**
  * Scene Object Configuration DTO
+ * Refactored v2: Supports new interaction structure (hover, click, drag)
  */
 export interface I_SceneObjectConfig {
   position: RGBColor;
@@ -30,7 +31,7 @@ export interface I_SceneObjectConfig {
 
   // Interaction configuration (optional - makes object interactive)
   interactive?: boolean; // If true, object can be clicked/hovered
-  interaction?: I_InteractableBehaviors; // Interaction behavior config
+  interaction?: I_InteractableBehaviors; // Interaction behavior config (hover, click, drag)
 }
 
 /* export default class SceneObjectConfig extends Dto implements I_SceneObjectConfig {

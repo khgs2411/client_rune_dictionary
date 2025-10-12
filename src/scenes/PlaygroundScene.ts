@@ -80,15 +80,45 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
           material: { staticColor: 0xff00ff, roughness: 0.2, metalness: 0.8 }, // Shiny pink sphere
           interactive: true,
           interaction: {
-            clickVFX: true,
-            hoverGlow: true,
-            cameraShake: {
-              duration: 0.5,
-              intensity: 0.2,
+            // HOVER: Glow + tooltip
+            hover: {
+              glow: {
+                color: 0xff8c00,
+                intensity: () => this.config.interaction.hoverGlowIntensity,
+              },
+              tooltip: {
+                title: 'Draggable Box',
+                description: 'Enable editor mode to drag me!',
+              },
             },
-            tooltip: {
-              title: 'Another Themed Box',
-              description: 'Click me!',
+
+            // CLICK: VFX + shake (disabled in editor mode)
+            click: {
+              vfx: { text: 'POW!', color: '#ff00ff' },
+              shake: {
+                intensity: () => this.config.interaction.cameraShakeIntensity,
+                duration: 0.5,
+              },
+            },
+
+            // DRAG: Lock Y axis, snap to grid (only works in editor mode)
+            drag: {
+              enabled: true,
+              lockAxis: ['y'], // Keep at same height
+              snapToGrid: 0.5, // Snap to 0.5 unit grid
+              customCallbacks: {
+                onStart: (pos) => {
+                  console.log('🎯 Started dragging box from:', pos);
+                },
+                onMove: (pos) => {
+                  // Optional: Real-time position logging
+                  // console.log('Moving...', pos);
+                },
+                onEnd: (pos) => {
+                  console.log('✅ Finished dragging box to:', pos);
+                  // TODO: Save to scene store!
+                },
+              },
             },
           },
         },

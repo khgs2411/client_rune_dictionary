@@ -182,8 +182,8 @@
             </label>
             <Switch
               id="physics-debug"
-              :model-value="config.debug.showPhysicsDebug"
-              @update:model-value="(value) => (config.debug.showPhysicsDebug = value)" />
+              :v-model="config.debug.showPhysicsDebug"
+              />
           </div>
           <p class="text-xs text-muted-foreground">
             Show green wireframes around all physics colliders

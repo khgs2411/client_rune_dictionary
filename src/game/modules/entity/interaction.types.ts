@@ -1,19 +1,9 @@
-import type { Intersection, Object3D } from 'three';
+import type { Intersection, Object3D, Vector3 } from 'three';
 
 /**
- * Interaction System Types (Refactored)
- * Callback-based architecture with behavior composition
+ * Interaction System Types (Refactored v2)
+ * Cleaner separation: hover, click, drag behaviors
  */
-
-/**
- * Interaction callbacks - direct function references (no events!)
- */
-export interface I_InteractionCallbacks {
-  onHoverStart?: (intersection: Intersection) => void;
-  onHoverEnd?: () => void;
-  onClick?: (intersection: Intersection) => void;
-  onHoverHold?: (duration: number) => void;
-}
 
 /**
  * Reactive value type - can be static or a getter function
@@ -22,51 +12,77 @@ export interface I_InteractionCallbacks {
 export type ReactiveValue<T> = T | (() => T);
 
 /**
- * Pre-built behaviors for common interaction patterns
- * These generate callbacks automatically
- *
- * Reactive values (intensity, count, etc.) can be:
- * - Static numbers: intensity: 0.5
- * - Getter functions: intensity: () => gameConfig.interaction.hoverGlowIntensity
+ * Hover behavior configuration
+ * Handles: glow effects, tooltips, hover callbacks
  */
-export interface I_InteractableBehaviors {
-  // Hover glow behavior
-  hoverGlow?:
-    | boolean
-    | {
-        color: number;
-        intensity: ReactiveValue<number>; // ✨ Reactive!
-      };
+export interface I_HoverBehavior {
+  glow?: {
+    color: number;
+    intensity: ReactiveValue<number>; // ✨ Reactive!
+  };
 
-  // Click VFX behavior (spawns text sprite)
-  clickVFX?:
-    | boolean
-    | {
-        text: string;
-        color?: string;
-      };
-
-  // Tooltip behavior (shows world-space billboard)
   tooltip?: {
     title: string;
     description?: string;
   };
 
-  // Camera shake behavior (shake on click)
-  cameraShake?: {
+  customCallbacks?: {
+    onStart?: (intersection: Intersection) => void;
+    onEnd?: () => void;
+    onHold?: (duration: number) => void;
+  };
+}
+
+/**
+ * Click behavior configuration
+ * Handles: VFX, camera shake, particles
+ */
+export interface I_ClickBehavior {
+  vfx?: {
+    text?: string;
+    color?: string;
+  };
+
+  shake?: {
     intensity: ReactiveValue<number>; // ✨ Reactive!
     duration: ReactiveValue<number>; // ✨ Reactive!
   };
 
-  // Particle effect behavior (particle burst on click)
-  particleEffect?: {
+  particles?: {
     count: ReactiveValue<number>; // ✨ Reactive!
     color?: number;
     speed?: ReactiveValue<number>; // ✨ Reactive!
   };
 
-  // Custom callbacks (merged with generated callbacks)
-  customCallbacks?: I_InteractionCallbacks;
+  customCallbacks?: {
+    onClick?: (intersection: Intersection) => void;
+  };
+}
+
+/**
+ * Drag behavior configuration
+ * Handles: object dragging on XZ plane (editor mode)
+ */
+export interface I_DragBehavior {
+  enabled: boolean; // Is draggable?
+  lockAxis?: ('x' | 'y' | 'z')[]; // Lock specific axes (default: lock Y)
+  snapToGrid?: number; // Override global snap (0 = no snap)
+
+  customCallbacks?: {
+    onStart?: (position: Vector3) => void;
+    onMove?: (position: Vector3) => void;
+    onEnd?: (position: Vector3) => void;
+  };
+}
+
+/**
+ * Unified interaction behaviors
+ * Clean separation by interaction type
+ */
+export interface I_InteractableBehaviors {
+  hover?: I_HoverBehavior;
+  click?: I_ClickBehavior;
+  drag?: I_DragBehavior;
 }
 
 /**
@@ -75,19 +91,26 @@ export interface I_InteractableBehaviors {
 export interface I_InteractableObject {
   id: string;
   object3D: Object3D;
-  callbacks: I_InteractionCallbacks;
   behaviors: I_InteractableBehaviors;
-  hoverable: boolean;
-  clickable: boolean;
 }
 
 /**
  * Hover state tracking (internal)
  */
 export interface I_HoverState {
-  object: I_InteractableObject;
+  objectId: string;
   startTime: number;
-  hoverHoldFired: boolean;
+  holdFired: boolean;
+}
+
+/**
+ * Drag state tracking (internal)
+ */
+export interface I_DragState {
+  objectId: string;
+  startPos: Vector3;
+  currentPos: Vector3;
+  dragPlane: any; // Three.js Plane
 }
 
 /**
@@ -95,6 +118,5 @@ export interface I_HoverState {
  */
 export interface I_InteractionConfig {
   hoverHoldThreshold?: number; // ms before hover-hold fires (default: 500)
-  clickMaxDragDistance?: number; // pixels - max mouse movement to count as click (default: 5)
   enabled?: boolean;
 }

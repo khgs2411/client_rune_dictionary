@@ -121,63 +121,76 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
     mesh: Mesh,
     gameConfig: GameConfig,
   ) {
-    if (config.interactive) {
-      const tooltipConfig = config.interaction?.tooltip || {
-        title: `${config.geometry.type} object`,
-        description: 'A scene object',
-      };
-
+    if (config.interactive && config.interaction) {
       const builder = context.services.interaction.register(
         `scene-object-${this.id}-${index}`,
         mesh,
       );
 
-      // Apply hover glow with REACTIVE intensity! ✨
-      if (config.interaction?.hoverGlow) {
-        const hoverGlow: { color?: number; intensity?: ReactiveValue<number> } = {
-          color: undefined,
-          intensity: undefined,
-        };
-        if (Guards.IsObject(config.interaction.hoverGlow)) {
-          hoverGlow.color = config.interaction.hoverGlow.color;
-          hoverGlow.intensity = config.interaction.hoverGlow.intensity;
+      // HOVER BEHAVIORS
+      const hover = config.interaction.hover;
+      if (hover) {
+        // Hover glow with REACTIVE intensity! ✨
+        if (hover.glow) {
+          builder.withHoverGlow(
+            hover.glow.color || 0xff8c00,
+            hover.glow.intensity || (() => gameConfig.interaction.hoverGlowIntensity),
+          );
         }
-        builder.withHoverGlow(
-          hoverGlow.color || 0xff8c00,
-          hoverGlow.intensity || (() => gameConfig.interaction.hoverGlowIntensity),
-        );
-      }
 
-      // Apply click VFX
-      if (config.interaction?.clickVFX) {
-        const vfx: { text: string | undefined; color: string | undefined } = {
-          text: undefined,
-          color: undefined,
-        };
-        if (Guards.IsObject(config.interaction.clickVFX)) {
-          vfx.text = config.interaction.clickVFX.text;
-          vfx.color = config.interaction.clickVFX.color;
+        // Tooltip
+        if (hover.tooltip) {
+          builder.withTooltip(hover.tooltip.title, hover.tooltip.description);
         }
-        builder.withClickVFX(vfx.text, vfx.color);
+
+        // Custom hover callbacks
+        if (hover.customCallbacks) {
+          builder.withHoverCallbacks(hover.customCallbacks);
+        }
       }
 
-      // Apply camera shake with REACTIVE values! ✨
-      // Always register (behavior checks intensity at runtime)
-      if (config.interaction?.cameraShake) {
-        builder.withCameraShake(
-          () => gameConfig.interaction.cameraShakeIntensity,
-          0.3, // Duration can be static
-        );
+      // CLICK BEHAVIORS
+      const click = config.interaction.click;
+      if (click) {
+        // Click VFX
+        if (click.vfx) {
+          builder.withClickVFX(click.vfx.text, click.vfx.color);
+        }
+
+        // Camera shake with REACTIVE values! ✨
+        if (click.shake) {
+          builder.withCameraShake(
+            click.shake.intensity || (() => gameConfig.interaction.cameraShakeIntensity),
+            click.shake.duration || 0.3,
+          );
+        }
+
+        // Particle effect with REACTIVE count! ✨
+        if (click.particles) {
+          builder.withParticles(
+            click.particles.count || (() => gameConfig.interaction.particleCount),
+            click.particles.color,
+            click.particles.speed,
+          );
+        }
+
+        // Custom click callbacks
+        if (click.customCallbacks) {
+          builder.withClickCallbacks(click.customCallbacks);
+        }
       }
 
-      // Apply particle effect with REACTIVE count! ✨
-      // Always register (behavior checks count at runtime)
-      if (config.interaction?.particleEffect)
-        builder.withParticleEffect(() => gameConfig.interaction.particleCount);
-
-      // Apply tooltip
-      if (config.interaction?.tooltip)
-        builder.withTooltip(tooltipConfig.title, tooltipConfig.description);
+      // DRAG BEHAVIOR (NEW!)
+      const drag = config.interaction.drag;
+      if (drag?.enabled) {
+        builder.withDrag({
+          lockAxis: drag.lockAxis,
+          snapToGrid: drag.snapToGrid,
+          onStart: drag.customCallbacks?.onStart,
+          onMove: drag.customCallbacks?.onMove,
+          onEnd: drag.customCallbacks?.onEnd,
+        });
+      }
     }
   }
 
