@@ -1,21 +1,22 @@
 import SceneModule from '@/game/SceneModule';
 import type { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
-import * as THREE from 'three';
 import {
+  BufferGeometry,
   CanvasTexture,
   Color,
+  DoubleSide,
+  Float32BufferAttribute,
+  Group,
+  LinearFilter,
+  Mesh,
+  MeshBasicMaterial,
+  Object3D,
+  PlaneGeometry,
+  Points,
+  PointsMaterial,
   Sprite,
   SpriteMaterial,
   Vector3,
-  Group,
-  PlaneGeometry,
-  MeshBasicMaterial,
-  Mesh,
-  DoubleSide,
-  Points,
-  PointsMaterial,
-  BufferGeometry,
-  Float32BufferAttribute,
 } from 'three';
 import { Text } from 'troika-three-text';
 
@@ -100,19 +101,37 @@ class TooltipBillboard {
   }
 
   private createBackground(): void {
-    // Stylish rounded background with border
     const geometry = new PlaneGeometry(3, 1, 32, 32);
+    const canvas = this.createRoundedRectCanvas();
 
-    // Create a canvas for the background with rounded corners (4x resolution)
+    const texture = new CanvasTexture(canvas);
+    texture.minFilter = LinearFilter; // Smooth scaling
+    texture.magFilter = LinearFilter;
+    const material = new MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      side: DoubleSide,
+      depthWrite: false, // Prevent z-fighting with text
+    });
+
+    this.backgroundMesh = new Mesh(geometry, material);
+    this.backgroundMesh.renderOrder = -1; // Render background FIRST
+    this.group.add(this.backgroundMesh);
+  }
+
+  /**
+   * Create rounded rectangle canvas for tooltip background
+   * Uses 4x resolution (2048x1024) for crisp borders
+   */
+  private createRoundedRectCanvas(): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
-    canvas.width = 2048; // 4x for crisp borders
-    canvas.height = 1024; // 4x
+    canvas.width = 2048; // 4x resolution for crisp rendering
+    canvas.height = 1024;
     const ctx = canvas.getContext('2d')!;
 
-    // Define corner radius (4x for 4x canvas)
-    const radius = 160; // 40px corner radius * 4
+    const radius = 160; // Corner radius (40px * 4 for 4x canvas)
 
-    // Draw rounded rectangle background (FULL canvas with proper rounding)
+    // Draw rounded rectangle path
     ctx.beginPath();
     ctx.moveTo(radius, 0);
     ctx.lineTo(canvas.width - radius, 0);
@@ -125,35 +144,23 @@ class TooltipBillboard {
     ctx.quadraticCurveTo(0, 0, radius, 0);
     ctx.closePath();
 
-    // Fill with SOLID dark background (no transparency issues!)
-    ctx.fillStyle = 'rgba(20, 20, 20, 1.0)'; // Changed from 0.95 to 1.0 for solid fill
+    // Fill with solid dark background
+    ctx.fillStyle = 'rgba(20, 20, 20, 1.0)';
     ctx.fill();
 
-    // Add subtle border (4x width)
+    // Add subtle orange border
     ctx.strokeStyle = 'rgba(255, 140, 0, 0.6)';
-    ctx.lineWidth = 16; // Was 4, now 4x
+    ctx.lineWidth = 16; // 4px * 4 for 4x canvas
     ctx.stroke();
 
-    // Add subtle inner glow (4x blur)
+    // Add subtle inner glow
     ctx.shadowColor = 'rgba(255, 140, 0, 0.3)';
-    ctx.shadowBlur = 40; // Was 10, now 4x
+    ctx.shadowBlur = 40; // 10px * 4 for 4x canvas
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
     ctx.stroke();
 
-    const texture = new CanvasTexture(canvas);
-    texture.minFilter = THREE.LinearFilter; // Smooth scaling
-    texture.magFilter = THREE.LinearFilter;
-    const material = new MeshBasicMaterial({
-      map: texture,
-      transparent: true,
-      side: DoubleSide,
-      depthWrite: false, // Prevent z-fighting with text
-    });
-
-    this.backgroundMesh = new Mesh(geometry, material);
-    this.backgroundMesh.renderOrder = -1; // Render background FIRST
-    this.group.add(this.backgroundMesh);
+    return canvas;
   }
 
   private createTextObjects(): void {
@@ -336,6 +343,13 @@ class ParticleSystem {
  * Handles text sprites, tooltips, particle effects, etc.
  */
 export class VFXModule extends SceneModule implements I_SceneModule {
+  // Pool size constants
+  private static readonly POOL_SIZES = {
+    TEXT_SPRITES: 10, // POW!/BAM! text effects
+    TOOLTIPS: 3, // Usually only need 1 active at a time
+    PARTICLES: 5, // Particle burst systems
+  } as const;
+
   private context!: I_ModuleContext;
 
   // Object pools
@@ -356,24 +370,24 @@ export class VFXModule extends SceneModule implements I_SceneModule {
   async start(context: I_ModuleContext): Promise<void> {
     this.context = context;
 
-    // Pre-create text sprite pool (10 sprites)
-    for (let i = 0; i < 10; i++) {
+    // Pre-create text sprite pool
+    for (let i = 0; i < VFXModule.POOL_SIZES.TEXT_SPRITES; i++) {
       const sprite = new TextSprite();
       context.scene.add(sprite.sprite);
       context.lifecycle.register(sprite.sprite);
       this.textSpritePool.push(sprite);
     }
 
-    // Pre-create tooltip pool (3 tooltips - usually only need 1)
-    for (let i = 0; i < 3; i++) {
+    // Pre-create tooltip pool
+    for (let i = 0; i < VFXModule.POOL_SIZES.TOOLTIPS; i++) {
       const tooltip = new TooltipBillboard();
       context.scene.add(tooltip.group);
       context.lifecycle.register(tooltip.group);
       this.tooltipPool.push(tooltip);
     }
 
-    // Pre-create particle systems pool (5 systems)
-    for (let i = 0; i < 5; i++) {
+    // Pre-create particle systems pool
+    for (let i = 0; i < VFXModule.POOL_SIZES.PARTICLES; i++) {
       const particles = new ParticleSystem();
       context.scene.add(particles.points);
       context.lifecycle.register(particles.points);
@@ -390,9 +404,18 @@ export class VFXModule extends SceneModule implements I_SceneModule {
   }
 
   update(delta: number): void {
+    this.updateTextSpriteAnimations();
+    this.updateTooltipBillboard();
+    this.updateParticleSystems(delta);
+    this.updateCameraShake(delta);
+  }
+
+  /**
+   * Update text sprite animations (POW! BAM! effects)
+   */
+  private updateTextSpriteAnimations(): void {
     const now = Date.now();
 
-    // Animate text sprites
     this.activeTextAnims.forEach((anim, sprite) => {
       const elapsed = now - anim.startTime;
       const progress = elapsed / anim.duration;
@@ -402,41 +425,55 @@ export class VFXModule extends SceneModule implements I_SceneModule {
         sprite.reset();
         this.activeTextAnims.delete(sprite);
       } else {
-        // Animate: rise + fade + scale
+        // Animate: rise + fade + scale (eased cubic out)
         const easeOut = 1 - Math.pow(1 - progress, 3);
         sprite.sprite.position.y = anim.startPos.y + easeOut * 2;
         sprite.sprite.material.opacity = 1 - progress;
         sprite.sprite.scale.set(2 * (1 + progress * 0.5), 1 * (1 + progress * 0.5), 1);
       }
     });
+  }
 
-    // Update tooltip billboard to face camera
+  /**
+   * Update tooltip billboard to always face camera
+   */
+  private updateTooltipBillboard(): void {
     if (this.activeTooltip && this.context.camera) {
       this.activeTooltip.faceCamera(this.context.camera.instance.position);
     }
+  }
 
-    // Update particle systems
+  /**
+   * Update all particle systems in pool
+   */
+  private updateParticleSystems(delta: number): void {
     this.particlePool.forEach((particles) => {
       particles.update(delta);
     });
+  }
 
-    // Update camera shake
-    if (this.cameraShake && this.context.camera) {
-      this.cameraShake.elapsed += delta;
+  /**
+   * Update camera shake effect (fades out over duration)
+   */
+  private updateCameraShake(delta: number): void {
+    if (!this.cameraShake || !this.context.camera) return;
 
-      if (this.cameraShake.elapsed >= this.cameraShake.duration) {
-        // Reset camera position
-        this.context.camera.instance.position.x -= this.context.camera.instance.position.x % 0.01;
-        this.context.camera.instance.position.y -= this.context.camera.instance.position.y % 0.01;
-        this.cameraShake = null;
-      } else {
-        // Apply shake
-        const progress = this.cameraShake.elapsed / this.cameraShake.duration;
-        const intensity = this.cameraShake.intensity * (1 - progress); // Fade out
+    this.cameraShake.elapsed += delta;
 
-        this.context.camera.instance.position.x += (Math.random() - 0.5) * intensity;
-        this.context.camera.instance.position.y += (Math.random() - 0.5) * intensity;
-      }
+    if (this.cameraShake.elapsed >= this.cameraShake.duration) {
+      // Shake complete - snap camera position to prevent floating point drift
+      // (Round to nearest 0.01 to clean up accumulated shake offsets)
+      const camera = this.context.camera.instance;
+      camera.position.x = Math.round(camera.position.x * 100) / 100;
+      camera.position.y = Math.round(camera.position.y * 100) / 100;
+      this.cameraShake = null;
+    } else {
+      // Apply shake with fade-out (intensity decreases over time)
+      const progress = this.cameraShake.elapsed / this.cameraShake.duration;
+      const intensity = this.cameraShake.intensity * (1 - progress);
+
+      this.context.camera.instance.position.x += (Math.random() - 0.5) * intensity;
+      this.context.camera.instance.position.y += (Math.random() - 0.5) * intensity;
     }
   }
 
@@ -510,14 +547,15 @@ export class VFXModule extends SceneModule implements I_SceneModule {
   /**
    * Apply emissive glow to object (for hover effects)
    */
-  applyEmissive(object3D: any, color: number, intensity: number): void {
-    object3D.traverse((child: any) => {
-      if (child.isMesh) {
-        const mat = child.material;
+  applyEmissive(object3D: Object3D, color: number, intensity: number): void {
+    object3D.traverse((child) => {
+      if ('isMesh' in child && child.isMesh) {
+        const mesh = child as Mesh;
+        const mat = mesh.material as any; // Material types vary
 
-        // Cache original material
-        if (!this.materialCache.has(child.uuid) && mat.emissive) {
-          this.materialCache.set(child.uuid, {
+        // Cache original material if it has emissive properties
+        if (!this.materialCache.has(mesh.uuid) && mat.emissive) {
+          this.materialCache.set(mesh.uuid, {
             emissive: mat.emissive.clone(),
             emissiveIntensity: mat.emissiveIntensity,
           });
@@ -535,14 +573,18 @@ export class VFXModule extends SceneModule implements I_SceneModule {
   /**
    * Restore original emissive for object
    */
-  restoreEmissive(object3D: any): void {
-    object3D.traverse((child: any) => {
-      const original = this.materialCache.get(child.uuid);
-      if (original && child.isMesh) {
-        const mat = child.material;
-        if (mat.emissive) {
-          mat.emissive.copy(original.emissive);
-          mat.emissiveIntensity = original.emissiveIntensity;
+  restoreEmissive(object3D: Object3D): void {
+    object3D.traverse((child) => {
+      if ('isMesh' in child && child.isMesh) {
+        const mesh = child as Mesh;
+        const original = this.materialCache.get(mesh.uuid);
+
+        if (original) {
+          const mat = mesh.material as any; // Material types vary
+          if (mat.emissive) {
+            mat.emissive.copy(original.emissive);
+            mat.emissiveIntensity = original.emissiveIntensity;
+          }
         }
       }
     });

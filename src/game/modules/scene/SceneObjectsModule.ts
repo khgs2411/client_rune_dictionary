@@ -1,4 +1,4 @@
-import { RGBColor } from '@/common/types';
+import { Vec3 } from '@/common/types';
 import { I_ThemeColors } from '@/composables/useTheme';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
@@ -156,7 +156,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
     switch (type) {
       case 'box':
         // params: [width, height, depth]
-        return new BoxGeometry(...(params as RGBColor));
+        return new BoxGeometry(...(params as Vec3));
 
       case 'sphere':
         // params: [radius, widthSegments?, heightSegments?]

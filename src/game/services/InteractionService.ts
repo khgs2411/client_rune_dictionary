@@ -279,13 +279,29 @@ export class InteractionService implements I_SceneService {
   _internalRegister(id: string, object3D: Object3D, behaviors: I_InteractableBehaviors): void {
     const callbacks = this.buildCallbacks(object3D, behaviors);
 
+    // Derive hoverable/clickable from behaviors
+    const hoverable = !!(
+      behaviors.hoverGlow ||
+      behaviors.tooltip ||
+      behaviors.customCallbacks?.onHoverStart ||
+      behaviors.customCallbacks?.onHoverEnd ||
+      behaviors.customCallbacks?.onHoverHold
+    );
+
+    const clickable = !!(
+      behaviors.clickVFX ||
+      behaviors.cameraShake ||
+      behaviors.particleEffect ||
+      behaviors.customCallbacks?.onClick
+    );
+
     this.interactables.set(id, {
       id,
       object3D,
       callbacks,
       behaviors,
-      hoverable: true,
-      clickable: true,
+      hoverable,
+      clickable,
     });
 
     console.log('  ↳ Registered interactable:', id, behaviors);
@@ -304,10 +320,27 @@ export class InteractionService implements I_SceneService {
    */
   private buildCallbacks(object3D: Object3D, behaviors: I_InteractableBehaviors): I_InteractionCallbacks {
     const callbacks: I_InteractionCallbacks = {};
-
     const vfx = this.getVFXModule();
 
-    // Hover glow behavior
+    // Build callbacks for each behavior
+    this.buildHoverGlowCallbacks(callbacks, behaviors, object3D, vfx);
+    this.buildClickVFXCallbacks(callbacks, behaviors, vfx);
+    this.buildTooltipCallbacks(callbacks, behaviors, object3D, vfx);
+    this.buildCameraShakeCallbacks(callbacks, behaviors, vfx);
+    this.buildParticleCallbacks(callbacks, behaviors, vfx);
+
+    return callbacks;
+  }
+
+  /**
+   * Build hover glow callbacks (emissive material change)
+   */
+  private buildHoverGlowCallbacks(
+    callbacks: I_InteractionCallbacks,
+    behaviors: I_InteractableBehaviors,
+    object3D: Object3D,
+    vfx: VFXModule | null
+  ): void {
     if (behaviors.hoverGlow) {
       const { color, intensity } = behaviors.hoverGlow;
 
@@ -326,8 +359,16 @@ export class InteractionService implements I_SceneService {
       callbacks.onHoverStart = behaviors.customCallbacks.onHoverStart;
       callbacks.onHoverEnd = behaviors.customCallbacks.onHoverEnd;
     }
+  }
 
-    // Click VFX behavior
+  /**
+   * Build click VFX callbacks (text sprite effects)
+   */
+  private buildClickVFXCallbacks(
+    callbacks: I_InteractionCallbacks,
+    behaviors: I_InteractableBehaviors,
+    vfx: VFXModule | null
+  ): void {
     if (behaviors.clickVFX) {
       const { text, color } = behaviors.clickVFX;
 
@@ -339,8 +380,17 @@ export class InteractionService implements I_SceneService {
       // No VFX, but custom callback exists
       callbacks.onClick = behaviors.customCallbacks.onClick;
     }
+  }
 
-    // Tooltip behavior
+  /**
+   * Build tooltip callbacks (world-space billboard)
+   */
+  private buildTooltipCallbacks(
+    callbacks: I_InteractionCallbacks,
+    behaviors: I_InteractableBehaviors,
+    object3D: Object3D,
+    vfx: VFXModule | null
+  ): void {
     if (behaviors.tooltip) {
       const { title, description } = behaviors.tooltip;
 
@@ -361,8 +411,16 @@ export class InteractionService implements I_SceneService {
         originalHoverEnd?.();
       };
     }
+  }
 
-    // Camera shake behavior
+  /**
+   * Build camera shake callbacks (click-triggered shake)
+   */
+  private buildCameraShakeCallbacks(
+    callbacks: I_InteractionCallbacks,
+    behaviors: I_InteractableBehaviors,
+    vfx: VFXModule | null
+  ): void {
     if (behaviors.cameraShake) {
       const { intensity, duration } = behaviors.cameraShake;
       const originalClick = callbacks.onClick;
@@ -373,8 +431,16 @@ export class InteractionService implements I_SceneService {
         originalClick?.(intersection);
       };
     }
+  }
 
-    // Particle effect behavior
+  /**
+   * Build particle effect callbacks (click-triggered burst)
+   */
+  private buildParticleCallbacks(
+    callbacks: I_InteractionCallbacks,
+    behaviors: I_InteractableBehaviors,
+    vfx: VFXModule | null
+  ): void {
     if (behaviors.particleEffect) {
       const { count, color, speed } = behaviors.particleEffect;
       const originalClick = callbacks.onClick;
@@ -390,15 +456,13 @@ export class InteractionService implements I_SceneService {
         originalClick?.(intersection);
       };
     }
-
-    return callbacks;
   }
 
   /**
    * Get VFX module from services (helper)
    */
   private getVFXModule(): VFXModule | null {
-    return (this.context?.services as any)?.vfx || null;
+    return this.context?.services?.vfx || null;
   }
 
   /**
