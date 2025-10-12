@@ -451,6 +451,14 @@ export class PhysicsService extends SceneModule {
     body.setRotation(this.eulerToQuaternion(rot), true);
   }
 
+  /**
+   * Update static body position (for editor/drag operations)
+   * Alias for setPosition but more explicit for static bodies
+   */
+  public updateStaticBodyPosition(id: string, position: Vector3Like): void {
+    this.setPosition(id, position);
+  }
+
   // ============================================================================
   // Internal Helpers
   // ============================================================================

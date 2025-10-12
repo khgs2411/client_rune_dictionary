@@ -110,12 +110,20 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
                 onStart: (pos) => {
                   console.log('🎯 Started dragging box from:', pos);
                 },
-                onMove: (pos) => {
-                  // Optional: Real-time position logging
-                  // console.log('Moving...', pos);
-                },
                 onEnd: (pos) => {
                   console.log('✅ Finished dragging box to:', pos);
+
+                  // Update physics collider to match new position
+                  // ID format: scene-object-{moduleId}-{index}
+                  const module = this.getModule('sceneObjects');
+                  if (module) {
+                    const objectId = `scene-object-${(module as any).id}-0`;
+                    if (this.services.physics.isReady()) {
+                      this.services.physics.updateStaticBodyPosition(objectId, pos);
+                      console.log(`🔄 Updated physics body: ${objectId}`);
+                    }
+                  }
+
                   // TODO: Save to scene store!
                 },
               },
