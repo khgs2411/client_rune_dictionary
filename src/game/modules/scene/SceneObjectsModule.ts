@@ -20,6 +20,7 @@ import {
 import { Guards } from 'topsyde-utils';
 import { ReactiveValue } from '../entity/interaction.types';
 import type * as RAPIER_TYPE from '@dimforge/rapier3d';
+import { ApplicationSettings, useSettingsStore } from '@/stores/settings.store';
 
 /**
  * Scene Objects Module (Regular Meshes)
@@ -42,10 +43,12 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
   private objectConfigs: I_SceneObjectConfig[];
   private meshes: Mesh[] = [];
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
+  private settings: ApplicationSettings;
 
   constructor(objectConfigs: I_SceneObjectConfig[], moduleName?: string) {
     super(moduleName);
     this.objectConfigs = objectConfigs;
+    this.settings = useSettingsStore();
   }
 
   async start(context: I_ModuleContext): Promise<void> {
@@ -351,7 +354,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
 
     let color: number;
     if (material.useTheme) {
-      color = context.settings.theme.primaryForeground;
+      color = this.settings.theme.primaryForeground;
     } else if (material.staticColor !== undefined) {
       color = material.staticColor;
     } else {

@@ -53,4 +53,4 @@ export const useSettingsStore = defineStore(
     persist: true,
   },
 );
-export type SettingsStore = ReturnType<typeof useSettingsStore>;
+export type ApplicationSettings = ReturnType<typeof useSettingsStore>;

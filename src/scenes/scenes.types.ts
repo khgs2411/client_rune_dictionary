@@ -2,7 +2,7 @@ import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
 import { Engine } from '@/game/Engine';
 import { SceneLifecycle } from '@/game/SceneLifecycle';
-import { SettingsStore as ApplicationSettings } from '@/stores/settings.store';
+import { ApplicationSettings as ApplicationSettings } from '@/stores/settings.store';
 import { Scene } from 'three';
 import type { InteractionService } from '@/game/services/InteractionService';
 import { I_ThemeColors } from '@/composables/useTheme';
@@ -92,8 +92,6 @@ export interface I_ModuleContext {
   engine: Engine;
   scene: Scene;
   lifecycle: SceneLifecycle;
-  settings: ApplicationSettings;
-  config: GameConfig;
   sceneName: string;
   services: I_ModuleServices;
   camera?: ReturnType<typeof useCamera>; // Optional: for modules that need camera

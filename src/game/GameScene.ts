@@ -13,7 +13,7 @@ import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
 import { useSettingsStore } from '@/stores/settings.store';
 import type { Engine } from '@/game/Engine';
-import type { SettingsStore } from '@/stores/settings.store';
+import type { ApplicationSettings } from '@/stores/settings.store';
 import { ModuleRegistry } from '@/game/ModuleRegistry';
 import { InteractionService } from '@/game/services/InteractionService';
 import { VFXModule } from '@/game/modules/scene/VFXModule';
@@ -52,8 +52,8 @@ export abstract class GameScene<
 
   // High-level entity composables
   protected character!: ReturnType<typeof useCharacter>;
-  protected settings!: SettingsStore;
-  protected config!: GameConfig;
+  protected settings: ApplicationSettings;
+  protected config: GameConfig;
   public camera!: ReturnType<typeof useCamera>;
 
   // Status flags
@@ -65,7 +65,8 @@ export abstract class GameScene<
 
   constructor() {
     // Subscribe to module loading events
-
+    this.settings = useSettingsStore();
+    this.config = useGameConfigStore();
 
     this.moduleEvents.$subscribe({
       loaded: (data: ModuleLoadingProgressPayload) => {
@@ -184,8 +185,7 @@ export abstract class GameScene<
    * Override to customize camera/character setup
    */
   protected async initializeServices(): Promise<void> {
-    this.settings = useSettingsStore();
-    this.config = useGameConfigStore();
+
     this.camera = useCamera();
     this.character = useCharacter({
       cameraAngleH: this.camera.controller.angle.horizontal,
@@ -246,8 +246,6 @@ export abstract class GameScene<
       services: this.services, // Pass services (interaction, etc.)
       camera: this.camera,
       character: this.character,
-      settings: this.settings,
-      config: this.config,
     };
   }
 

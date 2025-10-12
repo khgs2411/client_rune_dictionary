@@ -1,4 +1,4 @@
-import { type SettingsStore } from '@/stores/settings.store';
+import { useSettingsStore, type ApplicationSettings } from '@/stores/settings.store';
 import { I_CharacterControls } from '@/composables/composables.types';
 import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
@@ -16,7 +16,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
   private mesh!: Group;
   private bodyMaterial!: MeshStandardMaterial;
   private coneMaterial!: MeshStandardMaterial;
-  private settings: SettingsStore;
+  private settings: ApplicationSettings;
   private config: GameConfig;
   private characterController: I_CharacterControls;
 
@@ -31,13 +31,12 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
   private verticalVelocity: number = 0;
 
   constructor(
-    context:I_ModuleContext,
     characterController: I_CharacterControls,
     moduleName: string = 'characterMesh',
   ) {
     super(moduleName);
-    this.settings = context.settings;
-    this.config = context.config;
+    this.settings = useSettingsStore();
+    this.config = useGameConfigStore();
     this.characterController = characterController;
   }
 

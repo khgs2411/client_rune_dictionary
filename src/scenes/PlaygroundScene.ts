@@ -42,8 +42,8 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
    */
   protected registerModules(): void {
     this.addModule('lighting', new LightingModule());
-    this.addModule('ground', new GroundModule(this.settings));
-    this.addModule('characterMesh', new CharacterModule(this.getModuleContext(), this.character.controller));
+    this.addModule('ground', new GroundModule());
+    this.addModule('characterMesh', new CharacterModule(this.character.controller));
   }
 
   protected addSceneObjects() {

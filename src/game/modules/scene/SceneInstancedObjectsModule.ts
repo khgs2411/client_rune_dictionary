@@ -3,6 +3,7 @@ import { I_ThemeColors } from '@/composables/useTheme';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
 import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
+import { ApplicationSettings, useSettingsStore } from '@/stores/settings.store';
 import {
   BoxGeometry,
   BufferGeometry,
@@ -32,10 +33,12 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
   private objectConfigs: I_SceneObjectConfig[];
   private instancedMeshes: Map<string, InstancedMesh> = new Map();
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
+  private settings: ApplicationSettings;
 
   constructor(objectConfigs: I_SceneObjectConfig[], moduleName?: string) {
     super(moduleName);
     this.objectConfigs = objectConfigs;
+    this.settings = useSettingsStore();
   }
 
   public async start(context: I_ModuleContext): Promise<void> {
@@ -45,7 +48,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     groups.forEach((configs, groupKey) => {
       const instancedMeshConfig = configs[0];
       const geometry = this.createGeometry(instancedMeshConfig.geometry);
-      const material = this.createMaterial(instancedMeshConfig, context);
+      const material = this.createMaterial(instancedMeshConfig);
 
       // Track themed materials for updateColors
       if (instancedMeshConfig.material.useTheme) {
@@ -189,13 +192,12 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
    */
   private createMaterial(
     config: I_SceneObjectConfig,
-    context: I_ModuleContext,
   ): MeshStandardMaterial {
     const { material } = config;
 
     let color: number;
     if (material.useTheme) {
-      color = context.settings.theme.primaryForeground;
+      color = this.settings.theme.primaryForeground;
     } else if (material.staticColor !== undefined) {
       color = material.staticColor;
     } else {

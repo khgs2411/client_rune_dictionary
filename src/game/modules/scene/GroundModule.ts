@@ -1,4 +1,4 @@
-import { type SettingsStore } from '@/stores/settings.store';
+import { useSettingsStore, type ApplicationSettings } from '@/stores/settings.store';
 import { I_ModuleContext } from '@/scenes/scenes.types';
 import { I_SceneModule } from '@/scenes/scenes.types';
 import { GridHelper, InstancedMesh, Mesh, MeshStandardMaterial, PlaneGeometry } from 'three';
@@ -12,11 +12,11 @@ import type * as RAPIER_TYPE from '@dimforge/rapier3d';
  */
 export class GroundModule extends SceneModule implements I_SceneModule {
   private groundMaterial!: MeshStandardMaterial;
-  private settings: SettingsStore;
+  private settings: ApplicationSettings;
 
-  constructor(settings: SettingsStore, moduleName?: string) {
+  constructor( moduleName?: string) {
     super(moduleName);
-    this.settings = settings;
+    this.settings = useSettingsStore();
   }
 
   async start(context: I_ModuleContext): Promise<void> {
