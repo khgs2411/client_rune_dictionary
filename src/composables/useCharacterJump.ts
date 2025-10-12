@@ -1,4 +1,4 @@
-import { useGameConfig } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/gameConfig.store';
 import { ref, type Ref } from 'vue';
 import { useMagicKeys, whenever } from '@vueuse/core';
 
@@ -14,7 +14,7 @@ export interface CharacterJump {
  * Handles jump physics, gravity, and space key input
  */
 export function useCharacterJump(): CharacterJump {
-  const config = useGameConfig();
+  const config = useGameConfigStore();
 
   const isJumping = ref(false);
   const verticalVelocity = ref(0);

@@ -1,7 +1,6 @@
 <template>
   <header
     class="flex justify-end items-center gap-1 px-3 py-1 border-b border-border bg-background">
-    <GameSettings />
     <TooltipProvider :delay-duration="0">
       <Tooltip>
         <TooltipTrigger as-child>
@@ -26,6 +25,7 @@
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
+    <GameSettings />
     <ApplicationSettings />
   </header>
 </template>
@@ -36,9 +36,9 @@ import GameSettings from '@/components/GameSettings.vue';
 import Button from '@/components/ui/button/Button.vue';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Icon } from '@iconify/vue';
-import { useGameConfig } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/gameConfig.store';
 
-const config = useGameConfig();
+const config = useGameConfigStore();
 
 function toggleDebugger() {
   config.debug.showWebSocketDebugger = !config.debug.showWebSocketDebugger;

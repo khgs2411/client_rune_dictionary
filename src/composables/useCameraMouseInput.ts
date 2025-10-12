@@ -1,6 +1,6 @@
 import { ref, onUnmounted, type Ref } from 'vue';
 import { Mouse, type I_MouseEvent, type I_MouseScrollEvent } from '@/game/utils/Mouse';
-import { useGameConfig } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/gameConfig.store';
 import type { CameraRotation } from './useCameraRotation';
 import type { CameraZoom } from './useCameraZoom';
 
@@ -14,7 +14,7 @@ export interface CameraMouseInput {
  * Handles mouse-based camera controls (rotation, zoom, pointer lock)
  */
 export function useCameraMouseInput(rotation: CameraRotation, zoom: CameraZoom): CameraMouseInput {
-  const config = useGameConfig();
+  const config = useGameConfigStore();
   const isDragging = ref(false);
 
   // Create mouse utility with pointer lock support

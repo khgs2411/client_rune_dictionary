@@ -186,11 +186,11 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import Slider from '@/components/ui/slider/Slider.vue';
-import { useGameConfig } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/gameConfig.store';
 import { Gamepad2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
-const config = useGameConfig();
+const config = useGameConfigStore();
 const isOpen = ref(false);
 
 // Local slider values (array format required by reka-ui)

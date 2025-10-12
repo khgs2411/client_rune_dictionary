@@ -4,8 +4,8 @@ import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import SceneModule from '@/game/SceneModule';
 import { I_ThemeColors } from '@/composables/useTheme';
-import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import type * as RAPIER_TYPE from '@dimforge/rapier3d';
+import { useGameConfigStore } from '@/stores/gameConfig.store';
 
 /**
  * Character Mesh Module
@@ -18,6 +18,7 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
   private coneMaterial!: MeshStandardMaterial;
   private settings: SettingsStore;
   private characterController: I_CharacterControls;
+  private config: ReturnType<typeof useGameConfigStore>;
 
   // Rapier physics components
   private rigidBody!: RAPIER_TYPE.RigidBody;
@@ -25,6 +26,9 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
   private characterControllerRapier!: RAPIER_TYPE.KinematicCharacterController;
   private world!: RAPIER_TYPE.World;
   private RAPIER!: typeof RAPIER_TYPE;
+
+  // Vertical velocity for gravity (Rapier handles this)
+  private verticalVelocity: number = 0;
 
   constructor(
     settings: SettingsStore,
@@ -34,6 +38,7 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     super(moduleName);
     this.settings = settings;
     this.characterController = characterController;
+    this.config = useGameConfigStore();
   }
 
   async start(context: I_ModuleContext): Promise<void> {
@@ -50,8 +55,8 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     this.buildBody();
     this.buildForwardIndicator();
 
-    // Initial position (matches physics body)
-    this.mesh.position.set(0, 2, 0);
+    // Initial position (matches physics body center)
+    this.mesh.position.set(0, 1, 0);
 
     // Create Rapier physics components
     this.createPhysicsBody();
@@ -67,14 +72,16 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
   private createPhysicsBody(): void {
     // Visual capsule: CapsuleGeometry(radius=0.5, cylinderHeight=1)
     // Total visual height = cylinderHeight + 2*radius = 1 + 2*0.5 = 2 units
+    // Center at geometric center, extends from -1 to +1 on local Y axis
 
     // Rapier capsule: capsule(halfHeight, radius)
     // halfHeight is half of the cylinder part (not including hemispheres)
     // Total physics height = 2*halfHeight + 2*radius = 2*0.5 + 2*0.5 = 2 units
+    // Center at geometric center, extends from -1 to +1 on local Y axis
 
-    // Position at Y=2 so bottom of capsule touches ground (Y=0)
+    // Position at Y=1 so center is at Y=1, meaning bottom is at Y=0 (ground level)
     const rigidBodyDesc = this.RAPIER.RigidBodyDesc.kinematicPositionBased();
-    rigidBodyDesc.setTranslation(0, 2, 0);
+    rigidBodyDesc.setTranslation(0, 1, 0);
     this.rigidBody = this.world.createRigidBody(rigidBodyDesc);
 
     // Create capsule collider matching visual geometry
@@ -92,22 +99,31 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     console.log('✅ [CharacterMeshModule] Rapier physics initialized');
   }
 
-  public update(): void {
-    // Get desired movement from character controller
+  public update(delta: number): void {
     const currentPos = this.rigidBody.translation();
+
+    // Handle vertical velocity (gravity + jumping)
+    // Check if character wants to jump
+    if (this.characterController.isJumping.value && this.verticalVelocity === 0) {
+      // Use jump force from config
+      this.verticalVelocity = this.config.character.jumpInitialVelocity;
+    }
+
+    // Apply gravity from config (negative because downward)
+    this.verticalVelocity -= this.config.character.jumpGravity * delta;
+
+    // Calculate desired position change
     const desiredMovement = new this.RAPIER.Vector3(
-      this.characterController.position.x.value - currentPos.x,
-      this.characterController.position.y.value - currentPos.y,
-      this.characterController.position.z.value - currentPos.z,
+      (this.characterController.position.x.value - currentPos.x),
+      this.verticalVelocity * delta,
+      (this.characterController.position.z.value - currentPos.z)
     );
 
-    // Compute collision-corrected movement using Rapier
+    // Let Rapier compute collision-corrected movement
     this.characterControllerRapier.computeColliderMovement(this.collider, desiredMovement);
-
-    // Get the corrected movement (Rapier blocks collisions automatically)
     const correctedMovement = this.characterControllerRapier.computedMovement();
 
-    // Apply corrected movement to rigid body
+    // Apply physics-corrected position
     const newPos = {
       x: currentPos.x + correctedMovement.x,
       y: currentPos.y + correctedMovement.y,
@@ -115,15 +131,31 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     };
     this.rigidBody.setNextKinematicTranslation(newPos);
 
-    // Update visual mesh to match physics body
+    // Check if grounded
+    const isGrounded = this.characterControllerRapier.computedGrounded();
+
+    // Update visual mesh
     this.mesh.position.set(newPos.x, newPos.y, newPos.z);
     this.mesh.rotation.y = this.characterController.rotation.value;
 
-    // Optionally: Update character controller to match corrected position
-    // (This ensures controller and physics stay in sync)
+    // Sync physics position back to character controller
     this.characterController.position.x.value = newPos.x;
-    this.characterController.position.y.value = newPos.y;
     this.characterController.position.z.value = newPos.z;
+    this.characterController.position.y.value = newPos.y;
+
+    // Handle grounded state
+    if (isGrounded) {
+      // Reset vertical velocity when grounded
+      this.verticalVelocity = 0;
+
+      // Update ground level for jump system
+      this.config.character.groundLevel = newPos.y;
+
+      // Reset jump flag when landed
+      if (this.characterController.isJumping.value) {
+        this.characterController.isJumping.value = false;
+      }
+    }
   }
 
   public addToScene(context: I_ModuleContext) {

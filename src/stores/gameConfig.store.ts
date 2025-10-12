@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { reactive, ref } from 'vue';
-export type GameConfig = ReturnType<typeof useGameConfig>;
-export const useGameConfig = defineStore('useGameConfig', () => {
+export type GameConfig = ReturnType<typeof useGameConfigStore>;
+export const useGameConfigStore = defineStore('gameConfig', () => {
   const character = reactive({
     moveSpeed: 10,
 
@@ -63,4 +63,4 @@ export const useGameConfig = defineStore('useGameConfig', () => {
     debug,
     interaction,
   };
-});
+}, { persist: true });

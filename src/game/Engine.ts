@@ -10,7 +10,7 @@ import {
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { useRxjs } from 'topsyde-utils';
 import { watch } from 'vue';
-import { useGameConfig } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/gameConfig.store';
 
 /**
  * Core game engine that encapsulates js scene, renderer, and clock.
@@ -30,7 +30,7 @@ export class Engine {
   constructor(canvas: HTMLCanvasElement) {
     console.log('   ↳ Initializing Three.js engine...');
 
-    const config = useGameConfig();
+    const config = useGameConfigStore();
 
     // Create clock for delta time
     this.clock = new Clock();

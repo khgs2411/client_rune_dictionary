@@ -3,7 +3,7 @@ import { I_ThemeColors } from '@/composables/useTheme';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
 import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
-import { GameConfig, useGameConfig } from '@/stores/gameConfig.store';
+import { GameConfig, useGameConfigStore } from '@/stores/gameConfig.store';
 import {
   BoxGeometry,
   BufferGeometry,
@@ -49,7 +49,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
   }
 
   async start(context: I_ModuleContext): Promise<void> {
-    const gameConfig = useGameConfig();
+    const gameConfig = useGameConfigStore();
 
     this.objectConfigs.forEach((config, index) => {
       // Create geometry and material

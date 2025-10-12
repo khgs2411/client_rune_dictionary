@@ -2,7 +2,7 @@ import { computed } from 'vue';
 import { useWebSocket } from '@vueuse/core';
 import { useWebSocketStore, type I_ClientData } from '@/stores/websocket.store';
 import AuthAPI from '@/api/auth.api';
-import { useGameConfig } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/gameConfig.store';
 import { useRxjs, WebsocketStructuredMessage } from 'topsyde-utils';
 import { I_DebugConsoleEvent } from '@/common/events.types';
 
@@ -16,7 +16,7 @@ const WS_HOST = import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.or
 
 export const useWebSocketConnection = () => {
   const wsStore = useWebSocketStore();
-  const config = useGameConfig();
+  const config = useGameConfigStore();
   const rx = useRxjs(['debug', 'ws']);
   const HEARTBEAT_INTERVAL = 5;
 

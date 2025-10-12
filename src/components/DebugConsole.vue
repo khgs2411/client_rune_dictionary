@@ -131,14 +131,14 @@
 import Button from '@/components/ui/button/Button.vue';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Icon } from '@iconify/vue';
-import { useGameConfig } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/gameConfig.store';
 import { useSettingsStore } from '@/stores/settings.store';
 import { computed, nextTick, ref, watch } from 'vue';
 import { useRxjs } from 'topsyde-utils';
 import { useDraggable, usePointerSwipe, watchDebounced } from '@vueuse/core';
 import { I_DebugConsoleEvent } from '@/common/events.types';
 
-const config = useGameConfig();
+const config = useGameConfigStore();
 const settings = useSettingsStore();
 
 // Refs
