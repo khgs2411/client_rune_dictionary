@@ -134,14 +134,14 @@ const metadata: ConfigMetadata = {
     mouseSensitivityH: {
       label: 'Mouse Sensitivity (Horizontal)',
       min: 0.001,
-      max: 0.02,
+      max: 0.05,
       step: 0.001,
       group: 'Camera Sensitivity',
     },
     mouseSensitivityV: {
       label: 'Mouse Sensitivity (Vertical)',
       min: 0.001,
-      max: 0.02,
+      max: 0.05,
       step: 0.001,
       group: 'Camera Sensitivity',
     },
