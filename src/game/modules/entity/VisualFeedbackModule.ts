@@ -66,7 +66,6 @@ export class VisualFeedbackModule extends EntityModule {
     const object = event.interactable.object3D;
 
     console.log('🟠 Hover START:', event.interactable.id, object.uuid);
-
     // Cancel any existing timeout for this object
     const existingTimeout = this.activeTimeouts.get(object);
     if (existingTimeout) {
@@ -88,21 +87,16 @@ export class VisualFeedbackModule extends EntityModule {
   private onHoverEnd(event: I_InteractionEvent): void {
     const object = event.interactable.object3D;
 
-    console.log('🔵 Hover END:', event.interactable.id, object.uuid);
-
     // Cancel any pending click timeout for this object
     const timeoutId = this.activeTimeouts.get(object);
     if (timeoutId) {
-      console.log('  ↳ Cancelling pending timeout');
       clearTimeout(timeoutId);
       this.activeTimeouts.delete(object);
     } else {
-      console.log('  ↳ No active timeout to cancel');
     }
 
     // Only clear if this is the current hover object
     if (this.currentHoverObject === object) {
-      console.log('  ↳ Restoring original material');
       this.restoreOriginalMaterial();
       this.currentHoverObject = null;
     } else {
