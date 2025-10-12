@@ -74,6 +74,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     builder
       .withBox()
       .static()
+      .withWireframe()
       .build();
   }
 

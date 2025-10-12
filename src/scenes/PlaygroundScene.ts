@@ -31,44 +31,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
   readonly name = 'PlaygroundScene';
   readonly engine: Engine;
 
-  // Scene object configurations
-  private readonly sceneObjectConfigs: I_SceneObjectConfig[] = [
-    // Themed obstacles (change color with theme) - INTERACTIVE
-    {
-      position: [5, 1, 0],
-      scale: [2, 2, 2],
-      geometry: { type: 'box', params: [1, 1, 1] },
-      material: { useTheme: true, roughness: 0.8 },
-      interactive: true, // ✨ Make this object clickable/hoverable
-      interaction: {
-        tooltip: {
-          title: 'Themed Box',
-          description: 'This box changes color with the theme!',
-        },
-      },
-    },
-    {
-      position: [-8, 1.5, 5],
-      scale: [3, 3, 2],
-      geometry: { type: 'box', params: [1, 1, 1] },
-      material: { useTheme: true, roughness: 0.8 },
-      interactive: true, // ✨ Make this object clickable/hoverable
-      interaction: {
-        tooltip: {
-          title: 'Another Themed Box',
-          description: 'Click me!',
-        },
-      },
-    },
-    // Static colored obstacle (brown/wood color) - NOT INTERACTIVE
-    {
-      position: [0, 0.75, -10],
-      scale: [4, 1.5, 1.5],
-      geometry: { type: 'box', params: [1, 1, 1] },
-      material: { staticColor: 0x8b4513, roughness: 0.9 }, // Brown
-      interactive: false, // This object is NOT interactive
-    },
-  ];
 
   constructor(config: I_SceneConfig) {
     super();
@@ -88,7 +50,26 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
   protected addSceneObjects() {
     this.addModule('instancedSceneObjects', new SceneInstancedObjectsModule(
-      this.sceneObjectConfigs,
+      [
+        {
+          position: [5, 1, 0],
+          scale: [2, 2, 2],
+          geometry: { type: 'box', params: [1, 1, 1] },
+          material: { useTheme: true, roughness: 0.8 },
+        },
+        {
+          position: [-8, 1.5, 5],
+          scale: [3, 3, 2],
+          geometry: { type: 'box', params: [1, 1, 1] },
+          material: { useTheme: true, roughness: 0.8 },
+        },
+        {
+          position: [0, 0.75, -10],
+          scale: [4, 1.5, 1.5],
+          geometry: { type: 'box', params: [1, 1, 1] },
+          material: { staticColor: 0x8b4513, roughness: 0.9 }, // Brown
+        },
+      ],
     ));
 
     // Unique interactive object (regular mesh) - use shared modules
@@ -100,11 +81,15 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
         interactive: true,
         interaction: {
           clickVFX: true,
-          hoverGlow:true,
+          hoverGlow: true,
           cameraShake: {
             duration: 0.5,
             intensity: 0.2
-          }
+          },
+          tooltip: {
+            title: 'Another Themed Box',
+            description: 'Click me!',
+          },
         }
       },
     ]));

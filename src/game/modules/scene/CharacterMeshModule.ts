@@ -51,7 +51,9 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
       .withSphere()
       .dynamic()
       .withCallbacks({
-        onCollisionEnter: (other) => console.log('Hit:', other.id)
+        onCollisionEnter: (other) => console.log('Hit:', other.id),
+        onCollisionExit: (other) => console.log('No longer hitting:', other.id),
+        onCollisionStay: (other) => { /* Optional: Handle continuous collision */ },
       })
       .withWireframe()
       .build();
