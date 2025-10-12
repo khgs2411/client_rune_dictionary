@@ -21,6 +21,7 @@ import {
   Vector3,
 } from 'three';
 import { PositionVector3 } from '@/common/types';
+import { ShapeType } from '@dimforge/rapier3d';
 
 // Dynamic WASM import (loaded at runtime)
 const RAPIER = import('@dimforge/rapier3d') as any;
@@ -768,24 +769,24 @@ export class PhysicsService extends SceneModule {
 
     // Create geometry based on collider type (Rapier ShapeType enum)
     // ShapeType: 0=Ball, 1=Cuboid, 2=Capsule, 3=Segment, 4=Triangle, 5=TriMesh, etc.
-    if (shapeType === 1) { // Cuboid
+    if (shapeType === ShapeType.Cuboid) { // Cuboid
       const shape = collider.shape as RAPIER_TYPE.Cuboid;
       const halfExtents = shape.halfExtents;
       console.log(`[PhysicsService] Cuboid wireframe for ${id}: halfExtents`, halfExtents);
       geometry = new BoxGeometry(halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2);
-    } else if (shapeType === 0) { // Ball
+    } else if (shapeType === ShapeType.Ball) { // Ball
       const shape = collider.shape as RAPIER_TYPE.Ball;
       const radius = shape.radius;
       console.log(`[PhysicsService] Ball wireframe for ${id}: radius`, radius);
       geometry = new SphereGeometry(radius, 16, 12);
-    } else if (shapeType === 2) { // Capsule
+    } else if (shapeType === ShapeType.Capsule) { // Capsule
       const shape = collider.shape as RAPIER_TYPE.Capsule;
       const radius = shape.radius;
       const halfHeight = shape.halfHeight;
       console.log(`[PhysicsService] Capsule wireframe for ${id}:`, { radius, halfHeight });
       // CapsuleGeometry height is just the cylinder part
       geometry = new CapsuleGeometry(radius, halfHeight * 2, 8, 16);
-    } else if (shapeType === 6) { // Cylinder
+    } else if (shapeType === ShapeType.Cylinder) { // Cylinder
       const shape = collider.shape as RAPIER_TYPE.Cylinder;
       const radius = shape.radius;
       const halfHeight = shape.halfHeight;
