@@ -95,14 +95,11 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     this.addModule('sceneObjects', new SceneObjectsModule([
       {
         position: [-3, 1, 3], // Different position - not overlapping with boxes
-        geometry: { type: 'sphere', params: [0.5, 16, 16] },
+        geometry: { type: 'sphere', params: [0.5, 32, 32] }, // Increased segments for better raycast detection
         material: { staticColor: 0xff00ff, roughness: 0.2, metalness: 0.8 }, // Shiny pink sphere
         interactive: true,
         interaction: {
-          tooltip: {
-            title: 'Unique Sphere!',
-            description: 'This is a regular Mesh, not instanced'
-          }
+
         }
       },
     ]));
