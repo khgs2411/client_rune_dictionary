@@ -18,6 +18,7 @@ import { ModuleRegistry } from '@/game/ModuleRegistry';
 import { InteractionService } from '@/game/services/InteractionService';
 import { VFXModule } from '@/game/modules/scene/VFXModule';
 import { PhysicsService } from '@/game/services/PhysicsService';
+import { GameConfig } from '@/stores/gameConfig.store';
 
 /**
  * Base class for game scenes with typed module registry support
@@ -52,6 +53,7 @@ export abstract class GameScene<
   // High-level entity composables
   protected character!: ReturnType<typeof useCharacter>;
   protected settings!: SettingsStore;
+  protected config!: GameConfig;
   public camera!: ReturnType<typeof useCamera>;
 
   // Status flags
@@ -239,6 +241,7 @@ export abstract class GameScene<
       scene: this.engine.scene,
       lifecycle: this.lifecycle,
       settings: this.settings,
+      config:this.config,
       services: this.services, // Pass services (interaction, etc.)
       camera: this.camera,
       character: this.character,

@@ -2,12 +2,13 @@ import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
 import { Engine } from '@/game/Engine';
 import { SceneLifecycle } from '@/game/SceneLifecycle';
-import { SettingsStore } from '@/stores/settings.store';
+import { SettingsStore as ApplicationSettings } from '@/stores/settings.store';
 import { Scene } from 'three';
 import type { InteractionService } from '@/game/services/InteractionService';
 import { I_ThemeColors } from '@/composables/useTheme';
 import { VFXModule } from '@/game/modules/scene/VFXModule';
 import { PhysicsService } from '@/game/services/PhysicsService';
+import { GameConfig } from '@/stores/gameConfig.store';
 
 /**
  * Core scene interface
@@ -91,7 +92,8 @@ export interface I_ModuleContext {
   engine: Engine;
   scene: Scene;
   lifecycle: SceneLifecycle;
-  settings: SettingsStore;
+  settings: ApplicationSettings;
+  config: GameConfig;
   sceneName: string;
   services: I_ModuleServices;
   camera?: ReturnType<typeof useCamera>; // Optional: for modules that need camera
