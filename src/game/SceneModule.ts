@@ -1,9 +1,11 @@
 import { I_ModuleContext } from "@/scenes/scenes.types";
-import { useRxjs } from "topsyde-utils";
+import { Lib, useRxjs } from "topsyde-utils";
 
 export default class SceneModule {
     public name: string = this.constructor.name;
     protected rxjs = useRxjs('module:loading');
+
+    protected id: string = Lib.UUID();
 
     constructor(moduleName?: string) {
         if (moduleName) {

@@ -83,7 +83,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     });
   }
 
-  private addToScene(context: I_ModuleContext, instancedMesh: InstancedMesh) {
+  public addToScene(context: I_ModuleContext, instancedMesh: InstancedMesh) {
     context.scene.add(instancedMesh);
     context.lifecycle.register(instancedMesh);
   }

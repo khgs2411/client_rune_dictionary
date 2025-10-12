@@ -19,19 +19,23 @@ export class DebugModule extends SceneModule implements I_SceneModule {
     const material = new MeshBasicMaterial({ color: 0xff0000 });
     const cube = new Mesh(geometry, material);
     cube.position.set(10, 1, -8); // Moved to avoid z-fighting with scene objects
-    context.scene.add(cube);
-    context.lifecycle.register(cube);
+    this.addToScene(context, cube);
 
     // Emit loading complete event
-   super.start(context);
+    super.start(context);
 
   }
 
-  update(delta: number): void {
+  public addToScene(context: I_ModuleContext, cube: Mesh) {
+    context.scene.add(cube);
+    context.lifecycle.register(cube);
+  }
+
+  public update(delta: number): void {
     // Static debug cube, nothing to update
   }
 
-  destroy(): Promise<void> {
+  public destroy(): Promise<void> {
     // Lifecycle handles cleanup
     return Promise.resolve();
   }

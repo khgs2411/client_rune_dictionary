@@ -40,8 +40,7 @@ export class LightingModule extends SceneModule implements I_SceneModule {
     directionalLight.shadow.bias = -0.0001;
     directionalLight.shadow.normalBias = 0.02;
 
-    context.scene.add(directionalLight);
-    context.lifecycle.register(directionalLight);
+    this.addToScene(context, directionalLight);
     this.lights.push(directionalLight);
 
     // Emit loading complete event
@@ -49,9 +48,11 @@ export class LightingModule extends SceneModule implements I_SceneModule {
 
   }
 
-  update(delta: number): void {
-    // Optional: animate lights if needed
+  public addToScene(context: I_ModuleContext, directionalLight: DirectionalLight): void {
+    context.scene.add(directionalLight);
+    context.lifecycle.register(directionalLight);
   }
+
 
   async destroy(): Promise<void> {
     // Lifecycle handles cleanup

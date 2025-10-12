@@ -4,6 +4,7 @@ import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
 import SceneModule from '@/game/SceneModule';
 import { I_ThemeColors } from '@/composables/useTheme';
+import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 
 /**
  * Character Mesh Module
@@ -28,15 +29,40 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     this.mesh = new Group();
 
     // Body (capsule)
-    const bodyGeometry = new CapsuleGeometry(0.5, 1, 8, 16);
-    this.bodyMaterial = new MeshStandardMaterial({
-      color: this.settings.theme.primary,
-    });
-    const body = new Mesh(bodyGeometry, this.bodyMaterial);
-    body.castShadow = true;
-    this.mesh.add(body);
+    this.buildBody();
 
     // Forward indicator (cone)
+    this.buildForwardIndicator();
+
+    // Initial position
+    this.mesh.position.set(0, 1, 0);
+
+    this.addToScene(context);
+
+    this.addColission(context);
+
+    // Emit loading complete event
+    super.start(context);
+
+  }
+  addColission(context: I_ModuleContext) {
+    const builder = context.services.collision.register(`character-mesh-${this.id}`, this.mesh);
+    builder
+      .withSphere()
+      .dynamic()
+      .withCallbacks({
+        onCollisionEnter: (other) => console.log('Hit:', other.id)
+      })
+      .build();
+  }
+
+  public addToScene(context: I_ModuleContext) {
+    context.scene.add(this.mesh);
+    context.lifecycle.register(this.mesh);
+  }
+
+
+  private buildForwardIndicator() {
     const coneGeometry = new ConeGeometry(0.2, 0.4, 8);
     this.coneMaterial = new MeshStandardMaterial({
       color: this.settings.theme.accent,
@@ -46,16 +72,16 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     cone.rotation.x = Math.PI / 2;
     cone.castShadow = true;
     this.mesh.add(cone);
+  }
 
-    // Initial position
-    this.mesh.position.set(0, 1, 0);
-
-    context.scene.add(this.mesh);
-    context.lifecycle.register(this.mesh);
-
-    // Emit loading complete event
-   super.start(context);
-
+  private buildBody() {
+    const bodyGeometry = new CapsuleGeometry(0.5, 1, 8, 16);
+    this.bodyMaterial = new MeshStandardMaterial({
+      color: this.settings.theme.primary,
+    });
+    const body = new Mesh(bodyGeometry, this.bodyMaterial);
+    body.castShadow = true;
+    this.mesh.add(body);
   }
 
   public update(delta: number): void {

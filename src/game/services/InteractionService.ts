@@ -11,6 +11,7 @@ import type { VFXModule } from '@/game/modules/scene/VFXModule';
 import { Raycast } from '@/game/utils/Raycast';
 import { Mouse } from '@/game/utils/Mouse';
 import { InteractableBuilder } from './InteractableBuilder';
+import { Guards } from 'topsyde-utils';
 
 /**
  * Interaction Service (Refactored)
@@ -267,7 +268,7 @@ export class InteractionService implements I_SceneService {
     vfx: VFXModule | null
   ): void {
     if (behaviors.hoverGlow) {
-      const { color, intensity } = behaviors.hoverGlow;
+      const { color, intensity } = Guards.IsObject(behaviors.hoverGlow) ? behaviors.hoverGlow : { color: 0xff8c00, intensity: 0.2 };
 
       callbacks.onHoverStart = (intersection) => {
         // ✨ Evaluate intensity dynamically!
@@ -295,7 +296,7 @@ export class InteractionService implements I_SceneService {
     vfx: VFXModule | null
   ): void {
     if (behaviors.clickVFX) {
-      const { text, color } = behaviors.clickVFX;
+      const { text, color } = Guards.IsObject(behaviors.clickVFX) ? behaviors.clickVFX : { text: undefined, color: undefined };
       const originalClick = callbacks.onClick;
 
       callbacks.onClick = (intersection) => {

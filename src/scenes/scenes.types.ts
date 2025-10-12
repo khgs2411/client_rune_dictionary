@@ -7,6 +7,7 @@ import { Scene } from 'three';
 import type { InteractionService } from '@/game/services/InteractionService';
 import { I_ThemeColors } from '@/composables/useTheme';
 import { VFXModule } from '@/game/modules/scene/VFXModule';
+import { CollisionService } from '@/game/services/CollisionService';
 
 
 /**
@@ -60,6 +61,8 @@ export interface I_SceneModule {
    * Receives full theme object - modules extract what they need
    */
   onThemeChange?(theme: I_ThemeColors): void;
+
+  addToScene?(context: I_ModuleContext, ...args: any[]): void;
 }
 
 /**
@@ -78,6 +81,7 @@ export interface I_EntityModule {
 export interface I_ModuleServices extends Record<string, I_SceneService> {
   interaction: InteractionService;
   vfx: VFXModule;
+  collision: CollisionService
   // Future: audio?: AudioService;
   // Future: physics?: PhysicsService;
 }

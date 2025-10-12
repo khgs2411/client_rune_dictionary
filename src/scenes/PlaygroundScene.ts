@@ -99,10 +99,8 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
         material: { staticColor: 0xff00ff, roughness: 0.2, metalness: 0.8 }, // Shiny pink sphere
         interactive: true,
         interaction: {
-          clickVFX: {
-            text: "BANG",
-            color: hexNumberToString(this.settings.theme.accent)
-          },
+          clickVFX: true,
+          hoverGlow:true,
           cameraShake: {
             duration: 0.5,
             intensity: 0.2

@@ -20,28 +20,32 @@ export class GroundModule extends SceneModule implements I_SceneModule {
 
   async start(context: I_ModuleContext): Promise<void> {
     // Simulate async loading delay (for testing loading screen)
-      // Create ground plane
-      const geometry = new PlaneGeometry(100, 100);
-      this.groundMaterial = new MeshStandardMaterial({
-        color: this.settings.theme.background,
-      });
+    // Create ground plane
+    const geometry = new PlaneGeometry(100, 100);
+    this.groundMaterial = new MeshStandardMaterial({
+      color: this.settings.theme.background,
+    });
 
-      const ground = new InstancedMesh(geometry, this.groundMaterial, 1);
-      ground.count = 1;
-      ground.rotation.x = -Math.PI / 2;
-      ground.receiveShadow = true;
-      context.scene.add(ground);
-      context.lifecycle.register(ground);
+    const ground = new InstancedMesh(geometry, this.groundMaterial, 1);
+    ground.count = 1;
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    context.scene.add(ground);
+    context.lifecycle.register(ground);
 
-      // Add grid helper
-      const gridHelper = new GridHelper(50, 50);
-      gridHelper.position.y = 0.01;
-      context.scene.add(gridHelper);
-      context.lifecycle.register(gridHelper);
+    // Add grid helper
+    const gridHelper = new GridHelper(50, 50);
+    gridHelper.position.y = 0.01;
+    this.addToScene(context, gridHelper);
 
-      // Emit loading complete event
-     super.start(context);
+    // Emit loading complete event
+    super.start(context);
 
+  }
+
+  public addToScene(context: I_ModuleContext, gridHelper: GridHelper) {
+    context.scene.add(gridHelper);
+    context.lifecycle.register(gridHelper);
   }
 
   async destroy(): Promise<void> {

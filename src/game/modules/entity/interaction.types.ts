@@ -31,13 +31,13 @@ export type ReactiveValue<T> = T | (() => T);
  */
 export interface I_InteractableBehaviors {
   // Hover glow behavior
-  hoverGlow?: {
+  hoverGlow?: boolean | {
     color: number;
     intensity: ReactiveValue<number>; // ✨ Reactive!
   };
 
   // Click VFX behavior (spawns text sprite)
-  clickVFX?: {
+  clickVFX?: boolean | {
     text: string;
     color?: string;
   };

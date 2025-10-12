@@ -7,13 +7,18 @@ import { GameConfig, useGameConfig } from '@/stores/gameConfig.store';
 import {
   BoxGeometry,
   BufferGeometry,
+  BufferGeometryEventMap,
   ConeGeometry,
   CylinderGeometry,
   Euler,
   Mesh,
   MeshStandardMaterial,
+  NormalBufferAttributes,
+  Object3DEventMap,
   SphereGeometry
 } from 'three';
+import { Guards, Lib } from 'topsyde-utils';
+import { ReactiveValue } from '../entity/interaction.types';
 
 /**
  * Scene Objects Module (Regular Meshes)
@@ -36,6 +41,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
   private objectConfigs: I_SceneObjectConfig[];
   private meshes: Mesh[] = [];
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
+
 
   constructor(
     objectConfigs: I_SceneObjectConfig[],
@@ -70,6 +76,8 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
       // Register with interaction service if interactive (using fluent API!)
       this.addInteractable(config, context, index, mesh, gameConfig);
 
+      this.addColission(config, context, index, mesh);
+
       this.meshes.push(mesh);
     });
 
@@ -77,6 +85,14 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
 
     // Emit loading complete event
     super.start(context);
+  }
+  addColission(config: I_SceneObjectConfig, context: I_ModuleContext, index: number, mesh: Mesh<BufferGeometry<NormalBufferAttributes, BufferGeometryEventMap>, MeshStandardMaterial, Object3DEventMap>) {
+
+    const builder = context.services.collision.register(`scene-object-${this.id}-${index}`, mesh);
+    builder
+      .withBox()
+      .static()
+      .build();
   }
 
   private addInteractable(config: I_SceneObjectConfig, context: I_ModuleContext, index: number, mesh: Mesh, gameConfig: GameConfig) {
@@ -86,12 +102,27 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
         description: 'A scene object',
       };
 
-      const builder = context.services.interaction.register(`scene-object-${index}`, mesh);
+      const builder = context.services.interaction.register(`scene-object-${this.id}-${index}`, mesh);
 
       // Apply hover glow with REACTIVE intensity! ✨
-      if (config.interaction?.hoverGlow) builder.withHoverGlow(0xff8c00, () => gameConfig.interaction.hoverGlowIntensity);
+      if (config.interaction?.hoverGlow) {
+        const hoverGlow: { color?: number, intensity?: ReactiveValue<number> } = { color: undefined, intensity: undefined };
+        if (Guards.IsObject(config.interaction.hoverGlow)) {
+          hoverGlow.color = config.interaction.hoverGlow.color;
+          hoverGlow.intensity = config.interaction.hoverGlow.intensity;
+        }
+        builder.withHoverGlow(hoverGlow.color || 0xff8c00, hoverGlow.intensity || (() => gameConfig.interaction.hoverGlowIntensity));
+      }
+
       // Apply click VFX
-      if (config.interaction?.clickVFX) builder.withClickVFX(config.interaction?.clickVFX?.text, config.interaction?.clickVFX?.color);
+      if (config.interaction?.clickVFX) {
+        const vfx: { text: string | undefined; color: string | undefined } = { text: undefined, color: undefined };
+        if (Guards.IsObject(config.interaction.clickVFX)) {
+          vfx.text = config.interaction.clickVFX.text;
+          vfx.color = config.interaction.clickVFX.color
+        };
+        builder.withClickVFX(vfx.text, vfx.color);
+      }
 
       // Apply camera shake with REACTIVE values! ✨
       // Always register (behavior checks intensity at runtime)
@@ -112,7 +143,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
     }
   }
 
-  private addToScene(context: I_ModuleContext, mesh: Mesh) {
+  public addToScene(context: I_ModuleContext, mesh: Mesh) {
     context.scene.add(mesh);
     context.lifecycle.register(mesh);
   }

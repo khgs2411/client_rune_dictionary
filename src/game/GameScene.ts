@@ -16,6 +16,7 @@ import type { Engine } from '@/game/Engine';
 import type { SettingsStore } from '@/stores/settings.store';
 import { ModuleRegistry } from '@/game/ModuleRegistry';
 import { InteractionService } from '@/game/services/InteractionService';
+import { CollisionService } from '@/game/services/CollisionService';
 import { VFXModule } from '@/game/modules/scene/VFXModule';
 
 /**
@@ -42,6 +43,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
   // Services (shared across modules)
   protected services = {
     interaction: new InteractionService(),
+    collision: new CollisionService(),
     vfx: new VFXModule(),
   };
 
@@ -231,6 +233,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
 
     // Update services
     this.services.interaction.update(delta);
+    this.services.collision.update(delta);
     this.services.vfx.update(delta);
 
     // Update only initialized updateable modules (performance optimization)
