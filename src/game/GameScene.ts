@@ -18,6 +18,7 @@ import { ModuleRegistry } from '@/game/ModuleRegistry';
 import { InteractionService } from '@/game/services/InteractionService';
 import { CollisionService } from '@/game/services/CollisionService';
 import { VFXModule } from '@/game/modules/scene/VFXModule';
+import { PhysicsService } from '@/game/services/PhysicsService';
 
 /**
  * Base class for game scenes with typed module registry support
@@ -45,6 +46,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
     interaction: new InteractionService(),
     collision: new CollisionService(),
     vfx: new VFXModule(),
+    physics: new PhysicsService(),
   };
 
   // High-level entity composables
@@ -69,7 +71,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
         this.registry.forEach((module) => {
           if (this.registry.getModuleName(module) === data.moduleName) {
             this.registry.markInitialized(module);
-            this.loading('loaded', { loaded: this.registry.initializedCount() });
+            this.loading('loaded', { loaded: this.registry.initializedCount(), assetName:data.moduleName });
           }
         });
       },
@@ -94,10 +96,10 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
    * Template method: Scene initialization flow
    * Can be overridden for custom initialization order
    */
-  public start(): void {
+  public async start(): Promise<void> {
     console.log(`🎬 [${this.name}] Initializing scene...`);
 
-    this.initializeServices();
+    await this.initializeServices();
     this.registerModules();
     this.addSceneObjects();
     this.startModuleLoading();
@@ -176,15 +178,15 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
    * Default composables initialization
    * Override to customize camera/character setup
    */
-  protected initializeServices(): void {
+  protected async initializeServices(): Promise<void> {
     this.settings = useSettingsStore();
     this.camera = useCamera();
     this.character = useCharacter({
       cameraAngleH: this.camera.controller.angle.horizontal,
     });
 
-
-    this.initializeAllServices()
+    // Initialize all services (async - wait for physics, etc.)
+    await this.initializeAllServices();
   }
 
   protected async initializeAllServices(): Promise<void> {

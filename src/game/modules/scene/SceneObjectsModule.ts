@@ -1,6 +1,6 @@
 import { Vec3 } from '@/common/types';
 import { I_ThemeColors } from '@/composables/useTheme';
-import { I_SceneObjectConfig, SceneObjectGeometryConfig } from '@/data/sceneObjectConfig.dto';
+import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
 import SceneModule from '@/game/SceneModule';
 import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
 import { GameConfig, useGameConfig } from '@/stores/gameConfig.store';
@@ -17,8 +17,9 @@ import {
   Object3DEventMap,
   SphereGeometry
 } from 'three';
-import { Guards, Lib } from 'topsyde-utils';
+import { Guards } from 'topsyde-utils';
 import { ReactiveValue } from '../entity/interaction.types';
+import type * as RAPIER_TYPE from '@dimforge/rapier3d';
 
 /**
  * Scene Objects Module (Regular Meshes)
@@ -89,13 +90,83 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
     super.start(context);
   }
   addColission(config: I_SceneObjectConfig, context: I_ModuleContext, index: number, mesh: Mesh<BufferGeometry<NormalBufferAttributes, BufferGeometryEventMap>, MeshStandardMaterial, Object3DEventMap>) {
+    // Check if physics service is ready
+    if (!context.services.physics.isReady()) {
+      console.warn(`[SceneObjectsModule] Physics not ready, skipping collision for object ${index}`);
+      return;
+    }
 
-    const builder = context.services.collision.register(`scene-object-${this.id}-${index}`, mesh);
-    builder
-      .withBox()
-      .static()
-      .withWireframe()
-      .build();
+    const world = context.services.physics.getWorld();
+    const RAPIER = context.services.physics.getRapier();
+
+    // Create static rigid body at mesh position
+    const rigidBodyDesc = RAPIER.RigidBodyDesc.fixed();
+    rigidBodyDesc.setTranslation(mesh.position.x, mesh.position.y, mesh.position.z);
+
+    // Apply rotation if present
+    if (config.rotation) {
+      const euler = new Euler(...config.rotation);
+      rigidBodyDesc.setRotation({
+        x: euler.x,
+        y: euler.y,
+        z: euler.z,
+        w: 1
+      });
+    }
+
+    const rigidBody = world.createRigidBody(rigidBodyDesc);
+
+    // Create collider based on geometry type
+    let colliderDesc: RAPIER_TYPE.ColliderDesc;
+
+    switch (config.geometry.type) {
+      case 'box': {
+        const [width, height, depth] = config.geometry.params as Vec3;
+        const scaleX = config.scale?.[0] ?? 1;
+        const scaleY = config.scale?.[1] ?? 1;
+        const scaleZ = config.scale?.[2] ?? 1;
+        colliderDesc = RAPIER.ColliderDesc.cuboid(
+          (width * scaleX) / 2,
+          (height * scaleY) / 2,
+          (depth * scaleZ) / 2
+        );
+        break;
+      }
+
+      case 'sphere': {
+        const [radius] = config.geometry.params as [number, number?, number?];
+        const scale = config.scale?.[0] ?? 1;
+        colliderDesc = RAPIER.ColliderDesc.ball(radius * scale);
+        break;
+      }
+
+      case 'cylinder': {
+        const [radiusTop, radiusBottom, height] = config.geometry.params as [number, number, number, number?];
+        const scaleXZ = config.scale?.[0] ?? 1;
+        const scaleY = config.scale?.[1] ?? 1;
+        // Use average radius for cylinder collider
+        const avgRadius = ((radiusTop + radiusBottom) / 2) * scaleXZ;
+        colliderDesc = RAPIER.ColliderDesc.cylinder((height * scaleY) / 2, avgRadius);
+        break;
+      }
+
+      case 'cone': {
+        const [radius, height] = config.geometry.params as [number, number, number?];
+        const scaleXZ = config.scale?.[0] ?? 1;
+        const scaleY = config.scale?.[1] ?? 1;
+        // Approximate cone with cylinder (Rapier doesn't have native cone)
+        colliderDesc = RAPIER.ColliderDesc.cylinder((height * scaleY) / 2, (radius * scaleXZ) / 2);
+        break;
+      }
+
+      default:
+        console.warn(`[SceneObjectsModule] Unknown geometry type: ${config.geometry.type}, using box collider`);
+        colliderDesc = RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
+    }
+
+    world.createCollider(colliderDesc, rigidBody);
+
+    console.log(`✅ [SceneObjectsModule] Created Rapier collider for ${config.geometry.type} object ${index}`);
   }
 
   private addInteractable(config: I_SceneObjectConfig, context: I_ModuleContext, index: number, mesh: Mesh, gameConfig: GameConfig) {

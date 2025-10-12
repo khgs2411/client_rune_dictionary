@@ -5,6 +5,7 @@ import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial, Vecto
 import SceneModule from '@/game/SceneModule';
 import { I_ThemeColors } from '@/composables/useTheme';
 import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
+import type * as RAPIER_TYPE from '@dimforge/rapier3d';
 
 /**
  * Character Mesh Module
@@ -17,11 +18,13 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
   private coneMaterial!: MeshStandardMaterial;
   private settings: SettingsStore;
   private characterController: I_CharacterControls;
-  private lastValidPosition: Vector3 = new Vector3(0, 0, 0);
-  private previousYPosition = 0; // Track Y position from previous frame for velocity calculation
-  private isCollidingHorizontal = false;
-  private isCollidingVertical = false;
-  private collisionCount = 0; // Track how many frames we've been stuck
+
+  // Rapier physics components
+  private rigidBody!: RAPIER_TYPE.RigidBody;
+  private collider!: RAPIER_TYPE.Collider;
+  private characterControllerRapier!: RAPIER_TYPE.KinematicCharacterController;
+  private world!: RAPIER_TYPE.World;
+  private RAPIER!: typeof RAPIER_TYPE;
 
   constructor(settings: SettingsStore, characterController: I_CharacterControls, moduleName: string = 'characterMesh') {
     super(moduleName);
@@ -30,75 +33,89 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
   }
 
   async start(context: I_ModuleContext): Promise<void> {
-    // Simulate async loading delay (for testing loading screen)
+    // Get physics world and RAPIER module from service
+    if (!context.services.physics.isReady()) {
+      console.error('[CharacterMeshModule] Physics service not ready!');
+      return;
+    }
+    this.world = context.services.physics.getWorld();
+    this.RAPIER = context.services.physics.getRapier();
+
+    // Create visual mesh
     this.mesh = new Group();
-
-    // Body (capsule)
     this.buildBody();
-
-    // Forward indicator (cone)
     this.buildForwardIndicator();
 
     // Initial position
     this.mesh.position.set(0, 1, 0);
 
-    // Initialize lastValidPosition to current controller position
-    this.lastValidPosition.set(
-      this.characterController.position.x.value,
-      this.characterController.position.y.value,
-      this.characterController.position.z.value
-    );
-    this.previousYPosition = this.characterController.position.y.value;
-
-    this.addColission(context);
+    // Create Rapier physics components
+    this.createPhysicsBody();
 
     this.addToScene(context);
 
     // Emit loading complete event
     super.start(context);
-
   }
-  addColission(context: I_ModuleContext) {
+  /**
+   * Create Rapier physics body and character controller
+   */
+  private createPhysicsBody(): void {
+    // Create kinematic rigid body (controlled by character controller, not physics forces)
+    const rigidBodyDesc = this.RAPIER.RigidBodyDesc.kinematicPositionBased();
+    rigidBodyDesc.setTranslation(0, 1, 0);
+    this.rigidBody = this.world.createRigidBody(rigidBodyDesc);
+
+    // Create capsule collider (matches visual capsule)
+    const colliderDesc = this.RAPIER.ColliderDesc.capsule(0.5, 0.5); // Half-height 0.5, radius 0.5
+    this.collider = this.world.createCollider(colliderDesc, this.rigidBody);
+
+    // Create Rapier character controller
+    this.characterControllerRapier = this.world.createCharacterController(0.01);
+
+    // Configure character controller properties
+    this.characterControllerRapier.enableAutostep(0.5, 0.2, true); // Max step height, min width, include dynamic bodies
+    this.characterControllerRapier.enableSnapToGround(0.5); // Snap distance
+    this.characterControllerRapier.setApplyImpulsesToDynamicBodies(true);
+
+    console.log('✅ [CharacterMeshModule] Rapier physics initialized');
   }
 
   public update(): void {
-    // Calculate Y velocity using previous frame's position
-    const currentY = this.characterController.position.y.value;
-    const yVelocity = currentY - this.previousYPosition;
-
-    // Handle collision response BEFORE updating mesh
-    if (this.isCollidingHorizontal) {
-      // Full position lock - no sinking
-      this.characterController.position.x.value = this.lastValidPosition.x;
-      this.characterController.position.z.value = this.lastValidPosition.z;
-      this.collisionCount++;
-    } else {
-      // Store valid position when not colliding
-      this.lastValidPosition.x = this.characterController.position.x.value;
-      this.lastValidPosition.z = this.characterController.position.z.value;
-      this.collisionCount = 0;
-    }
-
-    // Vertical collision: Only block downward movement (falling through floor)
-    // Allow upward movement (jumping) even when standing on ground
-    if (this.isCollidingVertical && yVelocity <= 0) {
-      // Only lock Y position when moving down or stationary (prevents falling through)
-      this.characterController.position.y.value = this.lastValidPosition.y;
-    } else {
-      // Update last valid position when moving up or not colliding
-      this.lastValidPosition.y = this.characterController.position.y.value;
-    }
-
-    // Store current Y position for next frame's velocity calculation
-    this.previousYPosition = this.characterController.position.y.value;
-
-    // Sync mesh with controller state AFTER collision response
-    this.mesh.position.set(
-      this.characterController.position.x.value,
-      this.characterController.position.y.value + 1, // Offset for capsule center
-      this.characterController.position.z.value,
+    // Get desired movement from character controller
+    const currentPos = this.rigidBody.translation();
+    const desiredMovement = new this.RAPIER.Vector3(
+      this.characterController.position.x.value - currentPos.x,
+      this.characterController.position.y.value - currentPos.y,
+      this.characterController.position.z.value - currentPos.z
     );
+
+    // Compute collision-corrected movement using Rapier
+    this.characterControllerRapier.computeColliderMovement(
+      this.collider,
+      desiredMovement
+    );
+
+    // Get the corrected movement (Rapier blocks collisions automatically)
+    const correctedMovement = this.characterControllerRapier.computedMovement();
+
+    // Apply corrected movement to rigid body
+    const newPos = {
+      x: currentPos.x + correctedMovement.x,
+      y: currentPos.y + correctedMovement.y,
+      z: currentPos.z + correctedMovement.z
+    };
+    this.rigidBody.setNextKinematicTranslation(newPos);
+
+    // Update visual mesh to match physics body
+    this.mesh.position.set(newPos.x, newPos.y, newPos.z);
     this.mesh.rotation.y = this.characterController.rotation.value;
+
+    // Optionally: Update character controller to match corrected position
+    // (This ensures controller and physics stay in sync)
+    this.characterController.position.x.value = newPos.x;
+    this.characterController.position.y.value = newPos.y;
+    this.characterController.position.z.value = newPos.z;
   }
 
   public addToScene(context: I_ModuleContext) {
@@ -131,7 +148,12 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
 
 
   async destroy(): Promise<void> {
-    // Lifecycle handles cleanup
+    // Remove Rapier physics components
+    if (this.world && this.rigidBody) {
+      this.world.removeRigidBody(this.rigidBody);
+    }
+
+    // Lifecycle handles Three.js mesh cleanup
   }
 
   /**

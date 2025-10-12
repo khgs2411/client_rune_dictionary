@@ -17,6 +17,7 @@
     "format:check": "prettier --check --cache ."
   },
   "dependencies": {
+    "@dimforge/rapier3d": "^0.19.1",
     "@texel/color": "^1.1.10",
     "@vueuse/core": "^13.9.0",
     "axios": "^1.12.2",
@@ -48,6 +49,8 @@
     "typescript": "^5.9.3",
     "vite": "^7.1.9",
     "vite-plugin-image-optimizer": "^2.0.2",
+    "vite-plugin-top-level-await": "^1.6.0",
+    "vite-plugin-wasm": "^3.5.0",
     "vue-tsc": "^2.2.8"
   }
 }
