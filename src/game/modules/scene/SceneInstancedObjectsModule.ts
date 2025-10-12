@@ -77,7 +77,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
       this.addToScene(context, instancedMesh);
 
       // Optionally add grid helper for plane geometries (e.g. ground)
-      if (instancedMeshConfig.geometry.type === 'plane') {
+      if (instancedMeshConfig.geometry.type === 'plane' && instancedMeshConfig.geometry.grid) {
         this.addGridHelper(context, instancedMeshConfig);
       }
 

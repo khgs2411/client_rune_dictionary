@@ -8,6 +8,7 @@ export type SceneObjectGeometryConfig = BufferGeometry<
 > & {
   type: 'plane' | 'box' | 'sphere' | 'cylinder' | 'cone';
   params: number[]; // Geometry-specific parameters
+  grid?: boolean; // If true and type is plane, adds a grid helper
 };
 
 /**

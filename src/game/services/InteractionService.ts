@@ -7,7 +7,7 @@ import type {
   I_InteractableBehaviors,
   ReactiveValue,
 } from '@/game/modules/entity/interaction.types';
-import { Camera, Intersection, Object3D, Plane, Vector3 } from 'three';
+import { Camera, GridHelper, Intersection, Object3D, Plane, Vector3 } from 'three';
 import { Raycast } from '@/game/utils/Raycast';
 import { Mouse } from '@/game/utils/Mouse';
 import { InteractableBuilder } from './InteractableBuilder';
@@ -48,6 +48,9 @@ export class InteractionService implements I_SceneService {
   private dragState: I_DragState | null = null;
   private pointerDirty = false;
 
+  // Visual helpers
+  private gridHelper: GridHelper | null = null;
+
   // Config
   private interactionConfig: Required<I_InteractionConfig> = {
     hoverHoldThreshold: 500,
@@ -80,6 +83,9 @@ export class InteractionService implements I_SceneService {
       trackScroll: false,
       dragThreshold: 5, // 5px threshold for drag vs click
     });
+
+    // Create grid helper (hidden by default)
+    this.createGridHelper();
 
     // HOVER SYSTEM: Track pointer movement
     this.mouse.on('move', () => {
@@ -321,6 +327,9 @@ export class InteractionService implements I_SceneService {
     // Apply drag styling (opacity)
     this.applyDragStyle(object.object3D, true);
 
+    // Show grid helper
+    this.showGrid();
+
     // Fire custom callback
     drag.customCallbacks?.onStart?.(this.dragState.startPos.clone());
 
@@ -381,6 +390,9 @@ export class InteractionService implements I_SceneService {
     // Restore styling
     this.applyDragStyle(object.object3D, false);
 
+    // Hide grid helper
+    this.hideGrid();
+
     // Fire custom callback
     drag.customCallbacks?.onEnd?.(finalPos);
 
@@ -419,6 +431,38 @@ export class InteractionService implements I_SceneService {
         material.needsUpdate = true;
       }
     });
+  }
+
+  // ============================================
+  // GRID HELPER
+  // ============================================
+
+  private createGridHelper(): void {
+    // Create a large grid (100x100 units, 0.5 unit divisions)
+    const size = 100;
+    const divisions = size / this.config.editor.snapToGrid;
+
+    this.gridHelper = new GridHelper(size, divisions, 0x888888, 0x444444);
+    this.gridHelper.position.y = 0.01; // Slightly above ground to prevent z-fighting
+    this.gridHelper.visible = false; // Hidden by default
+
+    // Add to scene
+    this.context.scene.add(this.gridHelper);
+    this.context.lifecycle.register(this.gridHelper);
+
+    console.log('📐 [InteractionService] Grid helper created (size: %d, divisions: %d)', size, divisions);
+  }
+
+  private showGrid(): void {
+    if (this.gridHelper && this.config.editor.showGrid) {
+      this.gridHelper.visible = true;
+    }
+  }
+
+  private hideGrid(): void {
+    if (this.gridHelper) {
+      this.gridHelper.visible = false;
+    }
   }
 
   // ============================================

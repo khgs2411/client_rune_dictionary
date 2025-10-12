@@ -6,6 +6,9 @@
     <!-- Loading Screen -->
     <LoadingScreen>></LoadingScreen>
 
+    <!-- Editor Panel (shows when editor mode is enabled) -->
+    <EditorPanel />
+
     <!-- Game Canvas (Interactions now rendered in Three.js!) -->
     <canvas ref="canvasRef" class="three-canvas"></canvas>
   </div>
@@ -17,6 +20,7 @@ import { PlaygroundScene } from '@/scenes/PlaygroundScene';
 import { I_GameScene, I_SceneConfig } from '@/scenes/scenes.types';
 import LoadingScreen from '@/components/LoadingScreen.vue';
 import WebSocketManager from '@/components/WebSocketManager.vue';
+import EditorPanel from '@/components/EditorPanel.vue';
 import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
 import { ref, watch } from 'vue';
 
