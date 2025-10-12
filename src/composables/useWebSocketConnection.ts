@@ -202,7 +202,6 @@ export const useWebSocketConnection = () => {
 	 */
 	function emit(event: Omit<I_DebugConsoleEvent, 'timestamp'>) {
 		if (!config.debug.showWebSocketDebugger) return;
-		console.log('[WS Debug]', event);
 		rx.$next('debug', { cta: 'log', data: { ...event, timestamp: new Date().toLocaleTimeString() } });
 	}
 

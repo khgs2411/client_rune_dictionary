@@ -106,7 +106,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
       builder.withParticleEffect(() => gameConfig.interaction.particleCount);
 
       // Apply tooltip
-      builder.withTooltip(tooltipConfig.title, tooltipConfig.description);
+      if (config.interaction?.tooltip) builder.withTooltip(tooltipConfig.title, tooltipConfig.description);
     }
   }
 

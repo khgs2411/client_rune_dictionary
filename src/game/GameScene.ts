@@ -67,7 +67,6 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
         this.registry.forEach((module) => {
           if (this.registry.getModuleName(module) === data.moduleName) {
             this.registry.markInitialized(module);
-            console.log(`✅ [${this.name}] Loaded Module: "${data.moduleName}"`);
             this.loading('loaded', { loaded: this.registry.initializedCount() });
           }
         });
