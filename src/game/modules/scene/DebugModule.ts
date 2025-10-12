@@ -23,7 +23,7 @@ export class DebugModule extends SceneModule implements I_SceneModule {
     context.lifecycle.register(cube);
 
     // Emit loading complete event
-    this.initialized(context.sceneName)
+   super.start(context);
 
   }
 

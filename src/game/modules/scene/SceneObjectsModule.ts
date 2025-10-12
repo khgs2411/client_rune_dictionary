@@ -114,7 +114,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
     console.log(`📦 [SceneObjectsModule] Created ${this.meshes.length} objects`);
 
     // Emit loading complete event
-    this.initialized(context.sceneName);
+    super.start(context);
   }
 
   async destroy(): Promise<void> {

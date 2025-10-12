@@ -45,7 +45,7 @@ export class LightingModule extends SceneModule implements I_SceneModule {
     this.lights.push(directionalLight);
 
     // Emit loading complete event
-    this.initialized(context.sceneName)
+    super.start(context);
 
   }
 

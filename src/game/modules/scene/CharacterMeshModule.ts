@@ -54,7 +54,7 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
     context.lifecycle.register(this.mesh);
 
     // Emit loading complete event
-    this.initialized(context.sceneName)
+   super.start(context);
 
   }
 

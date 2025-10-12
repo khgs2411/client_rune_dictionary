@@ -400,7 +400,7 @@ export class VFXModule extends SceneModule implements I_SceneModule {
       this.particlePool.length
     );
 
-    this.initialized(context.sceneName);
+    super.start(context);
   }
 
   update(delta: number): void {

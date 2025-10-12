@@ -1,3 +1,4 @@
+import { I_ModuleContext } from "@/scenes/scenes.types";
 import { useRxjs } from "topsyde-utils";
 
 export default class SceneModule {
@@ -8,6 +9,11 @@ export default class SceneModule {
         if (moduleName) {
             this.name = moduleName;
         }
+    }
+
+    public async start(context: I_ModuleContext): Promise<void> {
+        // Emit loading complete event
+        this.initialized(context.sceneName);
     }
 
     /**

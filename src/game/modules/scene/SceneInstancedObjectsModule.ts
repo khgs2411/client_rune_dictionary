@@ -64,8 +64,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
       this.instancedMeshes.set(groupKey, instancedMesh);
     });
 
-    // Emit loading complete event
-    this.initialized(context.sceneName);
+    super.start(context);
   }
 
   public async destroy(): Promise<void> {
