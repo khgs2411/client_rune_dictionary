@@ -51,7 +51,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     // Register character physics using simple API
     this.addPhysics(context);
 
-    this.addGridHelper(context);
+    this.addToScene(context);
 
     console.log('✅ [CharacterModule] Initialized with physics');
 
@@ -128,7 +128,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     this.verticalVelocity -= this.config.character.jumpGravity * delta;
   }
 
-  public addGridHelper(context: I_ModuleContext) {
+  public addToScene(context: I_ModuleContext) {
     context.scene.add(this.mesh);
     context.lifecycle.register(this.mesh);
   }
