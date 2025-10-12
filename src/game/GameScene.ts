@@ -157,7 +157,19 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
     });
 
     // Initialize interaction service
-    this.services.interaction.start(this.getModuleContext());
+    this.initializeAllServices()
+  }
+
+  protected async initializeAllServices(): Promise<void> {
+    for (const [name, service] of Object.entries(this.services)) {
+      await service.start(this.getModuleContext());
+    }
+  }
+
+  protected async destroyAllServices(): Promise<void> {
+    for (const service of Object.values(this.services)) {
+      await service.destroy();
+    }
   }
 
   /**
@@ -235,7 +247,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
 
     this.character.destroy();
     this.camera.destroy();
-    this.services.interaction.destroy();
+    this.destroyAllServices();
     this.forEachModule((m) => m.destroy());
     this.lifecycle.cleanup(this.engine.scene);
     this.registry.clear();
