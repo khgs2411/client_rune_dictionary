@@ -105,82 +105,8 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
 
     const objectId = `scene-object-${this.id}-${index}`;
 
-    // Build physics config based on geometry type
-    switch (config.geometry.type) {
-      case 'box': {
-        const [width, height, depth] = config.geometry.params as Vec3;
-        const scaleX = config.scale?.[0] ?? 1;
-        const scaleY = config.scale?.[1] ?? 1;
-        const scaleZ = config.scale?.[2] ?? 1;
-
-        context.services.physics.registerStatic(objectId, {
-          shape: 'cuboid',
-          size: [width * scaleX, height * scaleY, depth * scaleZ],
-          position: [mesh.position.x, mesh.position.y, mesh.position.z],
-          rotation: config.rotation ? [...config.rotation] : undefined,
-        });
-        break;
-      }
-
-      case 'sphere': {
-        const [radius] = config.geometry.params as [number, number?, number?];
-        const scale = config.scale?.[0] ?? 1;
-
-        context.services.physics.registerStatic(objectId, {
-          shape: 'sphere',
-          radius: radius * scale,
-          position: [mesh.position.x, mesh.position.y, mesh.position.z],
-        });
-        break;
-      }
-
-      case 'cylinder': {
-        const [radiusTop, radiusBottom, height] = config.geometry.params as [
-          number,
-          number,
-          number,
-          number?,
-        ];
-        const scaleXZ = config.scale?.[0] ?? 1;
-        const scaleY = config.scale?.[1] ?? 1;
-        const avgRadius = ((radiusTop + radiusBottom) / 2) * scaleXZ;
-
-        context.services.physics.registerStatic(objectId, {
-          shape: 'cylinder',
-          radius: avgRadius,
-          height: height * scaleY,
-          position: [mesh.position.x, mesh.position.y, mesh.position.z],
-          rotation: config.rotation ? [...config.rotation] : undefined,
-        });
-        break;
-      }
-
-      case 'cone': {
-        const [radius, height] = config.geometry.params as [number, number, number?];
-        const scaleXZ = config.scale?.[0] ?? 1;
-        const scaleY = config.scale?.[1] ?? 1;
-
-        // Approximate cone with cylinder (Rapier doesn't have native cone)
-        context.services.physics.registerStatic(objectId, {
-          shape: 'cylinder',
-          radius: (radius * scaleXZ) / 2,
-          height: height * scaleY,
-          position: [mesh.position.x, mesh.position.y, mesh.position.z],
-          rotation: config.rotation ? [...config.rotation] : undefined,
-        });
-        break;
-      }
-
-      default:
-        console.warn(
-          `[SceneObjectsModule] Unknown geometry type: ${config.geometry.type}, using default box collider`,
-        );
-        context.services.physics.registerStatic(objectId, {
-          shape: 'cuboid',
-          size: [1, 1, 1],
-          position: [mesh.position.x, mesh.position.y, mesh.position.z],
-        });
-    }
+    // Register physics directly from Three.js mesh (auto-extracts geometry, position, rotation, scale)
+    context.services.physics.registerStaticFromMesh(objectId, mesh);
 
     console.log(
       `✅ [SceneObjectsModule] Registered physics for ${config.geometry.type} object ${index}`,

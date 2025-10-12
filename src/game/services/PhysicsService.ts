@@ -1,6 +1,17 @@
 import { I_ModuleContext } from '@/scenes/scenes.types';
 import SceneModule from '../SceneModule';
 import type * as RAPIER_TYPE from '@dimforge/rapier3d';
+import {
+  BoxGeometry,
+  CapsuleGeometry,
+  ConeGeometry,
+  CylinderGeometry,
+  InstancedMesh,
+  Mesh,
+  Object3D,
+  PlaneGeometry,
+  SphereGeometry,
+} from 'three';
 
 // Dynamic WASM import (loaded at runtime)
 const RAPIER = import('@dimforge/rapier3d') as any;
@@ -186,6 +197,95 @@ export class PhysicsService extends SceneModule {
   }
 
   /**
+   * Register a static body from a Three.js mesh or instanced mesh
+   * Automatically extracts geometry type, size, position, rotation, and scale
+   */
+  public registerStaticFromMesh(id: string, mesh: Mesh | InstancedMesh | Object3D): void {
+    this.assertReady();
+
+    // Extract world position and rotation
+    const worldPosition = mesh.getWorldPosition(new this.RAPIER.Vector3(0, 0, 0) as any);
+    const worldRotation = mesh.rotation;
+
+    // Get geometry info
+    const geometry = (mesh as Mesh | InstancedMesh).geometry;
+    const colliderDesc = this.createColliderFromGeometry(geometry, mesh.scale);
+
+    // Create rigid body
+    const bodyDesc = this.RAPIER.RigidBodyDesc.fixed()
+      .setTranslation(worldPosition.x, worldPosition.y, worldPosition.z)
+      .setRotation(
+        this.eulerToQuaternion({ x: worldRotation.x, y: worldRotation.y, z: worldRotation.z })
+      );
+
+    const body = this.world.createRigidBody(bodyDesc);
+    const collider = this.world.createCollider(colliderDesc, body);
+
+    this.bodies.set(id, body);
+    this.colliders.set(id, collider);
+
+    console.log(`[PhysicsService] Registered static body from mesh: ${id}`);
+  }
+
+  /**
+   * Register a kinematic character from a Three.js mesh with custom position
+   * Useful when you want to use controller state for position but mesh for geometry
+   */
+  public registerKinematicFromMesh(
+    id: string,
+    mesh: Mesh | Object3D,
+    position: Vector3Like,
+    options?: {
+      enableAutostep?: boolean;
+      enableSnapToGround?: boolean;
+      maxStepHeight?: number;
+      minStepWidth?: number;
+      snapToGroundDistance?: number;
+    }
+  ): void {
+    this.assertReady();
+
+    const pos = this.toVector3(position);
+
+    // Get geometry info from mesh
+    const geometry = (mesh as Mesh).geometry;
+    const colliderDesc = this.createColliderFromGeometry(geometry, mesh.scale);
+
+    // Create kinematic rigid body
+    const bodyDesc = this.RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(
+      pos.x,
+      pos.y,
+      pos.z
+    );
+
+    const body = this.world.createRigidBody(bodyDesc);
+    const collider = this.world.createCollider(colliderDesc, body);
+
+    // Create character controller
+    const controller = this.world.createCharacterController(0.01);
+
+    // Configure character controller
+    if (options?.enableAutostep) {
+      const maxStepHeight = options.maxStepHeight ?? 0.5;
+      const minStepWidth = options.minStepWidth ?? 0.2;
+      controller.enableAutostep(maxStepHeight, minStepWidth, true);
+    }
+
+    if (options?.enableSnapToGround) {
+      const snapDistance = options.snapToGroundDistance ?? 0.5;
+      controller.enableSnapToGround(snapDistance);
+    }
+
+    controller.setApplyImpulsesToDynamicBodies(true);
+
+    this.bodies.set(id, body);
+    this.colliders.set(id, collider);
+    this.kinematicControllers.set(id, controller);
+
+    console.log(`[PhysicsService] Registered kinematic body from mesh: ${id}`);
+  }
+
+  /**
    * Remove a physics body and clean up resources
    */
   public remove(id: string): void {
@@ -348,7 +448,74 @@ export class PhysicsService extends SceneModule {
     }
   }
 
-  private eulerToQuaternion(euler: { x: number; y: number; z: number }): { x: number; y: number; z: number; w: number } {
+  /**
+   * Create collider descriptor from Three.js geometry
+   */
+  private createColliderFromGeometry(
+    geometry: any,
+    scale: { x: number; y: number; z: number }
+  ): RAPIER_TYPE.ColliderDesc {
+    if (!geometry) {
+      console.warn(`[PhysicsService] No geometry found, using default box`);
+      return this.RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
+    }
+
+    if (geometry instanceof BoxGeometry) {
+      const params = geometry.parameters;
+      return this.RAPIER.ColliderDesc.cuboid(
+        (params.width * scale.x) / 2,
+        (params.height * scale.y) / 2,
+        (params.depth * scale.z) / 2
+      );
+    }
+
+    if (geometry instanceof SphereGeometry) {
+      const params = geometry.parameters;
+      const avgScale = (scale.x + scale.y + scale.z) / 3;
+      return this.RAPIER.ColliderDesc.ball(params.radius * avgScale);
+    }
+
+    if (geometry instanceof CapsuleGeometry) {
+      const params = geometry.parameters;
+      const radius = params.radius * scale.x;
+      // CapsuleGeometry: total height = height (cylinder part) + 2*radius (hemispheres)
+      const totalHeight = (params.height + params.radius * 2) * scale.y;
+      const halfHeight = (totalHeight - radius * 2) / 2;
+      return this.RAPIER.ColliderDesc.capsule(halfHeight, radius);
+    }
+
+    if (geometry instanceof CylinderGeometry) {
+      const params = geometry.parameters;
+      const avgRadius = ((params.radiusTop + params.radiusBottom) / 2) * scale.x;
+      return this.RAPIER.ColliderDesc.cylinder((params.height * scale.y) / 2, avgRadius);
+    }
+
+    if (geometry instanceof ConeGeometry) {
+      const params = geometry.parameters;
+      // Approximate cone with cylinder
+      return this.RAPIER.ColliderDesc.cylinder(
+        (params.height * scale.y) / 2,
+        (params.radius * scale.x) / 2
+      );
+    }
+
+    if (geometry instanceof PlaneGeometry) {
+      const params = geometry.parameters;
+      // Plane as thin cuboid
+      return this.RAPIER.ColliderDesc.cuboid(
+        (params.width * scale.x) / 2,
+        0.1 * scale.y, // Thin height
+        (params.height * scale.z) / 2
+      );
+    }
+
+    console.warn(`[PhysicsService] Unsupported geometry type, using default box`);
+    return this.RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
+  }
+
+  private eulerToQuaternion(
+    euler: { x: number; y: number; z: number }
+  ): { x: number; y: number; z: number; w: number } {
     const { x, y, z } = euler;
 
     const c1 = Math.cos(x / 2);

@@ -51,14 +51,10 @@ export class GroundModule extends SceneModule implements I_SceneModule {
 
   private addPhysics(context: I_ModuleContext) {
     if (context.services.physics.isReady()) {
-      // Register ground physics using simple API
-      context.services.physics.registerStatic('ground', {
-        shape: 'cuboid',
-        size: [100, 0.2, 100], // 100x0.2x100 box (width, height, depth)
-        position: [0, 0, 0],
-      });
+      // Register ground physics directly from Three.js mesh
+      context.services.physics.registerStaticFromMesh('ground', this.ground);
 
-      console.log('✅ [GroundModule] Ground physics registered');
+      console.log('✅ [GroundModule] Ground physics registered from mesh');
     }
   }
 

@@ -13,6 +13,7 @@ import { GameConfig, useGameConfigStore } from '@/stores/gameConfig.store';
  */
 export class CharacterModule extends SceneModule implements I_SceneModule {
   private mesh!: Group;
+  private bodyMesh!: Mesh; // Reference to capsule body mesh
   private bodyMaterial!: MeshStandardMaterial;
   private coneMaterial!: MeshStandardMaterial;
   private settings: ApplicationSettings;
@@ -48,22 +49,28 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     this.mesh.position.set(0, 1, 0);
 
     // Register character physics using simple API
-    context.services.physics.registerKinematic(this.characterPhysicsId, {
-      shape: 'capsule',
-      radius: 0.5,
-      height: 2, // Total height = 2 (matches visual capsule)
-      position: [0, 1, 0], // Center at Y=1, bottom touches Y=0
-      enableAutostep: true,
-      enableSnapToGround: true,
-      maxStepHeight: 0.5,
-      minStepWidth: 0.2,
-      snapToGroundDistance: 0.5,
-    });
+    this.addPhysics(context);
 
     this.addGridHelper(context);
 
     console.log('✅ [CharacterModule] Initialized with physics');
 
+  }
+
+  private addPhysics(context: I_ModuleContext) {
+    // Register kinematic character from body mesh (geometry) + initial position
+    context.services.physics.registerKinematicFromMesh(
+      this.characterPhysicsId,
+      this.bodyMesh,
+      [0, 1, 0], // Center at Y=1, bottom touches Y=0
+      {
+        enableAutostep: true,
+        enableSnapToGround: true,
+        maxStepHeight: 0.5,
+        minStepWidth: 0.2,
+        snapToGroundDistance: 0.5,
+      }
+    );
   }
 
   public update(delta: number): void {
@@ -143,9 +150,9 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     this.bodyMaterial = new MeshStandardMaterial({
       color: this.settings.theme.primary,
     });
-    const body = new Mesh(bodyGeometry, this.bodyMaterial);
-    body.castShadow = true;
-    this.mesh.add(body);
+    this.bodyMesh = new Mesh(bodyGeometry, this.bodyMaterial);
+    this.bodyMesh.castShadow = true;
+    this.mesh.add(this.bodyMesh);
   }
 
   async destroy(context: I_ModuleContext): Promise<void> {
