@@ -1,7 +1,7 @@
 import { InteractableModule } from '@/game/modules/entity/InteractableModule';
 import { VisualFeedbackModule } from '@/game/modules/entity/VisualFeedbackModule';
 import type { I_InteractionEntityConfig } from '@/game/modules/entity/interaction.types';
-import type { I_ModuleContext } from '@/scenes/scenes.types';
+import type { I_ModuleContext, I_SceneService } from '@/scenes/scenes.types';
 import type { Object3D } from 'three';
 
 /**
@@ -17,7 +17,7 @@ import type { Object3D } from 'three';
  * - No need for setInteractionSystem/clearInteractionSystem boilerplate
  * - Modules just call `ctx.services.interaction.register()` directly
  */
-export class InteractionService {
+export class InteractionService implements I_SceneService {
   private interactionModule: InteractableModule;
   private visualFeedbackModule: VisualFeedbackModule;
   private initialized = false;
@@ -37,20 +37,10 @@ export class InteractionService {
       return;
     }
 
-    // Convert to entity context (entity modules don't need full scene context)
-    const entityCtx: I_ModuleContext = {
-      scene: ctx.scene,
-      lifecycle: ctx.lifecycle,
-      sceneName: ctx.sceneName,
-      engine: ctx.engine,
-      settings: ctx.settings,
-      camera: ctx.camera,
-      character: ctx.character,
-    };
 
     // Start entity modules
-    await this.interactionModule.start(entityCtx);
-    await this.visualFeedbackModule.start(entityCtx);
+    await this.interactionModule.start(ctx);
+    await this.visualFeedbackModule.start(ctx);
 
     this.initialized = true;
     console.log('✅ [InteractionService] Initialized');

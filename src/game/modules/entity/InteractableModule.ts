@@ -1,5 +1,5 @@
 import { EntityModule } from '@/game/EntityModule';
-import { I_EntityModule, I_ModuleContext } from '@/scenes/scenes.types';
+import { I_ModuleContext } from '@/scenes/scenes.types';
 import { useEventListener } from '@vueuse/core';
 import { Object3D, Raycaster, Vector2, Vector3 } from 'three';
 import { useRxjs } from 'topsyde-utils';

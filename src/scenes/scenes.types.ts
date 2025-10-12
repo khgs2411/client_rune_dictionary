@@ -21,6 +21,12 @@ export interface I_GameScene {
   destroy(): void;
 }
 
+
+export interface I_SceneService {
+  start(ctx: I_ModuleContext): Promise<void> | void;
+  destroy(): Promise<void> | void;
+}
+
 /**
  * Configuration for creating a scene
  */
@@ -68,7 +74,7 @@ export interface I_EntityModule {
  * Services available to modules via context
  * This is how cross-cutting concerns (interaction, audio, etc.) are shared
  */
-export interface I_ModuleServices {
+export interface I_ModuleServices extends Record<string, I_SceneService> {
   interaction: InteractionService;
   // Future: audio?: AudioService;
   // Future: physics?: PhysicsService;
