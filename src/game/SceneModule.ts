@@ -6,13 +6,15 @@ export default abstract class SceneModule {
   public name: string = this.constructor.name;
   protected rxjs = useRxjs('module:loading', {}, { static_instance: true });
 
-  protected id: string = Lib.UUID();
+  protected id: string; // Will be set to module name for persistence
   protected context!: I_ModuleContext;
 
   constructor(moduleName?: string, private autoInitialize: boolean = true) {
     if (moduleName) {
       this.name = moduleName;
     }
+    // Use module name as ID for deterministic object IDs (important for save/load)
+    this.id = this.name;
   }
 
   /**
@@ -41,6 +43,7 @@ export default abstract class SceneModule {
    */
   public setName(name: string): void {
     this.name = name;
+    this.id = name; // Keep ID in sync with name for persistence
   }
 
 

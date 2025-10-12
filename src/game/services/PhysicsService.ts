@@ -187,7 +187,6 @@ export class PhysicsService extends SceneModule {
     const showDebug = this.shouldShowDebug(options?.showDebug);
     this.createAndRegisterBody(id, bodyDesc, colliderDesc, null, showDebug);
 
-    console.log(`[PhysicsService] Registered static body: ${id}${showDebug ? ' (with debug wireframe)' : ''}`);
   }
 
   /**
@@ -214,7 +213,6 @@ export class PhysicsService extends SceneModule {
     // Create character controller
     if (config.controller) this.createKinematicController(config, id, body, collider);
 
-    console.log(`[PhysicsService] Registered kinematic body: ${id}`);
   }
 
   private createKinematicController(config: KinematicConfig, id: string, body: RAPIER_TYPE.RigidBody, collider: RAPIER_TYPE.Collider) {
@@ -238,7 +236,6 @@ export class PhysicsService extends SceneModule {
 
     const showDebug = this.shouldShowDebug(options?.showDebug);
     this.createAndRegisterBody(id, bodyDesc, colliderDesc, null, showDebug);
-    console.log(`[PhysicsService] Registered static body from mesh: ${id}${showDebug ? ' (with debug wireframe)' : ''}`);
   }
 
   /**
@@ -272,7 +269,6 @@ export class PhysicsService extends SceneModule {
     const controller = this.createController(options);
     const showDebug = this.shouldShowDebug(options?.showDebug);
     this.createAndRegisterBody(id, bodyDesc, colliderDesc, controller, showDebug);
-    console.log(`[PhysicsService] Registered kinematic body from mesh: ${id}${showDebug ? ' (with debug wireframe)' : ''}`);
   }
 
   /**
@@ -320,10 +316,7 @@ export class PhysicsService extends SceneModule {
       this.createAndRegisterBody(instanceId, bodyDesc, colliderDesc, null, showDebug);
       instanceIds.push(instanceId);
     }
-
-    console.log(
-      `[PhysicsService] Registered ${instanceIds.length} static bodies from InstancedMesh: ${idPrefix}${showDebug ? ' (with debug wireframes)' : ''}`
-    );
+    
     return instanceIds;
   }
 
@@ -771,7 +764,6 @@ export class PhysicsService extends SceneModule {
   ): void {
     // Get collider shape from the actual collider (not descriptor)
     const shapeType = collider.shapeType();
-    console.log(`[PhysicsService] Creating wireframe for ${id}, shape type:`, shapeType);
 
     let geometry: BoxGeometry | SphereGeometry | CapsuleGeometry | CylinderGeometry;
 
@@ -780,25 +772,21 @@ export class PhysicsService extends SceneModule {
     if (shapeType === ShapeType.Cuboid) { // Cuboid
       const shape = collider.shape as RAPIER_TYPE.Cuboid;
       const halfExtents = shape.halfExtents;
-      console.log(`[PhysicsService] Cuboid wireframe for ${id}: halfExtents`, halfExtents);
       geometry = new BoxGeometry(halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2);
     } else if (shapeType === ShapeType.Ball) { // Ball
       const shape = collider.shape as RAPIER_TYPE.Ball;
       const radius = shape.radius;
-      console.log(`[PhysicsService] Ball wireframe for ${id}: radius`, radius);
       geometry = new SphereGeometry(radius, 16, 12);
     } else if (shapeType === ShapeType.Capsule) { // Capsule
       const shape = collider.shape as RAPIER_TYPE.Capsule;
       const radius = shape.radius;
       const halfHeight = shape.halfHeight;
-      console.log(`[PhysicsService] Capsule wireframe for ${id}:`, { radius, halfHeight });
       // CapsuleGeometry height is just the cylinder part
       geometry = new CapsuleGeometry(radius, halfHeight * 2, 8, 16);
     } else if (shapeType === ShapeType.Cylinder) { // Cylinder
       const shape = collider.shape as RAPIER_TYPE.Cylinder;
       const radius = shape.radius;
       const halfHeight = shape.halfHeight;
-      console.log(`[PhysicsService] Cylinder wireframe for ${id}:`, { radius, halfHeight });
       geometry = new CylinderGeometry(radius, radius, halfHeight * 2, 16);
     } else {
       // Default to box for unknown types
@@ -815,9 +803,6 @@ export class PhysicsService extends SceneModule {
     const rot = body.rotation();
     wireframe.position.set(pos.x, pos.y, pos.z);
     wireframe.quaternion.set(rot.x, rot.y, rot.z, rot.w);
-
-    console.log(`[PhysicsService] Wireframe ${id} positioned at:`, { x: pos.x, y: pos.y, z: pos.z });
-
     // Set initial visibility based on global setting
     const gameConfig = useGameConfigStore();
     wireframe.visible = gameConfig.debug.showPhysicsDebug;
@@ -825,7 +810,6 @@ export class PhysicsService extends SceneModule {
     // Add to scene and track
     this.context.scene.add(wireframe);
     this.debugWireframes.set(id, wireframe);
-    console.log(`[PhysicsService] ✅ Wireframe ${id} added to scene (visible: ${wireframe.visible})`);
   }
 
   /**

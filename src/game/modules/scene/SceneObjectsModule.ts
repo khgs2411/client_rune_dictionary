@@ -4,6 +4,8 @@ import { I_SceneObjectConfig, SceneObjectGeometryConfig } from '@/data/sceneObje
 import SceneModule from '@/game/SceneModule';
 import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
 import { GameConfig, useGameConfigStore } from '@/stores/gameConfig.store';
+import { useSceneStore } from '@/stores/scene.store';
+import { ApplicationSettings, useSettingsStore } from '@/stores/settings.store';
 import {
   BoxGeometry,
   BufferGeometry,
@@ -18,9 +20,6 @@ import {
   PlaneGeometry,
   SphereGeometry,
 } from 'three';
-import { Guards } from 'topsyde-utils';
-import { ReactiveValue } from '../entity/interaction.types';
-import { ApplicationSettings, useSettingsStore } from '@/stores/settings.store';
 
 /**
  * Scene Objects Module (Regular Meshes)
@@ -55,6 +54,31 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
     const gameConfig = useGameConfigStore();
 
     this.objectConfigs.forEach((config, index) => {
+      // Check if this object has a saved position FIRST (before creating mesh)
+      const objectId = `scene-object-${this.id}-${index}`;
+
+      console.log(`🔍 [SceneObjectsModule] Init object ${index}:`, {
+        objectId,
+        originalPosition: config.position,
+        contextSceneExists: !!context.scene,
+        sceneName: context.sceneName,
+      });
+
+      const savedPosition = context.scene ? this.loadSavedPosition(context, objectId) : null;
+
+      if (savedPosition) {
+        // Override config position with saved position
+        const oldPosition = [...config.position];
+        config.position = [savedPosition.x, savedPosition.y, savedPosition.z];
+        console.log(`📍 [SceneObjectsModule] Overriding position for ${objectId}:`, {
+          oldPosition,
+          newPosition: config.position,
+          savedPosition,
+        });
+      } else {
+        console.log(`⚠️ [SceneObjectsModule] No saved position found for ${objectId}, using default:`, config.position);
+      }
+
       // Create geometry and material
       const geometry = this.createGeometry(config.geometry);
       const material = this.createMaterial(config, context);
@@ -67,7 +91,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
       // Create individual mesh
       const mesh = this.createMesh(geometry, material, index, config);
 
-      // Set transform
+      // Set transform (uses saved position if available)
       this.setTransform(mesh, config);
 
       // Register with interaction service if interactive (using fluent API!)
@@ -84,6 +108,28 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
 
     console.log(`📦 [SceneObjectsModule] Created ${this.meshes.length} objects`);
 
+  }
+
+  /**
+   * Load saved position from store if available
+   */
+  private loadSavedPosition(context: I_ModuleContext, objectId: string) {
+    const sceneStore = useSceneStore();
+    const sceneName = context.sceneName;
+
+    const sceneData = sceneStore.getScene(sceneName);
+    console.log(`🔍 [SceneObjectsModule] Loading position for:`, {
+      objectId,
+      sceneName,
+      hasScene: sceneStore.hasScene(sceneName),
+      savedObjectIds: sceneData?.objects.map(o => o.objectId) || [],
+      sceneData,
+    });
+
+    const position = sceneStore.getObjectPosition(sceneName, objectId);
+    console.log(`🔍 [SceneObjectsModule] Retrieved position:`, position);
+
+    return position;
   }
 
   addColission(
@@ -200,7 +246,17 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
   }
 
   private setTransform(mesh: Mesh, config: I_SceneObjectConfig) {
+    console.log(`🔧 [SceneObjectsModule] setTransform for ${mesh.name}:`, {
+      configPosition: config.position,
+      meshPositionBefore: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
+    });
+
     mesh.position.set(...config.position);
+
+    console.log(`✅ [SceneObjectsModule] setTransform complete for ${mesh.name}:`, {
+      meshPositionAfter: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
+    });
+
     if (config.rotation) {
       const euler = new Euler(...config.rotation);
       mesh.rotation.copy(euler);

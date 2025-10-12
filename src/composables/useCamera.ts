@@ -12,9 +12,7 @@ import { PerspectiveCamera, Vector3 } from 'three';
 export function useCamera(): I_GameCamera {
   const config = useGameConfigStore();
 
-  if (config.debug.enableConsoleLog) {
-    console.log('      ↳ Initializing camera composable...');
-  }
+  
 
   // Initialize pure controller (state/input logic)
   const controller = useCameraController();
@@ -42,9 +40,6 @@ export function useCamera(): I_GameCamera {
     instance.lookAt(new Vector3(0, 1, 0));
     instance.updateMatrixWorld(true);
 
-    if (config.debug.enableConsoleLog) {
-      console.log('      ↳ Camera positioned and ready');
-    }
   }
 
   /**
@@ -67,9 +62,6 @@ export function useCamera(): I_GameCamera {
    * Destroy camera and cleanup
    */
   function destroy() {
-    if (config.debug.enableConsoleLog) {
-      console.log('      ↳ Cleaning up camera controller...');
-    }
     controller.destroy();
   }
 

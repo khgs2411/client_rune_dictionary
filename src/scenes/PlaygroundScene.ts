@@ -118,13 +118,20 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
                   const module = this.getModule('sceneObjects');
                   if (module) {
                     const objectId = `scene-object-${(module as any).id}-0`;
+
+                    // Update physics
                     if (this.services.physics.isReady()) {
                       this.services.physics.updateStaticBodyPosition(objectId, pos);
                       console.log(`🔄 Updated physics body: ${objectId}`);
                     }
-                  }
 
-                  // TODO: Save to scene store!
+                    // Save position to store
+                    this.store.saveObjectPosition(this.name, objectId, {
+                      x: pos.x,
+                      y: pos.y,
+                      z: pos.z,
+                    });
+                  }
                 },
               },
             },

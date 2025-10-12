@@ -33,11 +33,7 @@ export class SceneLifecycle {
    * Stops watchers, removes objects from scene, and disposes geometries/materials
    */
   cleanup(scene: Scene): void {
-    console.log('      ↳ Stopping', this.watchers.length, 'Vue watchers...');
     this.watchers.forEach((stop) => stop());
-
-    console.log('      ↳ Removing', this.disposables.length, 'Three.js objects from scene...');
-    console.log('      ↳ Disposing geometries and materials...');
 
     let disposedCount = 0;
     let errorCount = 0;
@@ -52,8 +48,6 @@ export class SceneLifecycle {
         console.warn('      ⚠️ Failed to dispose object:', e);
       }
     });
-
-    console.log(`      ↳ Successfully disposed: ${disposedCount}, Errors: ${errorCount}`);
 
     // Clear arrays
     this.watchers = [];

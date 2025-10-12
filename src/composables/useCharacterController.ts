@@ -14,18 +14,12 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
   const config = useGameConfigStore();
   const { cameraAngleH } = options;
 
-  if (config.debug.enableConsoleLog) {
-    console.log('         ↳ Character controller initializing...');
-  }
 
   // Compose smaller, focused composables
   const joystick = useJoystick();
   const jump = useCharacterJump();
   const movement = useCharacterMovement();
 
-  if (config.debug.enableConsoleLog) {
-    console.log('         ↳ Character controller ready');
-  }
 
   /**
    * Update character state (call every frame)
@@ -65,13 +59,8 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
    * Cleanup (VueUse composables handle auto-cleanup)
    */
   function destroy() {
-    if (config.debug.enableConsoleLog) {
-      console.log('         ↳ Resetting character state...');
-    }
     reset();
-    if (config.debug.enableConsoleLog) {
-      console.log('         ↳ Character controller cleanup complete');
-    }
+    
   }
 
   return {

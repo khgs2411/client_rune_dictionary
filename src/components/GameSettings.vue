@@ -60,6 +60,20 @@
             </template>
           </div>
         </template>
+
+        <!-- Level Editor Actions -->
+        <div class="pt-4 border-t border-border space-y-4">
+          <h3 class="text-sm font-semibold text-primary">Level Editor</h3>
+
+          <div class="space-y-2">
+            <Button @click="handleResetScene" variant="destructive" size="sm" class="w-full">
+              Reset Scene Positions
+            </Button>
+            <p class="text-xs text-muted-foreground">
+              Clear all saved object positions and reset to defaults. Requires scene reload.
+            </p>
+          </div>
+        </div>
       </div>
     </SheetContent>
   </Sheet>
@@ -78,10 +92,12 @@ import {
 import Slider from '@/components/ui/slider/Slider.vue';
 import Switch from '@/components/ui/switch/Switch.vue';
 import { useGameConfigStore, type ConfigFieldMetadata } from '@/stores/gameConfig.store';
+import { useSceneStore } from '@/stores/scene.store';
 import { Gamepad2 } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 const config = useGameConfigStore();
+const sceneStore = useSceneStore();
 
 interface ConfigField {
   key: string; // Unique key for v-for
@@ -162,5 +178,21 @@ function formatNumber(value: number): string {
   if (Math.abs(value) < 1) return value.toFixed(3);
   if (Number.isInteger(value)) return value.toString();
   return value.toFixed(2);
+}
+
+// Reset scene positions to defaults
+function handleResetScene(): void {
+  const confirmed = confirm(
+    'Reset scene positions?\n\nThis will clear all saved object positions and reload the scene to defaults.\n\nThis action cannot be undone.'
+  );
+
+  if (confirmed) {
+    // Clear saved positions for PlaygroundScene
+    sceneStore.clearScene('PlaygroundScene');
+
+    // Reload the page to reinitialize the scene
+    alert('Scene reset! Reloading page...');
+    window.location.reload();
+  }
 }
 </script>

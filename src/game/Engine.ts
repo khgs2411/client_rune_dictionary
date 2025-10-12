@@ -28,7 +28,6 @@ export class Engine {
   };
 
   constructor(canvas: HTMLCanvasElement) {
-    console.log('   ↳ Initializing Three.js engine...');
 
     const config = useGameConfigStore();
 
@@ -60,7 +59,6 @@ export class Engine {
       height: window.innerHeight,
     };
     this.renderer = this.createRenderer(canvas);
-    console.log('   ↳ Engine initialized (Scene UUID:', this.scene.uuid + ')');
   }
 
   /**
@@ -83,10 +81,8 @@ export class Engine {
    * Clean up resources
    */
   public cleanup(): void {
-    console.log('      ↳ Disposing WebGL renderer...');
     this.renderer.dispose();
     this.stats.end();
-    console.log('      ↳ Engine cleanup complete');
   }
 
   public isInBounds(x: number, y: number, z: number): boolean {

@@ -16,10 +16,7 @@ export function useCameraController(): I_CameraControls {
 
   const target = reactive({ x: 0, z: 0, y: 0 });
 
-  if (config.debug.enableConsoleLog) {
-    console.log('         ↳ Camera controller initialized');
-  }
-
+ 
   // Camera state from config
   const cameraDistance = ref(config.camera.initialDistance);
   const cameraAngleH = ref(config.camera.initialAngleH);

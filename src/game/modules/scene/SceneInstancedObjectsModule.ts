@@ -104,10 +104,6 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
 
     // Track for cleanup
     this.physicsIds.set(groupKey, instanceIds);
-
-    console.log(
-      `✅ [SceneInstancedObjectsModule] Registered ${instanceIds.length} physics bodies for group ${groupKey}`,
-    );
   }
 
   public async destroy(context?: I_ModuleContext): Promise<void> {
@@ -225,7 +221,6 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
    */
   private createGeometry(geometryConfig: I_SceneObjectConfig['geometry']): BufferGeometry {
     const { type, params } = geometryConfig;
-    console.log(params);
     switch (type) {
       case 'plane':
         return new PlaneGeometry((params as [number, number])[0], (params as [number, number])[1]);

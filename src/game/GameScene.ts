@@ -270,7 +270,7 @@ export abstract class GameScene<
     this.character.destroy();
     this.camera.destroy();
     this.destroyAllServices();
-    this.forEachModule((m) => m.destroy());
+    this.forEachModule((m) => m.destroy(this.getModuleContext()));
     this.lifecycle.cleanup(this.engine.scene);
     this.registry.clear();
 
