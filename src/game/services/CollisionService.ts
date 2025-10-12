@@ -263,15 +263,7 @@ export class CollisionService implements I_SceneService {
           currentCollisions.get(b.id)?.add(a.id);
 
           // Enforce boundaries (push objects apart)
-          // Skip if both objects belong to the same entity (e.g., character's own colliders)
-          const bothFromSameEntity =
-            (a.id.startsWith('character-') && b.id.startsWith('character-')) ||
-            (a.id.includes('-body-') && b.id.includes('-feet-')) ||
-            (a.id.includes('-feet-') && b.id.includes('-body-'));
-
-          if (!bothFromSameEntity) {
-            this.resolveBoundaries(a, b);
-          }
+          this.resolveBoundaries(a, b);
 
           // Fire callbacks
           this.handleCollisionCallbacks(a, b);
@@ -312,10 +304,18 @@ export class CollisionService implements I_SceneService {
   /**
    * Resolve boundaries by pushing objects apart
    * Only pushes dynamic objects (isStatic === false)
+   * Character colliders are NOT pushed - they handle their own position locking
    */
   private resolveBoundaries(a: I_CollidableObject, b: I_CollidableObject): void {
     // If both static, no resolution needed
     if (a.config.isStatic && b.config.isStatic) return;
+
+    // Don't push character colliders - they handle their own position correction
+    const aIsCharacter = a.id.startsWith('character-');
+    const bIsCharacter = b.id.startsWith('character-');
+    if (aIsCharacter && bIsCharacter) return; // Both are character parts
+    if (aIsCharacter) return; // Don't push character, let it handle its own position
+    if (bIsCharacter) return; // Don't push character, let it handle its own position
 
     const aCenter = new Vector3();
     const bCenter = new Vector3();

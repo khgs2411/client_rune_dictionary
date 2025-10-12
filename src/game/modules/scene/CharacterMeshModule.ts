@@ -18,8 +18,10 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
   private settings: SettingsStore;
   private characterController: I_CharacterControls;
   private lastValidPosition: Vector3 = new Vector3(0, 0, 0);
+  private previousYPosition = 0; // Track Y position from previous frame for velocity calculation
   private isCollidingHorizontal = false;
   private isCollidingVertical = false;
+  private collisionCount = 0; // Track how many frames we've been stuck
 
   constructor(settings: SettingsStore, characterController: I_CharacterControls, moduleName: string = 'characterMesh') {
     super(moduleName);
@@ -46,6 +48,7 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
       this.characterController.position.y.value,
       this.characterController.position.z.value
     );
+    this.previousYPosition = this.characterController.position.y.value;
 
     this.addColission(context);
 
@@ -56,81 +59,40 @@ export class CharacterMeshModule extends SceneModule implements I_SceneModule {
 
   }
   addColission(context: I_ModuleContext) {
-    // Collision layers (bit mask):
-    // Layer 1 (0b0001 = 1): Scene objects (walls, obstacles) - default
-    // Layer 1 (0b0001 = 1): Character body & feet - same layer as scene objects so they collide
-
-    // Body collider: Horizontal collision (XZ axes) - blocks walls and obstacles
-    context.services.collision
-      .register(`character-body-${this.id}`, this.mesh)
-      .withSphere()
-      .dynamic()
-      .withBoundsOffset(new Vector3(0, 0.2, 0)) // Centered on character torso
-      .withBoundsScale(0.8) // Slightly smaller than visual mesh
-      .withHorizontalCollision() // Only collides on X and Z axes
-      .withLayer(1) // Same layer as scene objects
-      .withCallbacks({
-        onCollisionEnter: (other) => {
-          // Only react to scene objects, not character's own colliders
-          if (other.id.startsWith('character-')) return;
-          console.log('🔴 Body collision ENTER:', other.id);
-          this.isCollidingHorizontal = true;
-        },
-        onCollisionExit: (other) => {
-          if (other.id.startsWith('character-')) return;
-          console.log('🟢 Body collision EXIT:', other.id);
-          this.isCollidingHorizontal = false;
-        },
-      })
-      .withWireframe(0x00ff00) // Green wireframe
-      .build();
-
-    // Feet collider: Vertical collision (Y axis) - detects ground and platforms
-    context.services.collision
-      .register(`character-feet-${this.id}`, this.mesh)
-      .withSphere()
-      .dynamic()
-      .withBoundsOffset(new Vector3(0, -0.5, 0)) // Positioned at character's feet
-      .withBoundsScale(0.5) // Small sphere at feet
-      .withVerticalCollision() // Only collides on Y axis
-      .withLayer(1) // Same layer as scene objects
-      .withCallbacks({
-        onCollisionEnter: (other) => {
-          // Only react to scene objects, not character's own colliders
-          if (other.id.startsWith('character-')) return;
-          console.log('Feet hit ground:', other.id);
-          this.isCollidingVertical = true;
-        },
-        onCollisionExit: (other) => {
-          if (other.id.startsWith('character-')) return;
-          console.log('Feet left ground:', other.id);
-          this.isCollidingVertical = false;
-        },
-      })
-      .withWireframe(0xff0000) // Red wireframe
-      .build();
   }
 
   public update(): void {
-    // Store last valid position when not colliding horizontally
-    if (!this.isCollidingHorizontal) {
-      this.lastValidPosition.x = this.characterController.position.x.value;
-      this.lastValidPosition.z = this.characterController.position.z.value;
-    } else {
-      // Lock horizontal movement during horizontal collision (walls)
+    // Calculate Y velocity using previous frame's position
+    const currentY = this.characterController.position.y.value;
+    const yVelocity = currentY - this.previousYPosition;
+
+    // Handle collision response BEFORE updating mesh
+    if (this.isCollidingHorizontal) {
+      // Full position lock - no sinking
       this.characterController.position.x.value = this.lastValidPosition.x;
       this.characterController.position.z.value = this.lastValidPosition.z;
-    }
-
-    // Store last valid Y position when not colliding vertically
-    if (!this.isCollidingVertical) {
-      this.lastValidPosition.y = this.characterController.position.y.value;
+      this.collisionCount++;
     } else {
-      // Lock vertical movement during vertical collision (ground/platforms)
-      this.characterController.position.y.value = this.lastValidPosition.y;
+      // Store valid position when not colliding
+      this.lastValidPosition.x = this.characterController.position.x.value;
+      this.lastValidPosition.z = this.characterController.position.z.value;
+      this.collisionCount = 0;
     }
 
-    // Sync mesh with controller state
+    // Vertical collision: Only block downward movement (falling through floor)
+    // Allow upward movement (jumping) even when standing on ground
+    if (this.isCollidingVertical && yVelocity <= 0) {
+      // Only lock Y position when moving down or stationary (prevents falling through)
+      this.characterController.position.y.value = this.lastValidPosition.y;
+    } else {
+      // Update last valid position when moving up or not colliding
+      this.lastValidPosition.y = this.characterController.position.y.value;
+    }
+
+    // Store current Y position for next frame's velocity calculation
+    this.previousYPosition = this.characterController.position.y.value;
+
+    // Sync mesh with controller state AFTER collision response
     this.mesh.position.set(
       this.characterController.position.x.value,
       this.characterController.position.y.value + 1, // Offset for capsule center
