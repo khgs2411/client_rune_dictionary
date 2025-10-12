@@ -170,6 +170,25 @@
             </div>
           </div>
         </div>
+
+        <!-- Debug Settings Section -->
+        <div class="pt-4 border-t border-border space-y-6">
+          <h3 class="text-sm font-semibold text-primary">Debug Settings</h3>
+
+          <!-- Physics Debug Wireframes -->
+          <div class="flex items-center justify-between">
+            <label for="physics-debug" class="text-sm font-medium cursor-pointer">
+              Physics Debug Wireframes
+            </label>
+            <Switch
+              id="physics-debug"
+              :model-value="config.debug.showPhysicsDebug"
+              @update:model-value="(value) => (config.debug.showPhysicsDebug = value)" />
+          </div>
+          <p class="text-xs text-muted-foreground">
+            Show green wireframes around all physics colliders
+          </p>
+        </div>
       </div>
     </SheetContent>
   </Sheet>
@@ -186,6 +205,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import Slider from '@/components/ui/slider/Slider.vue';
+import Switch from '@/components/ui/switch/Switch.vue';
 import { useGameConfigStore } from '@/stores/gameConfig.store';
 import { Gamepad2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';

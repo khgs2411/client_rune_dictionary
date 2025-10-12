@@ -51,6 +51,7 @@ export const useGameConfigStore = defineStore(
       enableConsoleLog: true, // Enable/disable console logs
       showStats: true, // Show/hide Three.js stats panel
       showWebSocketDebugger: true, // Show/hide WebSocket event debugger
+      showPhysicsDebug: false, // Show/hide physics collider wireframes
     });
 
     const interaction = reactive({
