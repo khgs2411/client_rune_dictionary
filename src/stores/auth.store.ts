@@ -6,8 +6,8 @@ const TTL_MINUTES = 10;
 const TTL_MS = TTL_MINUTES * 60 * 1000;
 
 export const useAuthStore = defineStore('auth', () => {
-  const username = ref(import.meta.env.DEV ? 'tal' : '');
-  const password = ref(import.meta.env.DEV ? 'Aa123123' : '');
+  const username = useLocalStorage('auth_username', '');
+  const password = useLocalStorage('auth_password', '');
   // Store auth token and expiration timestamp
   const authToken: Ref<string | null> = useLocalStorage('auth_token', null);
   const expiresAt: Ref<number | null> = useLocalStorage('auth_expires_at', null);

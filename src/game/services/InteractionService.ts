@@ -104,10 +104,6 @@ export class InteractionService implements I_SceneService {
     // CLEANUP: Clear hover when pointer leaves canvas
     this.mouse.on('leave', this.clearHover.bind(this));
 
-    console.log(
-      '✅ [InteractionService] Initialized (hover threshold: %dms, drag threshold: 5px)',
-      this.interactionConfig.hoverHoldThreshold,
-    );
   }
 
   /**
@@ -251,11 +247,7 @@ export class InteractionService implements I_SceneService {
 
     if (!click) return;
 
-    // 🛠️ EDITOR MODE: Disable click behaviors
-    if (this.config.editor.enabled) {
-      console.log('🛠️ [InteractionService] Editor mode: Click behaviors disabled');
-      return;
-    }
+    
 
     // Perform fresh raycast for accurate position
     const intersects = this.raycast.fromCamera(
@@ -450,7 +442,6 @@ export class InteractionService implements I_SceneService {
     this.context.scene.add(this.gridHelper);
     this.context.cleanupRegistry.registerObject(this.gridHelper);
 
-    console.log('📐 [InteractionService] Grid helper created (size: %d, divisions: %d)', size, divisions);
   }
 
   private showGrid(): void {
@@ -562,6 +553,5 @@ export class InteractionService implements I_SceneService {
     this.objects.set(id, interactable);
     this.objectArray.push(object3D);
 
-    console.log('  ↳ Registered interactable:', id, behaviors);
   }
 }

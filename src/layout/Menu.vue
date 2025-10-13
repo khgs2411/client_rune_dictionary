@@ -1,43 +1,46 @@
 <template>
   <header class="flex justify-end items-center gap-1 px-3 py-1 border-b border-border bg-background">
-    <TooltipProvider :delay-duration="0">
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <Button variant="ghost" size="icon" class="h-8 w-8" @click="toggleDebugger">
-            <Icon :icon="config.debug.showWebSocketDebugger
-              ? 'radix-icons:globe'
-              : 'radix-icons:component-none'
-              " class="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>
-            {{
-              config.debug.showWebSocketDebugger
-                ? 'Hide WebSocket Debugger'
-                : 'Show WebSocket Debugger'
-            }}
-          </p>
-        </TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <Button variant="ghost" size="icon" class="h-8 w-8" @click="toggleEditor">
-            <Icon :icon="config.editor.enabled ? 'mingcute:settings-2-fill' : 'rivet-icons:settings'" class="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>
-            {{
-              config.editor.enabled
-                ? 'Hide Level Editor'
-                : 'Show Level Editor'
-            }}
-          </p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-    <GameSettings />
+    <template v-if="auth.isAuthenticated">
+      <TooltipProvider :delay-duration="0">
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button variant="ghost" size="icon" class="h-8 w-8" @click="toggleDebugger">
+              <Icon :icon="config.debug.showWebSocketDebugger
+                ? 'radix-icons:globe'
+                : 'radix-icons:component-none'
+                " class="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>
+              {{
+                config.debug.showWebSocketDebugger
+                  ? 'Hide WebSocket Debugger'
+                  : 'Show WebSocket Debugger'
+              }}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <Button variant="ghost" size="icon" class="h-8 w-8" @click="toggleEditor">
+              <Icon :icon="config.editor.enabled ? 'mingcute:settings-2-fill' : 'rivet-icons:settings'"
+                class="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>
+              {{
+                config.editor.enabled
+                  ? 'Hide Level Editor'
+                  : 'Show Level Editor'
+              }}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <GameSettings />
+    </template>
     <ApplicationSettings />
   </header>
 </template>
@@ -49,9 +52,10 @@
   import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
   import { Icon } from '@iconify/vue';
   import { useGameConfigStore } from '@/stores/gameConfig.store';
+  import { useAuthStore } from '@/stores/auth.store';
 
   const config = useGameConfigStore();
-
+  const auth = useAuthStore();
   function toggleDebugger() {
     config.debug.showWebSocketDebugger = !config.debug.showWebSocketDebugger;
   }

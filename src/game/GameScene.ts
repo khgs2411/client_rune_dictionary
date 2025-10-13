@@ -19,7 +19,9 @@ import { InteractionService } from '@/game/services/InteractionService';
 import { VFXModule } from '@/game/modules/scene/VFXModule';
 import { PhysicsService } from '@/game/services/PhysicsService';
 import { GameConfig, useGameConfigStore } from '@/stores/gameConfig.store';
-import { SceneStore, useSceneStore } from '@/stores/scene.store';
+import { SceneStore as ScenesManager, useSceneStore } from '@/stores/scene.store';
+import { useWebSocketStore, WebsocketManager } from '@/stores/websocket.store';
+import { I_ConnectedClientData } from '@/common/types';
 
 /**
  * Base class for game scenes with typed module registry support
@@ -56,7 +58,8 @@ export abstract class GameScene<
   protected character!: ReturnType<typeof useCharacter>;
   protected settings: ApplicationSettings;
   protected config: GameConfig;
-  protected store: SceneStore;
+  protected scenes: ScenesManager;
+  protected websocketManager: WebsocketManager;
   public camera!: ReturnType<typeof useCamera>;
 
   // Status flags
@@ -69,7 +72,8 @@ export abstract class GameScene<
     // Subscribe to module loading events
     this.settings = useSettingsStore();
     this.config = useGameConfigStore();
-    this.store = useSceneStore();
+    this.scenes = useSceneStore();
+    this.websocketManager = useWebSocketStore();
     this.subscribe();
   }
 
@@ -212,10 +216,17 @@ export abstract class GameScene<
   }
 
   protected getModuleContext(): I_ModuleContext {
+    if (!this.websocketManager.clientData) throw new Error('WebSocket client data not set in scene context');
+    const connectedClientData: I_ConnectedClientData = {
+      id: this.websocketManager.clientData.id,
+      name: this.websocketManager.clientData.name,
+      scene: this.name,
+    }
     return {
       engine: this.engine,
       sceneName: this.name,
       scene: this.engine.scene,
+      clientData: connectedClientData,
       cleanupRegistry: this.cleanupRegistry,
       services: this.services, // Pass services (interaction, etc.)
       camera: this.camera,
@@ -270,7 +281,7 @@ export abstract class GameScene<
     this.character.destroy();
     this.camera.destroy();
     await this.destroyAllServices(); // Wait for physics cleanup!
-    this.forEachModule((m) => m.destroy(this.getModuleContext()));
+    this.forEachModule((m) => { m.destroy(this.getModuleContext()); m.close?.()});
     this.cleanupRegistry.cleanup(this.engine.scene);
     this.registry.clear();
 

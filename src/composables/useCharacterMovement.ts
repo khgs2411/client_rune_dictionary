@@ -28,9 +28,16 @@ export function useCharacterMovement(): CharacterMovement {
 
   // Position and rotation
   const playerX = ref(0);
-  const playerY = ref(0);
+  const playerY = ref(30); // Spawn height - prevents falling through ground on init
   const playerZ = ref(0);
   const playerRotation = ref(0);
+
+  // TODO: Override from API spawn position
+  // Example usage:
+  // const spawnData = await api.getSpawnPosition();
+  // playerX.value = spawnData.x;
+  // playerY.value = spawnData.y;
+  // playerZ.value = spawnData.z;
 
   // Movement speed from config
   const moveSpeed = computed(() => config.character.moveSpeed);

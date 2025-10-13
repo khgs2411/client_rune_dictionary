@@ -34,17 +34,22 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
 
   /**
    * Returns the current position of the character as a `Vector3`.
-   * The X and Z coordinates are taken from the movement state, while the Y coordinate is fixed at 1
-   * to maintain a consistent height for lookAt operations.
+   * Uses actual Y position from movement state.
    *
-   * @returns {Vector3} The position vector with fixed height.
+   * @returns {Vector3} The position vector.
    */
   function getPosition(): Vector3 {
     return new Vector3(
       movement.position.x.value,
-      1, // Fixed height for lookAt
+      movement.position.y.value, // Use actual Y position
       movement.position.z.value,
     );
+  }
+
+  function setPosition(x: number, y: number, z: number) {
+    movement.position.x.value = x;
+    movement.position.y.value = y;
+    movement.position.z.value = z;
   }
 
   /**
@@ -77,6 +82,7 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
     },
 
     getPosition,
+    setPosition,
     update,
     reset,
     destroy,

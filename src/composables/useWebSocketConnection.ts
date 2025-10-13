@@ -1,10 +1,12 @@
-import { computed } from 'vue';
-import { useWebSocket } from '@vueuse/core';
-import { useWebSocketStore, type I_ClientData } from '@/stores/websocket.store';
 import AuthAPI from '@/api/auth.api';
-import { useGameConfigStore } from '@/stores/gameConfig.store';
-import { useRxjs, WebsocketStructuredMessage } from 'topsyde-utils';
 import { I_DebugConsoleEvent } from '@/common/events.types';
+import { I_ClientData, I_ConnectedClientData } from '@/common/types';
+import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { useSceneStore } from '@/stores/scene.store';
+import { useWebSocketStore } from '@/stores/websocket.store';
+import { useWebSocket } from '@vueuse/core';
+import { useRxjs, WebsocketStructuredMessage } from 'topsyde-utils';
+import { computed } from 'vue';
 
 export interface I_HandshakeCredentials {
   username: string;
@@ -17,16 +19,56 @@ const WS_HOST = import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.or
 export const useWebSocketConnection = () => {
   const wsStore = useWebSocketStore();
   const config = useGameConfigStore();
+  const scenes = useSceneStore();
+
   const rx = useRxjs(['debug', 'ws']);
-  const HEARTBEAT_INTERVAL = 5;
+  const HEARTBEAT_INTERVAL = 30;
 
   // Hold the VueUse useWebSocket instance
   let wsInstance: ReturnType<typeof useWebSocket> | null = null;
 
+
+
   /**
-   * Establishes WebSocket connection with VueUse useWebSocket
-   * Configures auto-reconnect and heartbeat
+   * Establishes WebSocket connection with handshake authentication
+   * 1. Performs handshake to get client credentials
+   * 2. Connects to WebSocket with credentials in protocol header
    */
+  async function connect(credentials: I_HandshakeCredentials) {
+    if (wsStore.isConnecting || wsStore.isConnected) {
+      console.warn('[WS] Already connected or connecting');
+      return;
+    }
+
+    try {
+      // Step 1: Handshake
+      wsStore.status = 'handshaking';
+      const response = await performHandshake(credentials);
+      if (!response.scene) throw new Error('No scene provided by server');
+      console.log('[WS] Handshake successful:', response);
+
+      // Step 2: Store client data
+      const clientData: I_ClientData = { id: response.id, name: response.name };
+      const scene = response.scene;
+
+      wsStore.setClientData(clientData);
+      scenes.setActiveScene(scene);
+
+      // Step 3: Establish WebSocket connection
+      wsStore.status = 'connecting';
+      connection(clientData);
+    } catch (error) {
+      wsStore.status = 'disconnected';
+      wsStore.lastError = error;
+      console.error('[WS] Connection failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+  * Establishes WebSocket connection with VueUse useWebSocket
+  * Configures auto-reconnect and heartbeat
+  */
   function connection(clientData: I_ClientData) {
     // Build WebSocket subprotocol: "{id}-{username}"
     const protocol = `${clientData.id}-${clientData.name}`;
@@ -38,7 +80,7 @@ export const useWebSocketConnection = () => {
       // Auto-reconnect configuration
       autoReconnect: {
         retries: 3,
-        delay: 1000,
+        delay: 2000,
         onFailed: () => {
           wsStore.status = 'disconnected';
           console.error('[WS] Auto-reconnect failed after retries');
@@ -63,36 +105,7 @@ export const useWebSocketConnection = () => {
       onMessage: handleMessage,
       onError: handleError,
     });
-  }
 
-  /**
-   * Establishes WebSocket connection with handshake authentication
-   * 1. Performs handshake to get client credentials
-   * 2. Connects to WebSocket with credentials in protocol header
-   */
-  async function connect(credentials: I_HandshakeCredentials) {
-    if (wsStore.isConnecting || wsStore.isConnected) {
-      console.warn('[WS] Already connected or connecting');
-      return;
-    }
-
-    try {
-      // Step 1: Handshake
-      wsStore.status = 'handshaking';
-      const clientData = await performHandshake(credentials);
-
-      // Step 2: Store client data
-      wsStore.setClientData(clientData);
-
-      // Step 3: Establish WebSocket connection
-      wsStore.status = 'connecting';
-      connection(clientData);
-    } catch (error) {
-      wsStore.status = 'disconnected';
-      wsStore.lastError = error;
-      console.error('[WS] Connection failed:', error);
-      throw error;
-    }
   }
 
   /**
@@ -124,7 +137,7 @@ export const useWebSocketConnection = () => {
    * Performs handshake with server using AuthAPI
    * Returns client data (id, name) for WebSocket protocol
    */
-  async function performHandshake(credentials: I_HandshakeCredentials): Promise<I_ClientData> {
+  async function performHandshake(credentials: I_HandshakeCredentials): Promise<I_ConnectedClientData> {
     const api = new AuthAPI('api', import.meta.env.VITE_HOST);
     const handshakeRes = await api.handshake(
       credentials.username,
@@ -135,6 +148,7 @@ export const useWebSocketConnection = () => {
     return {
       id: handshakeRes.data.id,
       name: handshakeRes.data.name,
+      scene: handshakeRes.data.scene,
     };
   }
 
@@ -142,14 +156,7 @@ export const useWebSocketConnection = () => {
     wsStore.status = 'connected';
     wsStore.connectedAt = new Date();
     wsStore.reconnectAttempts = 0;
-
     console.log('[WS] Connected successfully');
-
-    // Emit to debugger
-    emit({
-      type: 'system.connected',
-      data: { clientId: wsStore.clientData?.id, clientName: wsStore.clientData?.name },
-    });
   }
 
   function handleDisconnected(_ws: WebSocket, event: CloseEvent) {
@@ -169,13 +176,32 @@ export const useWebSocketConnection = () => {
     try {
       const message: WebsocketStructuredMessage = JSON.parse(event.data);
 
-      // routeMessage(message);
-      emit({
-        type: message.type,
-        data: message.content,
-      });
+      if (message.type == 'message') {
+        // this will be in the chat soon
+        console.log('[WS] Chat message received:', message);
+        return
+      }
+
+      emit({ ...message, data: message.content });
+
     } catch (error) {
       console.error('[WS] Failed to parse message:', error);
+    }
+  }
+
+  /**
+   * Emits debug events to debug namespace for DebugConsole
+   * Only emits if debug console is enabled in config
+   */
+  function emit(event: Omit<I_DebugConsoleEvent, 'timestamp'>) {
+    if (!config.debug.showWebSocketDebugger) return;
+    rx.$next('debug', {
+      cta: 'log',
+      data: { ...event, timestamp: new Date().toLocaleTimeString() },
+    });
+
+    if (event.type == 'scene') {
+      rx.$next('scene', { cta: event.type, data: event })
     }
   }
 
@@ -189,17 +215,6 @@ export const useWebSocketConnection = () => {
     });
   }
 
-  /**
-   * Emits debug events to debug namespace for DebugConsole
-   * Only emits if debug console is enabled in config
-   */
-  function emit(event: Omit<I_DebugConsoleEvent, 'timestamp'>) {
-    if (!config.debug.showWebSocketDebugger) return;
-    rx.$next('debug', {
-      cta: 'log',
-      data: { ...event, timestamp: new Date().toLocaleTimeString() },
-    });
-  }
 
   return {
     connect,
@@ -213,3 +228,4 @@ export const useWebSocketConnection = () => {
     clientData: computed(() => wsStore.clientData),
   };
 };
+

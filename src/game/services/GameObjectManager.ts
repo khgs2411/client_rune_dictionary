@@ -40,7 +40,7 @@ export class GameObjectManager extends SceneModule {
    * Add a GameObject to the manager
    * If the manager is already initialized, the GameObject will be initialized immediately
    */
-  add(gameObject: GameObject): void {
+  add(gameObject: GameObject, initialize:boolean = true): void {
     if (this.gameObjects.has(gameObject.id)) {
       console.warn(
         `[GameObjectManager] GameObject with id "${gameObject.id}" already exists. Skipping.`,
@@ -51,7 +51,7 @@ export class GameObjectManager extends SceneModule {
     this.gameObjects.set(gameObject.id, gameObject);
 
     // If manager is already initialized, initialize the GameObject immediately
-    if (this.context) {
+    if (this.context && initialize) {
       gameObject.init(this.context).catch((error) => {
         console.error(
           `[GameObjectManager] Failed to initialize GameObject "${gameObject.id}":`,

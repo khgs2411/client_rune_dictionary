@@ -61,10 +61,13 @@ export class Ground extends GameObject {
     // Determine material color
     const color = useTheme ? settings.theme.primaryForeground : staticColor;
 
+    // Add small Y offset to prevent z-fighting and initial clipping
+    const groundPosition: [number, number, number] = [position[0], position[1] - 0.05, position[2]];
+
     // Add all components in fluent style
     this.addComponent(
       new TransformComponent({
-        position: position,
+        position: groundPosition,
         rotation: [-Math.PI / 2, 0, 0], // Rotate plane to be horizontal
       }),
     )
@@ -107,6 +110,7 @@ export class Ground extends GameObject {
         new PhysicsComponent({
           type: 'static',
           shape: 'cuboid',
+          shapeParams: [size / 2, 0.1, size / 2], // Half-extents for cuboid collider
         }),
       );
     }

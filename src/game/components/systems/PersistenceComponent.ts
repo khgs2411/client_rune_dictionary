@@ -64,10 +64,7 @@ export class PersistenceComponent extends GameComponent {
 
     if (savedPos) {
       this.transformComp.setPosition(savedPos.x, savedPos.y, savedPos.z);
-      console.log(
-        `📍 [PersistenceComponent] Loaded position for ${this.gameObject.id}:`,
-        savedPos,
-      );
+
     }
   }
 
@@ -83,10 +80,7 @@ export class PersistenceComponent extends GameComponent {
       z: pos.z,
     });
 
-    console.log(
-      `💾 [PersistenceComponent] Saved position for ${this.gameObject.id}:`,
-      { x: pos.x, y: pos.y, z: pos.z },
-    );
+
   }
 
   /**

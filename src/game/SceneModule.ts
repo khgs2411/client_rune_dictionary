@@ -55,4 +55,8 @@ export default abstract class SceneModule {
       });
     }, Math.random() * 333); // Simulated delay
   }
+
+  public close() {
+    this.rxjs.$unsubscribe();
+  }
 }

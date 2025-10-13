@@ -1,3 +1,4 @@
+import { I_ClientData } from '@/common/types';
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
@@ -8,10 +9,7 @@ export type WebSocketStatus =
   | 'connected'
   | 'reconnecting';
 
-export interface I_ClientData {
-  id: string;
-  name: string;
-}
+export type WebsocketManager = ReturnType<typeof useWebSocketStore>;
 
 export const useWebSocketStore = defineStore('websocket', () => {
   // State
@@ -30,11 +28,14 @@ export const useWebSocketStore = defineStore('websocket', () => {
       status.value === 'handshaking' ||
       status.value === 'reconnecting',
   );
+  
   const isDisconnected = computed(() => status.value === 'disconnected');
 
   // Actions
   function setClientData(data: I_ClientData) {
-    clientData.value = data;
+    if (!clientData.value) {
+      clientData.value = { id: data.id, name: data.name };
+    }
   }
 
   function $reset() {

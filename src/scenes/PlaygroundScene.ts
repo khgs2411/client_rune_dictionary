@@ -1,10 +1,8 @@
 import { I_ThemeColors } from '@/composables/useTheme';
 import type { Engine } from '@/game/Engine';
 import { GameScene } from '@/game/GameScene';
-import { CharacterModule } from '@/game/modules/scene/CharacterModule';
 import { DebugModule } from '@/game/modules/scene/DebugModule';
 import { LightingModule } from '@/game/modules/scene/LightingModule';
-import { Vector3 } from 'three';
 import { watch } from 'vue';
 import { I_SceneConfig } from '../game/common/scenes.types';
 
@@ -13,14 +11,15 @@ import { DragComponent } from '@/game/components/interactions/DragComponent';
 import { HoverComponent } from '@/game/components/interactions/HoverComponent';
 import { PhysicsComponent } from '@/game/components/interactions/PhysicsComponent';
 import { GeometryComponent } from '@/game/components/rendering/GeometryComponent';
-import { GridHelperComponent } from '@/game/components/rendering/GridHelperComponent';
 import { InstancedMeshComponent } from '@/game/components/rendering/InstancedMeshComponent';
 import { MaterialComponent } from '@/game/components/rendering/MaterialComponent';
 import { MeshComponent } from '@/game/components/rendering/MeshComponent';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 import { PersistenceComponent } from '@/game/components/systems/PersistenceComponent';
-import { GameObjectManager } from '@/game/services/GameObjectManager';
 import { Ground } from '@/game/prefabs/Ground';
+import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
+import { GameObjectManager } from '@/game/services/GameObjectManager';
+import { MultiplayerModule } from '@/game/modules/networking/MultiplayerModule';
 
 /**
  * Module Registry for PlaygroundScene
@@ -29,13 +28,15 @@ import { Ground } from '@/game/prefabs/Ground';
 interface PlaygroundModuleRegistry extends Record<string, any> {
   lighting: LightingModule;
   debug: DebugModule;
-  characterMesh: CharacterModule;
-  gameObjects: GameObjectManager;
+  gameObjectsManager: GameObjectManager;
 }
 
 export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
   readonly name = 'PlaygroundScene';
   readonly engine: Engine;
+
+  // Store LocalPlayer reference for updates
+  private localPlayer: LocalPlayer | null = null;
 
   constructor(config: I_SceneConfig) {
     super();
@@ -45,22 +46,23 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
   /**
    * Register scene-specific modules
-   * Note: No need to register InteractionSystemModule - it's now a service!
+   * Note: CharacterModule removed - now using LocalPlayer GameObject
    */
   protected registerModules(): void {
     this.addModule('lighting', new LightingModule());
-    this.addModule('characterMesh', new CharacterModule(this.character.controller));
-    this.addModule('gameObjects', new GameObjectManager());
+    this.addModule('gameObjectsManager', new GameObjectManager());
+    this.addModule('multiplayer', new MultiplayerModule('multiplayer', this.getModule('gameObjectsManager')!));
+
   }
 
   protected addSceneObjects() {
+    // gameObjectsManager manager
+    const gameObjectManager = this.getModule('gameObjectsManager')!;
 
-    // GameObjects manager
-    const gameObjectManager = this.getModule('gameObjects')!;
 
 
-    const ground = new Ground({})
-
+    // Ground
+    const ground = new Ground({ size: 200, showGrid: true });
     gameObjectManager.add(ground);
 
     // Editable box (native components, no prefab)
@@ -136,28 +138,15 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     gameObjectManager.add(treeTrunks);
     gameObjectManager.add(treeLeaves);
     gameObjectManager.add(bushes);
-  }
 
-  private storeObjectPosition(objectKey: string, pos: Vector3) {
-    // Update physics collider to match new position
-    // ID format: scene-object-{moduleId}-{index}
-    const module = this.getModule(objectKey);
-    if (module) {
-      const objectId = `scene-object-${(module as any).id}-0`;
+    // Create LocalPlayer GameObject (replaces CharacterModule)
+    // Don't pass position config - let LocalPlayer read directly from controller
+    this.localPlayer = new LocalPlayer({
+      playerId: 'local-player',
+      characterController: this.character.controller,
+    });
 
-      // Update physics
-      if (this.services.physics.isReady()) {
-        this.services.physics.updateStaticBodyPosition(objectId, pos);
-        console.log(`🔄 Updated physics body: ${objectId}`);
-      }
-
-      // Save position to store
-      this.store.saveObjectPosition(this.name, objectId, {
-        x: pos.x,
-        y: pos.y,
-        z: pos.z,
-      });
-    }
+    gameObjectManager.add(this.localPlayer);
   }
 
   /**
@@ -205,15 +194,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       border: this.settings.theme.border,
     };
 
-
-    // Update all modules with the same unified API
-    this.getModule('instancedSceneObjects')?.onThemeChange?.(theme);
-    this.getModule('sceneObjects')?.onThemeChange?.(theme);
-    this.getModule('characterMesh')?.onThemeChange?.(theme);
-    this.getModule('gameObjects')?.onThemeChange?.(theme);
-
-    // TODO: Add theme support for modelComponent GameObjects
-    // GameObjects (ground, trees, bushes, etc.) should respond to theme changes
-    // via MaterialComponent or a ThemeComponent
+    // Update GameObjectManager (propagates to all gameObjectsManager with theme-aware components)
+    this.getModule('gameObjectsManager')?.onThemeChange?.(theme);
   }
 }
