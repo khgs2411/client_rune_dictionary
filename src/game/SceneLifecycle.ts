@@ -55,6 +55,19 @@ export class SceneLifecycle {
   }
 
   /**
+   * Register a module/service/component for tracking
+   * This is syntactic sugar for consistency - actual destroy() is called by parent
+   * Useful for future extensions (auto-destroy, dependency tracking, etc.)
+   * @returns this for fluent chaining
+   */
+  registerModule(module: { destroy?: () => Promise<void> | void }): this {
+    // Currently just a marker for future functionality
+    // The parent (GameScene, GameObject, etc.) still manually calls destroy()
+    // This could be extended to auto-call destroy on cleanup if needed
+    return this;
+  }
+
+  /**
    * Cleanup all registered resources
    * Stops watchers, removes objects from scene, and disposes all resources
    */
