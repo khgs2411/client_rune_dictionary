@@ -1,10 +1,11 @@
+import { PhysicsComponent } from '../components/interactions/PhysicsComponent';
+import { GeometryComponent } from '../components/rendering/GeometryComponent';
+import { GridHelperComponent } from '../components/rendering/GridHelperComponent';
+import { MaterialComponent } from '../components/rendering/MaterialComponent';
+import { MeshComponent } from '../components/rendering/MeshComponent';
+import { TransformComponent } from '../components/rendering/TransformComponent';
 import { GameObject } from '../GameObject';
-import { GeometryComponent } from '../../components/rendering/GeometryComponent';
-import { MaterialComponent } from '../../components/rendering/MaterialComponent';
-import { TransformComponent } from '../../components/rendering/TransformComponent';
-import { MeshComponent } from '../../components/rendering/MeshComponent';
-import { GridHelperComponent } from '../../components/rendering/GridHelperComponent';
-import { PhysicsComponent } from '../../components/interactions/PhysicsComponent';
+
 import { useSettingsStore } from '@/stores/settings.store';
 
 export interface I_GroundConfig {
