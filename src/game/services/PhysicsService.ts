@@ -133,7 +133,7 @@ export class PhysicsService extends SceneModule {
     );
 
     // Register watcher for cleanup
-    context.cleanupRegistry.watch(stopWatch);
+    context.cleanupRegistry.registerWatcher(stopWatch);
   }
 
   public update(delta: number): void {
@@ -813,7 +813,7 @@ export class PhysicsService extends SceneModule {
     // Register disposables with lifecycle
     this.context.cleanupRegistry.registerDisposable(geometry); // Original geometry
     this.context.cleanupRegistry.registerDisposable(edges); // EdgesGeometry
-    this.context.cleanupRegistry.register(wireframe); // LineSegments (Object3D)
+    this.context.cleanupRegistry.registerObject(wireframe); // LineSegments (Object3D)
 
     // Add to scene and track
     this.context.scene.add(wireframe);

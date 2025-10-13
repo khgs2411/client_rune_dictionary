@@ -19,7 +19,7 @@ export class LightingModule extends SceneModule implements I_SceneModule {
     // Ambient light
     const ambientLight = new AmbientLight(0xffffff, 0.5);
     context.scene.add(ambientLight);
-    context.cleanupRegistry.register(ambientLight);
+    context.cleanupRegistry.registerObject(ambientLight);
     this.lights.push(ambientLight);
 
     // Directional light with shadows
@@ -46,7 +46,7 @@ export class LightingModule extends SceneModule implements I_SceneModule {
 
   public addToScene(context: I_ModuleContext, directionalLight: DirectionalLight): void {
     context.scene.add(directionalLight);
-    context.cleanupRegistry.register(directionalLight);
+    context.cleanupRegistry.registerObject(directionalLight);
   }
 
   async destroy(): Promise<void> {

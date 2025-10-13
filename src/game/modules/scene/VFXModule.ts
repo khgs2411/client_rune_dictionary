@@ -376,7 +376,7 @@ export class VFXModule extends SceneModule implements I_SceneModule {
     for (let i = 0; i < VFXModule.POOL_SIZES.TEXT_SPRITES; i++) {
       const sprite = new TextSprite();
       context.scene.add(sprite.sprite);
-      context.cleanupRegistry.register(sprite.sprite);
+      context.cleanupRegistry.registerObject(sprite.sprite);
       this.textSpritePool.push(sprite);
     }
 
@@ -384,7 +384,7 @@ export class VFXModule extends SceneModule implements I_SceneModule {
     for (let i = 0; i < VFXModule.POOL_SIZES.TOOLTIPS; i++) {
       const tooltip = new TooltipBillboard();
       context.scene.add(tooltip.group);
-      context.cleanupRegistry.register(tooltip.group);
+      context.cleanupRegistry.registerObject(tooltip.group);
       this.tooltipPool.push(tooltip);
     }
 
@@ -392,7 +392,7 @@ export class VFXModule extends SceneModule implements I_SceneModule {
     for (let i = 0; i < VFXModule.POOL_SIZES.PARTICLES; i++) {
       const particles = new ParticleSystem();
       context.scene.add(particles.points);
-      context.cleanupRegistry.register(particles.points);
+      context.cleanupRegistry.registerObject(particles.points);
       this.particlePool.push(particles);
     }
 

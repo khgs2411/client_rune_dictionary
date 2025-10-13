@@ -28,7 +28,7 @@ export class CleanupRegistry {
    * Register Vue watcher for automatic cleanup
    * @returns this for fluent chaining
    */
-  watch(watcher: WatchStopHandle): this {
+  registerWatcher(watcher: WatchStopHandle): this {
     this.watchers.push(watcher);
     return this;
   }
@@ -38,7 +38,7 @@ export class CleanupRegistry {
    * Objects are removed from scene and recursively disposed (traverse + dispose geometry/material)
    * @returns this for fluent chaining
    */
-  register(...objects: Object3D[]): this {
+  registerObject(...objects: Object3D[]): this {
     this.objects.push(...objects);
     return this;
   }

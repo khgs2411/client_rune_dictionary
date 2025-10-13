@@ -130,7 +130,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
 
   public addToScene(context: I_ModuleContext) {
     context.scene.add(this.mesh);
-    context.cleanupRegistry.register(this.mesh);
+    context.cleanupRegistry.registerObject(this.mesh);
   }
 
   private buildForwardIndicator() {

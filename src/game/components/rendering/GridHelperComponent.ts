@@ -54,7 +54,7 @@ export class GridHelperComponent extends GameComponent {
     context.scene.add(this.gridHelper);
 
     // Register for cleanup
-    context.cleanupRegistry.register(this.gridHelper);
+    context.cleanupRegistry.registerObject(this.gridHelper);
   }
 
   destroy(): void {

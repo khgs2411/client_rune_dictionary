@@ -143,7 +143,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
 
   public addToScene(context: I_ModuleContext, instancedMesh: InstancedMesh) {
     context.scene.add(instancedMesh);
-    context.cleanupRegistry.register(instancedMesh);
+    context.cleanupRegistry.registerObject(instancedMesh);
   }
 
   private addGridHelper(context: I_ModuleContext, instancedMeshConfig: I_SceneObjectConfig) {
@@ -153,7 +153,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     );
     gridHelper.position.y = 0.01;
     context.scene.add(gridHelper);
-    context.cleanupRegistry.register(gridHelper);
+    context.cleanupRegistry.registerObject(gridHelper);
   }
 
   private createInstancedMesh(

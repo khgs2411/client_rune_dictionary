@@ -448,7 +448,7 @@ export class InteractionService implements I_SceneService {
 
     // Add to scene
     this.context.scene.add(this.gridHelper);
-    this.context.cleanupRegistry.register(this.gridHelper);
+    this.context.cleanupRegistry.registerObject(this.gridHelper);
 
     console.log('📐 [InteractionService] Grid helper created (size: %d, divisions: %d)', size, divisions);
   }

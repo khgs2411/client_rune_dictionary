@@ -109,7 +109,7 @@ export class InstancedMeshComponent extends GameComponent {
     context.scene.add(this.instancedMesh);
 
     // Register for cleanup
-    context.cleanupRegistry.register(this.instancedMesh);
+    context.cleanupRegistry.registerObject(this.instancedMesh);
   }
 
   /**

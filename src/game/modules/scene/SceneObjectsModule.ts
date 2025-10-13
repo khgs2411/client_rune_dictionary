@@ -245,7 +245,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
 
   public addToScene(context: I_ModuleContext, mesh: Mesh) {
     context.scene.add(mesh);
-    context.cleanupRegistry.register(mesh);
+    context.cleanupRegistry.registerObject(mesh);
   }
 
   private setTransform(mesh: Mesh, config: I_SceneObjectConfig) {

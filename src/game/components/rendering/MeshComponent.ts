@@ -74,7 +74,7 @@ export class MeshComponent extends GameComponent {
     context.scene.add(this.mesh);
 
     // Register for cleanup
-    context.cleanupRegistry.register(this.mesh);
+    context.cleanupRegistry.registerObject(this.mesh);
   }
 
   /**

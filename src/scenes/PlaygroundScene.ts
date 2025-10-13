@@ -269,12 +269,12 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
    */
   protected finalizeSetup(): void {
     super.finalizeSetup();
-    this.setLifecycleWatchers();
+    this.setWatchers();
   }
 
-  private setLifecycleWatchers(): void {
+  private setWatchers(): void {
     // Watch for theme changes (color theme: neutral, rose, blue, etc.)
-    this.cleanupRegistry.watch(
+    this.cleanupRegistry.registerWatcher(
       watch(
         () => this.settings.theme.currentTheme,
         () => {
@@ -284,7 +284,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       ),
     );
 
-    this.cleanupRegistry.watch(
+    this.cleanupRegistry.registerWatcher(
       watch(
         () => this.settings.theme.colorMode,
         () => {
