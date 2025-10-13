@@ -1,6 +1,6 @@
 import { Mesh } from 'three';
 import { GameComponent, ComponentPriority } from '../../GameComponent';
-import type { I_GameContext } from '../../types';
+import type { I_GameContext } from '../../gameobject.types';
 import { GeometryComponent } from './GeometryComponent';
 import { MaterialComponent } from './MaterialComponent';
 import { TransformComponent } from './TransformComponent';
@@ -74,7 +74,7 @@ export class MeshComponent extends GameComponent {
     context.scene.add(this.mesh);
 
     // Register for cleanup
-    context.lifecycle.register(this.mesh);
+    context.cleanupRegistry.register(this.mesh);
   }
 
   /**

@@ -1,5 +1,5 @@
 import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
-import { SceneLifecycle } from '@/game/SceneLifecycle';
+import { CleanupRegistry } from '@/game/CleanupRegistry';
 import { useRxjs } from 'topsyde-utils';
 import {
   SceneErrorPayload,
@@ -38,7 +38,7 @@ export abstract class GameScene<
   private enabled = false;
   public modulesLoaded = false;
 
-  protected lifecycle: SceneLifecycle = new SceneLifecycle();
+  protected cleanupRegistry: CleanupRegistry = new CleanupRegistry();
   protected sceneEvents = useRxjs('scene:loading');
   protected moduleEvents = useRxjs('module:loading');
 
@@ -216,7 +216,7 @@ export abstract class GameScene<
       engine: this.engine,
       sceneName: this.name,
       scene: this.engine.scene,
-      lifecycle: this.lifecycle,
+      cleanupRegistry: this.cleanupRegistry,
       services: this.services, // Pass services (interaction, etc.)
       camera: this.camera,
       character: this.character,
@@ -271,7 +271,7 @@ export abstract class GameScene<
     this.camera.destroy();
     await this.destroyAllServices(); // Wait for physics cleanup!
     this.forEachModule((m) => m.destroy(this.getModuleContext()));
-    this.lifecycle.cleanup(this.engine.scene);
+    this.cleanupRegistry.cleanup(this.engine.scene);
     this.registry.clear();
 
     console.log(`✅ [${this.name}] Scene cleanup complete`);

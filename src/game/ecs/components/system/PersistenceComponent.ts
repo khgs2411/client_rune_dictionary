@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { GameComponent, ComponentPriority } from '../../GameComponent';
-import type { I_GameContext } from '../../types';
+import type { I_GameContext } from '../../gameobject.types';
 import { TransformComponent } from '../rendering/TransformComponent';
 import { useSceneStore } from '@/stores/scene.store';
 import { DragComponent } from '../interaction/DragComponent';

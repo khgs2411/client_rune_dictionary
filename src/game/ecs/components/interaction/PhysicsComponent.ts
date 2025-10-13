@@ -1,5 +1,5 @@
 import { GameComponent, ComponentPriority } from '../../GameComponent';
-import type { I_GameContext } from '../../types';
+import type { I_GameContext } from '../../gameobject.types';
 import { MeshComponent } from '../rendering/MeshComponent';
 import { InstancedMeshComponent } from '../rendering/InstancedMeshComponent';
 

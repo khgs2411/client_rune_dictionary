@@ -1,6 +1,6 @@
 import { InstancedMesh, Matrix4, Euler, Quaternion, Vector3 } from 'three';
 import { GameComponent, ComponentPriority } from '../../GameComponent';
-import type { I_GameContext } from '../../types';
+import type { I_GameContext } from '../../gameobject.types';
 import { GeometryComponent } from './GeometryComponent';
 import { MaterialComponent } from './MaterialComponent';
 import { MeshComponent } from './MeshComponent';
@@ -109,7 +109,7 @@ export class InstancedMeshComponent extends GameComponent {
     context.scene.add(this.instancedMesh);
 
     // Register for cleanup
-    context.lifecycle.register(this.instancedMesh);
+    context.cleanupRegistry.register(this.instancedMesh);
   }
 
   /**

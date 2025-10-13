@@ -1,6 +1,6 @@
 import { GridHelper } from 'three';
 import { GameComponent, ComponentPriority } from '../../GameComponent';
-import type { I_GameContext } from '../../types';
+import type { I_GameContext } from '../../gameobject.types';
 
 export interface I_GridHelperConfig {
   size?: number;
@@ -54,7 +54,7 @@ export class GridHelperComponent extends GameComponent {
     context.scene.add(this.gridHelper);
 
     // Register for cleanup
-    context.lifecycle.register(this.gridHelper);
+    context.cleanupRegistry.register(this.gridHelper);
   }
 
   destroy(): void {

@@ -1,5 +1,5 @@
 import type { GameComponent } from './GameComponent';
-import type { I_GameContext, I_GameObjectConfig, I_Interactable } from './types';
+import type { I_GameContext, I_GameObjectConfig, I_Interactable } from './gameobject.types';
 import { MeshComponent } from './components/rendering/MeshComponent';
 
 /**

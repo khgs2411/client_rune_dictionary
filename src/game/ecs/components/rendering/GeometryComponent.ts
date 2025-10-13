@@ -7,7 +7,7 @@ import {
   SphereGeometry,
 } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type { I_GameContext } from '../../types';
+import type { I_GameContext } from '../../gameobject.types';
 
 export type GeometryType = 'plane' | 'box' | 'sphere' | 'cylinder' | 'cone';
 
@@ -56,7 +56,7 @@ export class GeometryComponent extends GameComponent {
     this.geometry = this.createGeometry();
 
     // Register geometry for disposal (geometries are disposable, not Object3D)
-    context.lifecycle.registerDisposable(this.geometry);
+    context.cleanupRegistry.registerDisposable(this.geometry);
   }
 
   private createGeometry(): BufferGeometry {

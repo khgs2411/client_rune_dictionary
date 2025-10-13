@@ -19,7 +19,7 @@ export interface I_Disposable {
  * - Components/Services/Modules register themselves for cleanup
  * - Supports Object3D (with recursive traversal), raw disposables, and watchers
  */
-export class SceneLifecycle {
+export class CleanupRegistry {
   private watchers: WatchStopHandle[] = [];
   private objects: Object3D[] = []; // Object3D instances (with recursive disposal)
   private disposables: I_Disposable[] = []; // Raw disposables (geometry, material, etc.)

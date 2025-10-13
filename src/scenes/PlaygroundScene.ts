@@ -274,7 +274,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
   private setLifecycleWatchers(): void {
     // Watch for theme changes (color theme: neutral, rose, blue, etc.)
-    this.lifecycle.watch(
+    this.cleanupRegistry.watch(
       watch(
         () => this.settings.theme.currentTheme,
         () => {
@@ -284,7 +284,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       ),
     );
 
-    this.lifecycle.watch(
+    this.cleanupRegistry.watch(
       watch(
         () => this.settings.theme.colorMode,
         () => {

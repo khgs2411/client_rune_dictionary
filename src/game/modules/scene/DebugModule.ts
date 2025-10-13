@@ -23,7 +23,7 @@ export class DebugModule extends SceneModule implements I_SceneModule {
 
   public addToScene(context: I_ModuleContext, cube: Mesh) {
     context.scene.add(cube);
-    context.lifecycle.register(cube);
+    context.cleanupRegistry.register(cube);
   }
 
   public update(delta: number): void {

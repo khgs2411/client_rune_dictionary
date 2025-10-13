@@ -139,14 +139,14 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
 
   public addToScene(context: I_ModuleContext, instancedMesh: InstancedMesh) {
     context.scene.add(instancedMesh);
-    context.lifecycle.register(instancedMesh);
+    context.cleanupRegistry.register(instancedMesh);
   }
 
   private addGridHelper(context: I_ModuleContext, instancedMeshConfig: I_SceneObjectConfig) {
     const gridHelper = new GridHelper(instancedMeshConfig.geometry?.params?.[0] || 50, instancedMeshConfig.geometry?.params?.[1] || 50);
     gridHelper.position.y = 0.01;
     context.scene.add(gridHelper);
-    context.lifecycle.register(gridHelper);
+    context.cleanupRegistry.register(gridHelper);
   }
 
   private createInstancedMesh(

@@ -3,7 +3,7 @@ import { useCharacter } from '@/composables/useCharacter';
 import { I_ThemeColors } from '@/composables/useTheme';
 import { Engine } from '@/game/Engine';
 import { VFXModule } from '@/game/modules/scene/VFXModule';
-import { SceneLifecycle } from '@/game/SceneLifecycle';
+import { CleanupRegistry } from '@/game/CleanupRegistry';
 import type { InteractionService } from '@/game/services/InteractionService';
 import { PhysicsService } from '@/game/services/PhysicsService';
 import { Scene } from 'three';
@@ -89,7 +89,7 @@ export interface I_ModuleServices extends Record<string, I_SceneService> {
 export interface I_ModuleContext {
   engine: Engine;
   scene: Scene;
-  lifecycle: SceneLifecycle;
+  cleanupRegistry: CleanupRegistry;
   sceneName: string;
   services: I_ModuleServices;
   camera?: ReturnType<typeof useCamera>; // Optional: for modules that need camera

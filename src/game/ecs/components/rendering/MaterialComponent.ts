@@ -1,6 +1,6 @@
 import { MeshStandardMaterial } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type { I_GameContext } from '../../types';
+import type { I_GameContext } from '../../gameobject.types';
 import { useSettingsStore } from '@/stores/settings.store';
 
 export interface I_MaterialConfig {
@@ -57,7 +57,7 @@ export class MaterialComponent extends GameComponent {
     });
 
     // Register material for disposal (materials are disposable, not Object3D)
-    context.lifecycle.registerDisposable(this.material);
+    context.cleanupRegistry.registerDisposable(this.material);
   }
 
   private getColor(): number {

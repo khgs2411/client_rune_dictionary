@@ -6,7 +6,7 @@ import type {
   ReactiveValue,
 } from '../modules/entity/interaction.types';
 import type { Intersection, Vector3 } from 'three';
-import type { I_InteractionBuilder } from '../ecs/types';
+import type { I_InteractionBuilder } from '../ecs/gameobject.types';
 
 /**
  * Fluent Builder for Interactable Configuration (Refactored v2)
