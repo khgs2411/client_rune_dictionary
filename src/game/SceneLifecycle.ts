@@ -2,13 +2,27 @@ import { Mesh, Object3D, Scene } from 'three';
 import type { WatchStopHandle } from 'vue';
 
 /**
- * Manages lifecycle of Three.js objects and Vue watchers
- * Handles automatic cleanup and disposal to prevent memory leaks
+ * Interface for any resource that can be disposed
+ * Allows SceneLifecycle to manage cleanup of any disposable resource
+ * (Geometry, Material, Texture, RenderTarget, custom resources, etc.)
  */
+export interface I_Disposable {
+  dispose(): void;
+}
 
+/**
+ * Manages lifecycle of Three.js objects, Vue watchers, and disposable resources
+ * Handles automatic cleanup and disposal to prevent memory leaks
+ *
+ * Architecture:
+ * - Single source of truth for cleanup
+ * - Components/Services/Modules register themselves for cleanup
+ * - Supports Object3D (with recursive traversal), raw disposables, and watchers
+ */
 export class SceneLifecycle {
   private watchers: WatchStopHandle[] = [];
-  private disposables: Object3D[] = [];
+  private objects: Object3D[] = []; // Object3D instances (with recursive disposal)
+  private disposables: I_Disposable[] = []; // Raw disposables (geometry, material, etc.)
 
   /**
    * Register Vue watcher for automatic cleanup
@@ -21,44 +35,77 @@ export class SceneLifecycle {
 
   /**
    * Register Three.js objects for automatic cleanup
+   * Objects are removed from scene and recursively disposed (traverse + dispose geometry/material)
    * @returns this for fluent chaining
    */
   register(...objects: Object3D[]): this {
-    this.disposables.push(...objects);
+    this.objects.push(...objects);
+    return this;
+  }
+
+  /**
+   * Register raw disposable resources (geometry, material, texture, etc.)
+   * These are disposed directly without scene removal or traversal
+   * Use this for resources not attached to Object3D
+   * @returns this for fluent chaining
+   */
+  registerDisposable(...resources: I_Disposable[]): this {
+    this.disposables.push(...resources);
     return this;
   }
 
   /**
    * Cleanup all registered resources
-   * Stops watchers, removes objects from scene, and disposes geometries/materials
+   * Stops watchers, removes objects from scene, and disposes all resources
    */
   cleanup(scene: Scene): void {
+    // Stop Vue watchers
     this.watchers.forEach((stop) => stop());
 
-    let disposedCount = 0;
+    let objectCount = 0;
+    let disposableCount = 0;
     let errorCount = 0;
 
-    this.disposables.forEach((obj) => {
+    // Dispose Object3D instances (remove from scene + recursive disposal)
+    this.objects.forEach((obj) => {
       try {
         scene.remove(obj);
-        this.dispose(obj);
-        disposedCount++;
+        this.disposeObject3D(obj);
+        objectCount++;
       } catch (e) {
         errorCount++;
-        console.warn('      ⚠️ Failed to dispose object:', e);
+        console.warn('⚠️ [SceneLifecycle] Failed to dispose Object3D:', e);
       }
     });
 
-    // Clear arrays
+    // Dispose raw disposables (geometry, material, etc.)
+    this.disposables.forEach((resource) => {
+      try {
+        resource.dispose();
+        disposableCount++;
+      } catch (e) {
+        errorCount++;
+        console.warn('⚠️ [SceneLifecycle] Failed to dispose resource:', e);
+      }
+    });
+
+    // Clear all arrays
     this.watchers = [];
+    this.objects = [];
     this.disposables = [];
+
+    if (objectCount > 0 || disposableCount > 0) {
+      console.log(
+        `🧹 [SceneLifecycle] Cleaned up ${objectCount} objects, ${disposableCount} disposables, ${errorCount} errors`,
+      );
+    }
   }
 
   /**
-   * Recursively dispose geometries and materials
+   * Recursively dispose geometries and materials from Object3D
    * Handles Mesh objects (covers 90% of use cases)
    */
-  private dispose(obj: Object3D): void {
+  private disposeObject3D(obj: Object3D): void {
     obj.traverse((child) => {
       if (child instanceof Mesh) {
         child.geometry?.dispose();

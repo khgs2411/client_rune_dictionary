@@ -46,7 +46,7 @@ export class HoverComponent extends GameComponent implements I_Interactable {
    * Register hover behavior with InteractionService builder
    * Called by GameObject during interaction lifecycle coordination
    */
-  registerWithService(builder: I_InteractionBuilder, context: I_GameContext): void {
+  registerInteractions(builder: I_InteractionBuilder, context: I_GameContext): void {
     if (this.config.glowColor) {
       builder.withHoverGlow(this.config.glowColor, this.config.glowIntensity);
     }

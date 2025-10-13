@@ -149,7 +149,7 @@ export class GameObject {
     const interactables: I_Interactable[] = [];
     for (const component of this.components.values()) {
       // Type guard: Check if component implements I_Interactable interface
-      if ('registerWithService' in component && typeof (component as any).registerWithService === 'function') {
+      if ('registerInteractions' in component && typeof (component as any).registerInteractions === 'function') {
         interactables.push(component as I_Interactable);
       }
     }
@@ -164,7 +164,7 @@ export class GameObject {
 
     // Let each interactable component add its behaviors to the builder
     for (const interactable of interactables) {
-      interactable.registerWithService(builder, context);
+      interactable.registerInteractions(builder, context);
     }
 
     // Builder auto-registers via promise callback when done

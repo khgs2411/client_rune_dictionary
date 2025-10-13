@@ -56,8 +56,8 @@ export class MaterialComponent extends GameComponent {
       metalness: this.config.metalness ?? 0.0,
     });
 
-    // Register material for cleanup
-    context.lifecycle.register(this.material);
+    // Register material for disposal (materials are disposable, not Object3D)
+    context.lifecycle.registerDisposable(this.material);
   }
 
   private getColor(): number {

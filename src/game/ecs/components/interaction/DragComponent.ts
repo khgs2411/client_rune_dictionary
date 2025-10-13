@@ -66,7 +66,7 @@ export class DragComponent extends GameComponent implements I_Interactable {
    * Register drag behavior with InteractionService builder
    * Called by GameObject during interaction lifecycle coordination
    */
-  registerWithService(builder: I_InteractionBuilder, context: I_GameContext): void {
+  registerInteractions(builder: I_InteractionBuilder, context: I_GameContext): void {
     builder.withDrag({
       lockAxis: this.config.lockAxis,
       snapToGrid: this.config.snapToGrid,

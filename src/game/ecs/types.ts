@@ -65,7 +65,7 @@ export interface I_InteractionBuilder {
  * coordinate a single registration with InteractionService
  */
 export interface I_Interactable {
-  registerWithService(builder: I_InteractionBuilder, context: I_GameContext): void;
+  registerInteractions(builder: I_InteractionBuilder, context: I_GameContext): void;
 }
 
 /**

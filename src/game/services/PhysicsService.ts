@@ -112,6 +112,9 @@ export class PhysicsService extends SceneModule {
 
     this.isInitialized = true;
 
+    // Register debug material for disposal
+    context.lifecycle.registerDisposable(this.debugMaterial);
+
     // Watch global debug setting and toggle wireframe visibility
     this.addEventListeners(context);
 
@@ -337,10 +340,10 @@ export class PhysicsService extends SceneModule {
     }
 
     // Remove debug wireframe if exists
+    // Note: Geometry disposal is handled by lifecycle.registerDisposable()
     const wireframe = this.debugWireframes.get(id);
     if (wireframe) {
       this.context?.scene.remove(wireframe);
-      wireframe.geometry.dispose();
       this.debugWireframes.delete(id);
     }
 
@@ -806,6 +809,11 @@ export class PhysicsService extends SceneModule {
     // Set initial visibility based on global setting
     const gameConfig = useGameConfigStore();
     wireframe.visible = gameConfig.debug.showPhysicsDebug;
+
+    // Register disposables with lifecycle
+    this.context.lifecycle.registerDisposable(geometry); // Original geometry
+    this.context.lifecycle.registerDisposable(edges); // EdgesGeometry
+    this.context.lifecycle.register(wireframe); // LineSegments (Object3D)
 
     // Add to scene and track
     this.context.scene.add(wireframe);

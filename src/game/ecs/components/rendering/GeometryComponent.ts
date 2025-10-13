@@ -55,8 +55,8 @@ export class GeometryComponent extends GameComponent {
   async init(context: I_GameContext): Promise<void> {
     this.geometry = this.createGeometry();
 
-    // Register geometry for cleanup
-    context.lifecycle.register(this.geometry);
+    // Register geometry for disposal (geometries are disposable, not Object3D)
+    context.lifecycle.registerDisposable(this.geometry);
   }
 
   private createGeometry(): BufferGeometry {

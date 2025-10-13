@@ -41,7 +41,7 @@ export class ClickComponent extends GameComponent implements I_Interactable {
    * Register click behavior with InteractionService builder
    * Called by GameObject during interaction lifecycle coordination
    */
-  registerWithService(builder: I_InteractionBuilder, context: I_GameContext): void {
+  registerInteractions(builder: I_InteractionBuilder, context: I_GameContext): void {
     if (this.config.vfxText) {
       builder.withClickVFX(this.config.vfxText, this.config.vfxColor);
     }
