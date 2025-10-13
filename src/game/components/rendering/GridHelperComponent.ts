@@ -1,6 +1,6 @@
 import { GridHelper } from 'three';
 import { GameComponent, ComponentPriority } from '../../GameComponent';
-import type { I_GameContext } from '../../gameobject.types';
+import type { I_GameContext } from '../../common/gameobject.types';
 
 export interface I_GridHelperConfig {
   size?: number;

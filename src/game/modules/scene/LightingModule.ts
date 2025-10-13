@@ -1,6 +1,6 @@
 import SceneModule from '@/game/SceneModule';
-import { I_ModuleContext } from '@/scenes/scenes.types';
-import { I_SceneModule } from '@/scenes/scenes.types';
+import { I_ModuleContext } from '@/game/common/scenes.types';
+import { I_SceneModule } from '@/game/common/scenes.types';
 import { Light, AmbientLight, DirectionalLight } from 'three';
 
 /**

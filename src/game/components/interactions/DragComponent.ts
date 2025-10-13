@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type { I_GameContext, I_Interactable, I_InteractionBuilder } from '../../gameobject.types';
+import type { I_GameContext, I_Interactable, I_InteractionBuilder } from '../../common/gameobject.types';
 import { MeshComponent } from '../rendering/MeshComponent';
 import { PhysicsComponent } from './PhysicsComponent';
 import { TransformComponent } from '../rendering/TransformComponent';

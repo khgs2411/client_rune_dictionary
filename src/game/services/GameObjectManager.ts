@@ -1,7 +1,7 @@
 import SceneModule from '@/game/SceneModule';
-import type { I_ModuleContext } from '@/scenes/scenes.types';
-import { GameObject } from './GameObject';
-import type { I_GameContext } from './gameobject.types';
+import type { I_ModuleContext } from '@/game/common/scenes.types';
+import { GameObject } from '../GameObject';
+import type { I_GameContext } from '../common/gameobject.types';
 
 /**
  * GameObjectManager - Scene module that manages all GameObjects

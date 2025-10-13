@@ -1,4 +1,4 @@
-import { I_ModuleContext } from '@/scenes/scenes.types';
+import { I_ModuleContext } from '@/game/common/scenes.types';
 import SceneModule from '../SceneModule';
 import type * as RAPIER_TYPE from '@dimforge/rapier3d';
 import { useGameConfigStore } from '@/stores/gameConfig.store';

@@ -1,5 +1,5 @@
 import SceneModule from '@/game/SceneModule';
-import type { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
+import type { I_ModuleContext, I_SceneModule } from '@/game/common/scenes.types';
 import {
   BufferGeometry,
   CanvasTexture,

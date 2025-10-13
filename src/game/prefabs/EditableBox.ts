@@ -1,12 +1,12 @@
 import { GameObject } from '../GameObject';
-import { TransformComponent } from '../components/rendering/TransformComponent';
-import { GeometryComponent } from '../components/rendering/GeometryComponent';
-import { MaterialComponent } from '../components/rendering/MaterialComponent';
-import { MeshComponent } from '../components/rendering/MeshComponent';
-import { PhysicsComponent } from '../components/interaction/PhysicsComponent';
-import { DragComponent } from '../components/interaction/DragComponent';
-import { HoverComponent } from '../components/interaction/HoverComponent';
-import { PersistenceComponent } from '../components/system/PersistenceComponent';
+import { TransformComponent } from '../../components/rendering/TransformComponent';
+import { GeometryComponent } from '../../components/rendering/GeometryComponent';
+import { MaterialComponent } from '../../components/rendering/MaterialComponent';
+import { MeshComponent } from '../../components/rendering/MeshComponent';
+import { PhysicsComponent } from '../../components/interactions/PhysicsComponent';
+import { DragComponent } from '../../components/interactions/DragComponent';
+import { HoverComponent } from '../../components/interactions/HoverComponent';
+import { PersistenceComponent } from '../../components/systems/PersistenceComponent';
 import type { Vector3 } from 'three';
 
 export interface I_EditableBoxConfig {

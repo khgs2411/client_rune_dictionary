@@ -7,7 +7,7 @@ import {
   SphereGeometry,
 } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type { I_GameContext } from '../../gameobject.types';
+import type { I_GameContext } from '../../common/gameobject.types';
 
 export type GeometryType = 'plane' | 'box' | 'sphere' | 'cylinder' | 'cone';
 

@@ -1,6 +1,6 @@
 import { MeshStandardMaterial } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type { I_GameContext } from '../../gameobject.types';
+import type { I_GameContext } from '../../common/gameobject.types';
 import { useSettingsStore } from '@/stores/settings.store';
 
 export interface I_MaterialConfig {

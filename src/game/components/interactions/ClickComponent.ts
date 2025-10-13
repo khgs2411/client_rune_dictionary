@@ -1,7 +1,6 @@
 import { Intersection } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type { I_GameContext, I_Interactable, I_InteractionBuilder } from '../../gameobject.types';
-import { MeshComponent } from '../rendering/MeshComponent';
+import type { I_GameContext, I_Interactable, I_InteractionBuilder } from '../../common/gameobject.types';
 
 export interface I_ClickConfig {
   vfxText?: string;

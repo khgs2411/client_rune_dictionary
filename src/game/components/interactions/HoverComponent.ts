@@ -1,6 +1,6 @@
 import { Intersection } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type { I_GameContext, I_Interactable, I_InteractionBuilder } from '../../gameobject.types';
+import type { I_GameContext, I_Interactable, I_InteractionBuilder } from '../../common/gameobject.types';
 import { MeshComponent } from '../rendering/MeshComponent';
 
 export interface I_HoverConfig {

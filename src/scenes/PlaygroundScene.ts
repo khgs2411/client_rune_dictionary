@@ -7,23 +7,23 @@ import { LightingModule } from '@/game/modules/scene/LightingModule';
 import { SceneInstancedObjectsModule } from '@/game/modules/scene/SceneInstancedObjectsModule';
 import { SceneObjectsModule } from '@/game/modules/scene/SceneObjectsModule';
 import { watch } from 'vue';
-import { I_SceneConfig } from './scenes.types';
+import { I_SceneConfig } from '../game/common/scenes.types';
 import { Vector3 } from 'three';
 import { Lib } from 'topsyde-utils';
 
 // ECS imports
-import { GameObjectManager } from '@/game/ecs/GameObjectManager';
-import { GameObject } from '@/game/ecs/GameObject';
-import { GeometryComponent } from '@/game/ecs/components/rendering/GeometryComponent';
-import { MaterialComponent } from '@/game/ecs/components/rendering/MaterialComponent';
-import { InstancedMeshComponent } from '@/game/ecs/components/rendering/InstancedMeshComponent';
-import { TransformComponent } from '@/game/ecs/components/rendering/TransformComponent';
-import { MeshComponent } from '@/game/ecs/components/rendering/MeshComponent';
-import { PhysicsComponent } from '@/game/ecs/components/interaction/PhysicsComponent';
-import { DragComponent } from '@/game/ecs/components/interaction/DragComponent';
-import { HoverComponent } from '@/game/ecs/components/interaction/HoverComponent';
-import { PersistenceComponent } from '@/game/ecs/components/system/PersistenceComponent';
-import { GridHelperComponent } from '@/game/ecs/components/rendering/GridHelperComponent';
+import { GameObjectManager } from '@/game/services/GameObjectManager';
+import { GameObject } from '@/game/GameObject';
+import { GeometryComponent } from '@/game/components/rendering/GeometryComponent';
+import { MaterialComponent } from '@/game/components/rendering/MaterialComponent';
+import { InstancedMeshComponent } from '@/game/components/rendering/InstancedMeshComponent';
+import { TransformComponent } from '@/game/components/rendering/TransformComponent';
+import { MeshComponent } from '@/game/components/rendering/MeshComponent';
+import { PhysicsComponent } from '@/game/components/interactions/PhysicsComponent';
+import { DragComponent } from '@/game/components/interactions/DragComponent';
+import { HoverComponent } from '@/game/components/interactions/HoverComponent';
+import { PersistenceComponent } from '@/game/components/systems/PersistenceComponent';
+import { GridHelperComponent } from '@/game/components/rendering/GridHelperComponent';
 
 /**
  * Module Registry for PlaygroundScene

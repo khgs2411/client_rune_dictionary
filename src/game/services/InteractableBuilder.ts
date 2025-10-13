@@ -4,9 +4,9 @@ import type {
   I_ClickBehavior,
   I_DragBehavior,
   ReactiveValue,
-} from '../modules/entity/interaction.types';
+} from '../common/interaction.types';
 import type { Intersection, Vector3 } from 'three';
-import type { I_InteractionBuilder } from '../ecs/gameobject.types';
+import type { I_InteractionBuilder } from '../common/gameobject.types';
 
 /**
  * Fluent Builder for Interactable Configuration (Refactored v2)

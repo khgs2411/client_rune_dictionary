@@ -1,4 +1,4 @@
-import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
+import { I_ModuleContext, I_SceneModule } from '@/game/common/scenes.types';
 import { CleanupRegistry } from '@/game/CleanupRegistry';
 import { useRxjs } from 'topsyde-utils';
 import {

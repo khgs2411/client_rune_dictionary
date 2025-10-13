@@ -1,6 +1,6 @@
 import { InstancedMesh, Matrix4, Euler, Quaternion, Vector3 } from 'three';
 import { GameComponent, ComponentPriority } from '../../GameComponent';
-import type { I_GameContext } from '../../gameobject.types';
+import type { I_GameContext } from '../../common/gameobject.types';
 import { GeometryComponent } from './GeometryComponent';
 import { MaterialComponent } from './MaterialComponent';
 import { MeshComponent } from './MeshComponent';

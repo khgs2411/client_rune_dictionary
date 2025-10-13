@@ -17,7 +17,7 @@
 <script setup lang="ts">
 import { Engine } from '@/game/Engine';
 import { PlaygroundScene } from '@/scenes/PlaygroundScene';
-import { I_GameScene, I_SceneConfig } from '@/scenes/scenes.types';
+import { I_GameScene, I_SceneConfig } from '@/game/common/scenes.types';
 import LoadingScreen from '@/components/LoadingScreen.vue';
 import WebSocketManager from '@/components/WebSocketManager.vue';
 import EditorPanel from '@/components/EditorPanel.vue';

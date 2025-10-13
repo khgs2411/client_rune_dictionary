@@ -1,6 +1,6 @@
 import { useSettingsStore, type ApplicationSettings } from '@/stores/settings.store';
 import { I_CharacterControls } from '@/composables/composables.types';
-import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
+import { I_ModuleContext, I_SceneModule } from '@/game/common/scenes.types';
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import SceneModule from '@/game/SceneModule';
 import { I_ThemeColors } from '@/composables/useTheme';

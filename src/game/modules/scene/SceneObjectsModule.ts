@@ -1,8 +1,9 @@
 import { Vec3 } from '@/common/types';
 import { I_ThemeColors } from '@/composables/useTheme';
-import { I_SceneObjectConfig, SceneObjectGeometryConfig } from '@/data/sceneObjectConfig.dto';
+import { SceneObjectGeometryConfig } from '@/game/common/scenes.types';
+import { I_SceneObjectConfig } from '@/game/common/scenes.types';
 import SceneModule from '@/game/SceneModule';
-import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
+import { I_ModuleContext, I_SceneModule } from '@/game/common/scenes.types';
 import { GameConfig, useGameConfigStore } from '@/stores/gameConfig.store';
 import { useSceneStore } from '@/stores/scene.store';
 import { ApplicationSettings, useSettingsStore } from '@/stores/settings.store';
@@ -76,7 +77,10 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
           savedPosition,
         });
       } else {
-        console.log(`⚠️ [SceneObjectsModule] No saved position found for ${objectId}, using default:`, config.position);
+        console.log(
+          `⚠️ [SceneObjectsModule] No saved position found for ${objectId}, using default:`,
+          config.position,
+        );
       }
 
       // Create geometry and material
@@ -107,7 +111,6 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
     });
 
     console.log(`📦 [SceneObjectsModule] Created ${this.meshes.length} objects`);
-
   }
 
   /**
@@ -122,7 +125,7 @@ export class SceneObjectsModule extends SceneModule implements I_SceneModule {
       objectId,
       sceneName,
       hasScene: sceneStore.hasScene(sceneName),
-      savedObjectIds: sceneData?.objects.map(o => o.objectId) || [],
+      savedObjectIds: sceneData?.objects.map((o) => o.objectId) || [],
       sceneData,
     });
 

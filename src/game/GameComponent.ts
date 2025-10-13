@@ -1,5 +1,5 @@
 import type { GameObject } from './GameObject';
-import type { I_GameContext } from './gameobject.types';
+import type { I_GameContext } from './common/gameobject.types';
 
 /**
  * Component initialization priority

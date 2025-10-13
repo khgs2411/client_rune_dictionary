@@ -1,6 +1,6 @@
 import { Vector3, Euler, Quaternion } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type { I_GameContext } from '../../gameobject.types';
+import type { I_GameContext } from '../../common/gameobject.types';
 
 export interface I_TransformConfig {
   position?: [number, number, number];

@@ -1,4 +1,4 @@
-import type { I_ModuleContext, I_SceneService } from '@/scenes/scenes.types';
+import type { I_ModuleContext, I_SceneService } from '@/game/common/scenes.types';
 import type {
   I_InteractableObject,
   I_HoverState,
@@ -6,7 +6,7 @@ import type {
   I_InteractionConfig,
   I_InteractableBehaviors,
   ReactiveValue,
-} from '@/game/modules/entity/interaction.types';
+} from '@/game/common/interaction.types';
 import { Camera, GridHelper, Intersection, Object3D, Plane, Vector3 } from 'three';
 import { Raycast } from '@/game/utils/Raycast';
 import { Mouse } from '@/game/utils/Mouse';

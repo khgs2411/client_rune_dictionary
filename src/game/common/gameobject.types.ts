@@ -1,5 +1,5 @@
-import type { I_ModuleContext } from '@/scenes/scenes.types';
-import type { ReactiveValue } from '@/game/modules/entity/interaction.types';
+import type { I_ModuleContext } from '@/game/common/scenes.types';
+import type { ReactiveValue } from '@/game/common/interaction.types';
 import type { Vector3, Intersection } from 'three';
 
 /**

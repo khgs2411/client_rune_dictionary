@@ -1,4 +1,4 @@
-import { I_ModuleContext } from '@/scenes/scenes.types';
+import { I_ModuleContext } from '@/game/common/scenes.types';
 import { Lib, useRxjs } from 'topsyde-utils';
 
 

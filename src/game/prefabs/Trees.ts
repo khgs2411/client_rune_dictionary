@@ -1,8 +1,8 @@
 import { GameObject } from '../GameObject';
-import { GeometryComponent } from '../components/rendering/GeometryComponent';
-import { MaterialComponent } from '../components/rendering/MaterialComponent';
-import { InstancedMeshComponent, I_InstanceTransform } from '../components/rendering/InstancedMeshComponent';
-import { PhysicsComponent } from '../components/interaction/PhysicsComponent';
+import { GeometryComponent } from '../../components/rendering/GeometryComponent';
+import { MaterialComponent } from '../../components/rendering/MaterialComponent';
+import { InstancedMeshComponent, I_InstanceTransform } from '../../components/rendering/InstancedMeshComponent';
+import { PhysicsComponent } from '../../components/interactions/PhysicsComponent';
 
 export interface I_TreePosition {
   x: number;
