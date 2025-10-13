@@ -1,4 +1,4 @@
-import type { I_SceneModule } from '@/scenes/scenes.types';
+import type { I_SceneModule } from '@/game/common/scenes.types';
 
 /**
  * Module Registry Utility

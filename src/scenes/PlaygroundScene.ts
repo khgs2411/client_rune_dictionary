@@ -7,9 +7,23 @@ import { LightingModule } from '@/game/modules/scene/LightingModule';
 import { SceneInstancedObjectsModule } from '@/game/modules/scene/SceneInstancedObjectsModule';
 import { SceneObjectsModule } from '@/game/modules/scene/SceneObjectsModule';
 import { watch } from 'vue';
-import { I_SceneConfig } from './scenes.types';
+import { I_SceneConfig } from '../game/common/scenes.types';
 import { Vector3 } from 'three';
 import { Lib } from 'topsyde-utils';
+
+// ECS imports
+import { GameObjectManager } from '@/game/services/GameObjectManager';
+import { GameObject } from '@/game/GameObject';
+import { GeometryComponent } from '@/game/components/rendering/GeometryComponent';
+import { MaterialComponent } from '@/game/components/rendering/MaterialComponent';
+import { InstancedMeshComponent } from '@/game/components/rendering/InstancedMeshComponent';
+import { TransformComponent } from '@/game/components/rendering/TransformComponent';
+import { MeshComponent } from '@/game/components/rendering/MeshComponent';
+import { PhysicsComponent } from '@/game/components/interactions/PhysicsComponent';
+import { DragComponent } from '@/game/components/interactions/DragComponent';
+import { HoverComponent } from '@/game/components/interactions/HoverComponent';
+import { PersistenceComponent } from '@/game/components/systems/PersistenceComponent';
+import { GridHelperComponent } from '@/game/components/rendering/GridHelperComponent';
 
 /**
  * Module Registry for PlaygroundScene
@@ -17,14 +31,11 @@ import { Lib } from 'topsyde-utils';
  */
 interface PlaygroundModuleRegistry extends Record<string, any> {
   lighting: LightingModule;
-  ground: SceneInstancedObjectsModule;
   instancedSceneObjects: SceneInstancedObjectsModule;
   sceneObjects: SceneObjectsModule;
-  treeTrunks: SceneInstancedObjectsModule;
-  treeLeaves: SceneInstancedObjectsModule;
-  bushes: SceneInstancedObjectsModule;
   debug: DebugModule;
   characterMesh: CharacterModule;
+  gameObjects: GameObjectManager; // ECS GameObject manager
 }
 
 export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
@@ -43,8 +54,8 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
    */
   protected registerModules(): void {
     this.addModule('lighting', new LightingModule());
-    this.addModule('ground', new SceneInstancedObjectsModule([{ material: { reactiveColor: 'background' }, geometry: { grid: false, type: 'plane', params: [100, 100] }, position: [0, 0, 0] }]));
     this.addModule('characterMesh', new CharacterModule(this.character.controller));
+    this.addModule('gameObjects', new GameObjectManager());
   }
 
   protected addSceneObjects() {
@@ -123,98 +134,112 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       ]),
     );
 
-    // Tree trunks (brown cylinders) - instanced for performance (use shared modules)
-    this.addModule(
-      'treeTrunks',
-      new SceneInstancedObjectsModule([
-        {
-          position: [10, 0.75, 0],
-          geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] },
-          material: { staticColor: 0x654321 },
-        },
-        {
-          position: [12, 0.75, 2],
-          geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] },
-          material: { staticColor: 0x654321 },
-        },
-        {
-          position: [14, 0.75, -1],
-          geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] },
-          material: { staticColor: 0x654321 },
-        },
-        {
-          position: [10, 0.75, -3],
-          geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] },
-          material: { staticColor: 0x654321 },
-        },
-        {
-          position: [13, 0.75, -2],
-          geometry: { type: 'cylinder', params: [0.15, 0.2, 1.5] },
-          material: { staticColor: 0x654321 },
-        },
-      ]),
-    );
-
-    // Tree leaves (green cones) - instanced (use shared modules)
-    this.addModule(
-      'treeLeaves',
-      new SceneInstancedObjectsModule([
-        {
-          position: [10, 2, 0],
-          geometry: { type: 'cone', params: [0.8, 1.5, 8] },
-          material: { staticColor: 0x228b22, roughness: 0.9 },
-        },
-        {
-          position: [12, 2, 2],
-          geometry: { type: 'cone', params: [0.8, 1.5, 8] },
-          material: { staticColor: 0x228b22, roughness: 0.9 },
-        },
-        {
-          position: [14, 2, -1],
-          geometry: { type: 'cone', params: [0.8, 1.5, 8] },
-          material: { staticColor: 0x228b22, roughness: 0.9 },
-        },
-        {
-          position: [10, 2, -3],
-          geometry: { type: 'cone', params: [0.8, 1.5, 8] },
-          material: { staticColor: 0x228b22, roughness: 0.9 },
-        },
-        {
-          position: [13, 2, -2],
-          geometry: { type: 'cone', params: [0.8, 1.5, 8] },
-          material: { staticColor: 0x228b22, roughness: 0.9 },
-        },
-      ]),
-    );
-
-    // Bushes (green spheres) - instanced (use shared modules)
-    this.addModule(
-      'bushes',
-      new SceneInstancedObjectsModule([
-        {
-          position: [8, 0.3, 1],
-          geometry: { type: 'sphere', params: [0.4, 8, 8] },
-          material: { staticColor: 0x2d5016, roughness: 1.0 },
-        },
-        {
-          position: [11, 0.3, -1],
-          geometry: { type: 'sphere', params: [0.4, 8, 8] },
-          material: { staticColor: 0x2d5016, roughness: 1.0 },
-        },
-        {
-          position: [15, 0.3, 0],
-          geometry: { type: 'sphere', params: [0.4, 8, 8] },
-          material: { staticColor: 0x2d5016, roughness: 1.0 },
-        },
-        {
-          position: [9, 0.3, -4],
-          geometry: { type: 'sphere', params: [0.4, 8, 8] },
-          material: { staticColor: 0x2d5016, roughness: 1.0 },
-        },
-      ]),
-    );
 
     this.addModule('debug', new DebugModule());
+
+    // ECS GameObjects
+    const gameObjectManager = this.getModule('gameObjects')!;
+
+    // Ground GameObject (native components, no prefab)
+    const ground = new GameObject({ id: 'ground' })
+      .addComponent(
+        new TransformComponent({
+          position: [0, 0, 0],
+          rotation: [-Math.PI / 2, 0, 0], // Rotate to horizontal
+        }),
+      )
+      .addComponent(new GeometryComponent({ type: 'plane', params: [100, 100] }))
+      .addComponent(
+        new MaterialComponent({
+          color: this.settings.theme.background,
+          roughness: 0.8,
+          metalness: 0,
+        }),
+      )
+      .addComponent(new MeshComponent({ castShadow: false, receiveShadow: true }))
+      .addComponent(
+        new GridHelperComponent({
+          size: 100,
+          divisions: 50,
+          centerColor: 0x444444,
+          gridColor: 0x888888,
+        }),
+      )
+      .addComponent(new PhysicsComponent({ type: 'static', shape: 'cuboid' }));
+    gameObjectManager.add(ground);
+
+    // Editable box (native components, no prefab)
+    const ecsBox = new GameObject({ id: 'ecs-editable-box' })
+      .addComponent(new TransformComponent({ position: [5, 1, 5] }))
+      .addComponent(new GeometryComponent({ type: 'box', params: [1.5, 1.5, 1.5] }))
+      .addComponent(new MaterialComponent({ color: 0x00ff00 }))
+      .addComponent(new MeshComponent())
+      .addComponent(new PhysicsComponent({ type: 'static' }))
+      .addComponent(
+        new HoverComponent({
+          tooltip: { title: 'ECS Box', description: 'Draggable in editor mode' },
+        }),
+      )
+      .addComponent(
+        new DragComponent({
+          lockAxis: ['y'],
+          snapToGrid: this.config.editor.snapToGrid,
+          onEnd: (pos) => console.log('✅ ECS box dragged to:', pos),
+        }),
+      )
+      .addComponent(new PersistenceComponent());
+    gameObjectManager.add(ecsBox);
+
+    // Tree trunks (instanced, native components)
+    const treeTrunks = new GameObject({ id: 'tree-trunks' })
+      .addComponent(new GeometryComponent({ type: 'cylinder', params: [0.15, 0.2, 1.5] }))
+      .addComponent(new MaterialComponent({ color: 0x654321, roughness: 0.9 }))
+      .addComponent(
+        new InstancedMeshComponent({
+          instances: [
+            { position: [10, 0.75, 0] },
+            { position: [12, 0.75, 2] },
+            { position: [14, 0.75, -1] },
+            { position: [10, 0.75, -3] },
+            { position: [13, 0.75, -2] },
+          ],
+        }),
+      )
+      .addComponent(new PhysicsComponent({ type: 'static', shape: 'cylinder' }));
+    gameObjectManager.add(treeTrunks);
+
+    // Tree leaves (instanced, native components)
+    const treeLeaves = new GameObject({ id: 'tree-leaves' })
+      .addComponent(new GeometryComponent({ type: 'cone', params: [0.8, 1.5, 8] }))
+      .addComponent(new MaterialComponent({ color: 0x228b22, roughness: 0.9 }))
+      .addComponent(
+        new InstancedMeshComponent({
+          instances: [
+            { position: [10, 2, 0] },
+            { position: [12, 2, 2] },
+            { position: [14, 2, -1] },
+            { position: [10, 2, -3] },
+            { position: [13, 2, -2] },
+          ],
+        }),
+      );
+    gameObjectManager.add(treeLeaves);
+
+    // Bushes (instanced, native components)
+    const bushes = new GameObject({ id: 'bushes' })
+      .addComponent(new GeometryComponent({ type: 'sphere', params: [0.4, 8, 8] }))
+      .addComponent(new MaterialComponent({ color: 0x2d5016, roughness: 1.0 }))
+      .addComponent(
+        new InstancedMeshComponent({
+          instances: [
+            { position: [8, 0.3, 1] },
+            { position: [11, 0.3, -1] },
+            { position: [15, 0.3, 0] },
+            { position: [9, 0.3, -4] },
+          ],
+        }),
+      );
+    gameObjectManager.add(bushes);
   }
 
   private storeObjectPosition(objectKey: string, pos: Vector3) {
@@ -249,7 +274,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
   private setLifecycleWatchers(): void {
     // Watch for theme changes (color theme: neutral, rose, blue, etc.)
-    this.lifecycle.watch(
+    this.cleanupRegistry.watch(
       watch(
         () => this.settings.theme.currentTheme,
         () => {
@@ -259,10 +284,10 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       ),
     );
 
-    this.lifecycle.watch(
+    this.cleanupRegistry.watch(
       watch(
         () => this.settings.theme.colorMode,
-        (newValue) => {
+        () => {
           console.log('🌗 [PlaygroundScene] Dark mode toggled, updating colors...');
           this.updateMaterialColors();
         },
@@ -288,10 +313,10 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     // Update all modules with the same unified API
     this.getModule('instancedSceneObjects')?.onThemeChange?.(theme);
     this.getModule('sceneObjects')?.onThemeChange?.(theme);
-    this.getModule('treeTrunks')?.onThemeChange?.(theme);
-    this.getModule('treeLeaves')?.onThemeChange?.(theme);
-    this.getModule('bushes')?.onThemeChange?.(theme);
-    this.getModule('ground')?.onThemeChange?.(theme);
     this.getModule('characterMesh')?.onThemeChange?.(theme);
+
+    // TODO: Add theme support for ECS GameObjects
+    // GameObjects (ground, trees, bushes, etc.) should respond to theme changes
+    // via MaterialComponent or a ThemeComponent
   }
 }

@@ -1,6 +1,6 @@
 import { useSettingsStore, type ApplicationSettings } from '@/stores/settings.store';
 import { I_CharacterControls } from '@/composables/composables.types';
-import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
+import { I_ModuleContext, I_SceneModule } from '@/game/common/scenes.types';
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import SceneModule from '@/game/SceneModule';
 import { I_ThemeColors } from '@/composables/useTheme';
@@ -46,7 +46,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     this.buildForwardIndicator();
 
     // Initial position (matches physics body center)
-    this.mesh.position.set(0, 1, 0);
+    this.mesh.position.set(0, 5, 0);
 
     // Register character physics using simple API
     this.addPhysics(context);
@@ -130,7 +130,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
 
   public addToScene(context: I_ModuleContext) {
     context.scene.add(this.mesh);
-    context.lifecycle.register(this.mesh);
+    context.cleanupRegistry.register(this.mesh);
   }
 
   private buildForwardIndicator() {

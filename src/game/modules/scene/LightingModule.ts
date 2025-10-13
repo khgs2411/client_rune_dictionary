@@ -1,6 +1,6 @@
 import SceneModule from '@/game/SceneModule';
-import { I_ModuleContext } from '@/scenes/scenes.types';
-import { I_SceneModule } from '@/scenes/scenes.types';
+import { I_ModuleContext } from '@/game/common/scenes.types';
+import { I_SceneModule } from '@/game/common/scenes.types';
 import { Light, AmbientLight, DirectionalLight } from 'three';
 
 /**
@@ -19,7 +19,7 @@ export class LightingModule extends SceneModule implements I_SceneModule {
     // Ambient light
     const ambientLight = new AmbientLight(0xffffff, 0.5);
     context.scene.add(ambientLight);
-    context.lifecycle.register(ambientLight);
+    context.cleanupRegistry.register(ambientLight);
     this.lights.push(ambientLight);
 
     // Directional light with shadows
@@ -46,7 +46,7 @@ export class LightingModule extends SceneModule implements I_SceneModule {
 
   public addToScene(context: I_ModuleContext, directionalLight: DirectionalLight): void {
     context.scene.add(directionalLight);
-    context.lifecycle.register(directionalLight);
+    context.cleanupRegistry.register(directionalLight);
   }
 
   async destroy(): Promise<void> {

@@ -1,4 +1,4 @@
-import { I_ModuleContext } from '@/scenes/scenes.types';
+import { I_ModuleContext } from '@/game/common/scenes.types';
 import SceneModule from '../SceneModule';
 import type * as RAPIER_TYPE from '@dimforge/rapier3d';
 import { useGameConfigStore } from '@/stores/gameConfig.store';
@@ -112,6 +112,9 @@ export class PhysicsService extends SceneModule {
 
     this.isInitialized = true;
 
+    // Register debug material for disposal
+    context.cleanupRegistry.registerDisposable(this.debugMaterial);
+
     // Watch global debug setting and toggle wireframe visibility
     this.addEventListeners(context);
 
@@ -130,7 +133,7 @@ export class PhysicsService extends SceneModule {
     );
 
     // Register watcher for cleanup
-    context.lifecycle.watch(stopWatch);
+    context.cleanupRegistry.watch(stopWatch);
   }
 
   public update(delta: number): void {
@@ -337,10 +340,10 @@ export class PhysicsService extends SceneModule {
     }
 
     // Remove debug wireframe if exists
+    // Note: Geometry disposal is handled by lifecycle.registerDisposable()
     const wireframe = this.debugWireframes.get(id);
     if (wireframe) {
       this.context?.scene.remove(wireframe);
-      wireframe.geometry.dispose();
       this.debugWireframes.delete(id);
     }
 
@@ -806,6 +809,11 @@ export class PhysicsService extends SceneModule {
     // Set initial visibility based on global setting
     const gameConfig = useGameConfigStore();
     wireframe.visible = gameConfig.debug.showPhysicsDebug;
+
+    // Register disposables with lifecycle
+    this.context.cleanupRegistry.registerDisposable(geometry); // Original geometry
+    this.context.cleanupRegistry.registerDisposable(edges); // EdgesGeometry
+    this.context.cleanupRegistry.register(wireframe); // LineSegments (Object3D)
 
     // Add to scene and track
     this.context.scene.add(wireframe);

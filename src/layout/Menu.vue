@@ -5,8 +5,8 @@
         <TooltipTrigger as-child>
           <Button variant="ghost" size="icon" class="h-8 w-8" @click="toggleDebugger">
             <Icon :icon="config.debug.showWebSocketDebugger
-                ? 'radix-icons:globe'
-                : 'radix-icons:component-none'
+              ? 'radix-icons:globe'
+              : 'radix-icons:component-none'
               " class="h-4 w-4" />
           </Button>
         </TooltipTrigger>
@@ -23,7 +23,7 @@
       <Tooltip>
         <TooltipTrigger as-child>
           <Button variant="ghost" size="icon" class="h-8 w-8" @click="toggleEditor">
-            <Icon icon="rivet-icons:settings" class="h-4 w-4" />
+            <Icon :icon="config.editor.enabled ? 'mingcute:settings-2-fill' : 'rivet-icons:settings'" class="h-4 w-4" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>

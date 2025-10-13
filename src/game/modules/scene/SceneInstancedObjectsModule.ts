@@ -1,8 +1,8 @@
 import { RGBColor } from '@/common/types';
 import { I_ThemeColors } from '@/composables/useTheme';
-import { I_SceneObjectConfig } from '@/data/sceneObjectConfig.dto';
+import { I_SceneObjectConfig } from '@/game/common/scenes.types';
 import SceneModule from '@/game/SceneModule';
-import { I_ModuleContext, I_SceneModule } from '@/scenes/scenes.types';
+import { I_ModuleContext, I_SceneModule } from '@/game/common/scenes.types';
 import { ApplicationSettings, useSettingsStore } from '@/stores/settings.store';
 import {
   BoxGeometry,
@@ -35,7 +35,10 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
   private objectConfigs: I_SceneObjectConfig[];
   private instancedMeshes: Map<string, InstancedMesh> = new Map();
   private themedMaterials: MeshStandardMaterial[] = []; // Materials that respond to theme changes
-  private reactiveColoredMaterials: { material: MeshStandardMaterial, config: I_SceneObjectConfig }[] = []; // Materials that respond to interaction color changes
+  private reactiveColoredMaterials: {
+    material: MeshStandardMaterial;
+    config: I_SceneObjectConfig;
+  }[] = []; // Materials that respond to interaction color changes
   private physicsIds: Map<string, string[]> = new Map(); // Track physics IDs for cleanup
   private settings: ApplicationSettings;
 
@@ -83,7 +86,6 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
 
       this.instancedMeshes.set(groupKey, instancedMesh);
     });
-
   }
 
   private addCollisions(context: I_ModuleContext, groupKey: string, instancedMesh: InstancedMesh) {
@@ -99,7 +101,7 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     const physicsIdPrefix = `scene-instanced-${this.id}-${groupKey}`;
     const instanceIds = context.services.physics.registerInstancedStatic(
       physicsIdPrefix,
-      instancedMesh
+      instancedMesh,
     );
 
     // Track for cleanup
@@ -128,25 +130,30 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
     this.themedMaterials.forEach((material) => {
       material.color.setHex(theme.accent);
     });
-    
+
     // Update all reactive colored materials
     this.reactiveColoredMaterials.forEach(({ material, config }) => {
       if (config.material.reactiveColor) {
-        material.color.setHex(theme[config.material.reactiveColor as keyof I_ThemeColors] || theme.accent);
+        material.color.setHex(
+          theme[config.material.reactiveColor as keyof I_ThemeColors] || theme.accent,
+        );
       }
     });
   }
 
   public addToScene(context: I_ModuleContext, instancedMesh: InstancedMesh) {
     context.scene.add(instancedMesh);
-    context.lifecycle.register(instancedMesh);
+    context.cleanupRegistry.register(instancedMesh);
   }
 
   private addGridHelper(context: I_ModuleContext, instancedMeshConfig: I_SceneObjectConfig) {
-    const gridHelper = new GridHelper(instancedMeshConfig.geometry?.params?.[0] || 50, instancedMeshConfig.geometry?.params?.[1] || 50);
+    const gridHelper = new GridHelper(
+      instancedMeshConfig.geometry?.params?.[0] || 50,
+      instancedMeshConfig.geometry?.params?.[1] || 50,
+    );
     gridHelper.position.y = 0.01;
     context.scene.add(gridHelper);
-    context.lifecycle.register(gridHelper);
+    context.cleanupRegistry.register(gridHelper);
   }
 
   private createInstancedMesh(
@@ -171,8 +178,6 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
       const euler = new Euler(...(config.rotation || [0, 0, 0]));
       const quaternion = new Quaternion().setFromEuler(euler);
       const scale = new Vector3(...(config.scale || [1, 1, 1]));
-
-
 
       matrix.compose(position, quaternion, scale);
       instancedMesh.setMatrixAt(instancedMesh.count++, matrix);
@@ -249,16 +254,16 @@ export class SceneInstancedObjectsModule extends SceneModule implements I_SceneM
   /**
    * Create Three.js material based on config
    */
-  private createMaterial(
-    config: I_SceneObjectConfig,
-  ): MeshStandardMaterial {
+  private createMaterial(config: I_SceneObjectConfig): MeshStandardMaterial {
     const { material } = config;
 
     let color: number;
     if (material.useTheme) {
       color = this.settings.theme.primaryForeground;
     } else if (material.reactiveColor) {
-      color = this.settings.theme[material.reactiveColor as keyof I_ThemeColors] || this.settings.theme.accent;
+      color =
+        this.settings.theme[material.reactiveColor as keyof I_ThemeColors] ||
+        this.settings.theme.accent;
     } else if (material.staticColor !== undefined) {
       color = material.staticColor;
     } else {

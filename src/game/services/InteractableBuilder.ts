@@ -4,8 +4,9 @@ import type {
   I_ClickBehavior,
   I_DragBehavior,
   ReactiveValue,
-} from '../modules/entity/interaction.types';
+} from '../common/interaction.types';
 import type { Intersection, Vector3 } from 'three';
+import type { I_InteractionBuilder } from '../common/gameobject.types';
 
 /**
  * Fluent Builder for Interactable Configuration (Refactored v2)
@@ -13,8 +14,10 @@ import type { Intersection, Vector3 } from 'three';
  *
  * Supports reactive values via getter functions!
  * Example: .withHoverGlow(0xff8c00, () => gameConfig.interaction.hoverGlowIntensity)
+ *
+ * Implements I_InteractionBuilder for SOLID compliance (Dependency Inversion Principle)
  */
-export class InteractableBuilder {
+export class InteractableBuilder implements I_InteractionBuilder {
   private behaviors: I_InteractableBehaviors = {};
   private built = false;
   private onBuild?: (behaviors: I_InteractableBehaviors) => void;

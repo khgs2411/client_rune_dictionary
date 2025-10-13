@@ -3,10 +3,12 @@ import { useCharacter } from '@/composables/useCharacter';
 import { I_ThemeColors } from '@/composables/useTheme';
 import { Engine } from '@/game/Engine';
 import { VFXModule } from '@/game/modules/scene/VFXModule';
-import { SceneLifecycle } from '@/game/SceneLifecycle';
+import { CleanupRegistry } from '@/game/CleanupRegistry';
 import type { InteractionService } from '@/game/services/InteractionService';
 import { PhysicsService } from '@/game/services/PhysicsService';
-import { Scene } from 'three';
+import { BufferGeometry, BufferGeometryEventMap, NormalBufferAttributes, Scene } from 'three';
+import { RGBColor } from '@/common/types';
+import type { I_InteractableBehaviors } from './interaction.types';
 
 /**
  * Core scene interface
@@ -89,9 +91,41 @@ export interface I_ModuleServices extends Record<string, I_SceneService> {
 export interface I_ModuleContext {
   engine: Engine;
   scene: Scene;
-  lifecycle: SceneLifecycle;
+  cleanupRegistry: CleanupRegistry;
   sceneName: string;
   services: I_ModuleServices;
   camera?: ReturnType<typeof useCamera>; // Optional: for modules that need camera
   character?: ReturnType<typeof useCharacter>; // Optional: for modules that need character
 }
+/**
+ * Scene Object Configuration DTO
+ * Refactored v2: Supports new interaction structure (hover, click, drag)
+ */
+
+export interface I_SceneObjectConfig {
+  position: RGBColor;
+  rotation?: RGBColor; // Euler angles in radians
+  scale?: RGBColor; // Default [1, 1, 1]
+  geometry: Partial<SceneObjectGeometryConfig>;
+  material: {
+    useTheme?: boolean; // If true, uses theme color and updates on theme change
+    reactiveColor?: string; // If true, changes color to the key from theme on theme change
+    staticColor?: number; // If set, uses this fixed color
+    roughness?: number;
+    metalness?: number;
+  };
+  castShadow?: boolean;
+  receiveShadow?: boolean;
+
+  // Interaction configuration (optional - makes object interactive)
+  interactive?: boolean; // If true, object can be clicked/hovered
+  interaction?: I_InteractableBehaviors; // Interaction behavior config (hover, click, drag)
+}
+export type SceneObjectGeometryConfig = BufferGeometry<
+  NormalBufferAttributes,
+  BufferGeometryEventMap
+> & {
+  type: 'plane' | 'box' | 'sphere' | 'cylinder' | 'cone';
+  params: number[]; // Geometry-specific parameters
+  grid?: boolean; // If true and type is plane, adds a grid helper
+};
