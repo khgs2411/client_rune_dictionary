@@ -314,42 +314,66 @@ src/game/ecs/
 
 ## Implementation TODO
 
-### Phase 1: Core ECS Classes
-- [ ] Create `GameObject` class with component management
-- [ ] Create `GameComponent` base class with lifecycle hooks
-- [ ] Create `GameObjectManager` as SceneModule
-- [ ] Define `GameContext` interface (engine, scene, services, lifecycle)
-- [ ] Create shared types file
+### Phase 1: Core ECS Classes ✅
+- [x] Create `GameObject` class with component management
+- [x] Create `GameComponent` base class with lifecycle hooks
+- [x] Create `GameObjectManager` as SceneModule
+- [x] Define `GameContext` interface (engine, scene, services, lifecycle)
+- [x] Create shared types file
 
-### Phase 2: Rendering Components
-- [ ] Implement `TransformComponent` (position, rotation, scale)
-- [ ] Implement `GeometryComponent` (creates BufferGeometry from config)
-- [ ] Implement `MaterialComponent` (creates Material from config)
-- [ ] Implement `MeshComponent` (combines geometry + material)
-- [ ] Implement `InstancedMeshComponent` (handles Three.js instancing)
+### Phase 2: Rendering Components ✅
+- [x] Implement `TransformComponent` (position, rotation, scale)
+- [x] Implement `GeometryComponent` (creates BufferGeometry from config)
+- [x] Implement `MaterialComponent` (creates Material from config)
+- [x] Implement `MeshComponent` (combines geometry + material)
+- [ ] Implement `InstancedMeshComponent` (handles Three.js instancing) - DEFERRED
 
-### Phase 3: Interaction Components
-- [ ] Implement `PhysicsComponent` (integrates with PhysicsService)
-- [ ] Implement `DragComponent` (integrates with InteractionService)
-- [ ] Implement `ClickComponent` (click events)
-- [ ] Implement `HoverComponent` (hover effects)
+### Phase 3: Interaction Components ✅
+- [x] Implement `PhysicsComponent` (integrates with PhysicsService)
+- [x] Implement `DragComponent` (integrates with InteractionService)
+- [x] Implement `ClickComponent` (click events)
+- [x] Implement `HoverComponent` (hover effects)
 
-### Phase 4: System Components
-- [ ] Implement `PersistenceComponent` (save/load via SceneStore)
+### Phase 4: System Components ✅
+- [x] Implement `PersistenceComponent` (save/load via SceneStore)
 
-### Phase 5: Prefabs
-- [ ] Create `Ground` prefab class
-- [ ] Create `EditableBox` prefab class
-- [ ] Create `TreeGroup` prefab class (instanced)
+### Phase 5: Prefabs ✅
+- [x] Create `EditableBox` prefab class
+- [ ] Create `Ground` prefab class - DEFERRED
+- [ ] Create `TreeGroup` prefab class (instanced) - DEFERRED
 
-### Phase 6: Scene Integration
-- [ ] Update PlaygroundScene to use GameObjectManager
-- [ ] Replace SceneObjectsModule usage with ECS GameObjects
-- [ ] Replace SceneInstancedObjectsModule usage with InstancedMeshComponent
-- [ ] Test level editor with new ECS system
+### Phase 6: Scene Integration ✅
+- [x] Update PlaygroundScene to use GameObjectManager
+- [x] Create example ECS GameObject (green box)
+
+### Phase 7: Refactor - SOLID Compliance (IN PROGRESS)
+- [x] Identify issue: Multiple interaction components overwriting registrations
+- [ ] Create `I_InteractionBuilder` interface (SOLID - depend on abstractions)
+- [ ] Create lifecycle interfaces in types.ts:
+  - [ ] `I_Interactable` - for interaction components
+  - [ ] `I_Renderable` - for rendering components (empty, future-proofing)
+  - [ ] `I_Physical` - for physics components (empty, future-proofing)
+- [ ] Make `InteractableBuilder` implement `I_InteractionBuilder`
+- [ ] Update interaction components to implement `I_Interactable`:
+  - [ ] Remove direct `register()` calls from `init()`
+  - [ ] Add `registerWithService(builder, context)` method
+  - [ ] DragComponent
+  - [ ] ClickComponent
+  - [ ] HoverComponent
+- [ ] Update `GameObject` to handle interaction lifecycle:
+  - [ ] Add `registerInteractions()` method
+  - [ ] Call at end of `init()` to consolidate all interactions
+  - [ ] Query components implementing `I_Interactable`
+  - [ ] Create single builder, let each component register itself
+- [ ] Remove `src/game/ecs/index.ts` exports file (import from file paths)
+
+### Phase 8: Testing
+- [ ] Test level editor with refactored ECS system
+- [ ] Verify all interactions work (drag, hover, click)
 - [ ] Verify save/load works with PersistenceComponent
+- [ ] Test hot reload behavior
 
-### Phase 7: Cleanup
+### Phase 9: Future Cleanup (DEFERRED)
 - [ ] Mark SceneObjectsModule as deprecated
 - [ ] Mark SceneInstancedObjectsModule as deprecated
 - [ ] Update documentation

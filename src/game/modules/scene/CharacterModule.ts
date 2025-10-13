@@ -46,7 +46,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     this.buildForwardIndicator();
 
     // Initial position (matches physics body center)
-    this.mesh.position.set(0, 1, 0);
+    this.mesh.position.set(0, 5, 0);
 
     // Register character physics using simple API
     this.addPhysics(context);

@@ -11,6 +11,10 @@ import { I_SceneConfig } from './scenes.types';
 import { Vector3 } from 'three';
 import { Lib } from 'topsyde-utils';
 
+// ECS imports
+import { GameObjectManager } from '@/game/ecs/GameObjectManager';
+import { EditableBox } from '@/game/ecs/prefabs/EditableBox';
+
 /**
  * Module Registry for PlaygroundScene
  * Defines all available modules with type-safe access
@@ -25,6 +29,7 @@ interface PlaygroundModuleRegistry extends Record<string, any> {
   bushes: SceneInstancedObjectsModule;
   debug: DebugModule;
   characterMesh: CharacterModule;
+  gameObjects: GameObjectManager; // NEW: ECS GameObject manager
 }
 
 export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
@@ -45,6 +50,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     this.addModule('lighting', new LightingModule());
     this.addModule('ground', new SceneInstancedObjectsModule([{ material: { reactiveColor: 'background' }, geometry: { grid: false, type: 'plane', params: [100, 100] }, position: [0, 0, 0] }]));
     this.addModule('characterMesh', new CharacterModule(this.character.controller));
+    this.addModule('gameObjects', new GameObjectManager());
   }
 
   protected addSceneObjects() {
@@ -215,6 +221,21 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     );
 
     this.addModule('debug', new DebugModule());
+
+    // ECS GameObject example
+    const gameObjectManager = this.getModule('gameObjects')!;
+
+    const ecsBox = new EditableBox({
+      id: 'ecs-editable-box',
+      position: [5, 1, 5],
+      size: [1.5, 1.5, 1.5],
+      color: 0x00ff00,
+      onDragEnd: (pos) => {
+        console.log('✅ ECS box dragged to:', pos);
+      },
+    });
+
+    gameObjectManager.add(ecsBox);
   }
 
   private storeObjectPosition(objectKey: string, pos: Vector3) {
@@ -262,7 +283,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     this.lifecycle.watch(
       watch(
         () => this.settings.theme.colorMode,
-        (newValue) => {
+        () => {
           console.log('🌗 [PlaygroundScene] Dark mode toggled, updating colors...');
           this.updateMaterialColors();
         },
