@@ -14,6 +14,7 @@ import { Lib } from 'topsyde-utils';
 // ECS imports
 import { GameObjectManager } from '@/game/ecs/GameObjectManager';
 import { EditableBox } from '@/game/ecs/prefabs/EditableBox';
+import { Ground } from '@/game/ecs/prefabs/Ground';
 
 /**
  * Module Registry for PlaygroundScene
@@ -21,7 +22,6 @@ import { EditableBox } from '@/game/ecs/prefabs/EditableBox';
  */
 interface PlaygroundModuleRegistry extends Record<string, any> {
   lighting: LightingModule;
-  ground: SceneInstancedObjectsModule;
   instancedSceneObjects: SceneInstancedObjectsModule;
   sceneObjects: SceneObjectsModule;
   treeTrunks: SceneInstancedObjectsModule;
@@ -48,7 +48,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
    */
   protected registerModules(): void {
     this.addModule('lighting', new LightingModule());
-    this.addModule('ground', new SceneInstancedObjectsModule([{ material: { reactiveColor: 'background' }, geometry: { grid: false, type: 'plane', params: [100, 100] }, position: [0, 0, 0] }]));
     this.addModule('characterMesh', new CharacterModule(this.character.controller));
     this.addModule('gameObjects', new GameObjectManager());
   }
@@ -222,9 +221,21 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
     this.addModule('debug', new DebugModule());
 
-    // ECS GameObject example
+    // ECS GameObjects
     const gameObjectManager = this.getModule('gameObjects')!;
 
+    // Ground GameObject (replaces old ground module)
+    const ground = new Ground({
+      size: 100,
+      gridDivisions: 50,
+      position: [0, 0, 0],
+      staticColor: this.settings.theme.background,
+      showGrid: true,
+      enablePhysics: true,
+    });
+    gameObjectManager.add(ground);
+
+    // Editable box example
     const ecsBox = new EditableBox({
       id: 'ecs-editable-box',
       position: [5, 1, 5],
@@ -234,7 +245,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
         console.log('✅ ECS box dragged to:', pos);
       },
     });
-
     gameObjectManager.add(ecsBox);
   }
 
@@ -312,7 +322,9 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     this.getModule('treeTrunks')?.onThemeChange?.(theme);
     this.getModule('treeLeaves')?.onThemeChange?.(theme);
     this.getModule('bushes')?.onThemeChange?.(theme);
-    this.getModule('ground')?.onThemeChange?.(theme);
     this.getModule('characterMesh')?.onThemeChange?.(theme);
+
+    // TODO: Add theme support for ECS GameObjects
+    // Ground GameObject should respond to theme changes via MaterialComponent
   }
 }
