@@ -1,17 +1,13 @@
 <template>
-  <header
-    class="flex justify-end items-center gap-1 px-3 py-1 border-b border-border bg-background">
+  <header class="flex justify-end items-center gap-1 px-3 py-1 border-b border-border bg-background">
     <TooltipProvider :delay-duration="0">
       <Tooltip>
         <TooltipTrigger as-child>
           <Button variant="ghost" size="icon" class="h-8 w-8" @click="toggleDebugger">
-            <Icon
-              :icon="
-                config.debug.showWebSocketDebugger
-                  ? 'radix-icons:globe'
-                  : 'radix-icons:component-none'
-              "
-              class="h-4 w-4" />
+            <Icon :icon="config.debug.showWebSocketDebugger
+                ? 'radix-icons:globe'
+                : 'radix-icons:component-none'
+              " class="h-4 w-4" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
@@ -24,6 +20,22 @@
           </p>
         </TooltipContent>
       </Tooltip>
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <Button variant="ghost" size="icon" class="h-8 w-8" @click="toggleEditor">
+            <Icon icon="rivet-icons:settings" class="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>
+            {{
+              config.editor.enabled
+                ? 'Hide Level Editor'
+                : 'Show Level Editor'
+            }}
+          </p>
+        </TooltipContent>
+      </Tooltip>
     </TooltipProvider>
     <GameSettings />
     <ApplicationSettings />
@@ -31,16 +43,20 @@
 </template>
 
 <script setup lang="ts">
-import ApplicationSettings from '@/components/ApplicationSettings.vue';
-import GameSettings from '@/components/GameSettings.vue';
-import Button from '@/components/ui/button/Button.vue';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Icon } from '@iconify/vue';
-import { useGameConfigStore } from '@/stores/gameConfig.store';
+  import ApplicationSettings from '@/components/ApplicationSettings.vue';
+  import GameSettings from '@/components/GameSettings.vue';
+  import Button from '@/components/ui/button/Button.vue';
+  import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+  import { Icon } from '@iconify/vue';
+  import { useGameConfigStore } from '@/stores/gameConfig.store';
 
-const config = useGameConfigStore();
+  const config = useGameConfigStore();
 
-function toggleDebugger() {
-  config.debug.showWebSocketDebugger = !config.debug.showWebSocketDebugger;
-}
+  function toggleDebugger() {
+    config.debug.showWebSocketDebugger = !config.debug.showWebSocketDebugger;
+  }
+
+  function toggleEditor() {
+    config.editor.enabled = !config.editor.enabled;
+  }
 </script>

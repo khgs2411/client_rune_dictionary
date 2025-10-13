@@ -225,27 +225,16 @@ const metadata: ConfigMetadata = {
   },
   editor: {
     enabled: {
-      label: 'Editor Mode',
-      description: 'Enable object dragging and editing',
-      group: 'Editor',
+      hidden: true,
     },
     showGrid: {
-      label: 'Show Grid',
-      group: 'Editor',
+      hidden: true,
     },
     snapToGrid: {
-      label: 'Grid Snap Size',
-      min: 0,
-      max: 2,
-      step: 0.25,
-      group: 'Editor',
+      hidden: true,
     },
     dragOpacity: {
-      label: 'Drag Opacity',
-      min: 0,
-      max: 1,
-      step: 0.1,
-      group: 'Editor',
+      hidden: true,
     },
   },
 };
