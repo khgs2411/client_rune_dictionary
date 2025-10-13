@@ -48,6 +48,16 @@ export class DragComponent extends GameComponent implements I_Interactable {
 
   async init(context: I_GameContext): Promise<void> {
     this.context = context;
+
+    // Restrict: cannot use with InstancedMeshComponent
+    const InstancedMeshComponent = await import('../rendering/InstancedMeshComponent').then(
+      (m) => m.InstancedMeshComponent,
+    );
+    this.restrictComponent(
+      InstancedMeshComponent,
+      'Individual instances cannot be dragged. Drag is only for single-mesh GameObjects.',
+    );
+
     // Store references for later use in registerWithService
     this.transformComp = this.requireComponent(TransformComponent);
   }

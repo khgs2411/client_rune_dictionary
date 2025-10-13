@@ -33,7 +33,6 @@ import type { I_GameContext } from './types';
  */
 export class GameObjectManager extends SceneModule {
   private gameObjects = new Map<string, GameObject>();
-  private context!: I_GameContext;
 
   /**
    * Add a GameObject to the manager

@@ -92,6 +92,22 @@ export abstract class GameComponent {
   }
 
   /**
+   * Restrict a component from being used on the same GameObject
+   * Throws error if found (use to prevent incompatible component combinations)
+   */
+  protected restrictComponent(
+    componentClass: new (...args: any[]) => GameComponent,
+    reason?: string,
+  ): void {
+    if (this.gameObject.hasComponent(componentClass)) {
+      const message = reason
+        ? `[${this.constructor.name}] Cannot be used with ${componentClass.name} on GameObject "${this.gameObject.id}". ${reason}`
+        : `[${this.constructor.name}] Cannot be used with ${componentClass.name} on GameObject "${this.gameObject.id}"`;
+      throw new Error(message);
+    }
+  }
+
+  /**
    * Initialize component (called when GameObject is added to scene)
    * Use this to:
    * - Query sibling components

@@ -41,6 +41,15 @@ export class MeshComponent extends GameComponent {
   }
 
   async init(context: I_GameContext): Promise<void> {
+    // Restrict: cannot use with InstancedMeshComponent
+    const InstancedMeshComponent = await import('./InstancedMeshComponent').then(
+      (m) => m.InstancedMeshComponent,
+    );
+    this.restrictComponent(
+      InstancedMeshComponent,
+      'Use InstancedMeshComponent OR MeshComponent, not both.',
+    );
+
     // Require geometry and material components
     const geometryComp = this.requireComponent(GeometryComponent);
     const materialComp = this.requireComponent(MaterialComponent);

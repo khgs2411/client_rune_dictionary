@@ -1,6 +1,7 @@
 import { GameComponent, ComponentPriority } from '../../GameComponent';
 import type { I_GameContext } from '../../types';
 import { MeshComponent } from '../rendering/MeshComponent';
+import { InstancedMeshComponent } from '../rendering/InstancedMeshComponent';
 
 export interface I_PhysicsConfig {
   type: 'static' | 'kinematic';
@@ -12,13 +13,20 @@ export interface I_PhysicsConfig {
  * PhysicsComponent - Registers GameObject with PhysicsService
  *
  * This component requires:
- * - MeshComponent (to extract geometry/position for physics body)
+ * - MeshComponent OR InstancedMeshComponent (to extract geometry/position for physics body)
  *
  * Usage:
  * ```typescript
+ * // With MeshComponent (single mesh)
  * gameObject.addComponent(new PhysicsComponent({
  *   type: 'static',
- *   shape: 'cuboid' // Optional: auto-detected from geometry if not specified
+ *   shape: 'cuboid'
+ * }));
+ *
+ * // With InstancedMeshComponent (multiple instances)
+ * gameObject.addComponent(new PhysicsComponent({
+ *   type: 'static',
+ *   shape: 'cylinder'
  * }));
  * ```
  */
@@ -27,6 +35,7 @@ export class PhysicsComponent extends GameComponent {
 
   private config: I_PhysicsConfig;
   private isRegistered = false;
+  private instanceIds: string[] = []; // Track physics IDs for instanced meshes
 
   constructor(config: I_PhysicsConfig) {
     super();
@@ -34,9 +43,6 @@ export class PhysicsComponent extends GameComponent {
   }
 
   async init(context: I_GameContext): Promise<void> {
-    // Require mesh component
-    const meshComp = this.requireComponent(MeshComponent);
-
     // Check if physics service is ready
     if (!context.services.physics.isReady()) {
       console.warn(
@@ -45,13 +51,32 @@ export class PhysicsComponent extends GameComponent {
       return;
     }
 
+    // Check which mesh component is present
+    const meshComp = this.getComponent(MeshComponent);
+    const instancedMeshComp = this.getComponent(InstancedMeshComponent);
+
+    if (!meshComp && !instancedMeshComp) {
+      throw new Error(
+        `[PhysicsComponent] GameObject "${this.gameObject.id}" requires MeshComponent OR InstancedMeshComponent`,
+      );
+    }
+
     // Register with physics service based on type
     if (this.config.type === 'static') {
-      context.services.physics.registerStaticFromMesh(
-        this.gameObject.id,
-        meshComp.mesh,
-        { showDebug: this.config.showDebug },
-      );
+      if (meshComp) {
+        // Single mesh registration
+        context.services.physics.registerStaticFromMesh(
+          this.gameObject.id,
+          meshComp.mesh,
+          { showDebug: this.config.showDebug },
+        );
+      } else if (instancedMeshComp) {
+        // Instanced mesh registration
+        this.instanceIds = context.services.physics.registerInstancedStatic(
+          this.gameObject.id,
+          instancedMeshComp.instancedMesh,
+        );
+      }
     } else {
       // Kinematic registration (future implementation)
       console.warn(
@@ -77,6 +102,12 @@ export class PhysicsComponent extends GameComponent {
 
   destroy(): void {
     if (this.isRegistered) {
+      // For instanced meshes, cleanup individual instance physics bodies
+      if (this.instanceIds.length > 0) {
+        // Note: PhysicsService.destroy() should handle this automatically
+        // but we track them here in case manual cleanup is needed
+        this.instanceIds = [];
+      }
       // Physics cleanup happens automatically in PhysicsService.destroy()
       this.isRegistered = false;
     }
