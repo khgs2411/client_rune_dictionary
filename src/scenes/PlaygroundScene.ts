@@ -8,6 +8,8 @@ import { SceneInstancedObjectsModule } from '@/game/modules/scene/SceneInstanced
 import { SceneObjectsModule } from '@/game/modules/scene/SceneObjectsModule';
 import { watch } from 'vue';
 import { I_SceneConfig } from './scenes.types';
+import { Vector3 } from 'three';
+import { Lib } from 'topsyde-utils';
 
 /**
  * Module Registry for PlaygroundScene
@@ -105,33 +107,14 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
             drag: {
               enabled: true,
               lockAxis: ['y'], // Keep at same height
-              snapToGrid: 0.5, // Snap to 0.5 unit grid
+              snapToGrid: this.config.editor.snapToGrid, // Snap to 0.5 unit grid
               customCallbacks: {
                 onStart: (pos) => {
                   console.log('🎯 Started dragging box from:', pos);
                 },
                 onEnd: (pos) => {
                   console.log('✅ Finished dragging box to:', pos);
-
-                  // Update physics collider to match new position
-                  // ID format: scene-object-{moduleId}-{index}
-                  const module = this.getModule('sceneObjects');
-                  if (module) {
-                    const objectId = `scene-object-${(module as any).id}-0`;
-
-                    // Update physics
-                    if (this.services.physics.isReady()) {
-                      this.services.physics.updateStaticBodyPosition(objectId, pos);
-                      console.log(`🔄 Updated physics body: ${objectId}`);
-                    }
-
-                    // Save position to store
-                    this.store.saveObjectPosition(this.name, objectId, {
-                      x: pos.x,
-                      y: pos.y,
-                      z: pos.z,
-                    });
-                  }
+                  this.storeObjectPosition('sceneObjects', pos);
                 },
               },
             },
@@ -232,6 +215,28 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     );
 
     this.addModule('debug', new DebugModule());
+  }
+
+  private storeObjectPosition(objectKey: string, pos: Vector3) {
+    // Update physics collider to match new position
+    // ID format: scene-object-{moduleId}-{index}
+    const module = this.getModule(objectKey);
+    if (module) {
+      const objectId = `scene-object-${(module as any).id}-0`;
+
+      // Update physics
+      if (this.services.physics.isReady()) {
+        this.services.physics.updateStaticBodyPosition(objectId, pos);
+        console.log(`🔄 Updated physics body: ${objectId}`);
+      }
+
+      // Save position to store
+      this.store.saveObjectPosition(this.name, objectId, {
+        x: pos.x,
+        y: pos.y,
+        z: pos.z,
+      });
+    }
   }
 
   /**
