@@ -11,7 +11,7 @@ export interface I_GameContext extends I_ModuleContext {
   // - engine: Engine
   // - scene: Scene
   // - sceneName: string
-  // - lifecycle: SceneLifecycle
+  // - cleanupRegistry: CleanupRegistry
   // - services: { physics, interaction, vfx }
   // - camera: I_GameCamera
   // - character: I_GameCharacter
