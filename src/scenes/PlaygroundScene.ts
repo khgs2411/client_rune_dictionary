@@ -4,26 +4,23 @@ import { GameScene } from '@/game/GameScene';
 import { CharacterModule } from '@/game/modules/scene/CharacterModule';
 import { DebugModule } from '@/game/modules/scene/DebugModule';
 import { LightingModule } from '@/game/modules/scene/LightingModule';
-import { SceneInstancedObjectsModule } from '@/game/modules/scene/SceneInstancedObjectsModule';
-import { SceneObjectsModule } from '@/game/modules/scene/SceneObjectsModule';
+import { Vector3 } from 'three';
 import { watch } from 'vue';
 import { I_SceneConfig } from '../game/common/scenes.types';
-import { Vector3 } from 'three';
-import { Lib } from 'topsyde-utils';
 
 // ECS imports
-import { GameObjectManager } from '@/game/services/GameObjectManager';
 import { GameObject } from '@/game/GameObject';
-import { GeometryComponent } from '@/game/components/rendering/GeometryComponent';
-import { MaterialComponent } from '@/game/components/rendering/MaterialComponent';
-import { InstancedMeshComponent } from '@/game/components/rendering/InstancedMeshComponent';
-import { TransformComponent } from '@/game/components/rendering/TransformComponent';
-import { MeshComponent } from '@/game/components/rendering/MeshComponent';
-import { PhysicsComponent } from '@/game/components/interactions/PhysicsComponent';
 import { DragComponent } from '@/game/components/interactions/DragComponent';
 import { HoverComponent } from '@/game/components/interactions/HoverComponent';
-import { PersistenceComponent } from '@/game/components/systems/PersistenceComponent';
+import { PhysicsComponent } from '@/game/components/interactions/PhysicsComponent';
+import { GeometryComponent } from '@/game/components/rendering/GeometryComponent';
 import { GridHelperComponent } from '@/game/components/rendering/GridHelperComponent';
+import { InstancedMeshComponent } from '@/game/components/rendering/InstancedMeshComponent';
+import { MaterialComponent } from '@/game/components/rendering/MaterialComponent';
+import { MeshComponent } from '@/game/components/rendering/MeshComponent';
+import { TransformComponent } from '@/game/components/rendering/TransformComponent';
+import { PersistenceComponent } from '@/game/components/systems/PersistenceComponent';
+import { GameObjectManager } from '@/game/services/GameObjectManager';
 
 /**
  * Module Registry for PlaygroundScene
@@ -31,8 +28,6 @@ import { GridHelperComponent } from '@/game/components/rendering/GridHelperCompo
  */
 interface PlaygroundModuleRegistry extends Record<string, any> {
   lighting: LightingModule;
-  instancedSceneObjects: SceneInstancedObjectsModule;
-  sceneObjects: SceneObjectsModule;
   debug: DebugModule;
   characterMesh: CharacterModule;
   gameObjects: GameObjectManager; // ECS GameObject manager
@@ -59,84 +54,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
   }
 
   protected addSceneObjects() {
-    this.addModule(
-      'instancedSceneObjects',
-      new SceneInstancedObjectsModule([
-        {
-          position: [5, 1, 0],
-          scale: [2, 2, 2],
-          geometry: { type: 'box', params: [1, 1, 1] },
-          material: { useTheme: true, roughness: 0.8 },
-        },
-        {
-          position: [8, 1, 5],
-          scale: [3, 3, 2],
-          geometry: { type: 'box', params: [1, 1, 1] },
-          material: { useTheme: true, roughness: 0.8 },
-        },
-        {
-          position: [0, 1, -10],
-          scale: [4, 1.5, 1.5],
-          geometry: { type: 'box', params: [1, 1, 1] },
-          material: { staticColor: 0x8b4513, roughness: 0.9 }, // Brown
-        },
-      ]),
-    );
-
-    // Unique interactive object (regular mesh) - use shared modules
-    this.addModule(
-      'sceneObjects',
-      new SceneObjectsModule([
-        {
-          position: [-3, 1, 3], // Different position - not overlapping with boxes
-          geometry: { type: 'box', params: [2, 2, 2] }, // Increased segments for better raycast detection
-          material: { staticColor: 0xff00ff, roughness: 0.2, metalness: 0.8 }, // Shiny pink sphere
-          interactive: true,
-          interaction: {
-            // HOVER: Glow + tooltip
-            hover: {
-              glow: {
-                color: 0xff8c00,
-                intensity: () => this.config.interaction.hoverGlowIntensity,
-              },
-              tooltip: {
-                title: 'Draggable Box',
-                description: 'Enable editor mode to drag me!',
-              },
-            },
-
-            // CLICK: VFX + shake (disabled in editor mode)
-            click: {
-              vfx: { text: 'POW!', color: '#ff00ff' },
-              shake: {
-                intensity: () => this.config.interaction.cameraShakeIntensity,
-                duration: 0.5,
-              },
-            },
-
-            // DRAG: Lock Y axis, snap to grid (only works in editor mode)
-            drag: {
-              enabled: true,
-              lockAxis: ['y'], // Keep at same height
-              snapToGrid: this.config.editor.snapToGrid, // Snap to 0.5 unit grid
-              customCallbacks: {
-                onStart: (pos) => {
-                  console.log('🎯 Started dragging box from:', pos);
-                },
-                onEnd: (pos) => {
-                  console.log('✅ Finished dragging box to:', pos);
-                  this.storeObjectPosition('sceneObjects', pos);
-                },
-              },
-            },
-          },
-        },
-      ]),
-    );
-
-
-    this.addModule('debug', new DebugModule());
-
+    
     // ECS GameObjects
     const gameObjectManager = this.getModule('gameObjects')!;
 
