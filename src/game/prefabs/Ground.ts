@@ -76,7 +76,7 @@ export class Ground extends GameObject {
       )
       .addComponent(
         new MaterialComponent({
-          color: color,
+          reactiveColor: 'background',
           roughness: 0.8,
           metalness: 0,
         }),

@@ -134,7 +134,7 @@ export abstract class GameComponent implements I_GameComponent {
    */
   public update?(delta: number): void;
 
-  public abstract onThemeChange?(theme: I_ThemeColors): void;
+  public onThemeChange?(theme: I_ThemeColors): void;
 
   /**
    * Cleanup component (called when GameObject is destroyed)

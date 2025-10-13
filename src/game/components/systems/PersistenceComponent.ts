@@ -44,8 +44,9 @@ export class PersistenceComponent extends GameComponent {
     const dragComp = this.getComponent(DragComponent);
     if (dragComp) {
       // Wrap existing onEnd callback to include save
-      const originalOnEnd = (dragComp as any).config.onEnd;
-      (dragComp as any).config.onEnd = (pos: Vector3) => {
+      const originalOnEnd = dragComp.getConfig().onEnd;
+      const config = dragComp.getConfig();
+      config.onEnd = (pos: Vector3) => {
         this.savePosition(pos);
         originalOnEnd?.(pos);
       };

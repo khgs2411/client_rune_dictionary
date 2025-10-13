@@ -20,6 +20,7 @@ import { MeshComponent } from '@/game/components/rendering/MeshComponent';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 import { PersistenceComponent } from '@/game/components/systems/PersistenceComponent';
 import { GameObjectManager } from '@/game/services/GameObjectManager';
+import { Ground } from '@/game/prefabs/Ground';
 
 /**
  * Module Registry for PlaygroundScene
@@ -29,7 +30,7 @@ interface PlaygroundModuleRegistry extends Record<string, any> {
   lighting: LightingModule;
   debug: DebugModule;
   characterMesh: CharacterModule;
-  gameObjects: GameObjectManager; 
+  gameObjects: GameObjectManager;
 }
 
 export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
@@ -57,32 +58,9 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     // GameObjects manager
     const gameObjectManager = this.getModule('gameObjects')!;
 
-    // Ground GameObject (native components, no prefab)
-    const ground = new GameObject({ id: 'ground' })
-      .addComponent(
-        new TransformComponent({
-          position: [0, 0, 0],
-          rotation: [-Math.PI / 2, 0, 0], // Rotate to horizontal
-        }),
-      )
-      .addComponent(new GeometryComponent({ type: 'plane', params: [100, 100] }))
-      .addComponent(
-        new MaterialComponent({
-          color: this.settings.theme.palette.dark.hex,
-          roughness: 0.8,
-          metalness: 0,
-        }),
-      )
-      .addComponent(new MeshComponent({ castShadow: false, receiveShadow: true }))
-      .addComponent(
-        new GridHelperComponent({
-          size: 100,
-          divisions: 50,
-          centerColor: 0x444444,
-          gridColor: 0x888888,
-        }),
-      )
-      .addComponent(new PhysicsComponent({ type: 'static', shape: 'cuboid' }));
+
+    const ground = new Ground({})
+
     gameObjectManager.add(ground);
 
     // Editable box (native components, no prefab)
