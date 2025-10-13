@@ -83,7 +83,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
         }),
       )
       .addComponent(new PersistenceComponent());
-    gameObjectManager.add(modelComponentBox);
 
     // Tree trunks (instanced, native components)
     const treeTrunks = new GameObject({ id: 'tree-trunks' })
@@ -101,7 +100,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
         }),
       )
       .addComponent(new PhysicsComponent({ type: 'static', shape: 'cylinder' }));
-    gameObjectManager.add(treeTrunks);
 
     // Tree leaves (instanced, native components)
     const treeLeaves = new GameObject({ id: 'tree-leaves' })
@@ -118,7 +116,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
           ],
         }),
       );
-    gameObjectManager.add(treeLeaves);
 
     // Bushes (instanced, native components)
     const bushes = new GameObject({ id: 'bushes' })
@@ -134,6 +131,10 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
           ],
         }),
       );
+
+    gameObjectManager.add(modelComponentBox);
+    gameObjectManager.add(treeTrunks);
+    gameObjectManager.add(treeLeaves);
     gameObjectManager.add(bushes);
   }
 
