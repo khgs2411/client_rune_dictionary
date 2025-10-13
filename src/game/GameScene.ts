@@ -264,12 +264,12 @@ export abstract class GameScene<
    * Cleanup
    * Can be overridden for custom cleanup order
    */
-  public destroy(): void {
+  public async destroy(): Promise<void> {
     console.log(`🧹 [${this.name}] Starting scene cleanup...`);
 
     this.character.destroy();
     this.camera.destroy();
-    this.destroyAllServices();
+    await this.destroyAllServices(); // Wait for physics cleanup!
     this.forEachModule((m) => m.destroy(this.getModuleContext()));
     this.lifecycle.cleanup(this.engine.scene);
     this.registry.clear();

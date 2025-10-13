@@ -70,23 +70,23 @@ function render() {
   engine.render(currentScene.camera.instance);
 }
 
-function destroy() {
+async function destroy() {
   console.log('🧹 [Game] Starting cleanup...');
 
   // Pause render loop
   console.log('   ↳ Pausing render loop...');
   pauseRenderLoop();
 
-  // Cleanup playground scene
-  cleanupGame();
+  // Cleanup playground scene (await to ensure physics is fully cleaned up)
+  await cleanupGame();
 
   console.log('✅ [Game] Cleanup complete');
 }
 
-function cleanupGame() {
+async function cleanupGame() {
   if (currentScene) {
     console.log('   ↳ Destroying scene...');
-    currentScene.destroy();
+    await currentScene.destroy(); // Wait for physics cleanup!
     currentScene = null;
   }
 
