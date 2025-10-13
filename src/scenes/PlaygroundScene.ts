@@ -8,7 +8,6 @@ import { Vector3 } from 'three';
 import { watch } from 'vue';
 import { I_SceneConfig } from '../game/common/scenes.types';
 
-// ECS imports
 import { GameObject } from '@/game/GameObject';
 import { DragComponent } from '@/game/components/interactions/DragComponent';
 import { HoverComponent } from '@/game/components/interactions/HoverComponent';
@@ -30,7 +29,7 @@ interface PlaygroundModuleRegistry extends Record<string, any> {
   lighting: LightingModule;
   debug: DebugModule;
   characterMesh: CharacterModule;
-  gameObjects: GameObjectManager; // ECS GameObject manager
+  gameObjects: GameObjectManager; 
 }
 
 export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
@@ -54,8 +53,8 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
   }
 
   protected addSceneObjects() {
-    
-    // ECS GameObjects
+
+    // GameObjects manager
     const gameObjectManager = this.getModule('gameObjects')!;
 
     // Ground GameObject (native components, no prefab)
@@ -69,7 +68,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       .addComponent(new GeometryComponent({ type: 'plane', params: [100, 100] }))
       .addComponent(
         new MaterialComponent({
-          color: this.settings.theme.background,
+          color: this.settings.theme.palette.dark.hex,
           roughness: 0.8,
           metalness: 0,
         }),
@@ -87,26 +86,26 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     gameObjectManager.add(ground);
 
     // Editable box (native components, no prefab)
-    const ecsBox = new GameObject({ id: 'ecs-editable-box' })
+    const modelComponentBox = new GameObject({ id: 'modelComponent-editable-box' })
       .addComponent(new TransformComponent({ position: [5, 1, 5] }))
       .addComponent(new GeometryComponent({ type: 'box', params: [1.5, 1.5, 1.5] }))
-      .addComponent(new MaterialComponent({ color: 0x00ff00 }))
+      .addComponent(new MaterialComponent({ useTheme: true }))
       .addComponent(new MeshComponent())
       .addComponent(new PhysicsComponent({ type: 'static' }))
       .addComponent(
         new HoverComponent({
-          tooltip: { title: 'ECS Box', description: 'Draggable in editor mode' },
+          tooltip: { title: 'modelComponent Box', description: 'Draggable in editor mode' },
         }),
       )
       .addComponent(
         new DragComponent({
           lockAxis: ['y'],
           snapToGrid: this.config.editor.snapToGrid,
-          onEnd: (pos) => console.log('✅ ECS box dragged to:', pos),
+          onEnd: (pos) => console.log('✅ modelComponent box dragged to:', pos),
         }),
       )
       .addComponent(new PersistenceComponent());
-    gameObjectManager.add(ecsBox);
+    gameObjectManager.add(modelComponentBox);
 
     // Tree trunks (instanced, native components)
     const treeTrunks = new GameObject({ id: 'tree-trunks' })
@@ -232,8 +231,9 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     this.getModule('instancedSceneObjects')?.onThemeChange?.(theme);
     this.getModule('sceneObjects')?.onThemeChange?.(theme);
     this.getModule('characterMesh')?.onThemeChange?.(theme);
+    this.getModule('gameObjects')?.onThemeChange?.(theme);
 
-    // TODO: Add theme support for ECS GameObjects
+    // TODO: Add theme support for modelComponent GameObjects
     // GameObjects (ground, trees, bushes, etc.) should respond to theme changes
     // via MaterialComponent or a ThemeComponent
   }

@@ -18,13 +18,14 @@ export interface I_ThemeColors {
   card: number;
   border: number;
 }
-export type ColorTheme = 'neutral' | 'rose' | 'blue' | 'purple' | 'green' | 'yellow';
+export type ColorTheme = 'neutral' | 'dark' | 'rose' | 'blue' | 'purple' | 'green' | 'yellow';
 
 /**
  * Available theme options with preview colors
  */
 export const THEME_OPTIONS = [
   { label: 'Neutral', value: 'neutral' as const, color: '#e5e5e5' },
+  { label: 'Dark', value: 'dark' as const, color: '#1f2937' },
   { label: 'Rose', value: 'rose' as const, color: '#fda4af' },
   { label: 'Blue', value: 'blue' as const, color: '#93c5fd' },
   { label: 'Purple', value: 'purple' as const, color: '#d8b4fe' },

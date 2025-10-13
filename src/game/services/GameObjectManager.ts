@@ -2,6 +2,8 @@ import SceneModule from '@/game/SceneModule';
 import type { I_ModuleContext } from '@/game/common/scenes.types';
 import { GameObject } from '../GameObject';
 import type { I_GameContext } from '../common/gameobject.types';
+import { I_ThemeColors } from '@/composables/useTheme';
+import { I_GameComponent } from '../GameComponent';
 
 /**
  * GameObjectManager - Scene module that manages all GameObjects
@@ -90,6 +92,38 @@ export class GameObjectManager extends SceneModule {
    */
   getAll(): GameObject[] {
     return Array.from(this.gameObjects.values());
+  }
+
+  /**
+   * Notify all components about theme changes
+   * Components with onThemeChange() method will be notified
+   *
+   * This allows components like MaterialComponent to update their colors
+   * when the user switches between light and dark themes.
+   *
+   * @param theme - The new theme ('light' or 'dark')
+   */
+  public onThemeChange(theme: I_ThemeColors): void {
+    for (const gameObject of this.gameObjects.values()) {
+      const components = gameObject.getAllComponents();
+
+      for (const component of components) {
+        // Runtime check if component has onThemeChange method
+        if ('onThemeChange' in component && typeof component.onThemeChange === 'function') {
+          try {
+            console.log(component);
+            (component as I_GameComponent).onThemeChange?.(theme);
+          } catch (error) {
+            console.error(
+              `[GameObjectManager] Failed to notify theme change for component in GameObject "${gameObject.id}":`,
+              error
+            );
+          }
+        }
+      }
+    }
+
+    console.log(`🎨 [GameObjectManager] Notified ${this.gameObjects.size} GameObjects of theme change to "${theme}"`);
   }
 
   /**

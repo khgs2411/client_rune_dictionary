@@ -1,3 +1,4 @@
+import { I_ThemeColors } from '@/composables/useTheme';
 import type { GameObject } from './GameObject';
 import type { I_GameContext } from './common/gameobject.types';
 
@@ -47,7 +48,17 @@ export enum ComponentPriority {
  * }
  * ```
  */
-export abstract class GameComponent {
+
+
+export interface I_GameComponent {
+  init(context: I_GameContext): Promise<void>;
+  onAttach(gameObject: GameObject): void;
+  update?(delta: number): void;
+  destroy?(): void;
+  onThemeChange?(theme: I_ThemeColors): void;
+}
+
+export abstract class GameComponent implements I_GameComponent {
   protected gameObject!: GameObject;
 
   /**
@@ -115,18 +126,20 @@ export abstract class GameComponent {
    * - Create Three.js objects
    * - Setup event listeners
    */
-  abstract init(context: I_GameContext): Promise<void>;
+  public abstract init(context: I_GameContext): Promise<void>;
 
   /**
    * Update component (called every frame)
    * Optional - only implement if component needs per-frame updates
    */
-  update?(delta: number): void;
+  public update?(delta: number): void;
+
+  public abstract onThemeChange?(theme: I_ThemeColors): void;
 
   /**
    * Cleanup component (called when GameObject is destroyed)
    * Optional - only implement if component needs manual cleanup
    * Note: Three.js objects registered with lifecycle.register() are cleaned up automatically
    */
-  destroy?(): void;
+  public destroy?(): void;
 }
