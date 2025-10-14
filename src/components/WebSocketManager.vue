@@ -1,11 +1,18 @@
 <template>
   <!-- Diagnostic Modal (Auto-runs on mount, handles everything) -->
   <ConnectionDiagnosticModal
-    v-if="auth.isAuthenticated && !wsStore.isConnected"
+    v-if="auth.isAuthenticated && !wsStore.isConnected && !diagnosticPassed"
     :ws-url="wsUrl"
     :protocol="protocol"
     @connection-success="handleDiagnosticSuccess"
     @connection-failed="handleDiagnosticFailed"
+  />
+
+  <!-- Loading Screen (Shows while preparing connection) -->
+  <AppLoadingScreen
+    :visible="showLoadingScreen"
+    message="Preparing Connection"
+    sub-message="Setting up secure WebSocket connection..."
   />
 
   <!-- Connect Modal (Shows only after diagnostic succeeds) -->
@@ -59,6 +66,7 @@
 
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
+import AppLoadingScreen from '@/components/AppLoadingScreen.vue';
 import ConnectionDiagnosticModal from '@/components/ConnectionDiagnosticModal.vue';
 import { useWebSocketConnection } from '@/composables/useWebSocketConnection';
 import { useAuthStore } from '@/stores/auth.store';
@@ -84,6 +92,7 @@ const isConnecting = ref(false);
 const errorMessage = ref('');
 const showConnectModal = ref(false);
 const diagnosticPassed = ref(false);
+const showLoadingScreen = ref(false);
 
 // WebSocket URL from environment
 const wsUrl = computed(() => import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:3000');
@@ -93,10 +102,19 @@ const protocol = computed(() =>
   wsStore.clientData ? `${wsStore.clientData.id}-${wsStore.clientData.name}` : undefined
 );
 
-// Handle diagnostic success - show connect modal
-function handleDiagnosticSuccess() {
-  console.log('[WebSocketManager] Diagnostic passed, showing connect modal');
+// Handle diagnostic success - show loading then connect modal
+async function handleDiagnosticSuccess() {
+  console.log('[WebSocketManager] Diagnostic passed, preparing connection...');
   diagnosticPassed.value = true;
+
+  // Show loading screen
+  showLoadingScreen.value = true;
+
+  // Small delay to ensure smooth transition
+  await new Promise(resolve => setTimeout(resolve, 800));
+
+  // Hide loading, show connect modal
+  showLoadingScreen.value = false;
   showConnectModal.value = true;
 }
 
@@ -105,6 +123,7 @@ function handleDiagnosticFailed() {
   console.log('[WebSocketManager] Diagnostic failed, user will see troubleshooting');
   diagnosticPassed.value = false;
   showConnectModal.value = false;
+  showLoadingScreen.value = false;
 }
 
 async function handleConnect() {
