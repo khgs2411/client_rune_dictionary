@@ -54,8 +54,11 @@ function parseOklchColor(varName: string): RGBColor {
     // Strip oklch() wrapper if present
     const colorValue = value.match(/oklch\((.*?)\)/)?.[1] || value;
 
-    // Parse L C H values
-    const [l, c, h] = colorValue.split(/\s+/).map(Number);
+    // Parse L C H values (handle percentages)
+    const parts = colorValue.split(/\s+/);
+    const l = parts[0]?.endsWith('%') ? parseFloat(parts[0]) / 100 : parseFloat(parts[0]);
+    const c = parts[1]?.endsWith('%') ? parseFloat(parts[1]) / 100 : parseFloat(parts[1]);
+    const h = parts[2]?.endsWith('%') ? parseFloat(parts[2]) / 100 : parseFloat(parts[2]);
 
     if (isNaN(l) || isNaN(c) || isNaN(h)) {
       console.warn(`Invalid OKLCH values for ${varName}: ${value}, using default gray`);
