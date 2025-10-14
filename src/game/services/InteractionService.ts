@@ -470,6 +470,8 @@ export class InteractionService extends SceneService implements I_SceneService {
     return null;
   }
 
+
+
   private isChildOf(child: Object3D, parent: Object3D): boolean {
     let current: Object3D | null = child;
     while (current) {

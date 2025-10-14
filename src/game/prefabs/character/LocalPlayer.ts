@@ -1,5 +1,6 @@
 import { GameObject } from '@/game/GameObject';
-import { CharacterMeshComponent } from '@/game/components/rendering/CharacterMeshComponent';
+import { createCharacterComponents } from './createCharacterComponents';
+import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 import { PhysicsComponent } from '@/game/components/interactions/PhysicsComponent';
 import { MovementComponent } from '@/game/components/systems/MovementComponent';
 import type { I_CharacterControls } from '@/composables/composables.types';
@@ -18,10 +19,16 @@ export interface I_LocalPlayerConfig {
  * LocalPlayer Prefab - Complete local player character GameObject
  *
  * This prefab represents the player controlled by this client.
- * It uses components to replicate the functionality of CharacterModule:
- * - CharacterMeshComponent: Two-part visual (body + cone indicator)
+ * Uses createCharacterVisual() factory for shared visual components, then adds
+ * client-specific behavior components:
+ *
+ * Visual (from factory):
+ * - CharacterMeshComponent: Two-part visual (body + cone indicator, theme-aware)
+ *
+ * Behavior (LocalPlayer-specific):
  * - PhysicsComponent: Kinematic character controller (collision, auto-step, ground detection)
  * - MovementComponent: Movement logic (controller → physics → sync back)
+ * - SyncMovementComponent: (NOT added yet - for future networking)
  *
  * The character controller (input handling) is owned by the scene and passed
  * to this GameObject. The controller holds DESIRED state from input, physics
@@ -36,12 +43,6 @@ export interface I_LocalPlayerConfig {
  * });
  * gameObjectManager.add(localPlayer);
  * ```
- *
- * Components:
- * - CharacterMeshComponent (capsule body + cone indicator, theme-aware)
- * - PhysicsComponent (kinematic character controller)
- * - MovementComponent (movement, jumping, gravity)
- * - SyncMovementComponent (NOT added yet - for future networking)
  */
 export class LocalPlayer extends GameObject {
   private characterController: I_CharacterControls;
@@ -79,17 +80,16 @@ export class LocalPlayer extends GameObject {
     // }
 
 
-    // Add CharacterMeshComponent (two-part visual: body + cone)
-    this.addComponent(
-      new CharacterMeshComponent({
-        bodyRadius: 0.5,
-        bodyHeight: 1,
-        coneRadius: 0.2,
-        coneHeight: 0.4,
-        coneOffset: 0.7,
-        initialPosition: startPos, // Visual starts at correct position
-      }),
-    );
+    // Add shared components from factory (transform + mesh)
+    const sharedComponents = createCharacterComponents({
+      position: startPos,
+      bodyRadius: 0.5,
+      bodyHeight: 1,
+      coneRadius: 0.2,
+      coneHeight: 0.4,
+      coneOffset: 0.7,
+    });
+    sharedComponents.forEach((comp) => this.addComponent(comp));
 
     // Add PhysicsComponent (kinematic character controller)
     this.addComponent(
@@ -130,11 +130,17 @@ export class LocalPlayer extends GameObject {
 
   /**
    * Teleport player to new position (instant, no interpolation)
-   * Updates physics body position directly
+   * Updates all systems: controller, transform, physics
    */
   public teleport(x: number, y: number, z: number): void {
     // Update controller position
     this.characterController.setPosition(x, y, z);
+
+    // Update TransformComponent (source of truth)
+    const transform = this.getComponent(TransformComponent);
+    if (transform) {
+      transform.setPosition(x, y, z);
+    }
 
     // Update physics body
     const physicsComp = this.getComponent(PhysicsComponent);
@@ -148,11 +154,7 @@ export class LocalPlayer extends GameObject {
       movementComp.resetVerticalVelocity();
     }
 
-    // Update visual mesh
-    const meshComp = this.getComponent(CharacterMeshComponent);
-    if (meshComp) {
-      meshComp.updateTransform(x, y, z, this.characterController.rotation.value);
-    }
+    // Note: CharacterMeshComponent will automatically sync from TransformComponent
   }
 
   /**

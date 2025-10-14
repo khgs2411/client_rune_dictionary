@@ -14,19 +14,14 @@ export interface I_HandshakeCredentials {
   api_key: string;
 }
 
-const WS_HOST = import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:3000';
-
 export const useWebSocketConnection = () => {
   const websocketManager = useWebSocketStore();
   const config = useGameConfigStore();
   const scenes = useSceneStore();
 
   const rx = useRxjs(['debug', 'ws']);
-  const HEARTBEAT_INTERVAL = 30;
 
   // Hold the VueUse useWebSocket instance
-
-
 
   /**
    * Establishes WebSocket connection with handshake authentication
@@ -54,8 +49,13 @@ export const useWebSocketConnection = () => {
       scenes.setActiveScene(scene);
 
       // Step 3: Establish WebSocket connection
-      websocketManager.status = 'connecting';
       connection(clientData);
+
+      // Step 4: Register event handlers
+      websocketManager.register('useWebsocketConnection', {
+        data: handleMessage,
+      })
+
     } catch (error) {
       websocketManager.status = 'disconnected';
       websocketManager.lastError = error;
@@ -72,51 +72,15 @@ export const useWebSocketConnection = () => {
     // Build WebSocket subprotocol: "{id}-{username}"
     const protocol = `${clientData.id}-${clientData.name}`;
 
-    let wsInstance: ReturnType<typeof useWebSocket<WebsocketStructuredMessage>> | null = null;
     // Create WebSocket connection
-    wsInstance = useWebSocket(WS_HOST, {
-      protocols: [protocol],
-
-      // Auto-reconnect configuration
-      autoReconnect: {
-        retries: 3,
-        delay: 2000,
-        onFailed: () => {
-          websocketManager.status = 'disconnected';
-          console.error('[WS] Auto-reconnect failed after retries');
-
-          emit({
-            type: 'system.reconnect.failed',
-            data: { attempts: 3 },
-          });
-        },
-      },
-
-      // Heartbeat (ping/pong)
-      heartbeat: {
-        interval: HEARTBEAT_INTERVAL * 1000,
-        pongTimeout: HEARTBEAT_INTERVAL * 1000,
-        message: 'ping',
-      },
-
-      // Event handlers
-      onConnected: handleConnected,
-      onDisconnected: handleDisconnected,
-      onMessage: handleMessage,
-      onError: handleError,
-    });
-    websocketManager.setWebSocketInstance(wsInstance);
+    websocketManager.connect(protocol);
   }
 
   /**
    * Closes WebSocket connection and resets state
    */
   function disconnect() {
-    const wsInstance = websocketManager.getWebSocketInstance();
-    if (wsInstance) {
-      wsInstance.close();
-      websocketManager.setWebSocketInstance(null);
-    }
+    websocketManager.disconnect();
     websocketManager.$reset();
   }
 
@@ -126,7 +90,7 @@ export const useWebSocketConnection = () => {
    */
   function send(message: any) {
     const wsInstance = websocketManager.getWebSocketInstance();
-    if (!wsInstance || websocketManager.status !== 'connected') {
+    if (!wsInstance || !websocketManager.isConnected) {
       throw new Error('WebSocket not connected');
     }
 
@@ -154,29 +118,8 @@ export const useWebSocketConnection = () => {
     };
   }
 
-  function handleConnected(_ws: WebSocket) {
-    websocketManager.status = 'connected';
-    websocketManager.connectedAt = new Date();
-    websocketManager.reconnectAttempts = 0;
-    console.log('[WS] Connected successfully');
-  }
-
-  function handleDisconnected(_ws: WebSocket, event: CloseEvent) {
-    websocketManager.status = 'disconnected';
-    websocketManager.disconnectedAt = new Date();
-
-    console.log('[WS] Disconnected', { code: event.code, reason: event.reason });
-
-    // Emit to debugger
-    emit({
-      type: 'system.disconnected',
-      data: { code: event.code, reason: event.reason },
-    });
-  }
-
-  function handleMessage(_ws: WebSocket, event: MessageEvent) {
+  function handleMessage(_ws: WebSocket, message: WebsocketStructuredMessage) {
     try {
-      const message: WebsocketStructuredMessage = JSON.parse(event.data);
 
       if (message.type == 'message') {
         // this will be in the chat soon
@@ -192,9 +135,9 @@ export const useWebSocketConnection = () => {
   }
 
   /**
-   * Emits debug events to debug namespace for DebugConsole
-   * Only emits if debug console is enabled in config
-   */
+  * Emits debug events to debug namespace for DebugConsole
+  * Only emits if debug console is enabled in config
+  */
   function emit(event: Omit<I_DebugConsoleEvent, 'timestamp'>) {
     if (!config.debug.showWebSocketDebugger) return;
     rx.$next('debug', {
@@ -207,15 +150,6 @@ export const useWebSocketConnection = () => {
     }
   }
 
-  function handleError(_ws: WebSocket, event: Event) {
-    console.error('[WS] Error:', event);
-    websocketManager.lastError = event;
-
-    emit({
-      type: 'system.error',
-      data: event,
-    });
-  }
 
 
   return {

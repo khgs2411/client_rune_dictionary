@@ -35,6 +35,8 @@ export interface I_SceneService {
   start(ctx: I_SceneContext): Promise<void> | void;
   update?(delta: number): void;
   destroy(): Promise<void> | void;
+  register?(...args: any[]): void;
+  unregister?(...args: any[]): void;
 }
 
 

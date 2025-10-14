@@ -1,6 +1,7 @@
 import { GameComponent, ComponentPriority } from '@/game/GameComponent';
 import type { I_GameContext } from '@/game/common/gameobject.types';
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
+import { TransformComponent } from './TransformComponent';
 import { useSettingsStore } from '@/stores/settings.store';
 import type { I_ThemeColors } from '@/composables/useTheme';
 
@@ -11,6 +12,8 @@ export interface I_CharacterMeshConfig {
   coneHeight?: number; // Default: 0.4
   coneOffset?: number; // Default: 0.7 (Z position)
   initialPosition?: [number, number, number]; // Starting position (optional)
+  bodyColor?: number; // Body color (hex). If not provided, uses theme primary
+  coneColor?: number; // Cone color (hex). If not provided, uses theme accent
 }
 
 /**
@@ -20,7 +23,11 @@ export interface I_CharacterMeshConfig {
  * - Body: Capsule mesh with primary theme color
  * - Forward indicator: Cone mesh with accent theme color
  *
- * The component responds to theme changes via onThemeChange() lifecycle hook.
+ * The component reads from TransformComponent each frame to update visual position/rotation.
+ * This ensures TransformComponent is the single source of truth for transforms.
+ *
+ * Dependencies:
+ * - Requires TransformComponent (reads position/rotation from it)
  *
  * Usage:
  * ```typescript
@@ -32,7 +39,7 @@ export interface I_CharacterMeshConfig {
  * }));
  * ```
  *
- * Priority: RENDERING (100) - Creates visual representation
+ * Priority: RENDERING (100) - Creates visual representation, reads from transform
  */
 export class CharacterMeshComponent extends GameComponent {
   public readonly priority = ComponentPriority.RENDERING;
@@ -50,17 +57,15 @@ export class CharacterMeshComponent extends GameComponent {
   }
 
   async init(context: I_GameContext): Promise<void> {
+    // Require TransformComponent (we read from it)
+    const transform = this.requireComponent(TransformComponent);
+
     // Create group container
     this.group = new Group();
 
-    // Set initial position if provided
-    if (this.config.initialPosition) {
-      this.group.position.set(
-        this.config.initialPosition[0],
-        this.config.initialPosition[1],
-        this.config.initialPosition[2],
-      );
-    }
+    // Set initial position from TransformComponent
+    this.group.position.copy(transform.position);
+    this.group.rotation.copy(transform.rotation);
 
     // Build body (capsule)
     this.buildBody();
@@ -75,13 +80,25 @@ export class CharacterMeshComponent extends GameComponent {
     context.cleanupRegistry.registerObject(this.group);
   }
 
+  update(delta: number): void {
+    // Read from TransformComponent and apply to visual mesh
+    const transform = this.getComponent(TransformComponent);
+    if (transform) {
+      this.group.position.copy(transform.position);
+      this.group.rotation.copy(transform.rotation);
+    }
+  }
+
   private buildBody(): void {
     const bodyRadius = this.config.bodyRadius ?? 0.5;
     const bodyHeight = this.config.bodyHeight ?? 1;
 
     const bodyGeometry = new CapsuleGeometry(bodyRadius, bodyHeight, 8, 16);
+
+    // Use provided color or fall back to theme primary
+    const bodyColor = this.config.bodyColor ?? this.settings.theme.primary;
     this.bodyMaterial = new MeshStandardMaterial({
-      color: this.settings.theme.primary,
+      color: bodyColor,
     });
 
     this.bodyMesh = new Mesh(bodyGeometry, this.bodyMaterial);
@@ -97,8 +114,11 @@ export class CharacterMeshComponent extends GameComponent {
     const coneOffset = this.config.coneOffset ?? 0.7;
 
     const coneGeometry = new ConeGeometry(coneRadius, coneHeight, 8);
+
+    // Use provided color or fall back to theme accent
+    const coneColor = this.config.coneColor ?? this.settings.theme.accent;
     this.coneMaterial = new MeshStandardMaterial({
-      color: this.settings.theme.accent,
+      color: coneColor,
     });
 
     const cone = new Mesh(coneGeometry, this.coneMaterial);
@@ -109,21 +129,6 @@ export class CharacterMeshComponent extends GameComponent {
     this.group.add(cone);
   }
 
-  /**
-   * Update mesh position/rotation
-   * Called by MovementComponent after physics updates
-   */
-  public updateTransform(x: number, y: number, z: number, rotationY: number): void {
-    this.group.position.set(x, y, z);
-    this.group.rotation.y = rotationY;
-  }
-
-  /**
-   * Get current position (useful for other components)
-   */
-  public getPosition() {
-    return this.group.position.clone();
-  }
 
   /**
    * Theme change lifecycle hook

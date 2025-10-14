@@ -1,27 +1,27 @@
-import { I_ModuleServices as I_SceneServices, I_SceneContext, I_SceneModule, I_SceneService } from '@/game/common/scenes.types';
-import { CleanupRegistry } from '@/game/CleanupRegistry';
-import { useRxjs } from 'topsyde-utils';
 import {
+  ModuleLoadingProgressPayload,
   SceneErrorPayload,
+  SceneLoadedPayload,
   SceneLoadingEvent,
   SceneLoadingProgressPayload,
   SceneLoadingStartPayload,
-  ModuleLoadingProgressPayload,
-  SceneLoadedPayload,
 } from '@/common/events.types';
+import { I_ConnectedClientData } from '@/common/types';
 import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
-import { useSettingsStore } from '@/stores/settings.store';
+import { CleanupRegistry } from '@/game/CleanupRegistry';
+import { I_SceneContext, I_SceneModule, I_ModuleServices as I_SceneServices } from '@/game/common/scenes.types';
 import type { Engine } from '@/game/Engine';
-import type { ApplicationSettings } from '@/stores/settings.store';
 import { ModuleRegistry } from '@/game/ModuleRegistry';
 import { InteractionService } from '@/game/services/InteractionService';
-import { VFXService } from '@/game/services/VFXService';
 import { PhysicsService } from '@/game/services/PhysicsService';
+import { VFXService } from '@/game/services/VFXService';
 import { GameConfig, useGameConfigStore } from '@/stores/config.store';
 import { SceneStore as ScenesManager, useSceneStore } from '@/stores/scene.store';
+import type { ApplicationSettings } from '@/stores/settings.store';
+import { useSettingsStore } from '@/stores/settings.store';
 import { useWebSocketStore, WebsocketManager } from '@/stores/websocket.store';
-import { I_ConnectedClientData } from '@/common/types';
+import { useRxjs } from 'topsyde-utils';
 import NetworkingService from './services/NetworkingService';
 
 /**

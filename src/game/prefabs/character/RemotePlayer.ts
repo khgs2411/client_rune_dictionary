@@ -1,5 +1,5 @@
 import { GameObject } from '@/game/GameObject';
-import { createCharacterObject } from './createCharacterObject';
+import { createCharacterComponents } from './createCharacterComponents';
 import { RemotePlayerComponent } from '@/game/components/multiplayer/RemotePlayerComponent';
 import type { I_RemotePlayerConfig as I_RemotePlayerComponentConfig } from '@/game/common/multiplayer.types';
 
@@ -18,8 +18,16 @@ export interface I_RemotePlayerConfig {
  * RemotePlayer Prefab - Complete remote player character GameObject
  *
  * This prefab represents other players in the game (not controlled by this client).
- * It includes all visual components plus RemotePlayerComponent which handles
- * position interpolation from server updates.
+ * Uses createCharacterComponents() factory for shared visual components, then adds
+ * networking component for server-driven interpolation.
+ *
+ * Visual (from factory):
+ * - TransformComponent: Source of truth for position/rotation
+ * - CharacterMeshComponent: Two-part visual (body + cone indicator)
+ *   - Colors: Red by default (configurable via config.color)
+ *
+ * Behavior (RemotePlayer-specific):
+ * - RemotePlayerComponent: Receives position updates from server, interpolates smoothly
  *
  * Remote players do NOT have client-side physics (no collision detection).
  * They simply display positions sent by the server, smoothly interpolated.
@@ -30,19 +38,11 @@ export interface I_RemotePlayerConfig {
  *   playerId: 'player-456',
  *   username: 'Alice',
  *   position: [5, 1, 5],
+ *   color: 0x00ff00, // Optional: green instead of default red
  *   interpolationSpeed: 0.1,
  * });
  * gameObjectManager.add(remotePlayer);
  * ```
- *
- * Components:
- * - TransformComponent (updated from server via RemotePlayerComponent)
- * - GeometryComponent (capsule)
- * - MaterialComponent (red for remote players)
- * - MeshComponent (visual representation)
- * - RemotePlayerComponent (receives position updates, interpolates)
- *
- * Note: NO PhysicsComponent - remote players don't need client-side collision
  */
 export class RemotePlayer extends GameObject {
   private username: string;
@@ -71,18 +71,19 @@ export class RemotePlayer extends GameObject {
       `[RemotePlayer] Creating "${config.username}" at (${startPos[0].toFixed(1)}, ${startPos[1].toFixed(1)}, ${startPos[2].toFixed(1)})`,
     );
 
-    // Create base character using factory
-    const baseChar = createCharacterObject({
-      id: config.playerId,
-      position: startPos, // Use calculated position
-      color: config.color ?? 0xff0000, // Red for remote players
-      enablePhysics: false, // Remote players don't need client-side physics
-      enableCharacterController: false,
-      enableShadows: true,
+    // Add shared components from factory (transform + mesh)
+    // Note: Remote players use red color by default (configurable)
+    const sharedComponents = createCharacterComponents({
+      position: startPos,
+      bodyRadius: 0.5,
+      bodyHeight: 1,
+      coneRadius: 0.2,
+      coneHeight: 0.4,
+      coneOffset: 0.7,
+      bodyColor: config.color ?? 0xff0000, // Red for remote players
+      coneColor: config.color ?? 0xff0000, // Same color for cone
     });
-
-    // Transfer all components from base character to this instance
-    baseChar.getAllComponents().forEach((comp) => this.addComponent(comp));
+    sharedComponents.forEach((comp) => this.addComponent(comp));
 
     // Add RemotePlayerComponent for multiplayer interpolation
     const remotePlayerConfig: I_RemotePlayerComponentConfig = {

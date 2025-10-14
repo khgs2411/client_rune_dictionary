@@ -1,7 +1,7 @@
 import { GameComponent, ComponentPriority } from '@/game/GameComponent';
 import type { I_GameContext } from '@/game/common/gameobject.types';
 import type { I_CharacterControls } from '@/composables/composables.types';
-import { CharacterMeshComponent } from '../rendering/CharacterMeshComponent';
+import { TransformComponent } from '../rendering/TransformComponent';
 import { useGameConfigStore } from '@/stores/config.store';
 
 export interface I_MovementConfig {
@@ -11,17 +11,17 @@ export interface I_MovementConfig {
 }
 
 /**
- * MovementComponent - Handles character movement, jumping, and gravity
+ * MovementComponent - Bridge between character controller and TransformComponent
  *
- * This component:
+ * This component acts as the bridge for LOCAL player movement:
  * - Reads DESIRED movement from character controller (input)
  * - Calculates vertical velocity (gravity + jumping)
  * - Asks PhysicsService to compute ACTUAL collision-corrected movement
+ * - Updates TransformComponent with ACTUAL position (source of truth)
  * - Syncs ACTUAL position back to controller (bidirectional sync)
- * - Updates CharacterMeshComponent visual position
  *
  * Dependencies:
- * - Requires CharacterMeshComponent (for visual updates)
+ * - Requires TransformComponent (updates this with final position)
  * - Requires PhysicsComponent with kinematic character controller
  *
  * Usage:
@@ -33,7 +33,7 @@ export interface I_MovementConfig {
  * }));
  * ```
  *
- * Priority: 300 (INTERACTION) - Runs after physics, before sync
+ * Priority: 300 (INTERACTION) - Runs after physics, updates transform
  */
 export class MovementComponent extends GameComponent {
   public readonly priority = ComponentPriority.INTERACTION; // 300
@@ -56,7 +56,7 @@ export class MovementComponent extends GameComponent {
     this.context = context;
 
     // Verify required components
-    this.requireComponent(CharacterMeshComponent);
+    this.requireComponent(TransformComponent);
 
     // Verify physics service is ready
     if (!context.services.physics.isReady()) {
@@ -95,15 +95,11 @@ export class MovementComponent extends GameComponent {
     // Let PhysicsService compute collision-corrected movement
     const result = this.context.services.physics.moveKinematic(this.gameObject.id, desiredMovement);
 
-    // Update visual mesh
-    const meshComp = this.getComponent(CharacterMeshComponent);
-    if (meshComp) {
-      meshComp.updateTransform(
-        result.x,
-        result.y,
-        result.z,
-        this.characterController.rotation.value,
-      );
+    // Update TransformComponent (source of truth for position)
+    const transform = this.getComponent(TransformComponent);
+    if (transform) {
+      transform.setPosition(result.x, result.y, result.z);
+      transform.setRotation(0, this.characterController.rotation.value, 0);
     }
 
     // Sync physics position back to character controller (bidirectional!)
