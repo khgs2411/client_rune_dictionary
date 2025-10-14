@@ -10,9 +10,13 @@
 </template>
 
 <script setup lang="ts">
-  import { RouterView } from 'vue-router';
-  import Menu from './layout/Menu.vue';
+import { RouterView } from 'vue-router';
+import { useCacheBuster } from './composables/useCacheBuster';
+import Menu from './layout/Menu.vue';
 
+// Ensure URL always has current version for cache busting
+const { version } = useCacheBuster();
+console.log(`[App] Running version ${version}`);
 </script>
 
 <style scoped>

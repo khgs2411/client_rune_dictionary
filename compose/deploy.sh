@@ -62,6 +62,11 @@ sed -i '' "s|// @version: [0-9]*\.[0-9]*\.[0-9]* - This comment is auto-updated 
 sed -i '' "s|const APP_VERSION = '[0-9]*\.[0-9]*\.[0-9]*';|const APP_VERSION = '$NEW_VERSION';|" src/main.ts
 echo -e "${GREEN}Version in main.ts updated to $NEW_VERSION${NC}"
 
+# Update version in useCacheBuster.ts
+echo -e "${BLUE}Updating version in useCacheBuster.ts...${NC}"
+sed -i '' "s|const VERSION = '[0-9]*\.[0-9]*\.[0-9]*'; // This will be auto-updated by deploy script|const VERSION = '$NEW_VERSION'; // This will be auto-updated by deploy script|" src/composables/useCacheBuster.ts
+echo -e "${GREEN}Version in useCacheBuster.ts updated to $NEW_VERSION${NC}"
+
 # Prompt for commit message
 read -p "Enter commit message (optional): " COMMIT_MSG
 
@@ -75,7 +80,7 @@ COMMIT_MSG="$COMMIT_MSG [deploy]"
 
 # Commit and push changes
 echo -e "${BLUE}Committing changes...${NC}"
-git add package.json src/main.ts
+git add package.json src/main.ts src/composables/useCacheBuster.ts
 git commit -m "$COMMIT_MSG"
 
 echo -e "${BLUE}Pushing to remote...${NC}"
