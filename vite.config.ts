@@ -16,11 +16,11 @@ export default defineConfig(({ command }) => {
     build: {
       sourcemap: false,
       minify: true,
-      assetsDir: 'chunks',
+      assetsDir: 'assets',
       rollupOptions: {
         output: {
-          entryFileNames: `chunks/[name].[hash].js`,
-          chunkFileNames: `chunks/[name].[hash].js`,
+          entryFileNames: `assets/[name].[hash].js`,
+          chunkFileNames: `assets/[name].[hash].js`,
           assetFileNames: `assets/[name].[hash].[ext]`,
         },
       },
