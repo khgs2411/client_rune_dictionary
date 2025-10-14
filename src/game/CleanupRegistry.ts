@@ -1,5 +1,6 @@
 import { Mesh, Object3D, Scene } from 'three';
 import type { WatchStopHandle } from 'vue';
+import { GameObject } from './GameObject';
 
 /**
  * Interface for any resource that can be disposed

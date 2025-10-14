@@ -140,6 +140,20 @@ export class CharacterMeshComponent extends GameComponent {
   }
 
   destroy(): void {
-    // Cleanup handled by cleanupRegistry
+    //remove objects from scene
+    if (this.group.parent) {
+      this.group.parent.remove(this.group);
+    }
+    // Dispose geometries and materials
+    this.bodyMesh.geometry.dispose();
+    this.bodyMaterial.dispose();
+    this.group.children.forEach((child) => {
+      if (child instanceof Mesh) {
+        child.geometry.dispose();
+        if (child.material instanceof MeshStandardMaterial) {
+          child.material.dispose();
+        }
+      }
+    });
   }
 }

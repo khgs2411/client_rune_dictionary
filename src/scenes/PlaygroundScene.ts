@@ -19,6 +19,7 @@ import { PersistenceComponent } from '@/game/components/systems/PersistenceCompo
 import { MultiplayerModule } from '@/game/modules/networking/MultiplayerModule';
 import { GameObjectsModule } from '@/game/modules/scene/GameObjectsModule';
 import { Ground } from '@/game/prefabs/Ground';
+import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
 
 /**
  * Module Registry for PlaygroundScene
@@ -132,6 +133,17 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     gameObjectManager.add(treeTrunks);
     gameObjectManager.add(treeLeaves);
     gameObjectManager.add(bushes);
+
+
+
+    // Create LocalPlayer GameObject (replaces CharacterModule)
+    // Don't pass position config - let LocalPlayer read directly from controller
+    const localPlayer = new LocalPlayer({
+      playerId: 'local-player',
+      characterController: this.character.controller,
+    });
+
+    gameObjectManager.add(localPlayer);
   }
 
   /**

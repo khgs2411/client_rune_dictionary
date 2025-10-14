@@ -29,8 +29,6 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     console.log('🌐 [MultiplayerModule] Starting...');
     // Test API connection
     try {
-
-      await this.addLocalPlayer(context);
       await this.getRemotePlayers(context);
       this.registerWithNetworkingService();
 
@@ -47,19 +45,7 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     })
   }
 
-  private async addLocalPlayer(context: I_SceneContext) {
-    if (!context.character) {
-      throw new Error('Character controller missing in context');
-    }
-    // Create LocalPlayer GameObject (replaces CharacterModule)
-    // Don't pass position config - let LocalPlayer read directly from controller
-    this.localPlayer = new LocalPlayer({
-      playerId: 'local-player',
-      characterController: context.character.controller,
-    });
 
-    this.gameObjectManager.add(this.localPlayer, false);
-  }
 
   private async getRemotePlayers(context: I_SceneContext) {
 
@@ -87,16 +73,32 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
   private handleSceneUpdates(message: WebsocketStructuredMessage) {
     switch (message.type) {
       case 'scene.joined': {
+        const data = (message as WebsocketStructuredMessage<{
+          id: string;
+          username: string;
+          position: [number, number, number];
+          raw?: { position: { x: number; y: number; z: number }; rotation?: { x: number; y: number; z: number } };
+        }>).content;
         console.log('[MultiplayerModule] Player joined:', message.content);
+        const state: I_PlayerPositionUpdate = {
+          playerId: data.id,
+          playerName: data.username,
+          position: data.raw?.position || { x: data.position[0], y: data.position[1], z: data.position[2] },
+          timestamp: new Date().getTime(),
+        };
+        const remotePlayer = new RemotePlayer({ playerId: data.id, username: data.username || "Remote Player", position: data.position });
+
+        this.registerRemotePlayer(remotePlayer.id, state);
+        this.gameObjectManager.add(remotePlayer, true);
         break;
       }
       case 'scene.left': {
-        const content = (message as WebsocketStructuredMessage<{ playerId: string }>).content
-        const playerId = content.playerId;
+        const data = (message as WebsocketStructuredMessage<{ playerId: string }>).content
+        const playerId = data.playerId;
         this.remotePlayers.delete(playerId);
         this.gameObjectManager.remove(playerId);
         // const remotePlayer = this.remotePlayers.get(message.content.playerId);
-        console.log('[MultiplayerModule] Player left:', content.playerId);
+        console.log('[MultiplayerModule] Player left:', data.playerId);
         break;
       }
 
