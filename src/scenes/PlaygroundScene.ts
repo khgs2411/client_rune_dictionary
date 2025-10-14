@@ -18,7 +18,7 @@ import { TransformComponent } from '@/game/components/rendering/TransformCompone
 import { PersistenceComponent } from '@/game/components/systems/PersistenceComponent';
 import { Ground } from '@/game/prefabs/Ground';
 import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
-import { GameObjectManager } from '@/game/services/GameObjectManager';
+import { GameObjectsModule } from '@/game/modules/scene/GameObjectsModule';
 import { MultiplayerModule } from '@/game/modules/networking/MultiplayerModule';
 
 /**
@@ -28,7 +28,7 @@ import { MultiplayerModule } from '@/game/modules/networking/MultiplayerModule';
 interface PlaygroundModuleRegistry extends Record<string, any> {
   lighting: LightingModule;
   debug: DebugModule;
-  gameObjectsManager: GameObjectManager;
+  gameObjectsManager: GameObjectsModule;
 }
 
 export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
@@ -50,7 +50,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
    */
   protected registerModules(): void {
     this.addModule('lighting', new LightingModule());
-    this.addModule('gameObjectsManager', new GameObjectManager());
+    this.addModule('gameObjectsManager', new GameObjectsModule());
     this.addModule('multiplayer', new MultiplayerModule('multiplayer', this.getModule('gameObjectsManager')!));
 
   }

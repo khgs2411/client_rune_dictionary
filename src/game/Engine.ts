@@ -10,7 +10,7 @@ import {
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { useRxjs } from 'topsyde-utils';
 import { watch } from 'vue';
-import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/config.store';
 
 /**
  * Core game engine that encapsulates js scene, renderer, and clock.

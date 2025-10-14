@@ -1,10 +1,10 @@
 import { useSettingsStore, type ApplicationSettings } from '@/stores/settings.store';
 import { I_CharacterControls } from '@/composables/composables.types';
-import { I_ModuleContext, I_SceneModule } from '@/game/common/scenes.types';
+import { I_SceneContext, I_SceneModule } from '@/game/common/scenes.types';
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial, Vector3 } from 'three';
-import SceneModule from '@/game/SceneModule';
+import SceneModule from '@/game/modules/SceneModule';
 import { I_ThemeColors } from '@/composables/useTheme';
-import { GameConfig, useGameConfigStore } from '@/stores/gameConfig.store';
+import { GameConfig, useGameConfigStore } from '@/stores/config.store';
 
 /**
  * Character Mesh Module
@@ -34,7 +34,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     this.characterController = characterController;
   }
 
-  protected async init(context: I_ModuleContext): Promise<void> {
+  protected async init(context: I_SceneContext): Promise<void> {
     if (!context.services.physics.isReady()) {
       console.error('[CharacterModule] Physics service not ready!');
       return;
@@ -57,7 +57,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
 
   }
 
-  private addPhysics(context: I_ModuleContext) {
+  private addPhysics(context: I_SceneContext) {
     // Register kinematic character from body mesh (geometry) + initial position
     context.services.physics.registerKinematicFromMesh(
       this.characterPhysicsId,
@@ -128,7 +128,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     this.verticalVelocity -= this.config.character.jumpGravity * delta;
   }
 
-  public addToScene(context: I_ModuleContext) {
+  public addToScene(context: I_SceneContext) {
     context.scene.add(this.mesh);
     context.cleanupRegistry.registerObject(this.mesh);
   }
@@ -155,7 +155,7 @@ export class CharacterModule extends SceneModule implements I_SceneModule {
     this.mesh.add(this.bodyMesh);
   }
 
-  async destroy(context: I_ModuleContext): Promise<void> {
+  async destroy(context: I_SceneContext): Promise<void> {
     // Remove physics body using simple API
     context.services.physics.remove(this.characterPhysicsId);
 

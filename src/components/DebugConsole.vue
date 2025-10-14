@@ -104,7 +104,7 @@
   import Button from '@/components/ui/button/Button.vue';
   import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
   import { Icon } from '@iconify/vue';
-  import { useGameConfigStore } from '@/stores/gameConfig.store';
+  import { useGameConfigStore } from '@/stores/config.store';
   import { useSettingsStore } from '@/stores/settings.store';
   import { computed, nextTick, ref, watch } from 'vue';
   import { useRxjs } from 'topsyde-utils';

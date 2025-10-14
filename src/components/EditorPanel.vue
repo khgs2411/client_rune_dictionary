@@ -89,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/config.store';
 import { useSceneStore } from '@/stores/scene.store';
 import Button from '@/components/ui/button/Button.vue';
 import Switch from '@/components/ui/switch/Switch.vue';

@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { useEventListener } from '@vueuse/core';
-import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/config.store';
 import type { CameraRotation } from './useCameraRotation';
 import type { CameraZoom } from './useCameraZoom';
 

@@ -1,4 +1,4 @@
-import type { I_ModuleContext, I_SceneModule } from '@/game/common/scenes.types';
+import type { I_SceneContext, I_SceneModule } from '@/game/common/scenes.types';
 import type { I_SceneService } from '@/game/common/scenes.types';
 import type {
   I_MultiplayerHandler,
@@ -6,10 +6,10 @@ import type {
 } from '@/game/common/multiplayer.types';
 import { useWebSocketConnection } from '@/composables/useWebSocketConnection';
 import { useRxjs } from 'topsyde-utils';
-import SceneModule from '@/game/SceneModule';
+import SceneModule from '@/game/modules/SceneModule';
 import MultiplayerAPI, { I_PlayerInScene } from '@/api/multiplayer.api';
 import { RemotePlayer } from '@/game/prefabs/character/RemotePlayer';
-import { GameObjectManager } from '@/game/services/GameObjectManager';
+import { GameObjectsModule } from '@/game/modules/scene/GameObjectsModule';
 
 /**
  * MultiplayerService - Manages WebSocket routing for player synchronization
@@ -48,17 +48,22 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
   // Remote players tracking
   private remotePlayers = new Map<string, I_PlayerPositionUpdate>;
 
-  constructor(moduleName: string, private gameObjectManager: GameObjectManager) {
+  constructor(moduleName: string, private gameObjectManager: GameObjectsModule) {
     super(moduleName, false);
   }
   /**
    * Initialize service and subscribe to WebSocket events
    */
-  public async init(context: I_ModuleContext): Promise<void> {
+  public async init(context: I_SceneContext): Promise<void> {
+
     console.log('🌐 [MultiplayerService] Starting...');
     const api = new MultiplayerAPI();
     // Test API connection
     try {
+
+      if (!context.clientData || !context.clientData.id) {
+        throw new Error('Client data missing or invalid');
+      }
 
       this.rx.$subscribe({
         'scene': {
@@ -72,9 +77,9 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
       })
 
       const data = await api.getPlayersInScene(context.clientData.id)
-      
+
       const remotePlayers: RemotePlayer[] = [];
-      
+
       data.data.playersInScene.forEach(player => {
         const state: I_PlayerPositionUpdate = {
           playerId: player.id,

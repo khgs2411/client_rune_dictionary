@@ -1,6 +1,6 @@
 import { ref, onUnmounted, type Ref } from 'vue';
 import { Mouse, type I_MouseEvent, type I_MouseScrollEvent } from '@/game/utils/Mouse';
-import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/config.store';
 import type { CameraRotation } from './useCameraRotation';
 import type { CameraZoom } from './useCameraZoom';
 

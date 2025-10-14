@@ -1,4 +1,4 @@
-import type { I_EntityModule, I_ModuleContext } from '@/game/common/scenes.types';
+import type { I_EntityModule, I_SceneContext } from '@/game/common/scenes.types';
 
 /**
  * EntityModule Base Class
@@ -40,7 +40,7 @@ export abstract class EntityModule implements I_EntityModule {
    * Initialize the entity module with scene context
    * Called once by parent SceneModule during scene setup
    */
-  abstract start(context: I_ModuleContext): Promise<void>;
+  abstract start(context: I_SceneContext): Promise<void>;
 
   /**
    * Cleanup (called when parent SceneModule is destroyed)

@@ -51,7 +51,7 @@
   import Button from '@/components/ui/button/Button.vue';
   import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
   import { Icon } from '@iconify/vue';
-  import { useGameConfigStore } from '@/stores/gameConfig.store';
+  import { useGameConfigStore } from '@/stores/config.store';
   import { useAuthStore } from '@/stores/auth.store';
 
   const config = useGameConfigStore();

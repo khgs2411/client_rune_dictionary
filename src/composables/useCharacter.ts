@@ -1,5 +1,5 @@
 import { I_CharacterControlsOptions } from '@/common/types';
-import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/config.store';
 import { I_GameCharacter } from './composables.types';
 import { useCharacterController } from './useCharacterController';
 import { Vector3 } from 'three';

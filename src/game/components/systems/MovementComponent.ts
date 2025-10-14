@@ -2,7 +2,7 @@ import { GameComponent, ComponentPriority } from '@/game/GameComponent';
 import type { I_GameContext } from '@/game/common/gameobject.types';
 import type { I_CharacterControls } from '@/composables/composables.types';
 import { CharacterMeshComponent } from '../rendering/CharacterMeshComponent';
-import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/config.store';
 
 export interface I_MovementConfig {
   characterController: I_CharacterControls; // Scene-owned controller (handles input)

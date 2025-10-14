@@ -1,5 +1,5 @@
-import SceneModule from '@/game/SceneModule';
-import { I_ModuleContext } from '@/game/common/scenes.types';
+import SceneModule from '@/game/modules/SceneModule';
+import { I_SceneContext } from '@/game/common/scenes.types';
 import { I_SceneModule } from '@/game/common/scenes.types';
 import { Light, AmbientLight, DirectionalLight } from 'three';
 
@@ -14,7 +14,7 @@ export class LightingModule extends SceneModule implements I_SceneModule {
     super(moduleName);
   }
 
-  protected async init(context: I_ModuleContext): Promise<void> {
+  protected async init(context: I_SceneContext): Promise<void> {
     // Simulate async loading delay (for testing loading screen)
     // Ambient light
     const ambientLight = new AmbientLight(0xffffff, 0.5);
@@ -44,7 +44,7 @@ export class LightingModule extends SceneModule implements I_SceneModule {
 
   }
 
-  public addToScene(context: I_ModuleContext, directionalLight: DirectionalLight): void {
+  public addToScene(context: I_SceneContext, directionalLight: DirectionalLight): void {
     context.scene.add(directionalLight);
     context.cleanupRegistry.registerObject(directionalLight);
   }

@@ -95,7 +95,7 @@
   } from '@/components/ui/sheet';
   import Slider from '@/components/ui/slider/Slider.vue';
   import Switch from '@/components/ui/switch/Switch.vue';
-  import { useGameConfigStore, type ConfigFieldMetadata } from '@/stores/gameConfig.store';
+  import { useGameConfigStore, type ConfigFieldMetadata } from '@/stores/config.store';
   import { useSceneStore } from '@/stores/scene.store';
   import { Gamepad2 } from 'lucide-vue-next';
   import { computed } from 'vue';

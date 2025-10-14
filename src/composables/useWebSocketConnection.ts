@@ -1,7 +1,7 @@
 import AuthAPI from '@/api/auth.api';
 import { I_DebugConsoleEvent } from '@/common/events.types';
 import { I_ClientData, I_ConnectedClientData } from '@/common/types';
-import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/config.store';
 import { useSceneStore } from '@/stores/scene.store';
 import { useWebSocketStore } from '@/stores/websocket.store';
 import { useWebSocket } from '@vueuse/core';

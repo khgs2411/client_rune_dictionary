@@ -1,17 +1,18 @@
-import type { I_ModuleContext, I_SceneService } from '@/game/common/scenes.types';
 import type {
-  I_InteractableObject,
-  I_HoverState,
   I_DragState,
-  I_InteractionConfig,
+  I_HoverState,
   I_InteractableBehaviors,
+  I_InteractableObject,
+  I_InteractionConfig,
   ReactiveValue,
 } from '@/game/common/interaction.types';
-import { Camera, GridHelper, Intersection, Object3D, Plane, Vector3 } from 'three';
-import { Raycast } from '@/game/utils/Raycast';
+import type { I_SceneContext, I_SceneService } from '@/game/common/scenes.types';
 import { Mouse } from '@/game/utils/Mouse';
+import { Raycast } from '@/game/utils/Raycast';
+import { useGameConfigStore, type GameConfig } from '@/stores/config.store';
+import { GridHelper, Intersection, Object3D, Plane, Vector3 } from 'three';
 import { InteractableBuilder } from './InteractableBuilder';
-import { useGameConfigStore, type GameConfig } from '@/stores/gameConfig.store';
+import SceneService from './SceneService';
 
 /**
  * Interaction Service (Refactored v2)
@@ -33,8 +34,7 @@ import { useGameConfigStore, type GameConfig } from '@/stores/gameConfig.store';
  *   .withDrag({ lockAxis: ['y'] });
  * ```
  */
-export class InteractionService implements I_SceneService {
-  private context!: I_ModuleContext;
+export class InteractionService extends SceneService implements I_SceneService {
   private config: GameConfig;
 
   // Utilities
@@ -58,6 +58,7 @@ export class InteractionService implements I_SceneService {
   };
 
   constructor(config?: I_InteractionConfig) {
+    super();
     if (config) {
       this.interactionConfig = { ...this.interactionConfig, ...config };
     }
@@ -72,7 +73,7 @@ export class InteractionService implements I_SceneService {
   /**
    * Initialize service with scene context
    */
-  async start(ctx: I_ModuleContext): Promise<void> {
+  async init(ctx: I_SceneContext): Promise<void> {
     this.context = ctx;
     // Config already initialized in constructor
 
@@ -247,7 +248,7 @@ export class InteractionService implements I_SceneService {
 
     if (!click) return;
 
-    
+
 
     // Perform fresh raycast for accurate position
     const intersects = this.raycast.fromCamera(

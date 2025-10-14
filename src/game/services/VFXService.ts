@@ -1,5 +1,5 @@
-import SceneModule from '@/game/SceneModule';
-import type { I_ModuleContext, I_SceneModule } from '@/game/common/scenes.types';
+import SceneModule from '@/game/modules/SceneModule';
+import type { I_SceneContext, I_SceneModule } from '@/game/common/scenes.types';
 import {
   BufferGeometry,
   CanvasTexture,
@@ -19,6 +19,7 @@ import {
   Vector3,
 } from 'three';
 import { Text } from 'troika-three-text';
+import SceneService from './SceneService';
 
 /**
  * Text Sprite - Flyweight pattern for reusable text effects
@@ -342,7 +343,7 @@ class ParticleSystem {
  * VFX Module - Visual Effects with Object Pooling
  * Handles text sprites, tooltips, particle effects, etc.
  */
-export class VFXModule extends SceneModule implements I_SceneModule {
+export class VFXService extends SceneService {
   // Pool size constants
   private static readonly POOL_SIZES = {
     TEXT_SPRITES: 10, // POW!/BAM! text effects
@@ -369,11 +370,11 @@ export class VFXModule extends SceneModule implements I_SceneModule {
   // Camera shake state
   private cameraShake: { intensity: number; duration: number; elapsed: number } | null = null;
 
-  protected async init(context: I_ModuleContext): Promise<void> {
+  protected async init(context: I_SceneContext): Promise<void> {
     this.context = context;
 
     // Pre-create text sprite pool
-    for (let i = 0; i < VFXModule.POOL_SIZES.TEXT_SPRITES; i++) {
+    for (let i = 0; i < VFXService.POOL_SIZES.TEXT_SPRITES; i++) {
       const sprite = new TextSprite();
       context.scene.add(sprite.sprite);
       context.cleanupRegistry.registerObject(sprite.sprite);
@@ -381,7 +382,7 @@ export class VFXModule extends SceneModule implements I_SceneModule {
     }
 
     // Pre-create tooltip pool
-    for (let i = 0; i < VFXModule.POOL_SIZES.TOOLTIPS; i++) {
+    for (let i = 0; i < VFXService.POOL_SIZES.TOOLTIPS; i++) {
       const tooltip = new TooltipBillboard();
       context.scene.add(tooltip.group);
       context.cleanupRegistry.registerObject(tooltip.group);
@@ -389,7 +390,7 @@ export class VFXModule extends SceneModule implements I_SceneModule {
     }
 
     // Pre-create particle systems pool
-    for (let i = 0; i < VFXModule.POOL_SIZES.PARTICLES; i++) {
+    for (let i = 0; i < VFXService.POOL_SIZES.PARTICLES; i++) {
       const particles = new ParticleSystem();
       context.scene.add(particles.points);
       context.cleanupRegistry.registerObject(particles.points);

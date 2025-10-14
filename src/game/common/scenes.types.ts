@@ -4,11 +4,19 @@ import { useCharacter } from '@/composables/useCharacter';
 import { I_ThemeColors } from '@/composables/useTheme';
 import { CleanupRegistry } from '@/game/CleanupRegistry';
 import { Engine } from '@/game/Engine';
-import { VFXModule } from '@/game/modules/scene/VFXModule';
+import { VFXService } from '@/game/services/VFXService';
 import type { InteractionService } from '@/game/services/InteractionService';
 import { PhysicsService } from '@/game/services/PhysicsService';
 import { BufferGeometry, BufferGeometryEventMap, NormalBufferAttributes, Scene } from 'three';
 import type { I_InteractableBehaviors } from './interaction.types';
+import NetworkingService from '../services/NetworkingService';
+
+/**
+ * Configuration for creating a scene
+ */
+export interface I_SceneConfig {
+  engine: Engine;
+}
 
 /**
  * Core scene interface
@@ -24,16 +32,12 @@ export interface I_GameScene {
 }
 
 export interface I_SceneService {
-  start(ctx: I_ModuleContext): Promise<void> | void;
+  start(ctx: I_SceneContext): Promise<void> | void;
+  update?(delta: number): void;
   destroy(): Promise<void> | void;
 }
 
-/**
- * Configuration for creating a scene
- */
-export interface I_SceneConfig {
-  engine: Engine;
-}
+
 
 /**
  * Base module interface - all modules implement this
@@ -43,12 +47,12 @@ export interface I_SceneModule {
   /**
    * Initialize the module
    */
-  start(context: I_ModuleContext): Promise<void>;
+  start(context: I_SceneContext): Promise<void>;
 
   /**
    * Cleanup the module
    */
-  destroy(context?: I_ModuleContext): Promise<void>;
+  destroy(context?: I_SceneContext): Promise<void>;
 
   close?(): void;
 
@@ -65,14 +69,14 @@ export interface I_SceneModule {
    */
   onThemeChange?(theme: I_ThemeColors): void;
 
-  addToScene?(context: I_ModuleContext, ...args: any[]): void;
+  addToScene?(context: I_SceneContext, ...args: any[]): void;
 }
 
 /**
  * Entity modules - lightweight features managed by scene modules
  */
 export interface I_EntityModule {
-  start(context: I_ModuleContext): Promise<void>;
+  start(context: I_SceneContext): Promise<void>;
   destroy(): Promise<void>;
   update?(delta: number): void;
 }
@@ -83,21 +87,22 @@ export interface I_EntityModule {
  */
 export interface I_ModuleServices extends Record<string, I_SceneService> {
   interaction: InteractionService;
-  vfx: VFXModule;
+  vfx: VFXService;
   physics: PhysicsService;
+  networking: NetworkingService;
 }
 
 /**
  * Context passed to modules during initialization
  * Contains everything a module might need
  */
-export interface I_ModuleContext {
+export interface I_SceneContext {
   engine: Engine;
   scene: Scene;
   cleanupRegistry: CleanupRegistry;
   sceneName: string;
   services: I_ModuleServices;
-  clientData: I_ConnectedClientData;
+  clientData: Partial<I_ConnectedClientData>;
   camera?: ReturnType<typeof useCamera>; // Optional: for modules that need camera
   character?: ReturnType<typeof useCharacter>; // Optional: for modules that need character
 

@@ -1,7 +1,7 @@
-import { I_ModuleContext } from '@/game/common/scenes.types';
-import SceneModule from '../SceneModule';
+import { I_SceneContext } from '@/game/common/scenes.types';
+import SceneModule from '../modules/SceneModule';
 import type * as RAPIER_TYPE from '@dimforge/rapier3d';
-import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/config.store';
 import { watch } from 'vue';
 import {
   BoxGeometry,
@@ -22,6 +22,7 @@ import {
 } from 'three';
 import { PositionVector3 } from '@/common/types';
 import { ShapeType } from '@dimforge/rapier3d';
+import SceneService from './SceneService';
 
 // Dynamic WASM import (loaded at runtime)
 const RAPIER = import('@dimforge/rapier3d') as any;
@@ -84,7 +85,7 @@ interface MovementResult {
  * - isGrounded(): Check if kinematic is on ground
  * - remove(): Clean up physics body
  */
-export class PhysicsService extends SceneModule {
+export class PhysicsService extends SceneService {
   private world!: RAPIER_TYPE.World;
   private RAPIER!: typeof RAPIER_TYPE;
   private isInitialized = false;
@@ -102,7 +103,7 @@ export class PhysicsService extends SceneModule {
   // Lifecycle
   // ============================================================================
 
-  protected async init(context: I_ModuleContext): Promise<void> {
+  protected async init(context: I_SceneContext): Promise<void> {
     // Load Rapier WASM module
     this.RAPIER = await RAPIER;
 
@@ -121,7 +122,7 @@ export class PhysicsService extends SceneModule {
     console.log('✅ [PhysicsService] Initialized');
   }
 
-  private addEventListeners(context: I_ModuleContext) {
+  private addEventListeners(context: I_SceneContext) {
     const gameConfig = useGameConfigStore();
     const stopWatch = watch(
       () => gameConfig.debug.showPhysicsDebug,

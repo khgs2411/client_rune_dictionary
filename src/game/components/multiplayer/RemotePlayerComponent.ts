@@ -149,7 +149,7 @@ export class RemotePlayerComponent extends GameComponent {
    * Updates target position and calculates velocity for dead reckoning
    * @private
    */
-  private handlePositionUpdate = (data: I_PlayerPositionUpdate): void => {
+  private handlePositionUpdate(data: I_PlayerPositionUpdate): void {
     const newPosition = new Vector3(data.position.x, data.position.y, data.position.z);
 
     // Calculate velocity for dead reckoning
