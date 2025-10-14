@@ -14,10 +14,9 @@ import { WebsocketStructuredMessage } from 'topsyde-utils';
 export class MultiplayerModule extends SceneModule implements I_MultiplayerHandler, I_SceneModule {
 
   // Local player tracking
-
   public localPlayer: LocalPlayer | null = null;
   // Remote players tracking
-  private remotePlayers = new Map<string, I_PlayerPositionUpdate>;
+  private remotePlayers = new Map<string, RemotePlayer>;
 
   constructor(moduleName: string, private gameObjectManager: GameObjectsModule) {
     super(moduleName, false);
@@ -57,15 +56,9 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     const data = await api.getPlayersInScene(context.clientData.id);
 
     data.data.playersInScene.forEach(player => {
-      const state: I_PlayerPositionUpdate = {
-        playerId: player.id,
-        playerName: player.username,
-        position: player.raw.position,
-        timestamp: new Date().getTime(),
-      };
       const remotePlayer = new RemotePlayer({ playerId: player.id, username: player.username || "Remote Player", position: player.position });
 
-      this.registerRemotePlayer(remotePlayer.id, state);
+      this.registerRemotePlayer(remotePlayer.id, remotePlayer);
       this.gameObjectManager.add(remotePlayer, false);
     });
   }
@@ -80,15 +73,10 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
           raw?: { position: { x: number; y: number; z: number }; rotation?: { x: number; y: number; z: number } };
         }>).content;
         console.log('[MultiplayerModule] Player joined:', message.content);
-        const state: I_PlayerPositionUpdate = {
-          playerId: data.id,
-          playerName: data.username,
-          position: data.raw?.position || { x: data.position[0], y: data.position[1], z: data.position[2] },
-          timestamp: new Date().getTime(),
-        };
+
         const remotePlayer = new RemotePlayer({ playerId: data.id, username: data.username || "Remote Player", position: data.position });
 
-        this.registerRemotePlayer(remotePlayer.id, state);
+        this.registerRemotePlayer(remotePlayer.id, remotePlayer);
         this.gameObjectManager.add(remotePlayer, true);
         break;
       }
@@ -119,9 +107,15 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
   async destroy(): Promise<void> {
     // Unsubscribe from RxJS
     // Clear registrations
+    this.remotePlayers.forEach((_, playerId) => {
+      const remotePLayer = this.remotePlayers.get(playerId);
+      if (remotePLayer) {
+        console.log(`[MultiplayerModule] Cleaning up remote player: ${remotePLayer.id}`);
+        remotePLayer.destroy();
+      }
+      this.gameObjectManager.remove(playerId);
+    });
     this.remotePlayers.clear();
-    this.localPlayer = null;
-
     console.log('🧹 [MultiplayerModule] Destroyed');
   }
 
@@ -131,7 +125,7 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
    */
   public registerRemotePlayer(
     playerId: string,
-    state: I_PlayerPositionUpdate,
+    state: RemotePlayer,
   ): void {
     if (this.remotePlayers.has(playerId)) {
       console.warn(

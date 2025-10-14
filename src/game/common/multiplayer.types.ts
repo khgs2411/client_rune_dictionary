@@ -5,6 +5,7 @@
 
 import type { Vector3 } from 'three';
 import { LocalPlayer } from '../prefabs/character/LocalPlayer';
+import { RemotePlayer } from '../prefabs/character/RemotePlayer';
 
 /**
  * Player position update message sent over WebSocket
@@ -65,7 +66,7 @@ export interface I_MultiplayerHandler {
   /**
    * Register remote player for receiving position updates
    */
-  registerRemotePlayer(playerId: string, state: I_PlayerPositionUpdate): void;
+  registerRemotePlayer(playerId: string, state: RemotePlayer): void;
 
   /**
    * Unregister remote player
