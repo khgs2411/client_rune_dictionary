@@ -14,3 +14,12 @@ export interface I_CameraControlsOptions {
 
 export type RGBColor = [number, number, number]; // RGB color values (0-1)
 export type Vec3 = [number, number, number]; // 3D vector/position/dimensions
+
+export interface I_ClientData {
+  id: string;
+  name: string;
+}
+
+export interface I_ConnectedClientData extends I_ClientData {
+  scene: string;
+}

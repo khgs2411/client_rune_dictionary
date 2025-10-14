@@ -66,7 +66,7 @@ export class DragComponent extends GameComponent implements I_Interactable {
    * Register drag behavior with InteractionService builder
    * Called by GameObject during interaction lifecycle coordination
    */
-  registerInteractions(builder: I_InteractionBuilder, context: I_GameContext): void {
+  public registerInteractions(builder: I_InteractionBuilder, context: I_GameContext): void {
     builder.withDrag({
       lockAxis: this.config.lockAxis,
       snapToGrid: this.config.snapToGrid,
@@ -74,6 +74,10 @@ export class DragComponent extends GameComponent implements I_Interactable {
       onMove: (pos) => this.handleDragMove(pos),
       onEnd: (pos) => this.handleDragEnd(pos),
     });
+  }
+
+  public getConfig(): I_DragConfig {
+    return this.config;
   }
 
   private handleDragStart(position: Vector3): void {

@@ -54,7 +54,7 @@
         </div>
 
         <!-- Debug Settings Section -->
-        <div class="pt-4 border-t border-border space-y-3">
+        <div v-if="auth.isAuthenticated" class="pt-4 border-t border-border space-y-3">
           <h3 class="text-sm font-semibold text-primary">Debug Tools</h3>
 
           <TooltipProvider :delay-duration="0">
@@ -120,12 +120,12 @@
   import Switch from '@/components/ui/switch/Switch.vue';
   import { useSettingsStore } from '@/stores/settings.store';
   import { useAuthStore } from '@/stores/auth.store';
-  import { useGameConfigStore } from '@/stores/gameConfig.store';
+  import { useGameConfigStore } from '@/stores/config.store';
   import { THEME_OPTIONS } from '@/composables/useTheme';
   import { computed, ref } from 'vue';
 
   const settings = useSettingsStore();
-  const authStore = useAuthStore();
+  const auth = useAuthStore();
   const config = useGameConfigStore();
   const router = useRouter();
 
@@ -134,7 +134,7 @@
   function handleLogout() {
     console.log('👋 Logging out...');
     isOpen.value = false; // Close the sheet
-    authStore.logout(); // Clear auth tokens with TTL
+    auth.logout(); // Clear auth tokens with TTL
     router.push({ name: 'login' });
   }
 

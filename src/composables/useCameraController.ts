@@ -1,4 +1,4 @@
-import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/config.store';
 import { Vector3 } from 'three';
 import { reactive, ref, watchEffect } from 'vue';
 import { I_CameraControls } from './composables.types';

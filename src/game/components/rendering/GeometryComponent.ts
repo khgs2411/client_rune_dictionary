@@ -1,6 +1,7 @@
 import {
   BoxGeometry,
   BufferGeometry,
+  CapsuleGeometry,
   ConeGeometry,
   CylinderGeometry,
   PlaneGeometry,
@@ -9,7 +10,7 @@ import {
 import { GameComponent } from '../../GameComponent';
 import type { I_GameContext } from '../../common/gameobject.types';
 
-export type GeometryType = 'plane' | 'box' | 'sphere' | 'cylinder' | 'cone';
+export type GeometryType = 'plane' | 'box' | 'sphere' | 'cylinder' | 'cone' | 'capsule';
 
 export interface I_GeometryConfig {
   type: GeometryType;
@@ -82,6 +83,11 @@ export class GeometryComponent extends GameComponent {
       case 'cone':
         // params: [radius, height, radialSegments?]
         return new ConeGeometry(params[0], params[1], params[2] || 16);
+
+      case 'capsule':
+        // params: [radius, height, radialSegments?, heightSegments?]
+        // return new CylinderGeometry(params[0], params[0], params[1], params[2] || 8, params[3] || 16);
+        return new CapsuleGeometry(params[0], params[1], params[2] || 8, params[3] || 16)
 
       default:
         console.warn(

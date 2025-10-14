@@ -1,6 +1,6 @@
 import { PositionVector3 } from "@/common/types";
 import { defineStore } from "pinia";
-import { reactive } from "vue";
+import { reactive, ref } from "vue";
 
 /**
  * Saved object state for level editor
@@ -32,6 +32,7 @@ export type SceneStore = ReturnType<typeof useSceneStore>;
 export const useSceneStore = defineStore('scene', () => {
     // Use reactive Record instead of Map for proper localStorage persistence
     const scenes = reactive<Record<string, I_SceneReference>>({});
+    const currentScene = ref(<string | null>null);
 
     /**
      * Save an object's position
@@ -78,6 +79,15 @@ export const useSceneStore = defineStore('scene', () => {
         return savedObject?.position || null;
     }
 
+    function setActiveScene(name: string) {
+        console.log(`🎬 [SceneStore] Setting active scene to: ${name}`);
+        currentScene.value = name;
+    }
+
+    function getActiveScene() {
+        return currentScene.value;
+    }
+
     /**
      * Get all saved objects for a scene
      */
@@ -108,5 +118,7 @@ export const useSceneStore = defineStore('scene', () => {
         getScene,
         clearScene,
         hasScene,
+        setActiveScene,
+        getActiveScene,
     };
 }, { persist: true })

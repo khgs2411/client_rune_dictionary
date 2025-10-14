@@ -30,6 +30,7 @@ export interface I_CharacterControls extends I_GameComposable {
   isJumping: Ref<boolean>;
   joystick: I_JoystickControls;
   getPosition: () => Vector3;
+  setPosition: (x: number, y: number, z: number) => void;
   update: (delta: number) => void;
 }
 

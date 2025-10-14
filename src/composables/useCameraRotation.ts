@@ -1,5 +1,5 @@
 import { type Ref } from 'vue';
-import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/config.store';
 
 export interface CameraRotation {
   updateHorizontal: (delta: number) => void;

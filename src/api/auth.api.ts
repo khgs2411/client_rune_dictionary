@@ -10,7 +10,7 @@ export default class AuthAPI extends BaseAPI {
     super(
       controller,
       base_url ??
-        'https://faas-ams3-2a2df116.doserverless.co/api/v1/web/fn-8b5106d1-8570-4f63-a2af-01748ac110f3',
+      'https://faas-ams3-2a2df116.doserverless.co/api/v1/web/fn-8b5106d1-8570-4f63-a2af-01748ac110f3',
     );
   }
 
@@ -38,7 +38,7 @@ export default class AuthAPI extends BaseAPI {
 
   public async handshake(username: string, password: string, api_key: string) {
     const action = 'handshake';
-    const response = await this.post<{ status: boolean; data: { id: string; name: string } }>(
+    const response = await this.post<{ status: boolean; data: { scene: string, id: string; name: string } }>(
       action,
       { username, password, api_key },
     );

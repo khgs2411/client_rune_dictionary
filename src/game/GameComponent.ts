@@ -1,5 +1,8 @@
+import { I_ThemeColors } from '@/composables/useTheme';
 import type { GameObject } from './GameObject';
 import type { I_GameContext } from './common/gameobject.types';
+import { CleanupRegistry } from './CleanupRegistry';
+import { Scene } from 'three';
 
 /**
  * Component initialization priority
@@ -47,8 +50,29 @@ export enum ComponentPriority {
  * }
  * ```
  */
-export abstract class GameComponent {
+
+
+export interface I_GameComponent {
+  init(context: I_GameContext): Promise<void>;
+  onAttach(gameObject: GameObject): void;
+  update?(delta: number): void;
+  destroy?(scene: Scene): void;
+  onThemeChange?(theme: I_ThemeColors): void;
+}
+
+export abstract class GameComponent implements I_GameComponent {
   protected gameObject!: GameObject;
+
+  /**
+   * Component-level cleanup registry
+   * Components should register their resources here for automatic cleanup
+   *
+   * Usage:
+   * - this.cleanup.registerObject(mesh) - Auto-removes from scene + disposes
+   * - this.cleanup.registerDisposable(geometry) - Disposes resource
+   * - this.cleanup.registerWatcher(stopHandle) - Stops Vue watcher
+   */
+  protected cleanup = new CleanupRegistry();
 
   /**
    * Initialization priority - lower numbers initialize first
@@ -115,18 +139,31 @@ export abstract class GameComponent {
    * - Create Three.js objects
    * - Setup event listeners
    */
-  abstract init(context: I_GameContext): Promise<void>;
+  public abstract init(context: I_GameContext): Promise<void>;
 
   /**
    * Update component (called every frame)
    * Optional - only implement if component needs per-frame updates
    */
-  update?(delta: number): void;
+  public update?(delta: number): void;
+
+  public onThemeChange?(theme: I_ThemeColors): void;
 
   /**
    * Cleanup component (called when GameObject is destroyed)
-   * Optional - only implement if component needs manual cleanup
-   * Note: Three.js objects registered with lifecycle.register() are cleaned up automatically
+   *
+   * Default implementation calls cleanup.cleanup() to dispose all registered resources.
+   * Override if you need additional cleanup logic beyond what CleanupRegistry handles.
+   *
+   * If you override, call super.destroy() to ensure CleanupRegistry runs:
+   * ```typescript
+   * destroy() {
+   *   // Your custom cleanup
+   *   super.destroy();
+   * }
+   * ```
    */
-  destroy?(): void;
+  public destroy(scene: Scene): void {
+    this.cleanup.cleanup(scene);
+  }
 }

@@ -1,25 +1,28 @@
-import { I_ModuleContext, I_SceneModule } from '@/game/common/scenes.types';
-import { CleanupRegistry } from '@/game/CleanupRegistry';
-import { useRxjs } from 'topsyde-utils';
 import {
+  ModuleLoadingProgressPayload,
   SceneErrorPayload,
+  SceneLoadedPayload,
   SceneLoadingEvent,
   SceneLoadingProgressPayload,
   SceneLoadingStartPayload,
-  ModuleLoadingProgressPayload,
-  SceneLoadedPayload,
 } from '@/common/events.types';
+import { I_ConnectedClientData } from '@/common/types';
 import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
-import { useSettingsStore } from '@/stores/settings.store';
+import { CleanupRegistry } from '@/game/CleanupRegistry';
+import { I_SceneContext, I_SceneModule, I_ModuleServices as I_SceneServices } from '@/game/common/scenes.types';
 import type { Engine } from '@/game/Engine';
-import type { ApplicationSettings } from '@/stores/settings.store';
 import { ModuleRegistry } from '@/game/ModuleRegistry';
 import { InteractionService } from '@/game/services/InteractionService';
-import { VFXModule } from '@/game/modules/scene/VFXModule';
 import { PhysicsService } from '@/game/services/PhysicsService';
-import { GameConfig, useGameConfigStore } from '@/stores/gameConfig.store';
-import { SceneStore, useSceneStore } from '@/stores/scene.store';
+import { VFXService } from '@/game/services/VFXService';
+import { GameConfig, useGameConfigStore } from '@/stores/config.store';
+import { SceneStore as ScenesManager, useSceneStore } from '@/stores/scene.store';
+import type { ApplicationSettings } from '@/stores/settings.store';
+import { useSettingsStore } from '@/stores/settings.store';
+import { useWebSocketStore, WebsocketManager } from '@/stores/websocket.store';
+import { useRxjs } from 'topsyde-utils';
+import NetworkingService from './services/NetworkingService';
 
 /**
  * Base class for game scenes with typed module registry support
@@ -35,6 +38,7 @@ import { SceneStore, useSceneStore } from '@/stores/scene.store';
 export abstract class GameScene<
   TModuleRegistry extends Record<string, I_SceneModule> = Record<string, I_SceneModule>,
 > {
+  
   private enabled = false;
   public modulesLoaded = false;
 
@@ -46,17 +50,19 @@ export abstract class GameScene<
   private registry = new ModuleRegistry<TModuleRegistry>();
 
   // Services (shared across modules)
-  protected services = {
+  protected services: I_SceneServices = {
     interaction: new InteractionService(),
-    vfx: new VFXModule(),
+    vfx: new VFXService(),
     physics: new PhysicsService(),
+    networking: new NetworkingService(),
   };
 
   // High-level entity composables
   protected character!: ReturnType<typeof useCharacter>;
   protected settings: ApplicationSettings;
   protected config: GameConfig;
-  protected store: SceneStore;
+  protected scenes: ScenesManager;
+  protected websocketManager: WebsocketManager;
   public camera!: ReturnType<typeof useCamera>;
 
   // Status flags
@@ -69,7 +75,13 @@ export abstract class GameScene<
     // Subscribe to module loading events
     this.settings = useSettingsStore();
     this.config = useGameConfigStore();
-    this.store = useSceneStore();
+    this.scenes = useSceneStore();
+    this.websocketManager = useWebSocketStore();
+    this.camera = useCamera();
+    this.character = useCharacter({
+      cameraAngleH: this.camera.controller.angle.horizontal,
+    });
+
     this.subscribe();
   }
 
@@ -80,7 +92,7 @@ export abstract class GameScene<
   public async start(): Promise<void> {
     console.log(`🎬 [${this.name}] Initializing scene...`);
 
-    await this.initializeServices();
+    await this.initializeAllServices();
     this.registerModules();
     this.addSceneObjects();
     this.startModuleLoading();
@@ -154,24 +166,10 @@ export abstract class GameScene<
     this.sceneEvents.$next(event, { sceneName: this.name, ...data });
   }
 
-  /**
-   * Default composables initialization
-   * Override to customize camera/character setup
-   */
-  protected async initializeServices(): Promise<void> {
-
-    this.camera = useCamera();
-    this.character = useCharacter({
-      cameraAngleH: this.camera.controller.angle.horizontal,
-    });
-
-    // Initialize all services (async - wait for physics, etc.)
-    await this.initializeAllServices();
-  }
 
   protected async initializeAllServices(): Promise<void> {
     for (const service of Object.values(this.services)) {
-      await service.start(this.getModuleContext());
+      await service.start(this.getSceneContext());
     }
   }
 
@@ -205,22 +203,35 @@ export abstract class GameScene<
    * Override only if you need custom context or loading logic
    */
   protected startModuleLoading(): void {
-    const context: I_ModuleContext = this.getModuleContext();
+    const context: I_SceneContext = this.getSceneContext();
 
     this.loading('start', { totalAssets: this.moduleCount() });
     this.forEachModule((m) => m.start(context));
   }
 
-  protected getModuleContext(): I_ModuleContext {
+  protected getSceneContext(): I_SceneContext {
+    const connectedClientData: Partial<I_ConnectedClientData> = this.getClientData();
+
     return {
       engine: this.engine,
       sceneName: this.name,
       scene: this.engine.scene,
+      clientData: connectedClientData,
       cleanupRegistry: this.cleanupRegistry,
       services: this.services, // Pass services (interaction, etc.)
       camera: this.camera,
       character: this.character,
     };
+  }
+
+  private getClientData() {
+
+    const connectedClientData: Partial<I_ConnectedClientData> = {
+      id: this.websocketManager.clientData?.id,
+      name: this.websocketManager.clientData?.name,
+      scene: this.name,
+    };
+    return connectedClientData;
   }
 
   /**
@@ -270,7 +281,7 @@ export abstract class GameScene<
     this.character.destroy();
     this.camera.destroy();
     await this.destroyAllServices(); // Wait for physics cleanup!
-    this.forEachModule((m) => m.destroy(this.getModuleContext()));
+    this.forEachModule((m) => { m.destroy(this.getSceneContext()); m.close?.() });
     this.cleanupRegistry.cleanup(this.engine.scene);
     this.registry.clear();
 

@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue';
-import { tryOnMounted, tryOnUnmounted } from '@vueuse/core';
-import { useAuthStore } from '@/stores/auth.store';
-import { useWebSocketStore } from '@/stores/websocket.store';
 import {
   useWebSocketConnection,
   type I_HandshakeCredentials,
 } from '@/composables/useWebSocketConnection';
+import { useAuthStore } from '@/stores/auth.store';
+import { useWebSocketStore } from '@/stores/websocket.store';
+import { tryOnMounted, tryOnUnmounted } from '@vueuse/core';
+import { watch } from 'vue';
 
 // Props (optional - for flexibility)
 

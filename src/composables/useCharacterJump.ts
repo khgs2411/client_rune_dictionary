@@ -1,4 +1,4 @@
-import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/config.store';
 import { ref, type Ref } from 'vue';
 import { useMagicKeys, whenever } from '@vueuse/core';
 

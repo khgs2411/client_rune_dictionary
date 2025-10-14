@@ -1,5 +1,5 @@
-import { I_ModuleContext } from '@/game/common/scenes.types';
-import { Lib, useRxjs } from 'topsyde-utils';
+import { I_SceneContext } from '@/game/common/scenes.types';
+import { useRxjs } from 'topsyde-utils';
 
 
 export default abstract class SceneModule {
@@ -7,7 +7,7 @@ export default abstract class SceneModule {
   protected rxjs = useRxjs('module:loading', {}, { static_instance: true });
 
   protected id: string; // Will be set to module name for persistence
-  protected context!: I_ModuleContext;
+  protected context!: I_SceneContext;
 
   constructor(moduleName?: string, private autoInitialize: boolean = true) {
     if (moduleName) {
@@ -25,13 +25,13 @@ export default abstract class SceneModule {
  * @param context - The context object containing information and dependencies required by the module.
  * @returns A void or a Promise that resolves when initialization is complete.
  */
-  protected abstract init(context: I_ModuleContext): void | Promise<void>;
+  protected abstract init(context: I_SceneContext): void | Promise<void>;
 
   /**
    * Initialize the module
    * @param context Module Context
    */
-  public async start(context: I_ModuleContext): Promise<void> {
+  public async start(context: I_SceneContext): Promise<void> {
     this.context = context;
     await this.init(context);
     // Emit loading complete event
@@ -54,5 +54,9 @@ export default abstract class SceneModule {
         sceneName: sceneName,
       });
     }, Math.random() * 333); // Simulated delay
+  }
+
+  public close() {
+    this.rxjs.$unsubscribe();
   }
 }

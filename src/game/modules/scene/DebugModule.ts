@@ -1,5 +1,5 @@
-import SceneModule from '@/game/SceneModule';
-import { I_ModuleContext } from '@/game/common/scenes.types';
+import SceneModule from '@/game/modules/SceneModule';
+import { I_SceneContext } from '@/game/common/scenes.types';
 import { I_SceneModule } from '@/game/common/scenes.types';
 import { BoxGeometry, Mesh, MeshBasicMaterial } from 'three';
 
@@ -11,7 +11,7 @@ export class DebugModule extends SceneModule implements I_SceneModule {
   constructor() {
     super('debug');
   }
-  protected async init(context: I_ModuleContext): Promise<void> {
+  protected async init(context: I_SceneContext): Promise<void> {
     // Simulate async loading delay (for testing loading screen)
     // Bright red cube for debugging camera view
     const geometry = new BoxGeometry(2, 2, 2);
@@ -21,7 +21,7 @@ export class DebugModule extends SceneModule implements I_SceneModule {
     this.addToScene(context, cube);
   }
 
-  public addToScene(context: I_ModuleContext, cube: Mesh) {
+  public addToScene(context: I_SceneContext, cube: Mesh) {
     context.scene.add(cube);
     context.cleanupRegistry.registerObject(cube);
   }

@@ -1,4 +1,4 @@
-import type { GameComponent } from './GameComponent';
+import type { GameComponent, I_GameComponent } from './GameComponent';
 import type { I_GameContext, I_GameObjectConfig, I_Interactable } from './common/gameobject.types';
 import { MeshComponent } from './components/rendering/MeshComponent';
 
@@ -22,6 +22,7 @@ export class GameObject {
   public readonly id: string;
   private components = new Map<Function, GameComponent>();
   private isInitialized = false;
+  private context: I_GameContext | null = null;
 
   constructor(config: I_GameObjectConfig) {
     this.id = config.id;
@@ -100,6 +101,9 @@ export class GameObject {
       console.warn(`[GameObject] GameObject "${this.id}" already initialized`);
       return;
     }
+
+    // Store context for later use (destroy, etc.)
+    this.context = context;
 
     // Sort components by priority (lower number = initialize first)
     const sortedComponents = Array.from(this.components.values()).sort(
@@ -191,13 +195,21 @@ export class GameObject {
    * @internal
    */
   destroy(): void {
+    if (!this.context) {
+      console.warn(`[GameObject] GameObject "${this.id}" destroyed before initialization`);
+      this.components.clear();
+      return;
+    }
+
+    // Destroy all components (each component's CleanupRegistry will run)
     for (const component of this.components.values()) {
       if (component.destroy) {
-        component.destroy();
+        component.destroy(this.context.scene);
       }
     }
 
     this.components.clear();
+    this.context = null;
     this.isInitialized = false;
   }
 }

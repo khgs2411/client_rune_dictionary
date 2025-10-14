@@ -1,5 +1,5 @@
 import { I_GameCamera } from './composables.types';
-import { useGameConfigStore } from '@/stores/gameConfig.store';
+import { useGameConfigStore } from '@/stores/config.store';
 import { useEventListener } from '@vueuse/core';
 import { watchEffect } from 'vue';
 import { useCameraController } from './useCameraController';

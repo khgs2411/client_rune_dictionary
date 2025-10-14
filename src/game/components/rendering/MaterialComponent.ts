@@ -2,6 +2,7 @@ import { MeshStandardMaterial } from 'three';
 import { GameComponent } from '../../GameComponent';
 import type { I_GameContext } from '../../common/gameobject.types';
 import { useSettingsStore } from '@/stores/settings.store';
+import { I_ThemeColors } from '@/composables/useTheme';
 
 export interface I_MaterialConfig {
   color?: number; // Static color
@@ -80,9 +81,16 @@ export class MaterialComponent extends GameComponent {
   /**
    * Update material color (useful for theme changes)
    */
-  updateColor(color: number): void {
+  private updateColor(color: number): void {
     if (this.material) {
       this.material.color.setHex(color);
+    }
+  }
+
+  public onThemeChange(theme: I_ThemeColors): void {
+    if (this.isThemed) {
+      const newColor = this.getColor();
+      this.updateColor(newColor);
     }
   }
 
@@ -93,7 +101,7 @@ export class MaterialComponent extends GameComponent {
     return Boolean(this.config.useTheme || this.config.reactiveColor);
   }
 
-  destroy(): void {
+  public destroy(): void {
     // Material cleanup handled by lifecycle.register()
   }
 }

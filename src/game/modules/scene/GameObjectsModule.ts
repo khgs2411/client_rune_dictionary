@@ -1,7 +1,9 @@
-import SceneModule from '@/game/SceneModule';
-import type { I_ModuleContext } from '@/game/common/scenes.types';
-import { GameObject } from '../GameObject';
-import type { I_GameContext } from '../common/gameobject.types';
+import SceneModule from '@/game/modules/SceneModule';
+import type { I_SceneContext } from '@/game/common/scenes.types';
+import { GameObject } from '../../GameObject';
+import type { I_GameContext } from '../../common/gameobject.types';
+import { I_ThemeColors } from '@/composables/useTheme';
+import { I_GameComponent } from '../../GameComponent';
 
 /**
  * GameObjectManager - Scene module that manages all GameObjects
@@ -31,14 +33,14 @@ import type { I_GameContext } from '../common/gameobject.types';
  * }
  * ```
  */
-export class GameObjectManager extends SceneModule {
+export class GameObjectsModule extends SceneModule {
   private gameObjects = new Map<string, GameObject>();
 
   /**
    * Add a GameObject to the manager
    * If the manager is already initialized, the GameObject will be initialized immediately
    */
-  add(gameObject: GameObject): void {
+  add(gameObject: GameObject, initialize:boolean = true): void {
     if (this.gameObjects.has(gameObject.id)) {
       console.warn(
         `[GameObjectManager] GameObject with id "${gameObject.id}" already exists. Skipping.`,
@@ -49,7 +51,7 @@ export class GameObjectManager extends SceneModule {
     this.gameObjects.set(gameObject.id, gameObject);
 
     // If manager is already initialized, initialize the GameObject immediately
-    if (this.context) {
+    if (this.context && initialize) {
       gameObject.init(this.context).catch((error) => {
         console.error(
           `[GameObjectManager] Failed to initialize GameObject "${gameObject.id}":`,
@@ -93,11 +95,43 @@ export class GameObjectManager extends SceneModule {
   }
 
   /**
+   * Notify all components about theme changes
+   * Components with onThemeChange() method will be notified
+   *
+   * This allows components like MaterialComponent to update their colors
+   * when the user switches between light and dark themes.
+   *
+   * @param theme - The new theme ('light' or 'dark')
+   */
+  public onThemeChange(theme: I_ThemeColors): void {
+    for (const gameObject of this.gameObjects.values()) {
+      const components = gameObject.getAllComponents();
+
+      for (const component of components) {
+        // Runtime check if component has onThemeChange method
+        if ('onThemeChange' in component && typeof component.onThemeChange === 'function') {
+          try {
+            console.log(component);
+            (component as I_GameComponent).onThemeChange?.(theme);
+          } catch (error) {
+            console.error(
+              `[GameObjectManager] Failed to notify theme change for component in GameObject "${gameObject.id}":`,
+              error
+            );
+          }
+        }
+      }
+    }
+
+    console.log(`🎨 [GameObjectManager] Notified ${this.gameObjects.size} GameObjects of theme change to "${theme}"`);
+  }
+
+  /**
    * Initialize all GameObjects
    * Called by scene when module is loaded
    * @internal
    */
-  protected async init(context: I_ModuleContext): Promise<void> {
+  protected async init(context: I_SceneContext): Promise<void> {
     this.context = context as I_GameContext;
 
     // Initialize all GameObjects

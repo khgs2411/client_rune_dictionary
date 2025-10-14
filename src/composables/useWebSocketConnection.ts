@@ -1,10 +1,12 @@
-import { computed } from 'vue';
-import { useWebSocket } from '@vueuse/core';
-import { useWebSocketStore, type I_ClientData } from '@/stores/websocket.store';
 import AuthAPI from '@/api/auth.api';
-import { useGameConfigStore } from '@/stores/gameConfig.store';
-import { useRxjs, WebsocketStructuredMessage } from 'topsyde-utils';
 import { I_DebugConsoleEvent } from '@/common/events.types';
+import { I_ClientData, I_ConnectedClientData } from '@/common/types';
+import { useGameConfigStore } from '@/stores/config.store';
+import { useSceneStore } from '@/stores/scene.store';
+import { useWebSocketStore } from '@/stores/websocket.store';
+import { useWebSocket } from '@vueuse/core';
+import { useRxjs, WebsocketStructuredMessage } from 'topsyde-utils';
+import { computed } from 'vue';
 
 export interface I_HandshakeCredentials {
   username: string;
@@ -12,58 +14,14 @@ export interface I_HandshakeCredentials {
   api_key: string;
 }
 
-const WS_HOST = import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:3000';
-
 export const useWebSocketConnection = () => {
-  const wsStore = useWebSocketStore();
+  const websocketManager = useWebSocketStore();
   const config = useGameConfigStore();
+  const scenes = useSceneStore();
+
   const rx = useRxjs(['debug', 'ws']);
-  const HEARTBEAT_INTERVAL = 5;
 
   // Hold the VueUse useWebSocket instance
-  let wsInstance: ReturnType<typeof useWebSocket> | null = null;
-
-  /**
-   * Establishes WebSocket connection with VueUse useWebSocket
-   * Configures auto-reconnect and heartbeat
-   */
-  function connection(clientData: I_ClientData) {
-    // Build WebSocket subprotocol: "{id}-{username}"
-    const protocol = `${clientData.id}-${clientData.name}`;
-
-    // Create WebSocket connection
-    wsInstance = useWebSocket(WS_HOST, {
-      protocols: [protocol],
-
-      // Auto-reconnect configuration
-      autoReconnect: {
-        retries: 3,
-        delay: 1000,
-        onFailed: () => {
-          wsStore.status = 'disconnected';
-          console.error('[WS] Auto-reconnect failed after retries');
-
-          emit({
-            type: 'system.reconnect.failed',
-            data: { attempts: 3 },
-          });
-        },
-      },
-
-      // Heartbeat (ping/pong)
-      heartbeat: {
-        interval: HEARTBEAT_INTERVAL * 1000,
-        pongTimeout: HEARTBEAT_INTERVAL * 1000,
-        message: 'ping',
-      },
-
-      // Event handlers
-      onConnected: handleConnected,
-      onDisconnected: handleDisconnected,
-      onMessage: handleMessage,
-      onError: handleError,
-    });
-  }
 
   /**
    * Establishes WebSocket connection with handshake authentication
@@ -71,39 +29,59 @@ export const useWebSocketConnection = () => {
    * 2. Connects to WebSocket with credentials in protocol header
    */
   async function connect(credentials: I_HandshakeCredentials) {
-    if (wsStore.isConnecting || wsStore.isConnected) {
+    if (websocketManager.isConnecting || websocketManager.isConnected) {
       console.warn('[WS] Already connected or connecting');
       return;
     }
 
     try {
       // Step 1: Handshake
-      wsStore.status = 'handshaking';
-      const clientData = await performHandshake(credentials);
+      websocketManager.status = 'handshaking';
+      const response = await performHandshake(credentials);
+      if (!response.scene) throw new Error('No scene provided by server');
+      console.log('[WS] Handshake successful:', response);
 
       // Step 2: Store client data
-      wsStore.setClientData(clientData);
+      const clientData: I_ClientData = { id: response.id, name: response.name };
+      const scene = response.scene;
+
+      websocketManager.setClientData(clientData);
+      scenes.setActiveScene(scene);
 
       // Step 3: Establish WebSocket connection
-      wsStore.status = 'connecting';
       connection(clientData);
+
+      // Step 4: Register event handlers
+      websocketManager.register('useWebsocketConnection', {
+        data: handleMessage,
+      })
+
     } catch (error) {
-      wsStore.status = 'disconnected';
-      wsStore.lastError = error;
+      websocketManager.status = 'disconnected';
+      websocketManager.lastError = error;
       console.error('[WS] Connection failed:', error);
       throw error;
     }
   }
 
   /**
+  * Establishes WebSocket connection with VueUse useWebSocket
+  * Configures auto-reconnect and heartbeat
+  */
+  function connection(clientData: I_ClientData) {
+    // Build WebSocket subprotocol: "{id}-{username}"
+    const protocol = `${clientData.id}-${clientData.name}`;
+
+    // Create WebSocket connection
+    websocketManager.connect(protocol);
+  }
+
+  /**
    * Closes WebSocket connection and resets state
    */
   function disconnect() {
-    if (wsInstance) {
-      wsInstance.close();
-      wsInstance = null;
-    }
-    wsStore.$reset();
+    websocketManager.disconnect();
+    websocketManager.$reset();
   }
 
   /**
@@ -111,7 +89,8 @@ export const useWebSocketConnection = () => {
    * Automatically stringifies objects
    */
   function send(message: any) {
-    if (!wsInstance || wsStore.status !== 'connected') {
+    const wsInstance = websocketManager.getWebSocketInstance();
+    if (!wsInstance || !websocketManager.isConnected) {
       throw new Error('WebSocket not connected');
     }
 
@@ -124,7 +103,7 @@ export const useWebSocketConnection = () => {
    * Performs handshake with server using AuthAPI
    * Returns client data (id, name) for WebSocket protocol
    */
-  async function performHandshake(credentials: I_HandshakeCredentials): Promise<I_ClientData> {
+  async function performHandshake(credentials: I_HandshakeCredentials): Promise<I_ConnectedClientData> {
     const api = new AuthAPI('api', import.meta.env.VITE_HOST);
     const handshakeRes = await api.handshake(
       credentials.username,
@@ -135,71 +114,43 @@ export const useWebSocketConnection = () => {
     return {
       id: handshakeRes.data.id,
       name: handshakeRes.data.name,
+      scene: handshakeRes.data.scene,
     };
   }
 
-  function handleConnected(_ws: WebSocket) {
-    wsStore.status = 'connected';
-    wsStore.connectedAt = new Date();
-    wsStore.reconnectAttempts = 0;
-
-    console.log('[WS] Connected successfully');
-
-    // Emit to debugger
-    emit({
-      type: 'system.connected',
-      data: { clientId: wsStore.clientData?.id, clientName: wsStore.clientData?.name },
-    });
-  }
-
-  function handleDisconnected(_ws: WebSocket, event: CloseEvent) {
-    wsStore.status = 'disconnected';
-    wsStore.disconnectedAt = new Date();
-
-    console.log('[WS] Disconnected', { code: event.code, reason: event.reason });
-
-    // Emit to debugger
-    emit({
-      type: 'system.disconnected',
-      data: { code: event.code, reason: event.reason },
-    });
-  }
-
-  function handleMessage(_ws: WebSocket, event: MessageEvent) {
+  function handleMessage(_ws: WebSocket, message: WebsocketStructuredMessage) {
     try {
-      const message: WebsocketStructuredMessage = JSON.parse(event.data);
 
-      // routeMessage(message);
-      emit({
-        type: message.type,
-        data: message.content,
-      });
+      if (message.type == 'message') {
+        // this will be in the chat soon
+        console.log('[WS] Chat message received:', message);
+        return
+      }
+
+      emit({ ...message, data: message.content });
+
     } catch (error) {
       console.error('[WS] Failed to parse message:', error);
     }
   }
 
-  function handleError(_ws: WebSocket, event: Event) {
-    console.error('[WS] Error:', event);
-    wsStore.lastError = event;
-
-    emit({
-      type: 'system.error',
-      data: event,
-    });
-  }
-
   /**
-   * Emits debug events to debug namespace for DebugConsole
-   * Only emits if debug console is enabled in config
-   */
+  * Emits debug events to debug namespace for DebugConsole
+  * Only emits if debug console is enabled in config
+  */
   function emit(event: Omit<I_DebugConsoleEvent, 'timestamp'>) {
     if (!config.debug.showWebSocketDebugger) return;
     rx.$next('debug', {
       cta: 'log',
       data: { ...event, timestamp: new Date().toLocaleTimeString() },
     });
+
+    if (event.type == 'scene') {
+      rx.$next('scene', { cta: event.type, data: event })
+    }
   }
+
+
 
   return {
     connect,
@@ -207,9 +158,10 @@ export const useWebSocketConnection = () => {
     send,
 
     // Reactive state from store (computed)
-    status: computed(() => wsStore.status),
-    isConnected: computed(() => wsStore.isConnected),
-    isConnecting: computed(() => wsStore.isConnecting),
-    clientData: computed(() => wsStore.clientData),
+    status: computed(() => websocketManager.status),
+    isConnected: computed(() => websocketManager.isConnected),
+    isConnecting: computed(() => websocketManager.isConnecting),
+    clientData: computed(() => websocketManager.clientData),
   };
 };
+
