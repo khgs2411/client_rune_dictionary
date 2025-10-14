@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 
 // Extract version from main.ts comment (auto-updated by deploy script)
 // Format: // @version: 0.6.8 - This comment is auto-updated by deploy script
-const VERSION = '0.6.9'; // This will be auto-updated by deploy script
+const VERSION = '0.6.10'; // This will be auto-updated by deploy script
 
 /**
  * Composable to manage cache-busting via URL query parameter
