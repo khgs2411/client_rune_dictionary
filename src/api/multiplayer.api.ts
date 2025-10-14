@@ -11,7 +11,6 @@ export default class MultiplayerAPI extends BaseAPI {
 
     public async getPlayersInScene(id: string) {
         const response = await this.post<{ status: boolean; data:{message: string, playersInScene: I_PlayerInScene[]} }>('state', { id });
-        console.log(response);
         BaseAPI.Status(response);
         return response.data;
     }

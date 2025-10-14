@@ -78,9 +78,6 @@ export class LocalPlayer extends GameObject {
     //   config.characterController.setPosition(startPos[0], startPos[1], startPos[2]);
     // }
 
-    console.log(
-      `[LocalPlayer] Spawning at (${startPos[0].toFixed(1)}, ${startPos[1].toFixed(1)}, ${startPos[2].toFixed(1)})`,
-    );
 
     // Add CharacterMeshComponent (two-part visual: body + cone)
     this.addComponent(

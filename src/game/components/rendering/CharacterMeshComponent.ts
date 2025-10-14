@@ -73,10 +73,6 @@ export class CharacterMeshComponent extends GameComponent {
 
     // Register for cleanup
     context.cleanupRegistry.registerObject(this.group);
-
-    console.log(
-      `[CharacterMeshComponent] Initialized for GameObject "${this.gameObject.id}" at position (${this.group.position.x.toFixed(1)}, ${this.group.position.y.toFixed(1)}, ${this.group.position.z.toFixed(1)})`,
-    );
   }
 
   private buildBody(): void {

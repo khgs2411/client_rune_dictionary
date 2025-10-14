@@ -149,9 +149,6 @@ export class PhysicsComponent extends GameComponent {
       },
     );
 
-    console.log(
-      `[PhysicsComponent] Registered kinematic character controller for "${this.gameObject.id}" at (${initialPos[0]}, ${initialPos[1]}, ${initialPos[2]})`,
-    );
   }
 
   /**

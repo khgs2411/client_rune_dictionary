@@ -28,7 +28,7 @@ export function useCharacterMovement(): CharacterMovement {
 
   // Position and rotation
   const playerX = ref(0);
-  const playerY = ref(30); // Spawn height - prevents falling through ground on init
+  const playerY = ref(5); // Spawn height - prevents falling through ground on init
   const playerZ = ref(0);
   const playerRotation = ref(0);
 

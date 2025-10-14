@@ -72,8 +72,6 @@ export class MovementComponent extends GameComponent {
         `[MovementComponent] Physics body not found for GameObject "${this.gameObject.id}". Did you add PhysicsComponent with kinematic character controller?`,
       );
     }
-
-    console.log(`[MovementComponent] Initialized for GameObject "${this.gameObject.id}"`);
   }
 
   update(delta: number): void {

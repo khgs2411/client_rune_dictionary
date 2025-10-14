@@ -17,7 +17,7 @@ export interface I_HandshakeCredentials {
 const WS_HOST = import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:3000';
 
 export const useWebSocketConnection = () => {
-  const wsStore = useWebSocketStore();
+  const websocketManager = useWebSocketStore();
   const config = useGameConfigStore();
   const scenes = useSceneStore();
 
@@ -25,7 +25,6 @@ export const useWebSocketConnection = () => {
   const HEARTBEAT_INTERVAL = 30;
 
   // Hold the VueUse useWebSocket instance
-  let wsInstance: ReturnType<typeof useWebSocket> | null = null;
 
 
 
@@ -35,14 +34,14 @@ export const useWebSocketConnection = () => {
    * 2. Connects to WebSocket with credentials in protocol header
    */
   async function connect(credentials: I_HandshakeCredentials) {
-    if (wsStore.isConnecting || wsStore.isConnected) {
+    if (websocketManager.isConnecting || websocketManager.isConnected) {
       console.warn('[WS] Already connected or connecting');
       return;
     }
 
     try {
       // Step 1: Handshake
-      wsStore.status = 'handshaking';
+      websocketManager.status = 'handshaking';
       const response = await performHandshake(credentials);
       if (!response.scene) throw new Error('No scene provided by server');
       console.log('[WS] Handshake successful:', response);
@@ -51,15 +50,15 @@ export const useWebSocketConnection = () => {
       const clientData: I_ClientData = { id: response.id, name: response.name };
       const scene = response.scene;
 
-      wsStore.setClientData(clientData);
+      websocketManager.setClientData(clientData);
       scenes.setActiveScene(scene);
 
       // Step 3: Establish WebSocket connection
-      wsStore.status = 'connecting';
+      websocketManager.status = 'connecting';
       connection(clientData);
     } catch (error) {
-      wsStore.status = 'disconnected';
-      wsStore.lastError = error;
+      websocketManager.status = 'disconnected';
+      websocketManager.lastError = error;
       console.error('[WS] Connection failed:', error);
       throw error;
     }
@@ -73,6 +72,7 @@ export const useWebSocketConnection = () => {
     // Build WebSocket subprotocol: "{id}-{username}"
     const protocol = `${clientData.id}-${clientData.name}`;
 
+    let wsInstance: ReturnType<typeof useWebSocket<WebsocketStructuredMessage>> | null = null;
     // Create WebSocket connection
     wsInstance = useWebSocket(WS_HOST, {
       protocols: [protocol],
@@ -82,7 +82,7 @@ export const useWebSocketConnection = () => {
         retries: 3,
         delay: 2000,
         onFailed: () => {
-          wsStore.status = 'disconnected';
+          websocketManager.status = 'disconnected';
           console.error('[WS] Auto-reconnect failed after retries');
 
           emit({
@@ -105,18 +105,19 @@ export const useWebSocketConnection = () => {
       onMessage: handleMessage,
       onError: handleError,
     });
-
+    websocketManager.setWebSocketInstance(wsInstance);
   }
 
   /**
    * Closes WebSocket connection and resets state
    */
   function disconnect() {
+    const wsInstance = websocketManager.getWebSocketInstance();
     if (wsInstance) {
       wsInstance.close();
-      wsInstance = null;
+      websocketManager.setWebSocketInstance(null);
     }
-    wsStore.$reset();
+    websocketManager.$reset();
   }
 
   /**
@@ -124,7 +125,8 @@ export const useWebSocketConnection = () => {
    * Automatically stringifies objects
    */
   function send(message: any) {
-    if (!wsInstance || wsStore.status !== 'connected') {
+    const wsInstance = websocketManager.getWebSocketInstance();
+    if (!wsInstance || websocketManager.status !== 'connected') {
       throw new Error('WebSocket not connected');
     }
 
@@ -153,15 +155,15 @@ export const useWebSocketConnection = () => {
   }
 
   function handleConnected(_ws: WebSocket) {
-    wsStore.status = 'connected';
-    wsStore.connectedAt = new Date();
-    wsStore.reconnectAttempts = 0;
+    websocketManager.status = 'connected';
+    websocketManager.connectedAt = new Date();
+    websocketManager.reconnectAttempts = 0;
     console.log('[WS] Connected successfully');
   }
 
   function handleDisconnected(_ws: WebSocket, event: CloseEvent) {
-    wsStore.status = 'disconnected';
-    wsStore.disconnectedAt = new Date();
+    websocketManager.status = 'disconnected';
+    websocketManager.disconnectedAt = new Date();
 
     console.log('[WS] Disconnected', { code: event.code, reason: event.reason });
 
@@ -207,7 +209,7 @@ export const useWebSocketConnection = () => {
 
   function handleError(_ws: WebSocket, event: Event) {
     console.error('[WS] Error:', event);
-    wsStore.lastError = event;
+    websocketManager.lastError = event;
 
     emit({
       type: 'system.error',
@@ -222,10 +224,10 @@ export const useWebSocketConnection = () => {
     send,
 
     // Reactive state from store (computed)
-    status: computed(() => wsStore.status),
-    isConnected: computed(() => wsStore.isConnected),
-    isConnecting: computed(() => wsStore.isConnecting),
-    clientData: computed(() => wsStore.clientData),
+    status: computed(() => websocketManager.status),
+    isConnected: computed(() => websocketManager.isConnected),
+    isConnecting: computed(() => websocketManager.isConnecting),
+    clientData: computed(() => websocketManager.clientData),
   };
 };
 
