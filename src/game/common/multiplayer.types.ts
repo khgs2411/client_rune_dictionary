@@ -13,6 +13,7 @@ import { RemotePlayer } from '../prefabs/character/RemotePlayer';
 export interface I_PlayerPositionUpdate {
   playerId: string;
   playerName: string;
+  playerSceneId: string;
   position: {
     x: number;
     y: number;

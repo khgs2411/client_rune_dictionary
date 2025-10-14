@@ -57,6 +57,20 @@ export default class NetworkingService extends SceneService implements I_SceneSe
     console.log('[NetworkingService] Initialized');
   }
 
+  public send(category: E_NetworkEventCategory, content: any): void {
+    //verify category matches message type prefix
+    if (!this.websocketManager.clientData) {
+      throw new Error('Cannot send message: clientData is missing');
+    }
+    const ws = this.websocketManager.getWebSocketInstance()
+    const wsm: WebsocketStructuredMessage = {
+      type: 'multiplayer',
+      content: { category, ...content },
+      client: { id: this.websocketManager.clientData?.id, name: this.websocketManager.clientData?.name },
+    }
+    ws?.send(JSON.stringify(wsm));
+  }
+
   /**
    * Initialize service and register with WebSocket store
    */
@@ -213,5 +227,9 @@ export default class NetworkingService extends SceneService implements I_SceneSe
    */
   public isRegistered(source: string): boolean {
     return this.registry.has(source);
+  }
+
+  public getClientData() {
+    return this.websocketManager.clientData;
   }
 }

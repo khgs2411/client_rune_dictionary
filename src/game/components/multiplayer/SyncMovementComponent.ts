@@ -5,6 +5,7 @@ import type {
   I_PlayerPositionUpdate,
 } from '@/game/common/multiplayer.types';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
+import { E_NetworkEventCategory } from '@/game/services/NetworkingService';
 import { Vector3 } from 'three';
 
 /**
@@ -43,7 +44,7 @@ export class SyncMovementComponent extends GameComponent {
   // Internal state
   private timeSinceLastSync = 0;
   private lastSyncedPosition = new Vector3();
-  private lastSyncedRotation = new Vector3();
+  private lastSyncedRotation = { x: 0, y: 0, z: 0 };
   private context: I_GameContext | null = null;
 
   constructor(config: I_SyncMovementConfig & { playerId: string }) {
@@ -116,42 +117,57 @@ export class SyncMovementComponent extends GameComponent {
     // Check if rotation changed significantly (if syncing rotation)
     const rotationChanged =
       this.syncRotation &&
-      currentPos.distanceTo(this.lastSyncedRotation) >= this.rotationThreshold;
+      (Math.abs(currentRot.x - this.lastSyncedRotation.x) >= this.rotationThreshold ||
+        Math.abs(currentRot.y - this.lastSyncedRotation.y) >= this.rotationThreshold ||
+        Math.abs(currentRot.z - this.lastSyncedRotation.z) >= this.rotationThreshold);
+
 
     // Skip if no significant change
-    if (!positionChanged && !rotationChanged) {
-      return;
-    }
+    if (positionChanged || rotationChanged) {
+      const clientData = this.context.services.networking.getClientData();
+      if (!clientData) return;
+      // Build update message
+      const update: I_PlayerPositionUpdate = {
+        playerId: clientData.id,
+        playerName: clientData.name,
+        playerSceneId: this.context.sceneName,
+        position: {
+          x: currentPos.x,
+          y: currentPos.y,
+          z: currentPos.z,
+        },
+        timestamp: Date.now(),
+      };
 
-    // Build update message
-    const update: I_PlayerPositionUpdate = {
-      playerId: this.playerId,
-      playerName: 'Player',
-      position: {
-        x: currentPos.x,
-        y: currentPos.y,
-        z: currentPos.z,
-      },
-      timestamp: Date.now(),
+      // Add rotation if enabled
+      if (this.syncRotation) {
+        update.rotation = {
+          x: currentRot.x,
+          y: currentRot.y,
+          z: currentRot.z,
+        };
+      }
+
+      // Send via MultiplayerService
+      this.sendPositionUpdate(update);
+
+      // Update last synced values
+      this.lastSyncedPosition.copy(currentPos);
+      if (this.syncRotation) {
+        this.lastSyncedRotation = { x: currentRot.x, y: currentRot.y, z: currentRot.z };
+      }
+    }
+  }
+
+  private sendPositionUpdate(update: I_PlayerPositionUpdate): void {
+    if (!this.context?.services.networking) return;
+
+    const message = {
+      action: 'player.position.update',
+      ...update,
     };
 
-    // Add rotation if enabled
-    if (this.syncRotation) {
-      update.rotation = {
-        x: currentRot.x,
-        y: currentRot.y,
-        z: currentRot.z,
-      };
-    }
-
-    // Send via MultiplayerService
-    // this.context.multiplayer.sendPositionUpdate(update);
-
-    // Update last synced values
-    this.lastSyncedPosition.copy(currentPos);
-    if (this.syncRotation) {
-      this.lastSyncedRotation.copy(currentRot);
-    }
+    this.context.services.networking.send(E_NetworkEventCategory.PLAYER, message);
   }
 
   /**

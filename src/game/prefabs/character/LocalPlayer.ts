@@ -4,6 +4,7 @@ import { TransformComponent } from '@/game/components/rendering/TransformCompone
 import { PhysicsComponent } from '@/game/components/interactions/PhysicsComponent';
 import { MovementComponent } from '@/game/components/systems/MovementComponent';
 import type { I_CharacterControls } from '@/composables/composables.types';
+import { SyncMovementComponent } from '@/game/components/multiplayer';
 
 /**
  * Configuration for LocalPlayer prefab
@@ -117,7 +118,7 @@ export class LocalPlayer extends GameObject {
     );
 
     // SyncMovementComponent will be added later when networking is ready
-    // this.addComponent(new SyncMovementComponent({ ... }));
+    this.addComponent(new SyncMovementComponent({ playerId: this.id }));
   }
 
   /**

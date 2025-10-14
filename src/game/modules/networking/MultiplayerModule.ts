@@ -1,9 +1,11 @@
 import MultiplayerAPI from '@/api/multiplayer.api';
+import { PositionVector3 } from '@/common/types';
 import type {
   I_MultiplayerHandler,
   I_PlayerPositionUpdate,
 } from '@/game/common/multiplayer.types';
 import type { I_SceneContext, I_SceneModule } from '@/game/common/scenes.types';
+import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 import { GameObjectsModule } from '@/game/modules/scene/GameObjectsModule';
 import SceneModule from '@/game/modules/SceneModule';
 import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
@@ -28,7 +30,7 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     console.log('🌐 [MultiplayerModule] Starting...');
     // Test API connection
     try {
-      await this.getRemotePlayers(context);
+      await this.fetchRemotePlayers(context);
       this.registerWithNetworkingService();
 
       console.log('✅ [MultiplayerModule] Started');
@@ -44,10 +46,7 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     })
   }
 
-
-
-  private async getRemotePlayers(context: I_SceneContext) {
-
+  private async fetchRemotePlayers(context: I_SceneContext) {
     const api = new MultiplayerAPI();
     if (!context.clientData || !context.clientData.id) {
       throw new Error('Client data missing or invalid');
@@ -73,7 +72,9 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
         this.onSceneLeft(message);
         break;
       }
-
+      case 'scene.player.position':
+        this.onPlayerPositionUpdate(message as WebsocketStructuredMessage<{ playerId: string, position: PositionVector3, timestamp: number }>);
+        break;
     }
   }
 
@@ -98,6 +99,16 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     this.gameObjectManager.add(remotePlayer, true);
   }
 
+  private onPlayerPositionUpdate(message: WebsocketStructuredMessage<{ playerId: string, position: PositionVector3, timestamp: number }>) {
+    console.log('[MultiplayerModule] Player position update:', message);
+    const player = this.remotePlayers.get(message.content.playerId);
+    if (player) {
+      const transform = player.getComponent(TransformComponent);
+      if (transform) {
+        transform.position.set(message.content.position.x, message.content.position.y, message.content.position.z);
+      }
+    }
+  }
 
   /**
    * Cleanup subscriptions and clear registrations
