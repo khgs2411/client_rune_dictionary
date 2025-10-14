@@ -447,7 +447,7 @@ compose/                     # Deployment scripts
 #### Environment Variables
 
 - `VITE_API_KEY`: Authentication API key
-- `VITE_WS_HOST`: WebSocket server host (defaults to wss://topsyde-gaming.duckdns.org:3000)
+- `VITE_WS_HOST`: WebSocket server host (defaults to wss://topsyde-gaming.duckdns.org:443)
 - `VITE_HOST`: REST API base URL
 - Development server runs on port 8080
 
