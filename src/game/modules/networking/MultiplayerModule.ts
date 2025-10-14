@@ -66,40 +66,38 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
   private handleSceneUpdates(message: WebsocketStructuredMessage) {
     switch (message.type) {
       case 'scene.joined': {
-        const data = (message as WebsocketStructuredMessage<{
-          id: string;
-          username: string;
-          position: [number, number, number];
-          raw?: { position: { x: number; y: number; z: number }; rotation?: { x: number; y: number; z: number } };
-        }>).content;
-        console.log('[MultiplayerModule] Player joined:', message.content);
-
-        const remotePlayer = new RemotePlayer({ playerId: data.id, username: data.username || "Remote Player", position: data.position });
-
-        this.registerRemotePlayer(remotePlayer.id, remotePlayer);
-        this.gameObjectManager.add(remotePlayer, true);
+        this.onSceneJoined(message);
         break;
       }
       case 'scene.left': {
-        const data = (message as WebsocketStructuredMessage<{ playerId: string }>).content
-        const playerId = data.playerId;
-        this.remotePlayers.delete(playerId);
-        this.gameObjectManager.remove(playerId);
-        // const remotePlayer = this.remotePlayers.get(message.content.playerId);
-        console.log('[MultiplayerModule] Player left:', data.playerId);
+        this.onSceneLeft(message);
         break;
       }
 
     }
   }
 
-  /**
-   * No per-frame updates needed
-   */
-  public update(_delta: number): void {
-    // Service doesn't need frame update
-    // Components handle their own timing
+  private onSceneLeft(message: WebsocketStructuredMessage) {
+    const data = (message as WebsocketStructuredMessage<{ playerId: string; }>).content;
+    const playerId = data.playerId;
+    this.unregisterRemotePlayer(playerId);
+    console.log('[MultiplayerModule] Player left:', data.playerId);
   }
+
+  private onSceneJoined(message: WebsocketStructuredMessage) {
+    const data = (message as WebsocketStructuredMessage<{
+      id: string;
+      username: string;
+      position: [number, number, number];
+      raw?: { position: { x: number; y: number; z: number; }; rotation?: { x: number; y: number; z: number; }; };
+    }>).content;
+    console.log('[MultiplayerModule] Player joined:', message.content);
+
+    const remotePlayer = new RemotePlayer({ playerId: data.id, username: data.username || "Remote Player", position: data.position });
+    this.registerRemotePlayer(remotePlayer.id, remotePlayer);
+    this.gameObjectManager.add(remotePlayer, true);
+  }
+
 
   /**
    * Cleanup subscriptions and clear registrations
@@ -108,12 +106,7 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     // Unsubscribe from RxJS
     // Clear registrations
     this.remotePlayers.forEach((_, playerId) => {
-      const remotePLayer = this.remotePlayers.get(playerId);
-      if (remotePLayer) {
-        console.log(`[MultiplayerModule] Cleaning up remote player: ${remotePLayer.id}`);
-        remotePLayer.destroy();
-      }
-      this.gameObjectManager.remove(playerId);
+      this.unregisterRemotePlayer(playerId);
     });
     this.remotePlayers.clear();
     console.log('🧹 [MultiplayerModule] Destroyed');
@@ -141,7 +134,9 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
    * Unregister remote player
    */
   public unregisterRemotePlayer(playerId: string): void {
-    if (this.remotePlayers.delete(playerId)) {
+    if (this.remotePlayers.has(playerId)) {
+      this.gameObjectManager.remove(playerId);
+      this.remotePlayers.delete(playerId);
       console.log(`👤 [MultiplayerModule] Unregistered remote player: ${playerId}`);
     }
   }

@@ -76,8 +76,8 @@ export class CharacterMeshComponent extends GameComponent {
     // Add to scene
     context.scene.add(this.group);
 
-    // Register for cleanup
-    context.cleanupRegistry.registerObject(this.group);
+    // Register for automatic cleanup (handles scene removal + disposal)
+    this.cleanup.registerObject(this.group);
   }
 
   update(delta: number): void {
@@ -139,21 +139,7 @@ export class CharacterMeshComponent extends GameComponent {
     this.coneMaterial.color.setHex(theme.accent);
   }
 
-  destroy(): void {
-    //remove objects from scene
-    if (this.group.parent) {
-      this.group.parent.remove(this.group);
-    }
-    // Dispose geometries and materials
-    this.bodyMesh.geometry.dispose();
-    this.bodyMaterial.dispose();
-    this.group.children.forEach((child) => {
-      if (child instanceof Mesh) {
-        child.geometry.dispose();
-        if (child.material instanceof MeshStandardMaterial) {
-          child.material.dispose();
-        }
-      }
-    });
-  }
+  // No destroy() needed! CleanupRegistry handles it automatically
+  // The base GameComponent.destroy() will call this.cleanup.cleanup(scene)
+  // which removes from scene and recursively disposes all geometries/materials
 }
