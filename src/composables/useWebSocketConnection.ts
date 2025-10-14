@@ -1,6 +1,7 @@
 import AuthAPI from '@/api/auth.api';
 import { I_DebugConsoleEvent } from '@/common/events.types';
 import { I_ClientData, I_ConnectedClientData } from '@/common/types';
+import { useAuthStore } from '@/stores/auth.store';
 import { useGameConfigStore } from '@/stores/config.store';
 import { useSceneStore } from '@/stores/scene.store';
 import { useWebSocketStore } from '@/stores/websocket.store';
@@ -18,7 +19,7 @@ export const useWebSocketConnection = () => {
   const websocketManager = useWebSocketStore();
   const config = useGameConfigStore();
   const scenes = useSceneStore();
-
+  const auth = useAuthStore();
   const rx = useRxjs(['debug', 'ws']);
 
   // Hold the VueUse useWebSocket instance
@@ -28,11 +29,18 @@ export const useWebSocketConnection = () => {
    * 1. Performs handshake to get client credentials
    * 2. Connects to WebSocket with credentials in protocol header
    */
-  async function connect(credentials: I_HandshakeCredentials) {
+  async function connect() {
     if (websocketManager.isConnecting || websocketManager.isConnected) {
       console.warn('[WS] Already connected or connecting');
       return;
     }
+
+    // Build credentials from auth store
+    const credentials: I_HandshakeCredentials = {
+      username: auth.username || '',
+      password: auth.password || '',
+      api_key: import.meta.env.VITE_API_KEY,
+    };
 
     try {
       // Step 1: Handshake
@@ -50,11 +58,6 @@ export const useWebSocketConnection = () => {
 
       // Step 3: Establish WebSocket connection
       connection(clientData);
-
-      // Step 4: Register event handlers
-      websocketManager.register('useWebsocketConnection', {
-        data: handleMessage,
-      })
 
     } catch (error) {
       websocketManager.status = 'disconnected';
@@ -74,6 +77,13 @@ export const useWebSocketConnection = () => {
 
     // Create WebSocket connection
     websocketManager.connect(protocol);
+  }
+
+  function register() {
+    // Step 4: Register event handlers
+    websocketManager.register('useWebsocketConnection', {
+      data: handleMessage,
+    })
   }
 
   /**
@@ -154,6 +164,7 @@ export const useWebSocketConnection = () => {
 
   return {
     connect,
+    register,
     disconnect,
     send,
 

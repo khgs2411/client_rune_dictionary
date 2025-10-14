@@ -1,166 +1,39 @@
 <template>
-  <div class="game-container">
-
-
-    <!-- Loading Screen -->
-    <LoadingScreen>></LoadingScreen>
-
-    <!-- Editor Panel (shows when editor mode is enabled) -->
-    <EditorPanel v-if="auth.isAuthenticated" />
-
-    <!-- Game Canvas (Interactions now rendered in Three.js!) -->
-    <canvas ref="canvasRef" class="three-canvas"></canvas>
-  </div>
+    <div class="game">
+        <template v-if="auth.isAuthenticated">
+            <!-- Application Console Debugger -->
+            <DebugConsole />
+            <!-- WebSocket Manager with Connect Modal -->
+            <WebSocketManager v-if="auth.isAuthenticated" :auto-connect="false" />
+        </template>
+        <!-- Scene Component (only shows when connected) -->
+        <Scene v-if="websocketManager.isConnected" />
+    </div>
 </template>
 
-<script setup lang="ts">
-  import { Engine } from '@/game/Engine';
-  import { PlaygroundScene } from '@/scenes/PlaygroundScene';
-  import { I_GameScene, I_SceneConfig } from '@/game/common/scenes.types';
-  import LoadingScreen from '@/components/LoadingScreen.vue';
-  import EditorPanel from '@/components/EditorPanel.vue';
-  import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
-  import { computed, ref, watch } from 'vue';
-  import { useSceneStore } from '@/stores/scene.store';
-  import { useAuthStore } from '@/stores/auth.store';
+<script lang='ts' setup>
+    import DebugConsole from '@/components/DebugConsole.vue';
+    import WebSocketManager from '@/components/WebSocketManager.vue';
+    import { useAuthStore } from '@/stores/auth.store';
+    import { useWebSocketStore } from '@/stores/websocket.store';
+    import { watch } from 'vue';
+    import { useRouter } from 'vue-router';
+    import Scene from './Scene.vue';
 
-  const canvasRef = ref<HTMLCanvasElement | null>(null);
-  const auth = useAuthStore();
-  const scenes = useSceneStore();
+    const auth = useAuthStore();
+    const websocketManager = useWebSocketStore();
+    // const isDev = import.meta.env.DEV;
+    const router = useRouter();
 
 
-  let engine: Engine | null = null;
-  let currentScene: I_GameScene | null = null;
-  const sceneReady = computed(() => {
-    return !!currentScene && !!scenes.getActiveScene()
-  })
+    watch(() => auth.isAuthenticated, (newVal) => {
+        if (!newVal) {
+            console.log('User logged out, disconnecting WebSocket');
+            websocketManager.disconnect();
+            router.push('/login');
+        }
+    }, { immediate: true });
 
-  // VueUse: Auto-reactive window size
-  const { width, height } = useWindowSize();
-
-  function start() {
-    try {
-      if (!canvasRef.value) return;
-
-      // Prevent double initialization
-      if (engine || currentScene) {
-        console.warn('⚠️ [Game] Already initialized, skipping...');
-        return;
-      }
-
-      console.log('🎮 [Game] Initializing game...');
-
-      // Create engine
-      engine = new Engine(canvasRef.value);
-      console.log('   ↳ Scene UUID:', engine.scene.uuid);
-
-      // Create and load playground scene
-      // LoadingScreen.vue (mounted first) listens to events emitted by the scene
-      setCurrentScene();
-
-      // Start render loop
-      resumeRenderLoop();
-
-      console.log('✅ [Game] Game initialization complete');
-    } catch (error) {
-      console.error('❌ [Game] Error during initialization:', error);
-    }
-  }
-
-  function render() {
-    if (!engine || !currentScene) return;
-
-    const delta = engine.clock.getDelta();
-
-    // Update scene
-    currentScene.update(delta);
-
-    // Render
-    engine.render(currentScene.camera.instance);
-  }
-
-  async function destroy() {
-    console.log('🧹 [Game] Starting cleanup...');
-
-    // Pause render loop
-    console.log('   ↳ Pausing render loop...');
-    pauseRenderLoop();
-
-    // Cleanup playground scene (await to ensure physics is fully cleaned up)
-    await cleanupGame();
-
-    console.log('✅ [Game] Cleanup complete');
-  }
-
-  async function cleanupGame() {
-    if (currentScene) {
-      console.log('   ↳ Destroying scene...');
-      await currentScene.destroy(); // Wait for physics cleanup!
-      currentScene = null;
-    }
-
-    // Cleanup engine
-    if (engine) {
-      console.log('   ↳ Cleaning up engine...');
-      engine.cleanup();
-      engine = null;
-    }
-  }
-
-  function setCurrentScene() {
-    if (!engine) return;
-    const activeScene = scenes.getActiveScene();
-    if (!activeScene) {
-      throw new Error('No active scene set in store');
-    }
-    if (activeScene === 'PlaygroundScene') {
-      const config: I_SceneConfig = { engine };
-      currentScene = new PlaygroundScene(config);
-    }
-  }
-
-  function tryOnReload(cb: Function) {
-    if (import.meta.hot) {
-      import.meta.hot.dispose(() => {
-        console.log('🔥 [Game] Hot Module Replacement detected');
-        cb();
-      });
-    }
-  }
-
-  // VueUse: Animation frame loop
-  const { pause: pauseRenderLoop, resume: resumeRenderLoop } = useRafFn(render, {
-    // Don't start immediately
-    immediate: false,
-    fpsLimit: undefined,
-  });
-
-  // Watch window size changes and resize engine
-  watch([width, height], () => {
-    if (engine) {
-      engine.resize();
-    }
-  });
-
-  // VueUse: Safe lifecycle hooks
-  tryOnMounted(start);
-  tryOnUnmounted(destroy);
-
-  // Handle hot module replacement (HMR) cleanup
-  tryOnReload(destroy);
 </script>
 
-<style scoped>
-  .game-container {
-    width: 100%;
-    height: 100%;
-    position: relative;
-  }
-
-  .three-canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-    outline: none;
-  }
-</style>
+<style lang="scss" scoped></style>

@@ -12,6 +12,13 @@ const routes = [
         path: 'game',
         name: 'game',
         component: () => import('../views/Game.vue'),
+        children: [
+          {
+            path: 'scene',
+            name: 'scene',
+            component: () => import('../views/Scene.vue'),
+          }
+        ]
       },
     ],
   },
