@@ -1,5 +1,14 @@
 <template>
-  <!-- Connect Modal (Shows when not connected and autoConnect is false) -->
+  <!-- Diagnostic Modal (Auto-runs on mount, handles everything) -->
+  <ConnectionDiagnosticModal
+    v-if="auth.isAuthenticated && !wsStore.isConnected"
+    :ws-url="wsUrl"
+    :protocol="protocol"
+    @connection-success="handleDiagnosticSuccess"
+    @connection-failed="handleDiagnosticFailed"
+  />
+
+  <!-- Connect Modal (Shows only after diagnostic succeeds) -->
   <Teleport to="body">
     <Transition name="fade">
       <div v-if="showConnectModal" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
@@ -46,16 +55,6 @@
       </div>
     </Transition>
   </Teleport>
-
-  <!-- Diagnostic Modal (Shows after 2 failed connection attempts) -->
-  <ConnectionDiagnosticModal
-    :visible="showDiagnosticModal"
-    :ws-url="wsUrl"
-    :protocol="wsStore.clientData ? `${wsStore.clientData.id}-${wsStore.clientData.name}` : undefined"
-    @retry="handleDiagnosticRetry"
-    @close="handleDiagnosticClose"
-    @update:visible="showDiagnosticModal = $event"
-  />
 </template>
 
 <script setup lang="ts">
@@ -83,18 +82,30 @@ const wsStore = useWebSocketStore();
 const ws$ = useWebSocketConnection();
 const isConnecting = ref(false);
 const errorMessage = ref('');
-const showDiagnosticModal = ref(false);
-const connectionAttempts = ref(0);
+const showConnectModal = ref(false);
+const diagnosticPassed = ref(false);
 
 // WebSocket URL from environment
 const wsUrl = computed(() => import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:3000');
 
-// Show modal when:
-// 1. User is authenticated
-// 2. Not connected
-const showConnectModal = computed(() => {
-  return auth.isAuthenticated && !wsStore.isConnected;
-});
+// Protocol string for WebSocket authentication
+const protocol = computed(() =>
+  wsStore.clientData ? `${wsStore.clientData.id}-${wsStore.clientData.name}` : undefined
+);
+
+// Handle diagnostic success - show connect modal
+function handleDiagnosticSuccess() {
+  console.log('[WebSocketManager] Diagnostic passed, showing connect modal');
+  diagnosticPassed.value = true;
+  showConnectModal.value = true;
+}
+
+// Handle diagnostic failure - user sees diagnostic modal
+function handleDiagnosticFailed() {
+  console.log('[WebSocketManager] Diagnostic failed, user will see troubleshooting');
+  diagnosticPassed.value = false;
+  showConnectModal.value = false;
+}
 
 async function handleConnect() {
   if (!auth.isAuthenticated) {
@@ -104,7 +115,6 @@ async function handleConnect() {
 
   isConnecting.value = true;
   errorMessage.value = '';
-  connectionAttempts.value++;
 
   try {
     console.log('[WebSocketManager] Connecting to WebSocket...');
@@ -114,31 +124,13 @@ async function handleConnect() {
     ws$.register();
 
     console.log('✅ [WebSocketManager] Connected successfully!');
-    connectionAttempts.value = 0; // Reset on success
+    showConnectModal.value = false; // Hide modal on success
   } catch (error: any) {
     console.error('❌ [WebSocketManager] Connection failed:', error);
     errorMessage.value = error?.message || 'Failed to connect. Please try again.';
-
-    // Show diagnostic modal after 2 failed attempts
-    if (connectionAttempts.value >= 2) {
-      console.warn('[WebSocketManager] Multiple connection failures, showing diagnostic modal');
-      showDiagnosticModal.value = true;
-    }
   } finally {
     isConnecting.value = false;
   }
-}
-
-function handleDiagnosticRetry() {
-  console.log('[WebSocketManager] Retrying connection from diagnostic modal...');
-  showDiagnosticModal.value = false;
-  connectionAttempts.value = 0; // Reset attempts
-  handleConnect();
-}
-
-function handleDiagnosticClose() {
-  console.log('[WebSocketManager] Diagnostic modal closed');
-  showDiagnosticModal.value = false;
 }
 
 function disconnect() {

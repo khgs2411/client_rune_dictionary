@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition name="fade">
-      <div v-if="isVisible" class="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4">
+      <div v-if="showModal" class="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4">
         <div class="w-full max-w-2xl animate-in zoom-in-95 duration-200">
           <div class="rounded-lg border border-border bg-card p-6 shadow-2xl space-y-4">
             <!-- Header -->
@@ -120,54 +120,54 @@
 
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
-import { useConnectionDiagnostics, type DiagnosticResults } from '@/composables/useConnectionDiagnostics';
-import { ref, watch } from 'vue';
+import { useConnectionDiagnostics } from '@/composables/useConnectionDiagnostics';
+import { onMounted, ref } from 'vue';
 
 interface Props {
-  visible: boolean;
   wsUrl?: string;
   protocol?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  visible: false,
   wsUrl: undefined,
   protocol: undefined,
 });
 
 const emit = defineEmits<{
-  'update:visible': [value: boolean];
-  retry: [];
-  close: [];
+  connectionSuccess: [];
+  connectionFailed: [];
 }>();
 
 const diagnostics = useConnectionDiagnostics();
+const showModal = ref(false);
 const canClose = ref(false);
 const remainingTime = ref(10);
 let countdownTimer: ReturnType<typeof setInterval> | null = null;
 
-const isVisible = ref(props.visible);
 const loading = diagnostics.loading;
 const results = diagnostics.results;
-
-// Watch for visibility changes
-watch(() => props.visible, (newVal) => {
-  isVisible.value = newVal;
-  if (newVal) {
-    runDiagnostics();
-  }
-});
 
 async function runDiagnostics() {
   canClose.value = false;
   remainingTime.value = 10;
 
-  await diagnostics.runDiagnostics({
+  const result = await diagnostics.runDiagnostics({
     wsUrl: props.wsUrl,
     protocol: props.protocol,
   });
 
-  startCountdown();
+  // If connection succeeded, emit success and don't show modal
+  if (result.webSocket.success) {
+    console.log('[ConnectionDiagnostic] Connection successful, emitting success');
+    emit('connectionSuccess');
+    showModal.value = false;
+  } else {
+    // Connection failed, show modal with diagnostics
+    console.log('[ConnectionDiagnostic] Connection failed, showing diagnostic modal');
+    emit('connectionFailed');
+    showModal.value = true;
+    startCountdown();
+  }
 }
 
 function startCountdown() {
@@ -187,7 +187,8 @@ function startCountdown() {
 }
 
 function handleRetry() {
-  emit('retry');
+  console.log('[ConnectionDiagnostic] Retrying connection...');
+  showModal.value = false; // Hide modal temporarily
   runDiagnostics();
 }
 
@@ -195,10 +196,14 @@ function handleClose() {
   if (countdownTimer) {
     clearInterval(countdownTimer);
   }
-  isVisible.value = false;
-  emit('update:visible', false);
-  emit('close');
+  showModal.value = false;
 }
+
+// Auto-run diagnostics on mount
+onMounted(() => {
+  console.log('[ConnectionDiagnostic] Component mounted, running diagnostics...');
+  runDiagnostics();
+});
 </script>
 
 <style scoped>
