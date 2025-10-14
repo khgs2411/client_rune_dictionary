@@ -5,7 +5,7 @@ import type {
   I_PlayerPositionUpdate,
 } from '@/game/common/multiplayer.types';
 import type { I_SceneContext, I_SceneModule } from '@/game/common/scenes.types';
-import { TransformComponent } from '@/game/components/rendering/TransformComponent';
+import { RemotePlayerComponent } from '@/game/components/multiplayer/RemotePlayerComponent';
 import { GameObjectsModule } from '@/game/modules/scene/GameObjectsModule';
 import SceneModule from '@/game/modules/SceneModule';
 import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
@@ -100,12 +100,17 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
   }
 
   private onPlayerPositionUpdate(message: WebsocketStructuredMessage<{ playerId: string, position: PositionVector3, timestamp: number }>) {
-    console.log('[MultiplayerModule] Player position update:', message);
     const player = this.remotePlayers.get(message.content.playerId);
     if (player) {
-      const transform = player.getComponent(TransformComponent);
-      if (transform) {
-        transform.position.set(message.content.position.x, message.content.position.y, message.content.position.z);
+      const remoteComponent = player.getComponent(RemotePlayerComponent);
+      if (remoteComponent) {
+        remoteComponent.updatePosition({
+          playerId: message.content.playerId,
+          playerName: player.getUsername(), // Not needed for update
+          position: message.content.position,
+          timestamp: message.content.timestamp,
+          playerSceneId: this.context.sceneName, // Not needed for update
+        });
       }
     }
   }
