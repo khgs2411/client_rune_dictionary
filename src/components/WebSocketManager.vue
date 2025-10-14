@@ -46,84 +46,112 @@
       </div>
     </Transition>
   </Teleport>
+
+  <!-- Diagnostic Modal (Shows after 2 failed connection attempts) -->
+  <ConnectionDiagnosticModal
+    :visible="showDiagnosticModal"
+    :ws-url="wsUrl"
+    :protocol="wsStore.clientData ? `${wsStore.clientData.id}-${wsStore.clientData.name}` : undefined"
+    @retry="handleDiagnosticRetry"
+    @close="handleDiagnosticClose"
+    @update:visible="showDiagnosticModal = $event"
+  />
 </template>
 
 <script setup lang="ts">
-  import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
+import ConnectionDiagnosticModal from '@/components/ConnectionDiagnosticModal.vue';
 import { useWebSocketConnection } from '@/composables/useWebSocketConnection';
 import { useAuthStore } from '@/stores/auth.store';
 import { useWebSocketStore } from '@/stores/websocket.store';
 import { tryOnMounted, tryOnUnmounted } from '@vueuse/core';
 import { computed, ref } from 'vue';
 
-  // Props (optional - for flexibility)
-  const props = withDefaults(
-    defineProps<{
-      autoConnect?: boolean; // Auto-connect on mount (default: true)
-      autoDisconnect?: boolean; // Auto-disconnect on unmount (default: true)
-    }>(),
-    {
-      autoConnect: true,
-      showModal: false,
-    },
-  );
+// Props (optional - for flexibility)
+const props = withDefaults(
+  defineProps<{
+    autoConnect?: boolean; // Auto-connect on mount (default: true)
+    autoDisconnect?: boolean; // Auto-disconnect on unmount (default: true)
+  }>(),
+  {
+    autoConnect: true,
+  },
+);
 
-  const auth = useAuthStore();
-  const wsStore = useWebSocketStore();
-  const ws$ = useWebSocketConnection();
-  const isConnecting = ref(false);
-  const errorMessage = ref('');
+const auth = useAuthStore();
+const wsStore = useWebSocketStore();
+const ws$ = useWebSocketConnection();
+const isConnecting = ref(false);
+const errorMessage = ref('');
+const showDiagnosticModal = ref(false);
+const connectionAttempts = ref(0);
 
-  // Show modal when:
-  // 1. showModal prop is true
-  // 2. User is authenticated
-  // 3. Not connected
-  // 4. User hasn't dismissed it
-  const showConnectModal = computed(() => {
-    return (
-      auth.isAuthenticated &&
-      !wsStore.isConnected
-    );
-  });
+// WebSocket URL from environment
+const wsUrl = computed(() => import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:3000');
 
-  async function handleConnect() {
-    if (!auth.isAuthenticated) {
-      console.warn('[WebSocketManager] Cannot connect: Not authenticated');
-      return;
-    }
+// Show modal when:
+// 1. User is authenticated
+// 2. Not connected
+const showConnectModal = computed(() => {
+  return auth.isAuthenticated && !wsStore.isConnected;
+});
 
-    isConnecting.value = true;
-    errorMessage.value = '';
-
-    try {
-      console.log('[WebSocketManager] Connecting to WebSocket...');
-
-      // ✅ This happens during user click - popup blockers won't trigger!
-      await ws$.connect();
-      ws$.register();
-
-      console.log('✅ [WebSocketManager] Connected successfully!');
-    } catch (error: any) {
-      console.error('❌ [WebSocketManager] Connection failed:', error);
-      errorMessage.value = error?.message || 'Failed to connect. Please try again.';
-    } finally {
-      isConnecting.value = false;
-    }
+async function handleConnect() {
+  if (!auth.isAuthenticated) {
+    console.warn('[WebSocketManager] Cannot connect: Not authenticated');
+    return;
   }
 
+  isConnecting.value = true;
+  errorMessage.value = '';
+  connectionAttempts.value++;
 
+  try {
+    console.log('[WebSocketManager] Connecting to WebSocket...');
 
-  function disconnect() {
-    ws$.disconnect();
-  }
+    // ✅ This happens during user click - popup blockers won't trigger!
+    await ws$.connect();
+    ws$.register();
 
-  tryOnMounted(() => {
-    if (props.autoConnect) {
-      handleConnect();
+    console.log('✅ [WebSocketManager] Connected successfully!');
+    connectionAttempts.value = 0; // Reset on success
+  } catch (error: any) {
+    console.error('❌ [WebSocketManager] Connection failed:', error);
+    errorMessage.value = error?.message || 'Failed to connect. Please try again.';
+
+    // Show diagnostic modal after 2 failed attempts
+    if (connectionAttempts.value >= 2) {
+      console.warn('[WebSocketManager] Multiple connection failures, showing diagnostic modal');
+      showDiagnosticModal.value = true;
     }
-  });
+  } finally {
+    isConnecting.value = false;
+  }
+}
 
-  tryOnUnmounted(disconnect);
+function handleDiagnosticRetry() {
+  console.log('[WebSocketManager] Retrying connection from diagnostic modal...');
+  showDiagnosticModal.value = false;
+  connectionAttempts.value = 0; // Reset attempts
+  handleConnect();
+}
+
+function handleDiagnosticClose() {
+  console.log('[WebSocketManager] Diagnostic modal closed');
+  showDiagnosticModal.value = false;
+}
+
+function disconnect() {
+  ws$.disconnect();
+}
+
+tryOnMounted(() => {
+  if (props.autoConnect) {
+    handleConnect();
+  }
+});
+
+tryOnUnmounted(disconnect);
 </script>
 
 <style scoped>
