@@ -11,7 +11,6 @@ import { useRxjs } from 'topsyde-utils';
 
 
 export class MultiplayerModule extends SceneModule implements I_MultiplayerHandler, I_SceneModule {
-  private rx = useRxjs(['multiplayer', 'scene'], {}, { static_instance: true });
 
   // Local player tracking
   private localPlayerId: string | null = null;
@@ -37,16 +36,7 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
         throw new Error('Client data missing or invalid');
       }
 
-      this.rx.$subscribe({
-        'scene': {
-          'scene.joined': (event) => {
-            console.log('[MultiplayerModule] Scene joined event:', event);
-          },
-          'scene.left': (event) => {
-            console.log('[MultiplayerModule] Scene left event:', event);
-          }
-        }
-      })
+
 
       const data = await api.getPlayersInScene(context.clientData.id)
 
@@ -85,7 +75,6 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
    */
   async destroy(): Promise<void> {
     // Unsubscribe from RxJS
-    this.rx.$unsubscribe();
     // Clear registrations
     this.localPlayerId = null;
     this.localPlayerCallback = null;

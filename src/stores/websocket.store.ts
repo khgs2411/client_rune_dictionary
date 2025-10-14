@@ -26,7 +26,9 @@ enum E_WebsocketEventType {
   DISCONNECTED = 'disconnected',
   ERROR = 'error',
 }
-type WebsocketEventHandlerType = 'connected' | 'data' | 'disconnected' | 'error';
+
+export type WebsocketEventHandlerType = keyof typeof E_WebsocketEventType
+
 type WebSocketEventHandlers = {
   [E_WebsocketEventType.CONNECTED]?: (ws: WebSocket) => void | Promise<void>;
   [E_WebsocketEventType.DATA]?: WebSocketEventCallback;
@@ -35,7 +37,6 @@ type WebSocketEventHandlers = {
 };
 
 export const useWebSocketStore = defineStore('websocket', () => {
-  // State
   const registry: Ref<Map<string, WebSocketEventHandlers>> = ref(new Map());
   const status = ref<WebSocketStatus>('disconnected');
   const clientData = ref<I_ClientData | null>(null);
@@ -45,7 +46,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
   const lastError = ref<any>(null);
   let _ws: WebsocketInstance | null;
 
-  // Computed
   const isConnected = computed(() => status.value === 'connected');
   const isConnecting = computed(
     () =>
@@ -56,63 +56,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
 
   const isDisconnected = computed(() => status.value === 'disconnected');
 
-  const isActive = computed(() => !Guards.IsNil(_ws) && !Guards.IsNil(_ws.ws.value) && isConnected.value);
-
-  const connectionHandlers = computed((): Map<string, WebSocketEventHandlers['connected']> => {
-    const map = new Map<string, WebSocketEventHandlers['connected']>();
-    registry.value.forEach((handlers, source) => {
-      if (handlers.connected) {
-        map.set(source, handlers.connected);
-      }
-    });
-    return map;
-  });
-
-  const disconnectionHandlers = computed((): Map<string, WebSocketEventHandlers['disconnected']> => {
-    const map = new Map<string, WebSocketEventHandlers['disconnected']>();
-    registry.value.forEach((handlers, source) => {
-      if (handlers.disconnected) {
-        map.set(source, handlers.disconnected);
-      }
-    });
-    return map;
-  });
-
-  const messageHandlers = computed((): Map<string, WebSocketEventHandlers['data']> => {
-    const map = new Map<string, WebSocketEventHandlers['data']>();
-    registry.value.forEach((handlers, source) => {
-      if (handlers.data) {
-        map.set(source, handlers.data);
-      }
-    });
-    return map;
-  });
-
-  const errorHandlers = computed((): Map<string, WebSocketEventHandlers['error']> => {
-    const map = new Map<string, WebSocketEventHandlers['error']>();
-    registry.value.forEach((handlers, source) => {
-      if (handlers.error) {
-        map.set(source, handlers.error);
-      }
-    });
-    return map;
-  });
-
-  // Actions
-  function setClientData(data: I_ClientData) {
-    if (!clientData.value) {
-      clientData.value = { id: data.id, name: data.name };
-    }
-  }
-
-  function $reset() {
-    status.value = 'disconnected';
-    clientData.value = null;
-    connectedAt.value = null;
-    disconnectedAt.value = null;
-    reconnectAttempts.value = 0;
-    lastError.value = null;
-  }
 
   function connect(protocol: string,) {
     status.value = 'connecting';
@@ -142,7 +85,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
       onDisconnected: handleDisconnected,
       onMessage: handleMessage,
       onError: handleError,
-    });;
+    });
   }
 
   function getWebSocketInstance(): WebsocketInstance {
@@ -159,23 +102,15 @@ export const useWebSocketStore = defineStore('websocket', () => {
     }
   }
 
-  function register(source: string, callback: WebSocketEventHandlers) {
-    registry.value.set(source, callback);
-  }
-
-  function unregister(source: string) {
-    registry.value.delete(source);
-  }
-
   async function handleConnected(_ws: WebSocket) {
     status.value = 'connected';
     connectedAt.value = new Date();
     reconnectAttempts.value = 0;
     console.log('[WS] Connected successfully');
-    const promises: (void | Promise<void>)[] = [];
-    connectionHandlers.value.forEach((handler) => {
-      if (handler) {
-        promises.push(handler(_ws));
+    const promises: Promise<void>[] = [];
+    registry.value.forEach((handlers) => {
+      if (handlers.connected) {
+        promises.push(Promise.resolve(handlers.connected(_ws)));
       }
     });
 
@@ -185,10 +120,10 @@ export const useWebSocketStore = defineStore('websocket', () => {
   async function handleDisconnected(_ws: WebSocket, event: CloseEvent) {
     status.value = 'disconnected';
     disconnectedAt.value = new Date();
-    const promises: (void | Promise<void>)[] = [];
-    disconnectionHandlers.value.forEach((handler) => {
-      if (handler) {
-        promises.push(handler(_ws, event));
+    const promises: Promise<void>[] = [];
+    registry.value.forEach((handlers) => {
+      if (handlers.disconnected) {
+        promises.push(Promise.resolve(handlers.disconnected(_ws, event)));
       }
     });
 
@@ -200,12 +135,12 @@ export const useWebSocketStore = defineStore('websocket', () => {
     try {
       const message: WebsocketStructuredMessage = JSON.parse(event.data);
 
-      if (!isActive.value) return;
+      if (!isConnected.value) return;
 
-      const promises: (void | Promise<void>)[] = [];
-      messageHandlers.value.forEach((handler) => {
-        if (handler) {
-          promises.push(handler(_ws, message));
+      const promises: Promise<void>[] = [];
+      registry.value.forEach((handlers) => {
+        if (handlers.data) {
+          promises.push(Promise.resolve(handlers.data(_ws, message)));
         }
       });
 
@@ -216,18 +151,90 @@ export const useWebSocketStore = defineStore('websocket', () => {
     }
   }
 
-
   async function handleError(_ws: WebSocket, event: Event) {
     console.error('[WS] Error:', event);
-    const promises: (void | Promise<void>)[] = [];
-    errorHandlers.value.forEach((handler) => {
-      if (handler) {
-        promises.push(handler(_ws, event));
+    const promises: Promise<void>[] = [];
+    registry.value.forEach((handlers) => {
+      if (handlers.error) {
+        promises.push(Promise.resolve(handlers.error(_ws, event)));
       }
     });
 
     await Promise.all(promises);
     lastError.value = event;
+  }
+
+
+
+  function register(source: string, callback: WebSocketEventHandlers) {
+    if (import.meta.env.DEV) {
+      // Strict validation in development
+      validateRegistration(source, callback);
+    }
+
+    registry.value.set(source, callback);
+  }
+
+  function validateRegistration(source: string, callback: WebSocketEventHandlers) {
+    // Validate source
+    if (!source || typeof source !== 'string') {
+      throw new Error('[WS] Registration failed: source must be a non-empty string');
+    }
+
+    // Check for duplicate registration
+    if (registry.value.has(source)) {
+      console.warn(`[WS] Overwriting existing handlers for "${source}"`);
+    }
+
+    // Validate handler types
+    const validKeys: (keyof WebSocketEventHandlers)[] = [E_WebsocketEventType.CONNECTED, E_WebsocketEventType.DATA, E_WebsocketEventType.DISCONNECTED, E_WebsocketEventType.ERROR];
+    const providedKeys = Object.keys(callback) as (keyof WebSocketEventHandlers)[];
+
+    providedKeys.forEach(key => {
+      if (!validKeys.includes(key)) {
+        console.warn(`[WS] Unknown handler type "${key}" in registration for "${source}"`);
+      }
+
+      if (callback[key] && typeof callback[key] !== 'function') {
+        throw new Error(`[WS] Handler "${key}" for "${source}" must be a function, got ${typeof callback[key]}`);
+      }
+    });
+
+    // Validate handler signatures (optional, more strict)
+    if (callback.connected) {
+      const fnStr = callback.connected.toString();
+      // Basic check: should accept at least 1 parameter (ws)
+      if (callback.connected.length < 1) {
+        console.warn(`[WS] Handler "connected" for "${source}" may have incorrect signature (expects ws: WebSocket)`);
+      }
+    }
+  }
+
+
+  function unregister(source: string) {
+    registry.value.delete(source);
+  }
+
+
+  function setClientData(data: I_ClientData) {
+    if (clientData.value &&
+      (clientData.value.id !== data.id || clientData.value.name !== data.name)) {
+      console.warn(
+        `[WS] Updating client data from ${clientData.value.name} (${clientData.value.id}) ` +
+        `to ${data.name} (${data.id})`
+      );
+    }
+    clientData.value = { id: data.id, name: data.name };
+  }
+
+  function $reset() {
+    status.value = 'disconnected';
+    clientData.value = null;
+    connectedAt.value = null;
+    disconnectedAt.value = null;
+    reconnectAttempts.value = 0;
+    lastError.value = null;
+    registry.value.clear();
   }
 
 

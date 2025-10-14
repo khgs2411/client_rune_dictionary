@@ -4,6 +4,7 @@ import SceneService from "./SceneService";
 
 export default class NetworkingService extends SceneService implements I_SceneService {
     private websocketManager: WebsocketManager;
+    // private registry
 
     constructor() {
         super();
