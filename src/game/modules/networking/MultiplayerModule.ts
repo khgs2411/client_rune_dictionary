@@ -6,16 +6,16 @@ import type {
 import type { I_SceneContext, I_SceneModule } from '@/game/common/scenes.types';
 import { GameObjectsModule } from '@/game/modules/scene/GameObjectsModule';
 import SceneModule from '@/game/modules/SceneModule';
+import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
 import { RemotePlayer } from '@/game/prefabs/character/RemotePlayer';
-import { useRxjs } from 'topsyde-utils';
+import { WebsocketStructuredMessage } from 'topsyde-utils';
 
 
 export class MultiplayerModule extends SceneModule implements I_MultiplayerHandler, I_SceneModule {
 
   // Local player tracking
-  private localPlayerId: string | null = null;
-  private localPlayerCallback: ((data: I_PlayerPositionUpdate) => void) | null = null;
 
+  public localPlayer: LocalPlayer | null = null;
   // Remote players tracking
   private remotePlayers = new Map<string, I_PlayerPositionUpdate>;
 
@@ -26,39 +26,80 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
    * Initialize service and subscribe to WebSocket events
    */
   public async init(context: I_SceneContext): Promise<void> {
-
     console.log('🌐 [MultiplayerModule] Starting...');
-    const api = new MultiplayerAPI();
     // Test API connection
     try {
 
-      if (!context.clientData || !context.clientData.id) {
-        throw new Error('Client data missing or invalid');
-      }
-
-
-
-      const data = await api.getPlayersInScene(context.clientData.id)
-
-      const remotePlayers: RemotePlayer[] = [];
-
-      data.data.playersInScene.forEach(player => {
-        const state: I_PlayerPositionUpdate = {
-          playerId: player.id,
-          playerName: player.username,
-          position: player.raw.position,
-          timestamp: new Date().getTime(),
-        }
-        this.registerRemotePlayer(player.id, state);
-        const remotePlayer = new RemotePlayer({ playerId: player.id, username: player.username || "Remote Player", position: player.position })
-        remotePlayers.push(remotePlayer);
-        this.gameObjectManager.add(remotePlayer, false); // Add without initializing yet
-      })
+      await this.addLocalPlayer(context);
+      await this.getRemotePlayers(context);
+      this.registerWithNetworkingService();
 
       console.log('✅ [MultiplayerModule] Started');
       this.initialized(context.sceneName)
     } catch (error) {
       console.error('❌ [MultiplayerModule] Failed to connect to Multiplayer API:', error);
+    }
+  }
+
+  private registerWithNetworkingService() {
+    this.context.services.networking.register('MultiplayerModule', {
+      scene: this.handleSceneUpdates.bind(this),
+    })
+  }
+
+  private async addLocalPlayer(context: I_SceneContext) {
+    if (!context.character) {
+      throw new Error('Character controller missing in context');
+    }
+    // Create LocalPlayer GameObject (replaces CharacterModule)
+    // Don't pass position config - let LocalPlayer read directly from controller
+    this.localPlayer = new LocalPlayer({
+      playerId: 'local-player',
+      characterController: context.character.controller,
+    });
+
+    this.gameObjectManager.add(this.localPlayer, false);
+  }
+
+  private async getRemotePlayers(context: I_SceneContext) {
+
+    const api = new MultiplayerAPI();
+    if (!context.clientData || !context.clientData.id) {
+      throw new Error('Client data missing or invalid');
+    }
+
+    const data = await api.getPlayersInScene(context.clientData.id);
+
+    data.data.playersInScene.forEach(player => {
+      const state: I_PlayerPositionUpdate = {
+        playerId: player.id,
+        playerName: player.username,
+        position: player.raw.position,
+        timestamp: new Date().getTime(),
+      };
+      const remotePlayer = new RemotePlayer({ playerId: player.id, username: player.username || "Remote Player", position: player.position });
+
+      this.registerRemotePlayer(remotePlayer.id, state);
+      this.gameObjectManager.add(remotePlayer, false);
+    });
+  }
+
+  private handleSceneUpdates(message: WebsocketStructuredMessage) {
+    switch (message.type) {
+      case 'scene.joined': {
+        console.log('[MultiplayerModule] Player joined:', message.content);
+        break;
+      }
+      case 'scene.left': {
+        const content = (message as WebsocketStructuredMessage<{ playerId: string }>).content
+        const playerId = content.playerId;
+        this.remotePlayers.delete(playerId);
+        this.gameObjectManager.remove(playerId);
+        // const remotePlayer = this.remotePlayers.get(message.content.playerId);
+        console.log('[MultiplayerModule] Player left:', content.playerId);
+        break;
+      }
+
     }
   }
 
@@ -76,44 +117,12 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
   async destroy(): Promise<void> {
     // Unsubscribe from RxJS
     // Clear registrations
-    this.localPlayerId = null;
-    this.localPlayerCallback = null;
     this.remotePlayers.clear();
+    this.localPlayer = null;
 
     console.log('🧹 [MultiplayerModule] Destroyed');
   }
 
-
-  /**
-   * Register local player for sending position updates
-   * Only one local player can be registered at a time
-   */
-  public registerLocalPlayer(
-    playerId: string,
-    onUpdate: (data: I_PlayerPositionUpdate) => void,
-  ): void {
-    if (this.localPlayerId) {
-      console.warn(
-        `[MultiplayerModule] Local player already registered (${this.localPlayerId}). Replacing.`,
-      );
-    }
-
-    this.localPlayerId = playerId;
-    this.localPlayerCallback = onUpdate;
-
-    console.log(`📍 [MultiplayerModule] Registered local player: ${playerId}`);
-  }
-
-  /**
-   * Unregister local player
-   */
-  public unregisterLocalPlayer(): void {
-    if (this.localPlayerId) {
-      console.log(`📍 [MultiplayerModule] Unregistered local player: ${this.localPlayerId}`);
-      this.localPlayerId = null;
-      this.localPlayerCallback = null;
-    }
-  }
 
   /**
    * Register remote player to receive position updates
@@ -141,33 +150,6 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     }
   }
 
-  /**
-   * Send position update to server via WebSocket
-   * Called by SyncMovementComponent
-   */
-  public sendPositionUpdate(data: I_PlayerPositionUpdate): void {
-    if (!this.isReady()) {
-      console.warn('[MultiplayerModule] Cannot send position: WebSocket not connected');
-      return;
-    }
-
-    try {
-      /*  this.ws$.send({
-         type: 'player.position',
-         content: data,
-       }); */
-    } catch (error) {
-      console.error('[MultiplayerModule] Failed to send position update:', error);
-    }
-  }
-
-  /**
-   * Check if WebSocket is connected and ready
-   */
-  public isReady(): boolean {
-    return true;
-    // return this.ws$.isConnected.value;
-  }
 
   /**
    * Get count of registered remote players

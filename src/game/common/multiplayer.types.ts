@@ -4,6 +4,7 @@
  */
 
 import type { Vector3 } from 'three';
+import { LocalPlayer } from '../prefabs/character/LocalPlayer';
 
 /**
  * Player position update message sent over WebSocket
@@ -60,16 +61,7 @@ export interface I_RemotePlayerConfig {
  * Multiplayer service interface for components
  */
 export interface I_MultiplayerHandler {
-  /**
-   * Register local player for position syncing
-   */
-  registerLocalPlayer(playerId: string, onUpdate: (data: I_PlayerPositionUpdate) => void): void;
-
-  /**
-   * Unregister local player
-   */
-  unregisterLocalPlayer(): void;
-
+  localPlayer: LocalPlayer | null;
   /**
    * Register remote player for receiving position updates
    */
@@ -80,13 +72,4 @@ export interface I_MultiplayerHandler {
    */
   unregisterRemotePlayer(playerId: string): void;
 
-  /**
-   * Send position update to server
-   */
-  sendPositionUpdate(data: I_PlayerPositionUpdate): void;
-
-  /**
-   * Check if service is ready (WebSocket connected)
-   */
-  isReady(): boolean;
 }

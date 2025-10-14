@@ -16,10 +16,9 @@ import { MaterialComponent } from '@/game/components/rendering/MaterialComponent
 import { MeshComponent } from '@/game/components/rendering/MeshComponent';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 import { PersistenceComponent } from '@/game/components/systems/PersistenceComponent';
-import { Ground } from '@/game/prefabs/Ground';
-import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
-import { GameObjectsModule } from '@/game/modules/scene/GameObjectsModule';
 import { MultiplayerModule } from '@/game/modules/networking/MultiplayerModule';
+import { GameObjectsModule } from '@/game/modules/scene/GameObjectsModule';
+import { Ground } from '@/game/prefabs/Ground';
 
 /**
  * Module Registry for PlaygroundScene
@@ -35,8 +34,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
   readonly name = 'PlaygroundScene';
   readonly engine: Engine;
 
-  // Store LocalPlayer reference for updates
-  private localPlayer: LocalPlayer | null = null;
 
   constructor(config: I_SceneConfig) {
     super();
@@ -46,7 +43,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
   /**
    * Register scene-specific modules
-   * Note: CharacterModule removed - now using LocalPlayer GameObject
    */
   protected registerModules(): void {
     this.addModule('lighting', new LightingModule());
@@ -58,8 +54,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
   protected addSceneObjects() {
     // gameObjectsManager manager
     const gameObjectManager = this.getModule('gameObjectsManager')!;
-
-
 
     // Ground
     const ground = new Ground({ size: 200, showGrid: true });
@@ -138,15 +132,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     gameObjectManager.add(treeTrunks);
     gameObjectManager.add(treeLeaves);
     gameObjectManager.add(bushes);
-
-    // Create LocalPlayer GameObject (replaces CharacterModule)
-    // Don't pass position config - let LocalPlayer read directly from controller
-    this.localPlayer = new LocalPlayer({
-      playerId: 'local-player',
-      characterController: this.character.controller,
-    });
-
-    gameObjectManager.add(this.localPlayer);
   }
 
   /**
