@@ -96,7 +96,8 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
 
     const remotePlayer = new RemotePlayer({ playerId: data.id, username: data.username || "Remote Player", position: data.position });
     this.registerRemotePlayer(remotePlayer.id, remotePlayer);
-    this.gameObjectManager.add(remotePlayer, true);
+    // Add async (false) - let GameObjectManager handle initialization timing
+    this.gameObjectManager.add(remotePlayer, false);
   }
 
   private onPlayerPositionUpdate(message: WebsocketStructuredMessage<{
@@ -157,7 +158,10 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
    */
   public unregisterRemotePlayer(playerId: string): void {
     if (this.remotePlayers.has(playerId)) {
-      this.gameObjectManager.remove(playerId);
+      // Check if GameObject exists before removing
+      if (this.gameObjectManager.has(playerId)) {
+        this.gameObjectManager.remove(playerId);
+      }
       this.remotePlayers.delete(playerId);
       console.log(`👤 [MultiplayerModule] Unregistered remote player: ${playerId}`);
     }
