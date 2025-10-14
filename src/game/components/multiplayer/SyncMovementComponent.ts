@@ -63,16 +63,6 @@ export class SyncMovementComponent extends GameComponent {
     // Verify TransformComponent exists
     this.requireComponent(TransformComponent);
 
-    // Verify MultiplayerService exists
-    /* if (!context.multiplayer) {
-      throw new Error(
-        `[SyncMovementComponent] MultiplayerService not found in scene services. Add it to your scene's services object.`,
-      );
-    }
-
-    // Register with multiplayer service
-    context.multiplayer.registerLocalPlayer(this.playerId, this.handleServerUpdate); */
-
     console.log(`📡 [SyncMovementComponent] Initialized for player: ${this.playerId}`);
   }
 
@@ -88,14 +78,6 @@ export class SyncMovementComponent extends GameComponent {
     }
   }
 
-  destroy(): void {
-    // Unregister from multiplayer service
-    /* if (this.context?.multiplayer) {
-      this.context.multiplayer.unregisterLocalPlayer();
-    }
- */
-    console.log(`📡 [SyncMovementComponent] Destroyed for player: ${this.playerId}`);
-  }
 
   /**
    * Send position update to server if player moved significantly
@@ -161,7 +143,6 @@ export class SyncMovementComponent extends GameComponent {
 
   private sendPositionUpdate(update: I_PlayerPositionUpdate): void {
     if (!this.context?.services.networking) return;
-
     const message = {
       action: 'player.position.update',
       ...update,

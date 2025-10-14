@@ -99,17 +99,23 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     this.gameObjectManager.add(remotePlayer, true);
   }
 
-  private onPlayerPositionUpdate(message: WebsocketStructuredMessage<{ playerId: string, position: PositionVector3, timestamp: number }>) {
+  private onPlayerPositionUpdate(message: WebsocketStructuredMessage<{
+    playerId: string,
+    position: PositionVector3,
+    rotation?: { x: number, y: number, z: number },
+    timestamp: number
+  }>) {
     const player = this.remotePlayers.get(message.content.playerId);
     if (player) {
       const remoteComponent = player.getComponent(RemotePlayerComponent);
       if (remoteComponent) {
         remoteComponent.updatePosition({
           playerId: message.content.playerId,
-          playerName: player.getUsername(), // Not needed for update
+          playerName: player.getUsername(),
           position: message.content.position,
+          rotation: message.content.rotation, // Pass rotation through!
           timestamp: message.content.timestamp,
-          playerSceneId: this.context.sceneName, // Not needed for update
+          playerSceneId: this.context.sceneName,
         });
       }
     }
