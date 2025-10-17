@@ -40,7 +40,8 @@ on:
       ws_host:
         description: 'WebSocket Host URL'
         required: false
-        default: 'https://topsyde-gaming.duckdns.org:443'
+        # default: 'https://topsyde-gaming.duckdns.org:443'
+        default: 'https://game.rcl-team.com:443'
         type: string
 # Add permissions needed for GitHub Pages deployment
 permissions:
@@ -50,8 +51,10 @@ permissions:
 
 env:
   VITE_API_KEY: ${{ github.event.inputs.api_key || 'r_d_25c9dd62-ba12-44de-b303-67ef659ba7bd' }}
-  VITE_HOST: ${{ github.event.inputs.ws_host || 'https://topsyde-gaming.duckdns.org:443' }}
-  VITE_WS_HOST: ${{ github.event.inputs.ws_host || 'wss://topsyde-gaming.duckdns.org:443' }}
+  # VITE_HOST: ${{ github.event.inputs.ws_host || 'https://topsyde-gaming.duckdns.org:443' }}
+  VITE_HOST: ${{ github.event.inputs.ws_host || 'https://game.rcl-team.com:443' }}
+  # VITE_WS_HOST: ${{ github.event.inputs.ws_host || 'wss://topsyde-gaming.duckdns.org:443' }}
+  VITE_WS_HOST: ${{ github.event.inputs.ws_host || 'wss://game.rcl-team.com:443' }}
 
 jobs:
   # First job: Check if commit message contains [deploy]

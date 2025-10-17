@@ -95,7 +95,8 @@ const diagnosticPassed = ref(false);
 const showLoadingScreen = ref(false);
 
 // WebSocket URL from environment
-const wsUrl = computed(() => import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:443');
+// const wsUrl = computed(() => import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:443');
+const wsUrl = computed(() => import.meta.env.VITE_WS_HOST || 'wss://game.rcl-team.com:443');
 
 // Protocol string for WebSocket authentication
 const protocol = computed(() =>

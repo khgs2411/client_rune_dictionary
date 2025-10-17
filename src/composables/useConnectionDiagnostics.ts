@@ -102,7 +102,8 @@ export function useConnectionDiagnostics() {
   }): Promise<DiagnosticResults> => {
     loading.value = true;
 
-    const websocketUrl = options?.wsUrl || import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:443';
+    // const websocketUrl = options?.wsUrl || import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:443';
+    const websocketUrl = options?.wsUrl || import.meta.env.VITE_WS_HOST || 'wss://game.rcl-team.com:443';
     const shouldTestPopups = options?.testPopups ?? false;
 
     // Only run popup test if explicitly requested

@@ -15,7 +15,8 @@ export type WebsocketManager = ReturnType<typeof useWebSocketStore>;
 
 export type WebsocketInstance = ReturnType<typeof useWebSocket<WebsocketStructuredMessage>> | null;
 
-const WS_HOST = import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:443';
+// const WS_HOST = import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:443';
+const WS_HOST = import.meta.env.VITE_WS_HOST || 'wss://game.rcl-team.com:443';
 const HEARTBEAT_INTERVAL = 30;
 
 type WebSocketEventCallback = (ws: WebSocket, wsm: WebsocketStructuredMessage) => void | Promise<void>;
