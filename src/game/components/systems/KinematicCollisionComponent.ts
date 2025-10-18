@@ -3,7 +3,7 @@ import type { I_SceneContext } from '@/game/common/scenes.types';
 import type { Mesh, Object3D } from 'three';
 
 export interface I_KinematicPhysicsConfig extends I_CollisionConfig {
-  mesh: Mesh | Object3D; // Physics body mesh (dependency injection)
+  getMesh: () => Mesh | Object3D; // Lazy getter for physics body mesh (called during init)
   initialPosition?: [number, number, number]; // Starting position for physics body
   characterOptions?: {
     enableAutostep?: boolean;
@@ -26,10 +26,9 @@ export interface I_KinematicPhysicsConfig extends I_CollisionConfig {
  *
  * Usage:
  * ```typescript
- * const characterMesh = this.getComponent(CharacterMeshComponent);
  * gameObject.addComponent(new KinematicPhysicsComponent({
  *   type: 'static', // Required by base, overridden for kinematic
- *   mesh: characterMesh.bodyMesh, // Dependency injection
+ *   getMesh: () => this.getComponent(CharacterMeshComponent)!.bodyMesh,
  *   initialPosition: [0, 1, 0],
  *   characterOptions: {
  *     enableAutostep: true,
@@ -39,7 +38,7 @@ export interface I_KinematicPhysicsConfig extends I_CollisionConfig {
  * ```
  *
  * Dependencies:
- * - None! Mesh is injected via config (decoupled)
+ * - None! Mesh is resolved via lazy getter (decoupled, flexible)
  */
 export class KinematicCollisionComponent extends CollisionComponent {
   private kinematicConfig: I_KinematicPhysicsConfig;
@@ -60,10 +59,11 @@ export class KinematicCollisionComponent extends CollisionComponent {
       return;
     }
 
-    // Validate mesh was provided
-    if (!this.kinematicConfig.mesh) {
+    // Get mesh from lazy getter (called during init when mesh exists)
+    const mesh = this.kinematicConfig.getMesh();
+    if (!mesh) {
       throw new Error(
-        `[KinematicPhysicsComponent] GameObject "${this.gameObject.id}" requires mesh in config`,
+        `[KinematicPhysicsComponent] GameObject "${this.gameObject.id}" getMesh() returned null/undefined`,
       );
     }
 
@@ -73,7 +73,7 @@ export class KinematicCollisionComponent extends CollisionComponent {
     // Register kinematic character with PhysicsService (not static!)
     context.services.physics.registerKinematicFromMesh(
       this.gameObject.id,
-      this.kinematicConfig.mesh,
+      mesh,
       initialPos,
       this.kinematicConfig.characterOptions || {
         enableAutostep: true,
@@ -128,6 +128,7 @@ export class KinematicCollisionComponent extends CollisionComponent {
     if (!this.isRegistered || !this.context) return false;
 
     const controller = this.context.services.physics.getKinematicController(this.gameObject.id);
+    console.log('🏃 [KinematicCollisionComponent] isGrounded check:', controller);
     return controller?.computedGrounded() ?? false;
   }
 

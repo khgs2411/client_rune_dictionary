@@ -62,17 +62,11 @@ export class LocalPlayer extends GameObject {
     // Add shared components from factory (transform + mesh)
     this.addBaseComponents(startPos);
 
-    // Get mesh reference for physics (dependency injection)
-    const characterMesh = this.getComponent(CharacterMeshComponent);
-    if (!characterMesh) {
-      throw new Error('[LocalPlayer] CharacterMeshComponent required for physics');
-    }
-
     // Add KinematicPhysicsComponent (kinematic character controller)
     this.addComponent(
       new KinematicCollisionComponent({
         type: 'static', // Required by base, but overridden for kinematic
-        mesh: characterMesh.bodyMesh, // Inject mesh dependency
+        getMesh: () => this.getComponent(CharacterMeshComponent)!.bodyMesh, // Lazy getter
         initialPosition: startPos, // Physics body starts at correct position
         characterOptions: {
           enableAutostep: true,
