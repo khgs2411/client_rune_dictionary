@@ -64,7 +64,7 @@ export class LocalPlayer extends GameObject {
     // Add KinematicPhysicsComponent (kinematic character controller)
     this.addComponent(
       new KinematicPhysicsComponent({
-        controller: config.characterController,
+        type: 'static', // Required by base, but overridden for kinematic
         initialPosition: startPos, // Physics body starts at correct position
         characterOptions: {
           enableAutostep: true,

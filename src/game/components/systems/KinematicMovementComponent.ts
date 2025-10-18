@@ -1,39 +1,40 @@
 import { GameComponent, ComponentPriority } from '@/game/GameComponent';
 import type { I_CharacterControls } from '@/composables/composables.types';
 import { TransformComponent } from '../rendering/TransformComponent';
+import { KinematicPhysicsComponent } from './KinematicPhysicsComponent';
 import { useGameConfigStore } from '@/stores/config.store';
 import { I_SceneContext } from '@/game/common/scenes.types';
 
-export interface I_MovementConfig {
+export interface I_KinematicMovementConfig {
   characterController: I_CharacterControls; // Scene-owned controller (handles input)
   enableJumping?: boolean; // Default: true
   enableGravity?: boolean; // Default: true
 }
 
 /**
- * MovementComponent - Bridge between character controller and TransformComponent
+ * KinematicMovementComponent - Movement logic for kinematic characters
  *
- * This component acts as the bridge for LOCAL player movement:
+ * Single responsibility: Handle movement calculations and apply them
  * - Reads DESIRED movement from character controller (input)
  * - Calculates vertical velocity (gravity + jumping)
- * - Asks PhysicsService to compute ACTUAL collision-corrected movement
- * - Updates TransformComponent with ACTUAL position (source of truth)
- * - Syncs ACTUAL position back to controller (bidirectional sync)
+ * - Uses KinematicPhysicsComponent for collision-aware movement
+ * - Updates TransformComponent with final position
+ * - Syncs position back to controller (bidirectional)
  *
  * Dependencies:
- * - Requires TransformComponent (updates this with final position)
- * - Requires PhysicsComponent with kinematic character controller
+ * - Requires TransformComponent
+ * - Requires KinematicPhysicsComponent
  *
  * Usage:
  * ```typescript
- * gameObject.addComponent(new MovementComponent({
- *   characterController: this.character.controller, // From scene
+ * gameObject.addComponent(new KinematicMovementComponent({
+ *   characterController: this.character.controller,
  *   enableJumping: true,
  *   enableGravity: true,
  * }));
  * ```
  *
- * Priority: 300 (INTERACTION) - Runs after physics, updates transform
+ * Priority: 300 (INTERACTION) - Runs after physics
  */
 export class KinematicMovementComponent extends GameComponent {
   public readonly priority = ComponentPriority.INTERACTION; // 300
@@ -43,9 +44,9 @@ export class KinematicMovementComponent extends GameComponent {
   private enableGravity: boolean;
   private verticalVelocity = 5;
   private config = useGameConfigStore();
-  private context: I_SceneContext | null = null;
+  private kinematicPhysics: KinematicPhysicsComponent | null = null;
 
-  constructor(config: I_MovementConfig) {
+  constructor(config: I_KinematicMovementConfig) {
     super();
     this.characterController = config.characterController;
     this.enableJumping = config.enableJumping ?? true;
@@ -53,31 +54,19 @@ export class KinematicMovementComponent extends GameComponent {
   }
 
   async init(context: I_SceneContext): Promise<void> {
-    this.context = context;
-
     // Verify required components
     this.requireComponent(TransformComponent);
+    this.kinematicPhysics = this.requireComponent(KinematicPhysicsComponent);
 
-    // Verify physics service is ready
-    if (!context.services.physics.isReady()) {
-      throw new Error(
-        `[MovementComponent] Physics service not ready for GameObject "${this.gameObject.id}"`,
-      );
-    }
-
-    // Verify physics body exists
-    const currentPos = context.services.physics.getPosition(this.gameObject.id);
-    if (!currentPos) {
-      throw new Error(
-        `[MovementComponent] Physics body not found for GameObject "${this.gameObject.id}". Did you add PhysicsComponent with kinematic character controller?`,
-      );
-    }
+    console.log(
+      `🏃 [KinematicMovementComponent] Initialized for "${this.gameObject.id}"`,
+    );
   }
 
   update(delta: number): void {
-    if (!this.context) return;
+    if (!this.kinematicPhysics) return;
 
-    const currentPos = this.context.services.physics.getPosition(this.gameObject.id);
+    const currentPos = this.kinematicPhysics.getPosition();
     if (!currentPos) return;
 
     // Handle vertical velocity (gravity + jumping)
@@ -92,8 +81,8 @@ export class KinematicMovementComponent extends GameComponent {
       z: this.characterController.position.z.value - currentPos.z,
     };
 
-    // Let PhysicsService compute collision-corrected movement
-    const result = this.context.services.physics.moveKinematic(this.gameObject.id, desiredMovement);
+    // Use KinematicPhysicsComponent for collision-corrected movement
+    const result = this.kinematicPhysics.computeMovement(desiredMovement);
 
     // Update TransformComponent (source of truth for position)
     const transform = this.getComponent(TransformComponent);
@@ -149,6 +138,6 @@ export class KinematicMovementComponent extends GameComponent {
   }
 
   destroy(): void {
-    this.context = null;
+    this.kinematicPhysics = null;
   }
 }

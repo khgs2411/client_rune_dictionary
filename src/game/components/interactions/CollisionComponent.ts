@@ -46,9 +46,10 @@ export interface I_CollisionConfig {
 export class CollisionComponent extends GameComponent {
   public readonly priority = ComponentPriority.PHYSICS; // 200 - depends on mesh
 
-  private config: I_CollisionConfig;
-  private isRegistered = false;
-  private instanceIds: string[] = []; // Track physics IDs for instanced meshes
+  protected config: I_CollisionConfig;
+  protected isRegistered = false;
+  protected instanceIds: string[] = []; // Track physics IDs for instanced meshes
+  protected context: I_SceneContext | null = null;
 
   constructor(config: I_CollisionConfig) {
     super();
@@ -56,10 +57,12 @@ export class CollisionComponent extends GameComponent {
   }
 
   async init(context: I_SceneContext): Promise<void> {
+    this.context = context;
+
     // Check if physics service is ready
     if (!context.services.physics.isReady()) {
       console.warn(
-        `[PhysicsComponent] Physics not ready for GameObject "${this.gameObject.id}". Skipping.`,
+        `[CollisionComponent] Physics not ready for GameObject "${this.gameObject.id}". Skipping.`,
       );
       return;
     }
@@ -97,50 +100,62 @@ export class CollisionComponent extends GameComponent {
     }
 
     // Register collision callbacks if provided
+    this.registerCallbacks();
+
+    this.isRegistered = true;
+  }
+
+  /**
+   * Register collision callbacks with PhysicsService
+   * Can be overridden by subclasses
+   */
+  protected registerCallbacks(): void {
+    if (!this.context) return;
+
     if (
       this.config.onCollisionEnter ||
       this.config.onCollisionStay ||
       this.config.onCollisionExit
     ) {
-      context.services.physics.registerCollisionCallbacks(this.gameObject.id, {
+      this.context.services.physics.registerCollisionCallbacks(this.gameObject.id, {
         onCollisionEnter: this.config.onCollisionEnter,
         onCollisionStay: this.config.onCollisionStay,
         onCollisionExit: this.config.onCollisionExit,
       });
     }
-
-    this.isRegistered = true;
   }
 
   /**
    * Update physics body position (for drag, teleport, etc.)
    */
   public updatePosition(x: number, y: number, z: number): void {
-    if (!this.isRegistered) return;
+    if (!this.isRegistered || !this.context) return;
+    this.context.services.physics.setPosition(this.gameObject.id, { x, y, z });
+  }
 
-    const context = (this as any).context as I_SceneContext;
-    if (context?.services?.physics) {
-      context.services.physics.setPosition(this.gameObject.id, { x, y, z });
-    }
+  /**
+   * Get current position from physics
+   */
+  public getPosition(): { x: number; y: number; z: number } | null {
+    if (!this.isRegistered || !this.context) return null;
+    return this.context.services.physics.getPosition(this.gameObject.id);
   }
 
   public destroy(): void {
     if (this.isRegistered) {
       // For instanced meshes, cleanup individual instance physics bodies
       if (this.instanceIds.length > 0) {
-        // Note: PhysicsService.destroy() should handle this automatically
-        // but we track them here in case manual cleanup is needed
         this.instanceIds = [];
       }
 
       // Unregister collision callbacks
-      const context = (this as any).context as I_SceneContext;
-      if (context?.services?.physics) {
-        context.services.physics.unregisterCollisionCallbacks(this.gameObject.id);
+      if (this.context?.services?.physics) {
+        this.context.services.physics.unregisterCollisionCallbacks(this.gameObject.id);
       }
 
       // Physics cleanup happens automatically in PhysicsService.destroy()
       this.isRegistered = false;
+      this.context = null;
     }
   }
 }

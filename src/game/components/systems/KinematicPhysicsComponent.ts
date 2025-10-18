@@ -1,11 +1,9 @@
-import { GameComponent, ComponentPriority } from '@/game/GameComponent';
+import { CollisionComponent, I_CollisionConfig } from '@/game/components/interactions/CollisionComponent';
 import type { I_SceneContext } from '@/game/common/scenes.types';
-import type { I_CharacterControls } from '@/composables/composables.types';
 import { CharacterMeshComponent } from '@/game/components/rendering/CharacterMeshComponent';
 import { MeshComponent } from '@/game/components/rendering/MeshComponent';
 
-export interface I_CharacterControllerConfig {
-  controller: I_CharacterControls; // Scene-owned character controller
+export interface I_KinematicPhysicsConfig extends I_CollisionConfig {
   initialPosition?: [number, number, number]; // Starting position for physics body
   characterOptions?: {
     enableAutostep?: boolean;
@@ -14,24 +12,22 @@ export interface I_CharacterControllerConfig {
     minStepWidth?: number;
     snapToGroundDistance?: number;
   };
-  showDebug?: boolean;
 }
 
 /**
- * KinematicPhysicsComponent - Kinematic physics controller for physics based movement
+ * KinematicPhysicsComponent - Kinematic character controller with collision detection
  *
- * This component:
- * - Registers a kinematic character controller with PhysicsService
- * - Handles player-specific physics (auto-step, ground snapping, collision)
- * - Works with MovementComponent to provide collision-aware movement
+ * Extends CollisionComponent to add kinematic movement capabilities:
+ * - Ground detection (isGrounded)
+ * - Collision-aware movement computation
+ * - Auto-step and ground snapping
  *
- * This is ONLY for player characters. For static/dynamic colliders, use CollisionComponent.
+ * Used by KinematicMovementComponent for collision-aware movement.
  *
  * Usage:
  * ```typescript
- * // LocalPlayer
  * gameObject.addComponent(new KinematicPhysicsComponent({
- *   controller: characterController,
+ *   type: 'static', // Not used for kinematic, but required by base
  *   initialPosition: [0, 1, 0],
  *   characterOptions: {
  *     enableAutostep: true,
@@ -43,18 +39,17 @@ export interface I_CharacterControllerConfig {
  * Dependencies:
  * - Requires CharacterMeshComponent OR MeshComponent
  */
-export class KinematicPhysicsComponent extends GameComponent {
-  public readonly priority = ComponentPriority.PHYSICS; // 200 - depends on mesh
+export class KinematicPhysicsComponent extends CollisionComponent {
+  private kinematicConfig: I_KinematicPhysicsConfig;
 
-  private config: I_CharacterControllerConfig;
-  private isRegistered = false;
-
-  constructor(config: I_CharacterControllerConfig) {
-    super();
-    this.config = config;
+  constructor(config: I_KinematicPhysicsConfig) {
+    super({ ...config, type: 'static' }); // Base class needs type, but we override registration
+    this.kinematicConfig = config;
   }
 
   async init(context: I_SceneContext): Promise<void> {
+    this.context = context;
+
     // Check if physics service is ready
     if (!context.services.physics.isReady()) {
       console.warn(
@@ -79,14 +74,14 @@ export class KinematicPhysicsComponent extends GameComponent {
     }
 
     // Use provided initial position or default to [0, 1, 0]
-    const initialPos = this.config.initialPosition || [0, 1, 0];
+    const initialPos = this.kinematicConfig.initialPosition || [0, 1, 0];
 
-    // Register kinematic character with PhysicsService
+    // Register kinematic character with PhysicsService (not static!)
     context.services.physics.registerKinematicFromMesh(
       this.gameObject.id,
       physicsBody,
       initialPos,
-      this.config.characterOptions || {
+      this.kinematicConfig.characterOptions || {
         enableAutostep: true,
         enableSnapToGround: true,
         maxStepHeight: 0.5,
@@ -95,6 +90,9 @@ export class KinematicPhysicsComponent extends GameComponent {
       },
     );
 
+    // Register collision callbacks
+    this.registerCallbacks();
+
     this.isRegistered = true;
     console.log(
       `🎮 [KinematicPhysicsComponent] Registered kinematic controller for "${this.gameObject.id}"`,
@@ -102,19 +100,27 @@ export class KinematicPhysicsComponent extends GameComponent {
   }
 
   /**
-   * Update physics body position (for teleport, etc.)
+   * Compute collision-aware movement
+   * @param desiredMovement Desired movement delta {x, y, z}
+   * @returns Actual movement after collision correction + grounded state
    */
-  public updatePosition(x: number, y: number, z: number): void {
-    if (!this.isRegistered) return;
-
-    const context = (this as any).context as I_SceneContext;
-    if (context?.services?.physics) {
-      context.services.physics.setPosition(this.gameObject.id, { x, y, z });
+  public computeMovement(desiredMovement: {
+    x: number;
+    y: number;
+    z: number;
+  }): { x: number; y: number; z: number; isGrounded: boolean } {
+    if (!this.isRegistered || !this.context) {
+      return { ...desiredMovement, isGrounded: false };
     }
+
+    return this.context.services.physics.moveKinematic(this.gameObject.id, desiredMovement);
   }
 
-  destroy(): void {
-    // Physics cleanup happens automatically in PhysicsService
-    this.isRegistered = false;
+  /**
+   * Check if character is on the ground
+   */
+  public isGrounded(): boolean {
+    if (!this.isRegistered || !this.context) return false;
+    return this.context.services.physics.isGrounded(this.gameObject.id);
   }
 }
