@@ -1,8 +1,8 @@
+import { PositionVector3 } from '@/common/types';
 import { I_SceneContext } from '@/game/common/scenes.types';
-import SceneModule from '../modules/SceneModule';
-import type * as RAPIER_TYPE from '@dimforge/rapier3d';
 import { useGameConfigStore } from '@/stores/config.store';
-import { watch } from 'vue';
+import type * as RAPIER_TYPE from '@dimforge/rapier3d';
+import { ShapeType } from '@dimforge/rapier3d';
 import {
   BoxGeometry,
   CapsuleGeometry,
@@ -20,8 +20,7 @@ import {
   SphereGeometry,
   Vector3,
 } from 'three';
-import { PositionVector3 } from '@/common/types';
-import { ShapeType } from '@dimforge/rapier3d';
+import { watch } from 'vue';
 import SceneService from './SceneService';
 
 // Dynamic WASM import (loaded at runtime)

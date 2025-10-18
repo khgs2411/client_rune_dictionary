@@ -23,6 +23,7 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
   constructor(moduleName: string, private gameObjectManager: GameObjectsModule) {
     super(moduleName, false);
   }
+  
   /**
    * Initialize service and subscribe to WebSocket events
    */

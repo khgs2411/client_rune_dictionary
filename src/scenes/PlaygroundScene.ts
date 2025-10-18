@@ -46,9 +46,10 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
    * Register scene-specific modules
    */
   protected registerModules(): void {
+    const gameObjectManager = new GameObjectsModule();
     this.addModule('lighting', new LightingModule());
-    this.addModule('gameObjectsManager', new GameObjectsModule());
-    this.addModule('multiplayer', new MultiplayerModule('multiplayer', this.getModule('gameObjectsManager')!));
+    this.addModule('gameObjectsManager', gameObjectManager);
+    this.addModule('multiplayer', new MultiplayerModule('multiplayer', gameObjectManager));
   }
 
   protected addSceneObjects() {
