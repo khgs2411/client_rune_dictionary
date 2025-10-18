@@ -66,7 +66,7 @@ export class LocalPlayer extends GameObject {
     this.addComponent(
       new KinematicCollisionComponent({
         type: 'static', // Required by base, but overridden for kinematic
-        getMesh: () => this.getComponent(CharacterMeshComponent)!.bodyMesh, // Lazy getter
+        getMesh: () => this.getComponent(CharacterMeshComponent)!.getMesh(), // Polymorphic mesh getter
         initialPosition: startPos, // Physics body starts at correct position
         characterOptions: {
           enableAutostep: true,

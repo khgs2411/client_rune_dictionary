@@ -1,4 +1,4 @@
-import { GameComponent, ComponentPriority } from '@/game/GameComponent';
+import { MeshComponent } from './MeshComponent';
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
 import { TransformComponent } from './TransformComponent';
 import { useSettingsStore } from '@/stores/settings.store';
@@ -19,9 +19,10 @@ export interface I_CharacterMeshConfig {
 /**
  * CharacterMeshComponent - Creates two-part character mesh (body + forward indicator)
  *
- * This component creates a Group containing:
+ * Extends MeshComponent to provide character-specific visual representation:
  * - Body: Capsule mesh with primary theme color
  * - Forward indicator: Cone mesh with accent theme color
+ * - Overrides getMesh() to return bodyMesh for physics registration
  *
  * The component reads from TransformComponent each frame to update visual position/rotation.
  * This ensures TransformComponent is the single source of truth for transforms.
@@ -41,19 +42,18 @@ export interface I_CharacterMeshConfig {
  *
  * Priority: RENDERING (100) - Creates visual representation, reads from transform
  */
-export class CharacterMeshComponent extends GameComponent {
-  public readonly priority = ComponentPriority.RENDERING;
+export class CharacterMeshComponent extends MeshComponent {
 
   public group!: Group; // Container for body + cone
   public bodyMesh!: Mesh; // Reference for physics registration
   private bodyMaterial!: MeshStandardMaterial;
   private coneMaterial!: MeshStandardMaterial;
-  private config: I_CharacterMeshConfig;
+  private characterConfig: I_CharacterMeshConfig;
   private settings = useSettingsStore();
 
   constructor(config: I_CharacterMeshConfig = {}) {
-    super();
-    this.config = config;
+    super({}); // No MeshComponent config needed
+    this.characterConfig = config;
   }
 
   async init(context: I_SceneContext): Promise<void> {
@@ -90,13 +90,13 @@ export class CharacterMeshComponent extends GameComponent {
   }
 
   private buildBody(): void {
-    const bodyRadius = this.config.bodyRadius ?? 0.5;
-    const bodyHeight = this.config.bodyHeight ?? 1;
+    const bodyRadius = this.characterConfig.bodyRadius ?? 0.5;
+    const bodyHeight = this.characterConfig.bodyHeight ?? 1;
 
     const bodyGeometry = new CapsuleGeometry(bodyRadius, bodyHeight, 8, 16);
 
     // Use provided color or fall back to theme primary
-    const bodyColor = this.config.bodyColor ?? this.settings.theme.primary;
+    const bodyColor = this.characterConfig.bodyColor ?? this.settings.theme.primary;
     this.bodyMaterial = new MeshStandardMaterial({
       color: bodyColor,
     });
@@ -109,14 +109,14 @@ export class CharacterMeshComponent extends GameComponent {
   }
 
   private buildForwardIndicator(): void {
-    const coneRadius = this.config.coneRadius ?? 0.2;
-    const coneHeight = this.config.coneHeight ?? 0.4;
-    const coneOffset = this.config.coneOffset ?? 0.7;
+    const coneRadius = this.characterConfig.coneRadius ?? 0.2;
+    const coneHeight = this.characterConfig.coneHeight ?? 0.4;
+    const coneOffset = this.characterConfig.coneOffset ?? 0.7;
 
     const coneGeometry = new ConeGeometry(coneRadius, coneHeight, 8);
 
     // Use provided color or fall back to theme accent
-    const coneColor = this.config.coneColor ?? this.settings.theme.accent;
+    const coneColor = this.characterConfig.coneColor ?? this.settings.theme.accent;
     this.coneMaterial = new MeshStandardMaterial({
       color: coneColor,
     });
@@ -135,8 +135,15 @@ export class CharacterMeshComponent extends GameComponent {
    * Updates body and cone materials to match new theme
    */
   public onThemeChange(theme: I_ThemeColors): void {
-    if (!this.config.bodyColor) this.bodyMaterial.color.setHex(theme.primary);
-    if (!this.config.coneColor) this.coneMaterial.color.setHex(theme.accent);
+    if (!this.characterConfig.bodyColor) this.bodyMaterial.color.setHex(theme.primary);
+    if (!this.characterConfig.coneColor) this.coneMaterial.color.setHex(theme.accent);
+  }
+
+  /**
+   * Override to return bodyMesh for physics registration
+   */
+  public getMesh(): Mesh {
+    return this.bodyMesh;
   }
 
   // No destroy() needed! CleanupRegistry handles it automatically

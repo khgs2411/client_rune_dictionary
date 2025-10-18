@@ -97,6 +97,14 @@ export class MeshComponent extends GameComponent {
     }
   }
 
+  /**
+   * Get the mesh for physics registration
+   * Override this in subclasses to provide custom mesh (e.g., bodyMesh)
+   */
+  public getMesh(): Mesh {
+    return this.mesh;
+  }
+
   destroy(): void {
     // Mesh cleanup handled by lifecycle.register()
   }
