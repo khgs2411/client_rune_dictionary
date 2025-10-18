@@ -150,14 +150,25 @@ export const useWebSocketConnection = () => {
   */
   function emit(event: Omit<I_DebugConsoleEvent, 'timestamp'>) {
     if (!config.debug.showWebSocketDebugger) return;
+
+    emitDebugEvents(event);
+
+    // emitSceneEvents(event);
+  }
+
+
+  function emitSceneEvents(event: Omit<I_DebugConsoleEvent, "timestamp">) {
+    if (event.type == 'scene') {
+      rx.$next('scene', { cta: event.type, data: event });
+    }
+  }
+
+  function emitDebugEvents(event: Omit<I_DebugConsoleEvent, "timestamp">) {
+    if (event.type.includes('scene')) return;
     rx.$next('debug', {
       cta: 'log',
       data: { ...event, timestamp: new Date().toLocaleTimeString() },
     });
-
-    if (event.type == 'scene') {
-      rx.$next('scene', { cta: event.type, data: event })
-    }
   }
 
 
@@ -174,5 +185,6 @@ export const useWebSocketConnection = () => {
     isConnecting: computed(() => websocketManager.isConnecting),
     clientData: computed(() => websocketManager.clientData),
   };
+
 };
 

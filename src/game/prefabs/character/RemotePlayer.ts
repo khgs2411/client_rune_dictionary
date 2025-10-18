@@ -1,5 +1,5 @@
 import { GameObject } from '@/game/GameObject';
-import { createCharacterComponents } from './createCharacterComponents';
+import { createPlayer } from './createPlayer';
 import { RemotePlayerComponent } from '@/game/components/multiplayer/RemotePlayerComponent';
 import type { I_RemotePlayerConfig as I_RemotePlayerComponentConfig } from '@/game/common/multiplayer.types';
 
@@ -73,7 +73,7 @@ export class RemotePlayer extends GameObject {
 
     // Add shared components from factory (transform + mesh)
     // Note: Remote players use red color by default (configurable)
-    const sharedComponents = createCharacterComponents({
+    const sharedComponents = createPlayer({
       position: startPos,
       bodyRadius: 0.5,
       bodyHeight: 1,

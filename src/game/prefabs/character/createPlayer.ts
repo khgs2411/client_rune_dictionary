@@ -5,7 +5,7 @@ import { CharacterMeshComponent } from '@/game/components/rendering/CharacterMes
 /**
  * Configuration for shared character components
  */
-export interface I_CharacterComponentsConfig {
+export interface I_PlayerComponentsConfig {
   /** Starting position [x, y, z] */
   position: [number, number, number];
   /** Body capsule radius (default: 0.5) */
@@ -52,7 +52,7 @@ export interface I_CharacterComponentsConfig {
  * @param config - Component configuration
  * @returns Array of components ready to add to a GameObject
  */
-export function createCharacterComponents(config: I_CharacterComponentsConfig): GameComponent[] {
+export function createPlayer(config: I_PlayerComponentsConfig): GameComponent[] {
   return [
     new TransformComponent({
       position: config.position,

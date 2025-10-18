@@ -1,19 +1,12 @@
 <template>
   <!-- Diagnostic Modal (Auto-runs on mount, handles everything) -->
-  <ConnectionDiagnosticModal
-    v-if="!autoConnect && auth.isAuthenticated && !wsStore.isConnected && !diagnosticPassed"
-    :ws-url="wsUrl"
-    :protocol="protocol"
-    @connection-success="handleDiagnosticSuccess"
-    @connection-failed="handleDiagnosticFailed"
-  />
+  <ConnectionDiagnosticModal v-if="!autoConnect && auth.isAuthenticated && !wsStore.isConnected && !diagnosticPassed"
+    :ws-url="wsUrl" :protocol="protocol" @connection-success="handleDiagnosticSuccess"
+    @connection-failed="handleDiagnosticFailed" />
 
   <!-- Loading Screen (Shows while preparing connection) -->
-  <AppLoadingScreen
-    :visible="showLoadingScreen"
-    message="Preparing Connection"
-    sub-message="Setting up secure WebSocket connection..."
-  />
+  <AppLoadingScreen :visible="showLoadingScreen" message="Preparing Connection"
+    sub-message="Setting up secure WebSocket connection..." />
 
   <!-- Connect Modal (Shows only after diagnostic succeeds) -->
   <Teleport to="body">
@@ -65,105 +58,105 @@
 </template>
 
 <script setup lang="ts">
-import { Button } from '@/components/ui/button';
-import AppLoadingScreen from '@/components/AppLoadingScreen.vue';
-import ConnectionDiagnosticModal from '@/components/ConnectionDiagnosticModal.vue';
-import { useWebSocketConnection } from '@/composables/useWebSocketConnection';
-import { useAuthStore } from '@/stores/auth.store';
-import { useWebSocketStore } from '@/stores/websocket.store';
-import { tryOnMounted, tryOnUnmounted } from '@vueuse/core';
-import { computed, ref } from 'vue';
+  import { Button } from '@/components/ui/button';
+  import AppLoadingScreen from '@/components/AppLoadingScreen.vue';
+  import ConnectionDiagnosticModal from '@/components/ConnectionDiagnosticModal.vue';
+  import { useWebSocketConnection } from '@/composables/useWebSocketConnection';
+  import { useAuthStore } from '@/stores/auth.store';
+  import { useWebSocketStore } from '@/stores/websocket.store';
+  import { tryOnMounted, tryOnUnmounted } from '@vueuse/core';
+  import { computed, ref } from 'vue';
 
-// Props (optional - for flexibility)
-const props = withDefaults(
-  defineProps<{
-    autoConnect?: boolean; // Auto-connect on mount (default: true)
-    autoDisconnect?: boolean; // Auto-disconnect on unmount (default: true)
-  }>(),
-  {
-    autoConnect: true,
-  },
-);
+  // Props (optional - for flexibility)
+  const props = withDefaults(
+    defineProps<{
+      autoConnect?: boolean; // Auto-connect on mount (default: true)
+      autoDisconnect?: boolean; // Auto-disconnect on unmount (default: true)
+    }>(),
+    {
+      autoConnect: true,
+    },
+  );
 
-const auth = useAuthStore();
-const wsStore = useWebSocketStore();
-const ws$ = useWebSocketConnection();
-const isConnecting = ref(false);
-const errorMessage = ref('');
-const showConnectModal = ref(false);
-const diagnosticPassed = ref(false);
-const showLoadingScreen = ref(false);
+  const auth = useAuthStore();
+  const wsStore = useWebSocketStore();
+  const ws$ = useWebSocketConnection();
+  const isConnecting = ref(false);
+  const errorMessage = ref('');
+  const showConnectModal = ref(false);
+  const diagnosticPassed = ref(false);
+  const showLoadingScreen = ref(false);
 
-// WebSocket URL from environment
-// const wsUrl = computed(() => import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:443');
-const wsUrl = computed(() => import.meta.env.VITE_WS_HOST || 'wss://game.rcl-team.com:443');
+  // WebSocket URL from environment
+  // const wsUrl = computed(() => import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:443');
+  const wsUrl = computed(() => import.meta.env.VITE_WS_HOST || 'wss://game.rcl-team.com:443');
 
-// Protocol string for WebSocket authentication
-const protocol = computed(() =>
-  wsStore.clientData ? `${wsStore.clientData.id}-${wsStore.clientData.name}` : undefined
-);
+  // Protocol string for WebSocket authentication
+  const protocol = computed(() =>
+    wsStore.clientData ? `${wsStore.clientData.id}-${wsStore.clientData.name}` : undefined
+  );
 
-// Handle diagnostic success - show loading then connect modal
-async function handleDiagnosticSuccess() {
-  console.log('[WebSocketManager] Diagnostic passed, preparing connection...');
-  diagnosticPassed.value = true;
+  // Handle diagnostic success - show loading then connect modal
+  async function handleDiagnosticSuccess() {
+    console.log('[WebSocketManager] Diagnostic passed, preparing connection...');
+    diagnosticPassed.value = true;
 
-  // Show loading screen
-  showLoadingScreen.value = true;
+    // Show loading screen
+    showLoadingScreen.value = true;
 
-  // Small delay to ensure smooth transition
-  await new Promise(resolve => setTimeout(resolve, 800));
+    // Small delay to ensure smooth transition
+    await new Promise(resolve => setTimeout(resolve, 800));
 
-  // Hide loading, show connect modal
-  showLoadingScreen.value = false;
-  showConnectModal.value = true;
-}
-
-// Handle diagnostic failure - user sees diagnostic modal
-function handleDiagnosticFailed() {
-  console.log('[WebSocketManager] Diagnostic failed, user will see troubleshooting');
-  diagnosticPassed.value = false;
-  showConnectModal.value = false;
-  showLoadingScreen.value = false;
-}
-
-async function handleConnect() {
-  if (!auth.isAuthenticated) {
-    console.warn('[WebSocketManager] Cannot connect: Not authenticated');
-    return;
+    // Hide loading, show connect modal
+    showLoadingScreen.value = false;
+    showConnectModal.value = true;
   }
 
-  isConnecting.value = true;
-  errorMessage.value = '';
-
-  try {
-    console.log('[WebSocketManager] Connecting to WebSocket...');
-
-    // ✅ This happens during user click - popup blockers won't trigger!
-    await ws$.connect();
-    ws$.register();
-
-    console.log('✅ [WebSocketManager] Connected successfully!');
-    showConnectModal.value = false; // Hide modal on success
-  } catch (error: any) {
-    console.error('❌ [WebSocketManager] Connection failed:', error);
-    errorMessage.value = error?.message || 'Failed to connect. Please try again.';
-  } finally {
-    isConnecting.value = false;
+  // Handle diagnostic failure - user sees diagnostic modal
+  function handleDiagnosticFailed() {
+    console.log('[WebSocketManager] Diagnostic failed, user will see troubleshooting');
+    diagnosticPassed.value = false;
+    showConnectModal.value = false;
+    showLoadingScreen.value = false;
   }
-}
 
-function disconnect() {
-  ws$.disconnect();
-}
+  async function handleConnect() {
+    if (!auth.isAuthenticated) {
+      console.warn('[WebSocketManager] Cannot connect: Not authenticated');
+      return;
+    }
 
-tryOnMounted(() => {
-  if (props.autoConnect) {
-    handleConnect();
+    isConnecting.value = true;
+    errorMessage.value = '';
+
+    try {
+      console.log('[WebSocketManager] Connecting to WebSocket...');
+
+      // ✅ This happens during user click - popup blockers won't trigger!
+      await ws$.connect();
+      ws$.register();
+
+      console.log('✅ [WebSocketManager] Connected successfully!');
+      showConnectModal.value = false; // Hide modal on success
+    } catch (error: any) {
+      console.error('❌ [WebSocketManager] Connection failed:', error);
+      errorMessage.value = error?.message || 'Failed to connect. Please try again.';
+    } finally {
+      isConnecting.value = false;
+    }
   }
-});
 
-tryOnUnmounted(disconnect);
+  function disconnect() {
+    ws$.disconnect();
+  }
+
+  tryOnMounted(() => {
+    if (props.autoConnect) {
+      handleConnect();
+    }
+  });
+
+  tryOnUnmounted(disconnect);
 </script>
 
 <style scoped>

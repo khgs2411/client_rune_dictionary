@@ -1,5 +1,5 @@
 import { GameObject } from '@/game/GameObject';
-import { createCharacterComponents } from './createCharacterComponents';
+import { createPlayer } from './createPlayer';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 import { PhysicsComponent } from '@/game/components/interactions/PhysicsComponent';
 import { MovementComponent } from '@/game/components/systems/MovementComponent';
@@ -82,7 +82,7 @@ export class LocalPlayer extends GameObject {
 
 
     // Add shared components from factory (transform + mesh)
-    const sharedComponents = createCharacterComponents({
+    const sharedComponents = createPlayer({
       position: startPos,
       bodyRadius: 0.5,
       bodyHeight: 1,

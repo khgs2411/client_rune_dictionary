@@ -135,8 +135,8 @@ export class CharacterMeshComponent extends GameComponent {
    * Updates body and cone materials to match new theme
    */
   public onThemeChange(theme: I_ThemeColors): void {
-    this.bodyMaterial.color.setHex(theme.primary);
-    this.coneMaterial.color.setHex(theme.accent);
+    if (!this.config.bodyColor) this.bodyMaterial.color.setHex(theme.primary);
+    if (!this.config.coneColor) this.coneMaterial.color.setHex(theme.accent);
   }
 
   // No destroy() needed! CleanupRegistry handles it automatically
