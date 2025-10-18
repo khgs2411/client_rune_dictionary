@@ -1,6 +1,6 @@
 import { DragComponent } from '../components/interactions/DragComponent';
 import { HoverComponent } from '../components/interactions/HoverComponent';
-import { PhysicsComponent } from '../components/interactions/PhysicsComponent';
+import { CollisionComponent } from '../components/interactions/CollisionComponent';
 import { GeometryComponent } from '../components/rendering/GeometryComponent';
 import { MaterialComponent } from '../components/rendering/MaterialComponent';
 import { MeshComponent } from '../components/rendering/MeshComponent';
@@ -71,7 +71,7 @@ export class EditableBox extends GameObject {
 
     // Physics
     this.addComponent(
-      new PhysicsComponent({
+      new CollisionComponent({
         type: 'static',
         shape: 'cuboid',
       }),

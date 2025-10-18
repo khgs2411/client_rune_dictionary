@@ -9,7 +9,7 @@ import { I_SceneConfig } from '../game/common/scenes.types';
 import { GameObject } from '@/game/GameObject';
 import { DragComponent } from '@/game/components/interactions/DragComponent';
 import { HoverComponent } from '@/game/components/interactions/HoverComponent';
-import { PhysicsComponent } from '@/game/components/interactions/PhysicsComponent';
+import { CollisionComponent } from '@/game/components/interactions/CollisionComponent';
 import { GeometryComponent } from '@/game/components/rendering/GeometryComponent';
 import { InstancedMeshComponent } from '@/game/components/rendering/InstancedMeshComponent';
 import { MaterialComponent } from '@/game/components/rendering/MaterialComponent';
@@ -66,7 +66,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       .addComponent(new GeometryComponent({ type: 'box', params: [1.5, 1.5, 1.5] }))
       .addComponent(new MaterialComponent({ useTheme: true }))
       .addComponent(new MeshComponent())
-      .addComponent(new PhysicsComponent({ type: 'static' }))
+      .addComponent(new CollisionComponent({ type: 'static' }))
       .addComponent(
         new HoverComponent({
           tooltip: { title: 'modelComponent Box', description: 'Draggable in editor mode' },
@@ -96,7 +96,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
           ],
         }),
       )
-      .addComponent(new PhysicsComponent({ type: 'static', shape: 'cylinder' }));
+      .addComponent(new CollisionComponent({ type: 'static', shape: 'cylinder' }));
 
     // Tree leaves (instanced, native components)
     const treeLeaves = new GameObject({ id: 'tree-leaves' })

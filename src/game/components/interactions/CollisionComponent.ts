@@ -42,7 +42,7 @@ export interface I_PhysicsConfig {
  * }));
  * ```
  */
-export class PhysicsComponent extends GameComponent {
+export class CollisionComponent extends GameComponent {
   public readonly priority = ComponentPriority.PHYSICS; // 200 - depends on mesh
 
   private config: I_PhysicsConfig;

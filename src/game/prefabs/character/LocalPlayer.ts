@@ -1,7 +1,7 @@
 import { GameObject } from '@/game/GameObject';
 import { createPlayer } from './createPlayer';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
-import { PhysicsComponent } from '@/game/components/interactions/PhysicsComponent';
+import { CollisionComponent } from '@/game/components/interactions/CollisionComponent';
 import { MovementComponent } from '@/game/components/systems/MovementComponent';
 import type { I_CharacterControls } from '@/composables/composables.types';
 import { SyncMovementComponent } from '@/game/components/multiplayer/SyncMovementComponent';
@@ -94,7 +94,7 @@ export class LocalPlayer extends GameObject {
 
     // Add PhysicsComponent (kinematic character controller)
     this.addComponent(
-      new PhysicsComponent({
+      new CollisionComponent({
         type: 'kinematic',
         characterController: true,
         initialPosition: startPos, // Physics body starts at correct position
@@ -122,14 +122,6 @@ export class LocalPlayer extends GameObject {
   }
 
   /**
-   * Get the character controller reference
-   * Useful for scene/camera to access controller state
-   */
-  public getController(): I_CharacterControls {
-    return this.characterController;
-  }
-
-  /**
    * Teleport player to new position (instant, no interpolation)
    * Updates all systems: controller, transform, physics
    */
@@ -144,7 +136,7 @@ export class LocalPlayer extends GameObject {
     }
 
     // Update physics body
-    const physicsComp = this.getComponent(PhysicsComponent);
+    const physicsComp = this.getComponent(CollisionComponent);
     if (physicsComp) {
       physicsComp.updatePosition(x, y, z);
     }

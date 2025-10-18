@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import { GameComponent } from '../../GameComponent';
 import type {  I_Interactable, I_InteractionBuilder } from '../../common/gameobject.types';
 import { TransformComponent } from '../rendering/TransformComponent';
-import { PhysicsComponent } from './PhysicsComponent';
+import { CollisionComponent } from './CollisionComponent';
 import { I_SceneContext } from '@/game/common/scenes.types';
 
 export interface I_DragConfig {
@@ -98,7 +98,7 @@ export class DragComponent extends GameComponent implements I_Interactable {
     this.transformComp.setPosition(position);
 
     // Update physics if component exists
-    const physicsComp = this.getComponent(PhysicsComponent);
+    const physicsComp = this.getComponent(CollisionComponent);
     if (physicsComp && this.context.services.physics.isReady()) {
       this.context.services.physics.setPosition(this.gameObject.id, {
         x: position.x,

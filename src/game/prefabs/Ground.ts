@@ -1,4 +1,4 @@
-import { PhysicsComponent } from '../components/interactions/PhysicsComponent';
+import { CollisionComponent } from '../components/interactions/CollisionComponent';
 import { GeometryComponent } from '../components/rendering/GeometryComponent';
 import { GridHelperComponent } from '../components/rendering/GridHelperComponent';
 import { MaterialComponent } from '../components/rendering/MaterialComponent';
@@ -107,7 +107,7 @@ export class Ground extends GameObject {
     // Optional physics collider
     if (enablePhysics) {
       this.addComponent(
-        new PhysicsComponent({
+        new CollisionComponent({
           type: 'static',
           shape: 'cuboid',
           shapeParams: [size / 2, 0.1, size / 2], // Half-extents for cuboid collider

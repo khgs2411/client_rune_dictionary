@@ -1,4 +1,4 @@
-import { PhysicsComponent } from '../components/interactions/PhysicsComponent';
+import { CollisionComponent } from '../components/interactions/CollisionComponent';
 import { GeometryComponent } from '../components/rendering/GeometryComponent';
 import { I_InstanceTransform, InstancedMeshComponent } from '../components/rendering/InstancedMeshComponent';
 import { MaterialComponent } from '../components/rendering/MaterialComponent';
@@ -99,7 +99,7 @@ export class Trees {
     // Add physics to trunks
     if (enablePhysics) {
       trunks.addComponent(
-        new PhysicsComponent({
+        new CollisionComponent({
           type: 'static',
           shape: 'cylinder',
         }),
