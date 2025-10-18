@@ -8,7 +8,11 @@ export interface I_CollisionConfig {
   shape?: 'cuboid' | 'sphere' | 'capsule' | 'cylinder';
   shapeParams?: number[]; // Explicit shape dimensions (e.g., [halfWidth, halfHeight, halfDepth] for cuboid)
   showDebug?: boolean;
-  onCollision?: (other: string) => void; // Callback when collision occurs (future implementation)
+
+  // Collision callbacks
+  onCollisionEnter?: (otherId: string) => void;
+  onCollisionStay?: (otherId: string) => void;
+  onCollisionExit?: (otherId: string) => void;
 }
 
 /**
@@ -31,7 +35,8 @@ export interface I_CollisionConfig {
  * new CollisionComponent({
  *   type: 'trigger',
  *   shape: 'sphere',
- *   onCollision: (otherId) => console.log('Hit:', otherId)
+ *   onCollisionEnter: (otherId) => console.log('Hit:', otherId),
+ *   onCollisionExit: (otherId) => console.log('Stopped touching:', otherId)
  * });
  * ```
  *
@@ -91,6 +96,19 @@ export class CollisionComponent extends GameComponent {
       );
     }
 
+    // Register collision callbacks if provided
+    if (
+      this.config.onCollisionEnter ||
+      this.config.onCollisionStay ||
+      this.config.onCollisionExit
+    ) {
+      context.services.physics.registerCollisionCallbacks(this.gameObject.id, {
+        onCollisionEnter: this.config.onCollisionEnter,
+        onCollisionStay: this.config.onCollisionStay,
+        onCollisionExit: this.config.onCollisionExit,
+      });
+    }
+
     this.isRegistered = true;
   }
 
@@ -114,6 +132,13 @@ export class CollisionComponent extends GameComponent {
         // but we track them here in case manual cleanup is needed
         this.instanceIds = [];
       }
+
+      // Unregister collision callbacks
+      const context = (this as any).context as I_SceneContext;
+      if (context?.services?.physics) {
+        context.services.physics.unregisterCollisionCallbacks(this.gameObject.id);
+      }
+
       // Physics cleanup happens automatically in PhysicsService.destroy()
       this.isRegistered = false;
     }

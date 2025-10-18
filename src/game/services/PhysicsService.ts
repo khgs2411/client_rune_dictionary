@@ -43,6 +43,12 @@ interface BaseBodyConfig {
   rotation?: Vector3Like; // Euler angles in radians
 }
 
+interface CollisionCallbacks {
+  onCollisionEnter?: (otherId: string) => void;
+  onCollisionStay?: (otherId: string) => void;
+  onCollisionExit?: (otherId: string) => void;
+}
+
 interface StaticBodyConfig extends BaseBodyConfig {
   shape: 'cuboid' | 'sphere' | 'capsule' | 'cylinder';
   size?: Vector3Like; // For cuboid: [width, height, depth], for sphere: [radius], etc.
@@ -94,6 +100,11 @@ export class PhysicsService extends SceneService {
   private colliders = new Map<string, RAPIER_TYPE.Collider>();
   private kinematicControllers = new Map<string, RAPIER_TYPE.KinematicCharacterController>();
 
+  // Collision tracking
+  private collisionHandlers = new Map<string, CollisionCallbacks>();
+  private activeCollisions = new Map<string, Set<string>>(); // id -> Set of colliding ids
+  private colliderToId = new Map<number, string>(); // Rapier collider handle -> GameObject id
+
   // Debug wireframes
   private debugWireframes = new Map<string, LineSegments>();
   private debugMaterial = new LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
@@ -140,6 +151,9 @@ export class PhysicsService extends SceneService {
     if (!this.isInitialized) return;
     this.world.step();
 
+    // Check for collisions
+    this.detectCollisions();
+
     // Update debug wireframes if any exist
     if (this.debugWireframes.size > 0) {
       this.updateDebugWireframes();
@@ -152,6 +166,9 @@ export class PhysicsService extends SceneService {
     this.colliders.clear();
     this.bodies.clear();
     this.kinematicControllers.clear();
+    this.collisionHandlers.clear();
+    this.activeCollisions.clear();
+    this.colliderToId.clear();
 
     if (this.world) {
       this.world.free();
@@ -162,6 +179,77 @@ export class PhysicsService extends SceneService {
 
   public isReady(): boolean {
     return this.isInitialized;
+  }
+
+  // ============================================================================
+  // Collision Detection
+  // ============================================================================
+
+  /**
+   * Detect collisions and invoke callbacks
+   * Called every frame in update()
+   */
+  private detectCollisions(): void {
+    const currentFrameCollisions = new Map<string, Set<string>>();
+
+    // Iterate through all tracked colliders and check their contact pairs
+    for (const [handle, id1] of this.colliderToId) {
+      const collider1 = this.world.getCollider(handle);
+      if (!collider1) continue;
+
+      // Check all colliders in contact with this one
+      this.world.contactPairsWith(collider1, (collider2) => {
+        const id2 = this.colliderToId.get(collider2.handle);
+        if (!id2) return;
+
+        // Track this frame's collisions
+        if (!currentFrameCollisions.has(id1)) {
+          currentFrameCollisions.set(id1, new Set());
+        }
+        currentFrameCollisions.get(id1)!.add(id2);
+      });
+    }
+
+    // Determine enter/stay/exit for each tracked object
+    for (const [id, handlers] of this.collisionHandlers) {
+      const currentColliding = currentFrameCollisions.get(id) || new Set<string>();
+      const previousColliding = this.activeCollisions.get(id) || new Set<string>();
+
+      // Enter: In current but not in previous
+      for (const otherId of currentColliding) {
+        if (!previousColliding.has(otherId)) {
+          handlers.onCollisionEnter?.(otherId);
+        } else {
+          // Stay: In both current and previous
+          handlers.onCollisionStay?.(otherId);
+        }
+      }
+
+      // Exit: In previous but not in current
+      for (const otherId of previousColliding) {
+        if (!currentColliding.has(otherId)) {
+          handlers.onCollisionExit?.(otherId);
+        }
+      }
+
+      // Update active collisions for next frame
+      this.activeCollisions.set(id, currentColliding);
+    }
+  }
+
+  /**
+   * Register collision callbacks for a GameObject
+   */
+  public registerCollisionCallbacks(id: string, callbacks: CollisionCallbacks): void {
+    this.collisionHandlers.set(id, callbacks);
+  }
+
+  /**
+   * Unregister collision callbacks
+   */
+  public unregisterCollisionCallbacks(id: string): void {
+    this.collisionHandlers.delete(id);
+    this.activeCollisions.delete(id);
   }
 
   // ============================================================================
@@ -316,10 +404,22 @@ export class PhysicsService extends SceneService {
         });
 
       const instanceId = `${idPrefix}-${i}`;
-      this.createAndRegisterBody(instanceId, bodyDesc, colliderDesc, null, showDebug);
+
+      // Create body and collider manually (to track collider handle)
+      const body = this.world.createRigidBody(bodyDesc);
+      const collider = this.world.createCollider(colliderDesc, body);
+
+      this.bodies.set(instanceId, body);
+      this.colliders.set(instanceId, collider);
+      this.colliderToId.set(collider.handle, instanceId);
+
+      if (showDebug && this.context) {
+        this.createDebugWireframe(instanceId, collider, body);
+      }
+
       instanceIds.push(instanceId);
     }
-    
+
     return instanceIds;
   }
 
@@ -333,11 +433,20 @@ export class PhysicsService extends SceneService {
       this.kinematicControllers.delete(id);
     }
 
+    const collider = this.colliders.get(id);
+    if (collider) {
+      this.colliderToId.delete(collider.handle);
+      this.colliders.delete(id);
+    }
+
     const body = this.bodies.get(id);
     if (body) {
       this.world.removeRigidBody(body);
       this.bodies.delete(id);
     }
+
+    // Remove collision tracking
+    this.unregisterCollisionCallbacks(id);
 
     // Remove debug wireframe if exists
     // Note: Geometry disposal is handled by lifecycle.registerDisposable()
@@ -347,7 +456,6 @@ export class PhysicsService extends SceneService {
       this.debugWireframes.delete(id);
     }
 
-    this.colliders.delete(id);
     console.log(`[PhysicsService] Removed body: ${id}`);
   }
 
@@ -746,6 +854,9 @@ export class PhysicsService extends SceneService {
 
     this.bodies.set(id, body);
     this.colliders.set(id, collider);
+
+    // Track collider handle for collision detection
+    this.colliderToId.set(collider.handle, id);
 
     if (controller) {
       this.kinematicControllers.set(id, controller);

@@ -35,7 +35,7 @@ export interface I_MovementConfig {
  *
  * Priority: 300 (INTERACTION) - Runs after physics, updates transform
  */
-export class MovementComponent extends GameComponent {
+export class KinematicMovementComponent extends GameComponent {
   public readonly priority = ComponentPriority.INTERACTION; // 300
 
   private characterController: I_CharacterControls;

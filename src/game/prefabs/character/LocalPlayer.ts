@@ -1,7 +1,7 @@
 import { GameObject } from '@/game/GameObject';
 import { createPlayer } from './createPlayer';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
-import { MovementComponent } from '@/game/components/systems/MovementComponent';
+import { KinematicMovementComponent } from '@/game/components/systems/KinematicMovementComponent';
 import type { I_CharacterControls } from '@/composables/composables.types';
 import { SyncMovementComponent } from '@/game/components/multiplayer/SyncMovementComponent';
 import { Vec3 } from '@/common/types';
@@ -78,7 +78,7 @@ export class LocalPlayer extends GameObject {
 
     // Add MovementComponent (movement logic, jumping, gravity)
     this.addComponent(
-      new MovementComponent({
+      new KinematicMovementComponent({
         characterController: config.characterController,
         enableJumping: true,
         enableGravity: true,
@@ -150,7 +150,7 @@ export class LocalPlayer extends GameObject {
     }
 
     // Reset vertical velocity
-    const movementComp = this.getComponent(MovementComponent);
+    const movementComp = this.getComponent(KinematicMovementComponent);
     if (movementComp) {
       movementComp.resetVerticalVelocity();
     }
@@ -176,7 +176,7 @@ export class LocalPlayer extends GameObject {
    * Get vertical velocity (useful for animations, fall damage, etc.)
    */
   public getVerticalVelocity(): number {
-    const movementComp = this.getComponent(MovementComponent);
+    const movementComp = this.getComponent(KinematicMovementComponent);
     return movementComp ? movementComp.getVerticalVelocity() : 0;
   }
 }
