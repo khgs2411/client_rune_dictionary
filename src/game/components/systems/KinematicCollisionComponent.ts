@@ -41,7 +41,7 @@ export interface I_KinematicPhysicsConfig extends I_CollisionConfig {
  * Dependencies:
  * - None! Mesh is injected via config (decoupled)
  */
-export class KinematicPhysicsComponent extends CollisionComponent {
+export class KinematicCollisionComponent extends CollisionComponent {
   private kinematicConfig: I_KinematicPhysicsConfig;
 
   constructor(config: I_KinematicPhysicsConfig) {

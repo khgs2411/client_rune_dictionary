@@ -1,7 +1,7 @@
 import { GameComponent, ComponentPriority } from '@/game/GameComponent';
 import type { I_CharacterControls } from '@/composables/composables.types';
 import { TransformComponent } from '../rendering/TransformComponent';
-import { KinematicPhysicsComponent } from './KinematicPhysicsComponent';
+import { KinematicCollisionComponent } from './KinematicCollisionComponent';
 import { useGameConfigStore } from '@/stores/config.store';
 import { I_SceneContext } from '@/game/common/scenes.types';
 
@@ -44,7 +44,7 @@ export class KinematicMovementComponent extends GameComponent {
   private enableGravity: boolean;
   private verticalVelocity = 5;
   private config = useGameConfigStore();
-  private kinematicPhysics: KinematicPhysicsComponent | null = null;
+  private kinematicPhysics: KinematicCollisionComponent | null = null;
 
   constructor(config: I_KinematicMovementConfig) {
     super();
@@ -56,7 +56,7 @@ export class KinematicMovementComponent extends GameComponent {
   async init(context: I_SceneContext): Promise<void> {
     // Verify required components
     this.requireComponent(TransformComponent);
-    this.kinematicPhysics = this.requireComponent(KinematicPhysicsComponent);
+    this.kinematicPhysics = this.requireComponent(KinematicCollisionComponent);
 
     console.log(
       `🏃 [KinematicMovementComponent] Initialized for "${this.gameObject.id}"`,

@@ -5,7 +5,7 @@ import { KinematicMovementComponent } from '@/game/components/systems/KinematicM
 import type { I_CharacterControls } from '@/composables/composables.types';
 import { SyncMovementComponent } from '@/game/components/multiplayer/SyncMovementComponent';
 import { Vec3 } from '@/common/types';
-import { KinematicPhysicsComponent } from '@/game/components/systems/KinematicPhysicsComponent';
+import { KinematicCollisionComponent } from '@/game/components/systems/KinematicCollisionComponent';
 import { CharacterMeshComponent } from '@/game/components/rendering/CharacterMeshComponent';
 
 /**
@@ -70,7 +70,7 @@ export class LocalPlayer extends GameObject {
 
     // Add KinematicPhysicsComponent (kinematic character controller)
     this.addComponent(
-      new KinematicPhysicsComponent({
+      new KinematicCollisionComponent({
         type: 'static', // Required by base, but overridden for kinematic
         mesh: characterMesh.bodyMesh, // Inject mesh dependency
         initialPosition: startPos, // Physics body starts at correct position
@@ -152,7 +152,7 @@ export class LocalPlayer extends GameObject {
     }
 
     // Update physics body
-    const physics = this.getComponent(KinematicPhysicsComponent);
+    const physics = this.getComponent(KinematicCollisionComponent);
     if (physics) {
       physics.updatePosition(x, y, z);
     }
