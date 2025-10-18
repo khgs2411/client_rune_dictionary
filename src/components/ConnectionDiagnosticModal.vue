@@ -202,6 +202,7 @@ function handleClose() {
 // Auto-run diagnostics on mount
 onMounted(() => {
   console.log('[ConnectionDiagnostic] Component mounted, running diagnostics...');
+  console.log(props.wsUrl)
   runDiagnostics();
 });
 </script>
