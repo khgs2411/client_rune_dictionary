@@ -1,9 +1,9 @@
 import { CollisionComponent, I_CollisionConfig } from '@/game/components/interactions/CollisionComponent';
 import type { I_SceneContext } from '@/game/common/scenes.types';
-import { CharacterMeshComponent } from '@/game/components/rendering/CharacterMeshComponent';
-import { MeshComponent } from '@/game/components/rendering/MeshComponent';
+import type { Mesh, Object3D } from 'three';
 
 export interface I_KinematicPhysicsConfig extends I_CollisionConfig {
+  mesh: Mesh | Object3D; // Physics body mesh (dependency injection)
   initialPosition?: [number, number, number]; // Starting position for physics body
   characterOptions?: {
     enableAutostep?: boolean;
@@ -26,8 +26,10 @@ export interface I_KinematicPhysicsConfig extends I_CollisionConfig {
  *
  * Usage:
  * ```typescript
+ * const characterMesh = this.getComponent(CharacterMeshComponent);
  * gameObject.addComponent(new KinematicPhysicsComponent({
- *   type: 'static', // Not used for kinematic, but required by base
+ *   type: 'static', // Required by base, overridden for kinematic
+ *   mesh: characterMesh.bodyMesh, // Dependency injection
  *   initialPosition: [0, 1, 0],
  *   characterOptions: {
  *     enableAutostep: true,
@@ -37,7 +39,7 @@ export interface I_KinematicPhysicsConfig extends I_CollisionConfig {
  * ```
  *
  * Dependencies:
- * - Requires CharacterMeshComponent OR MeshComponent
+ * - None! Mesh is injected via config (decoupled)
  */
 export class KinematicPhysicsComponent extends CollisionComponent {
   private kinematicConfig: I_KinematicPhysicsConfig;
@@ -58,18 +60,10 @@ export class KinematicPhysicsComponent extends CollisionComponent {
       return;
     }
 
-    // Get mesh for physics body
-    const characterMeshComp = this.getComponent(CharacterMeshComponent);
-    const meshComp = this.getComponent(MeshComponent);
-
-    let physicsBody;
-    if (characterMeshComp) {
-      physicsBody = characterMeshComp.bodyMesh;
-    } else if (meshComp) {
-      physicsBody = meshComp.mesh;
-    } else {
+    // Validate mesh was provided
+    if (!this.kinematicConfig.mesh) {
       throw new Error(
-        `[KinematicPhysicsComponent] GameObject "${this.gameObject.id}" requires CharacterMeshComponent or MeshComponent`,
+        `[KinematicPhysicsComponent] GameObject "${this.gameObject.id}" requires mesh in config`,
       );
     }
 
@@ -79,7 +73,7 @@ export class KinematicPhysicsComponent extends CollisionComponent {
     // Register kinematic character with PhysicsService (not static!)
     context.services.physics.registerKinematicFromMesh(
       this.gameObject.id,
-      physicsBody,
+      this.kinematicConfig.mesh,
       initialPos,
       this.kinematicConfig.characterOptions || {
         enableAutostep: true,

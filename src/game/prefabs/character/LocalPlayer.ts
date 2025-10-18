@@ -6,6 +6,7 @@ import type { I_CharacterControls } from '@/composables/composables.types';
 import { SyncMovementComponent } from '@/game/components/multiplayer/SyncMovementComponent';
 import { Vec3 } from '@/common/types';
 import { KinematicPhysicsComponent } from '@/game/components/systems/KinematicPhysicsComponent';
+import { CharacterMeshComponent } from '@/game/components/rendering/CharacterMeshComponent';
 
 /**
  * Configuration for LocalPlayer prefab
@@ -61,10 +62,17 @@ export class LocalPlayer extends GameObject {
     // Add shared components from factory (transform + mesh)
     this.addBaseComponents(startPos);
 
+    // Get mesh reference for physics (dependency injection)
+    const characterMesh = this.getComponent(CharacterMeshComponent);
+    if (!characterMesh) {
+      throw new Error('[LocalPlayer] CharacterMeshComponent required for physics');
+    }
+
     // Add KinematicPhysicsComponent (kinematic character controller)
     this.addComponent(
       new KinematicPhysicsComponent({
         type: 'static', // Required by base, but overridden for kinematic
+        mesh: characterMesh.bodyMesh, // Inject mesh dependency
         initialPosition: startPos, // Physics body starts at correct position
         characterOptions: {
           enableAutostep: true,
