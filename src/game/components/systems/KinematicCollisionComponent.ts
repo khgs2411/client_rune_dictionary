@@ -128,7 +128,6 @@ export class KinematicCollisionComponent extends CollisionComponent {
     if (!this.isRegistered || !this.context) return false;
 
     const controller = this.context.services.physics.getKinematicController(this.gameObject.id);
-    console.log('🏃 [KinematicCollisionComponent] isGrounded check:', controller);
     return controller?.computedGrounded() ?? false;
   }
 

@@ -467,21 +467,21 @@ export class PhysicsService extends SceneService {
    * Get kinematic controller (low-level Rapier API)
    * Used by KinematicCollisionComponent to implement movement logic
    */
-  public getKinematicController(id: string): any | null {
+  public getKinematicController(id: string): RAPIER_TYPE.KinematicCharacterController | null {
     return this.kinematicControllers.get(id) || null;
   }
 
   /**
    * Get collider (low-level Rapier API)
    */
-  public getCollider(id: string): any | null {
+  public getCollider(id: string): RAPIER_TYPE.Collider | null {
     return this.colliders.get(id) || null;
   }
 
   /**
    * Get rigid body (low-level Rapier API)
    */
-  public getBody(id: string): any | null {
+  public getBody(id: string): RAPIER_TYPE.RigidBody | null {
     return this.bodies.get(id) || null;
   }
 

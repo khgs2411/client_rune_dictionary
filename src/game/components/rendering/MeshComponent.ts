@@ -4,6 +4,7 @@ import { GeometryComponent } from './GeometryComponent';
 import { MaterialComponent } from './MaterialComponent';
 import { TransformComponent } from './TransformComponent';
 import { I_SceneContext } from '@/game/common/scenes.types';
+import type { I_MeshProvider } from './mesh.types';
 
 export interface I_MeshConfig {
   castShadow?: boolean;
@@ -12,6 +13,8 @@ export interface I_MeshConfig {
 
 /**
  * MeshComponent - Creates Three.js Mesh from Geometry + Material
+ *
+ * Implements I_MeshProvider to provide standardized mesh access for physics registration.
  *
  * This component requires:
  * - GeometryComponent (for geometry)
@@ -29,7 +32,7 @@ export interface I_MeshConfig {
  *   .addComponent(new MeshComponent());
  * ```
  */
-export class MeshComponent extends GameComponent {
+export class MeshComponent extends GameComponent implements I_MeshProvider {
   public readonly priority = ComponentPriority.RENDERING; // 100 - creates mesh AFTER transform/persistence
 
   public mesh!: Mesh;
@@ -98,8 +101,7 @@ export class MeshComponent extends GameComponent {
   }
 
   /**
-   * Get the mesh for physics registration
-   * Override this in subclasses to provide custom mesh (e.g., bodyMesh)
+   * Implements I_MeshProvider to return mesh for physics registration
    */
   public getMesh(): Mesh {
     return this.mesh;
