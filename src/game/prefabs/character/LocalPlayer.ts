@@ -1,11 +1,11 @@
 import { GameObject } from '@/game/GameObject';
 import { createPlayer } from './createPlayer';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
-import { CharacterControllerComponent } from '@/game/components/systems/CharacterControllerComponent';
 import { MovementComponent } from '@/game/components/systems/MovementComponent';
 import type { I_CharacterControls } from '@/composables/composables.types';
 import { SyncMovementComponent } from '@/game/components/multiplayer/SyncMovementComponent';
 import { Vec3 } from '@/common/types';
+import { KinematicPhysicsComponent } from '@/game/components/systems/KinematicPhysicsComponent';
 
 /**
  * Configuration for LocalPlayer prefab
@@ -28,7 +28,7 @@ export interface I_LocalPlayerConfig {
  * - CharacterMeshComponent: Two-part visual (body + cone indicator, theme-aware)
  *
  * Behavior (LocalPlayer-specific):
- * - CharacterControllerComponent: Kinematic character controller (collision, auto-step, ground detection)
+ * - KinematicPhysicsComponent: Kinematic character controller (collision, auto-step, ground detection)
  * - MovementComponent: Movement logic (controller → physics → sync back)
  * - SyncMovementComponent: Network position/rotation sync
  *
@@ -61,9 +61,9 @@ export class LocalPlayer extends GameObject {
     // Add shared components from factory (transform + mesh)
     this.addBaseComponents(startPos);
 
-    // Add CharacterControllerComponent (kinematic character controller)
+    // Add KinematicPhysicsComponent (kinematic character controller)
     this.addComponent(
-      new CharacterControllerComponent({
+      new KinematicPhysicsComponent({
         controller: config.characterController,
         initialPosition: startPos, // Physics body starts at correct position
         characterOptions: {
@@ -144,9 +144,9 @@ export class LocalPlayer extends GameObject {
     }
 
     // Update physics body
-    const characterControllerComp = this.getComponent(CharacterControllerComponent);
-    if (characterControllerComp) {
-      characterControllerComp.updatePosition(x, y, z);
+    const physics = this.getComponent(KinematicPhysicsComponent);
+    if (physics) {
+      physics.updatePosition(x, y, z);
     }
 
     // Reset vertical velocity

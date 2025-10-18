@@ -18,7 +18,7 @@ export interface I_CharacterControllerConfig {
 }
 
 /**
- * CharacterControllerComponent - Kinematic character controller for player movement
+ * KinematicPhysicsComponent - Kinematic physics controller for physics based movement
  *
  * This component:
  * - Registers a kinematic character controller with PhysicsService
@@ -30,7 +30,7 @@ export interface I_CharacterControllerConfig {
  * Usage:
  * ```typescript
  * // LocalPlayer
- * gameObject.addComponent(new CharacterControllerComponent({
+ * gameObject.addComponent(new KinematicPhysicsComponent({
  *   controller: characterController,
  *   initialPosition: [0, 1, 0],
  *   characterOptions: {
@@ -43,7 +43,7 @@ export interface I_CharacterControllerConfig {
  * Dependencies:
  * - Requires CharacterMeshComponent OR MeshComponent
  */
-export class CharacterControllerComponent extends GameComponent {
+export class KinematicPhysicsComponent extends GameComponent {
   public readonly priority = ComponentPriority.PHYSICS; // 200 - depends on mesh
 
   private config: I_CharacterControllerConfig;
@@ -58,7 +58,7 @@ export class CharacterControllerComponent extends GameComponent {
     // Check if physics service is ready
     if (!context.services.physics.isReady()) {
       console.warn(
-        `[CharacterControllerComponent] Physics not ready for GameObject "${this.gameObject.id}". Skipping.`,
+        `[KinematicPhysicsComponent] Physics not ready for GameObject "${this.gameObject.id}". Skipping.`,
       );
       return;
     }
@@ -74,7 +74,7 @@ export class CharacterControllerComponent extends GameComponent {
       physicsBody = meshComp.mesh;
     } else {
       throw new Error(
-        `[CharacterControllerComponent] GameObject "${this.gameObject.id}" requires CharacterMeshComponent or MeshComponent`,
+        `[KinematicPhysicsComponent] GameObject "${this.gameObject.id}" requires CharacterMeshComponent or MeshComponent`,
       );
     }
 
@@ -97,7 +97,7 @@ export class CharacterControllerComponent extends GameComponent {
 
     this.isRegistered = true;
     console.log(
-      `🎮 [CharacterControllerComponent] Registered kinematic controller for "${this.gameObject.id}"`,
+      `🎮 [KinematicPhysicsComponent] Registered kinematic controller for "${this.gameObject.id}"`,
     );
   }
 

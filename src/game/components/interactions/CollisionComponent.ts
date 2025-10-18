@@ -15,7 +15,7 @@ export interface I_CollisionConfig {
  * CollisionComponent - Registers GameObject collision bodies with PhysicsService
  *
  * This component is for static/dynamic/trigger colliders only.
- * For player character controllers, use CharacterControllerComponent instead.
+ * For player character controllers, use KinematicPhysicsComponent instead.
  *
  * Types:
  * - static: Immovable objects (walls, ground, obstacles)
