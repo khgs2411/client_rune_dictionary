@@ -15,6 +15,9 @@ export interface I_EditableBoxConfig {
   position?: [number, number, number];
   size?: [number, number, number];
   color?: number;
+  useTheme?: boolean; // Use theme color instead of static color
+  snapToGrid?: number; // Grid snapping size (default: 0.5)
+  tooltip?: { title: string; description?: string }; // Optional hover tooltip
   onDragEnd?: (position: Vector3) => void;
 }
 
@@ -62,7 +65,7 @@ export class EditableBox extends GameObject {
       )
       .addComponent(
         new MaterialComponent({
-          color: config.color || 0xff1493,
+          ...(config.useTheme ? { useTheme: true } : { color: config.color || 0xff1493 }),
           roughness: 0.8,
           metalness: 0.2,
         }),
@@ -79,14 +82,15 @@ export class EditableBox extends GameObject {
 
     // Interactions
     this.addComponent(
-      new DragComponent({
-        lockAxis: ['y'],
-        snapToGrid: 0.5,
-        onEnd: config.onDragEnd,
-      }),
-    ).addComponent(
       new HoverComponent({
         glowColor: 0xff8c00,
+        tooltip: config.tooltip,
+      }),
+    ).addComponent(
+      new DragComponent({
+        lockAxis: ['y'],
+        snapToGrid: config.snapToGrid ?? 0.5,
+        onEnd: config.onDragEnd,
       }),
     );
 

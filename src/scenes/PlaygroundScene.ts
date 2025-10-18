@@ -7,18 +7,14 @@ import { watch } from 'vue';
 import { I_SceneConfig } from '../game/common/scenes.types';
 
 import { GameObject } from '@/game/GameObject';
-import { DragComponent } from '@/game/components/interactions/DragComponent';
-import { HoverComponent } from '@/game/components/interactions/HoverComponent';
-import { CollisionComponent } from '@/game/components/interactions/CollisionComponent';
 import { GeometryComponent } from '@/game/components/rendering/GeometryComponent';
 import { InstancedMeshComponent } from '@/game/components/rendering/InstancedMeshComponent';
 import { MaterialComponent } from '@/game/components/rendering/MaterialComponent';
-import { MeshComponent } from '@/game/components/rendering/MeshComponent';
-import { TransformComponent } from '@/game/components/rendering/TransformComponent';
-import { PersistenceComponent } from '@/game/components/systems/PersistenceComponent';
 import { MultiplayerModule } from '@/game/modules/networking/MultiplayerModule';
 import { GameObjectsModule } from '@/game/modules/objects/GameObjectsModule';
 import { Ground } from '@/game/prefabs/Ground';
+import { Trees } from '@/game/prefabs/Trees';
+import { EditableBox } from '@/game/prefabs/EditableBox';
 import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
 
 /**
@@ -60,59 +56,27 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     const ground = new Ground({ size: 200, showGrid: true });
     gameObjectManager.add(ground);
 
-    // Editable box (native components, no prefab)
-    const modelComponentBox = new GameObject({ id: 'modelComponent-editable-box' })
-      .addComponent(new TransformComponent({ position: [5, 1, 5] }))
-      .addComponent(new GeometryComponent({ type: 'box', params: [1.5, 1.5, 1.5] }))
-      .addComponent(new MaterialComponent({ useTheme: true }))
-      .addComponent(new MeshComponent())
-      .addComponent(new CollisionComponent({ type: 'static' }))
-      .addComponent(
-        new HoverComponent({
-          tooltip: { title: 'modelComponent Box', description: 'Draggable in editor mode' },
-        }),
-      )
-      .addComponent(
-        new DragComponent({
-          lockAxis: ['y'],
-          snapToGrid: this.config.editor.snapToGrid,
-          onEnd: (pos) => console.log('✅ modelComponent box dragged to:', pos),
-        }),
-      )
-      .addComponent(new PersistenceComponent());
+    // Editable box (using prefab)
+    const modelComponentBox = new EditableBox({
+      id: 'modelComponent-editable-box',
+      position: [5, 1, 5],
+      size: [1.5, 1.5, 1.5],
+      useTheme: true,
+      snapToGrid: this.config.editor.snapToGrid,
+      tooltip: { title: 'modelComponent Box', description: 'Draggable in editor mode' },
+      onDragEnd: (pos) => console.log('✅ modelComponent box dragged to:', pos),
+    });
 
-    // Tree trunks (instanced, native components)
-    const treeTrunks = new GameObject({ id: 'tree-trunks' })
-      .addComponent(new GeometryComponent({ type: 'cylinder', params: [0.15, 0.2, 1.5] }))
-      .addComponent(new MaterialComponent({ color: 0x654321, roughness: 0.9 }))
-      .addComponent(
-        new InstancedMeshComponent({
-          instances: [
-            { position: [10, 0.75, 0] },
-            { position: [12, 0.75, 2] },
-            { position: [14, 0.75, -1] },
-            { position: [10, 0.75, -3] },
-            { position: [13, 0.75, -2] },
-          ],
-        }),
-      )
-      .addComponent(new CollisionComponent({ type: 'static', shape: 'cylinder' }));
-
-    // Tree leaves (instanced, native components)
-    const treeLeaves = new GameObject({ id: 'tree-leaves' })
-      .addComponent(new GeometryComponent({ type: 'cone', params: [0.8, 1.5, 8] }))
-      .addComponent(new MaterialComponent({ color: 0x228b22, roughness: 0.9 }))
-      .addComponent(
-        new InstancedMeshComponent({
-          instances: [
-            { position: [10, 2, 0] },
-            { position: [12, 2, 2] },
-            { position: [14, 2, -1] },
-            { position: [10, 2, -3] },
-            { position: [13, 2, -2] },
-          ],
-        }),
-      );
+    // Trees (using prefab)
+    const [treeTrunks, treeLeaves] = Trees.create({
+      positions: [
+        { x: 10, y: 0, z: 0 },
+        { x: 12, y: 0, z: 2 },
+        { x: 14, y: 0, z: -1 },
+        { x: 10, y: 0, z: -3 },
+        { x: 13, y: 0, z: -2 },
+      ],
+    });
 
     // Bushes (instanced, native components)
     const bushes = new GameObject({ id: 'bushes' })
