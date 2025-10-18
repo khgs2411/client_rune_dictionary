@@ -82,7 +82,7 @@ export class KinematicMovementComponent extends GameComponent {
     };
 
     // Use KinematicCollisionComponent to compute collision-corrected movement
-    const correctedMovement = this.kinematicPhysics.computeColliderMovement(desiredMovement);
+    const correctedMovement = this.kinematicPhysics.computeCollision(desiredMovement);
     if (!correctedMovement) return;
 
     // Calculate final position (current + corrected movement)

@@ -98,7 +98,7 @@ export class KinematicCollisionComponent extends CollisionComponent {
    * @param desiredMovement Desired movement delta {x, y, z}
    * @returns Corrected movement vector after collision detection
    */
-  public computeColliderMovement(desiredMovement: {
+  public computeCollision(desiredMovement: {
     x: number;
     y: number;
     z: number;
