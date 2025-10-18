@@ -85,17 +85,11 @@ export class CollisionComponent extends GameComponent {
         meshComp.mesh,
         { showDebug: this.config.showDebug },
       );
-      console.log(
-        `💥 [CollisionComponent] Registered ${this.config.type} collider for "${this.gameObject.id}"`,
-      );
     } else if (instancedMeshComp) {
       // Instanced mesh registration (multiple static bodies)
       this.instanceIds = context.services.physics.registerInstancedStatic(
         this.gameObject.id,
         instancedMeshComp.instancedMesh,
-      );
-      console.log(
-        `💥 [CollisionComponent] Registered ${this.instanceIds.length} instanced colliders for "${this.gameObject.id}"`,
       );
     }
 

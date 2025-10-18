@@ -38,7 +38,7 @@ import NetworkingService from './services/NetworkingService';
 export abstract class GameScene<
   TModuleRegistry extends Record<string, I_SceneModule> = Record<string, I_SceneModule>,
 > {
-  
+
   private enabled = false;
   public modulesLoaded = false;
 
@@ -116,19 +116,15 @@ export abstract class GameScene<
     this.updateAllServices(delta);
 
     // Update only initialized updateable modules (performance optimization)
-    this.registry.getInitializedUpdateable().forEach((module) => {
-      if (module.update) {
-        module.update(delta);
-      }
-    });
+    this.updateAllModules(delta);
   }
+
 
   /**
    * Add a module to the registry with type-safe key checking
    */
   public addModule<K extends keyof TModuleRegistry>(key: K, module: TModuleRegistry[K]): this {
     this.registry.add(key, module);
-    console.log(`➕ [${this.name}] Added module: "${String(key)}"`);
     return this;
   }
 
@@ -181,6 +177,7 @@ export abstract class GameScene<
     }
   }
 
+
   protected async destroyAllServices(): Promise<void> {
     for (const service of Object.values(this.services)) {
       await service.destroy();
@@ -197,6 +194,20 @@ export abstract class GameScene<
    * This is where scene-specific objects are added to the scene
    */
   protected abstract addSceneObjects(): void;
+
+
+  /**
+   * Update all initialized modules
+   * @param delta 
+   */
+  protected updateAllModules(delta: number) {
+    this.registry.getInitializedUpdateable().forEach((module) => {
+      if (module.update) {
+        module.update(delta);
+      }
+    });
+  }
+
 
   /**
    * Start async module loading

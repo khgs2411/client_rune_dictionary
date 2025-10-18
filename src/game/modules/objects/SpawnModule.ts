@@ -50,7 +50,6 @@ export class SpawnModule extends SceneModule implements I_SceneModule {
    * Initialize spawn module
    */
   async init(context: I_SceneContext): Promise<void> {
-    await super.init(context);
     console.log('✅ [SpawnModule] Initialized');
     this.initialized(context.sceneName);
   }
@@ -81,13 +80,13 @@ export class SpawnModule extends SceneModule implements I_SceneModule {
     if (typeof typeOrFactory === 'string') {
       // Spawning from registered type
       type = typeOrFactory;
-      factory = this.factories.get(type);
-
-      if (!factory) {
+      const _factory = this.factories.get(type);
+      if (!_factory) {
         throw new Error(
           `[SpawnModule] No factory registered for type "${type}". Register with registerFactory() first.`,
         );
       }
+      factory = _factory;
     } else {
       // Inline factory function
       factory = typeOrFactory;
