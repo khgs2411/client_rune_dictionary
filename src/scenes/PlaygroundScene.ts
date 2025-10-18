@@ -17,7 +17,7 @@ import { MeshComponent } from '@/game/components/rendering/MeshComponent';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 import { PersistenceComponent } from '@/game/components/systems/PersistenceComponent';
 import { MultiplayerModule } from '@/game/modules/networking/MultiplayerModule';
-import { GameObjectsModule } from '@/game/modules/scene/GameObjectsModule';
+import { GameObjectsModule } from '@/game/modules/objects/GameObjectsModule';
 import { Ground } from '@/game/prefabs/Ground';
 import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
 

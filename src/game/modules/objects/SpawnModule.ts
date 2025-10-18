@@ -1,6 +1,6 @@
 import type { I_SceneContext, I_SceneModule } from '@/game/common/scenes.types';
 import { GameObject } from '@/game/GameObject';
-import { GameObjectsModule } from '@/game/modules/scene/GameObjectsModule';
+import { GameObjectsModule } from '@/game/modules/objects/GameObjectsModule';
 import SceneModule from '@/game/modules/SceneModule';
 import { ObjectPool, FactoryFunction } from '@/game/utils/ObjectPool';
 

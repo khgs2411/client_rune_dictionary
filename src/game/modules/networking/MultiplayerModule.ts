@@ -6,7 +6,7 @@ import type {
 } from '@/game/common/multiplayer.types';
 import type { I_SceneContext, I_SceneModule } from '@/game/common/scenes.types';
 import { RemotePlayerComponent } from '@/game/components/multiplayer/RemotePlayerComponent';
-import { GameObjectsModule } from '@/game/modules/scene/GameObjectsModule';
+import { GameObjectsModule } from '@/game/modules/objects/GameObjectsModule';
 import SceneModule from '@/game/modules/SceneModule';
 import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
 import { RemotePlayer } from '@/game/prefabs/character/RemotePlayer';
