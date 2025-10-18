@@ -4,7 +4,7 @@
             <!-- Application Console Debugger -->
             <DebugConsole />
             <!-- WebSocket Manager with Connect Modal -->
-            <WebSocketManager v-if="auth.isAuthenticated" :auto-connect="false" />
+            <WebSocketManager v-if="auth.isAuthenticated" :auto-connect="true" />
         </template>
         <!-- Scene Component (only shows when connected) -->
         <Scene v-if="websocketManager.isConnected" />

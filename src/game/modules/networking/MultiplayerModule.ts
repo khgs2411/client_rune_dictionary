@@ -97,7 +97,7 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     const remotePlayer = new RemotePlayer({ playerId: data.id, username: data.username || "Remote Player", position: data.position });
     this.registerRemotePlayer(remotePlayer.id, remotePlayer);
     // Add async (false) - let GameObjectManager handle initialization timing
-    this.gameObjectManager.add(remotePlayer, false);
+    this.gameObjectManager.add(remotePlayer, true);
   }
 
   private onPlayerPositionUpdate(message: WebsocketStructuredMessage<{

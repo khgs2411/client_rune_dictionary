@@ -59,13 +59,15 @@
   import { Label } from '@/components/ui/label';
   import { useAuthStore } from '@/stores/auth.store';
   import ButtonGroup from '@/components/ui/button-group/ButtonGroup.vue';
+  import { storeToRefs } from 'pinia';
 
   const router = useRouter();
   const authStore = useAuthStore();
 
   // Form state
-  const username = computed(() => authStore.username);
-  const password = computed(() => authStore.password);
+  // const username = computed(() => authStore.username);
+  // const password = computed(() => authStore.password);
+  const { username, password } = storeToRefs(authStore);
   const isLoading = ref(false);
   const errorMessage = ref('');
 
@@ -86,6 +88,7 @@
 
   // Login handler
   async function handleLogin() {
+    console.log('🔐 Attempting login for user:', username.value, password.value);
     if (!username.value || !password.value) {
       errorMessage.value = 'Please enter both username and password';
       return;

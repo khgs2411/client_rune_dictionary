@@ -1,7 +1,7 @@
 <template>
   <!-- Diagnostic Modal (Auto-runs on mount, handles everything) -->
   <ConnectionDiagnosticModal
-    v-if="auth.isAuthenticated && !wsStore.isConnected && !diagnosticPassed"
+    v-if="!autoConnect && auth.isAuthenticated && !wsStore.isConnected && !diagnosticPassed"
     :ws-url="wsUrl"
     :protocol="protocol"
     @connection-success="handleDiagnosticSuccess"
