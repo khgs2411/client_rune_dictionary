@@ -1,55 +1,51 @@
 import { GameComponent, ComponentPriority } from '../../GameComponent';
 import { MeshComponent } from '../rendering/MeshComponent';
 import { InstancedMeshComponent } from '../rendering/InstancedMeshComponent';
-import { CharacterMeshComponent } from '../rendering/CharacterMeshComponent';
-import { Mesh } from 'three';
 import { I_SceneContext } from '@/game/common/scenes.types';
 
-export interface I_PhysicsConfig {
-  type: 'static' | 'kinematic';
+export interface I_CollisionConfig {
+  type: 'static' | 'dynamic' | 'trigger';
   shape?: 'cuboid' | 'sphere' | 'capsule' | 'cylinder';
   shapeParams?: number[]; // Explicit shape dimensions (e.g., [halfWidth, halfHeight, halfDepth] for cuboid)
   showDebug?: boolean;
-  characterController?: boolean; // If true, use kinematic character controller (only for kinematic type)
-  initialPosition?: [number, number, number]; // Starting position for physics body
-  characterOptions?: {
-    enableAutostep?: boolean;
-    enableSnapToGround?: boolean;
-    maxStepHeight?: number;
-    minStepWidth?: number;
-    snapToGroundDistance?: number;
-  };
+  onCollision?: (other: string) => void; // Callback when collision occurs (future implementation)
 }
 
 /**
- * PhysicsComponent - Registers GameObject with PhysicsService
+ * CollisionComponent - Registers GameObject collision bodies with PhysicsService
  *
- * This component requires:
- * - MeshComponent OR InstancedMeshComponent (to extract geometry/position for physics body)
+ * This component is for static/dynamic/trigger colliders only.
+ * For player character controllers, use CharacterControllerComponent instead.
+ *
+ * Types:
+ * - static: Immovable objects (walls, ground, obstacles)
+ * - dynamic: Moving objects with physics (future: ragdolls, projectiles with physics)
+ * - trigger: Ghost collider (detects collision but doesn't block, for projectiles/pickups)
  *
  * Usage:
  * ```typescript
- * // With MeshComponent (single mesh)
- * gameObject.addComponent(new PhysicsComponent({
- *   type: 'static',
- *   shape: 'cuboid'
- * }));
+ * // Static wall
+ * new CollisionComponent({ type: 'static' });
  *
- * // With InstancedMeshComponent (multiple instances)
- * gameObject.addComponent(new PhysicsComponent({
- *   type: 'static',
- *   shape: 'cylinder'
- * }));
+ * // Trigger projectile (detects hits, doesn't block)
+ * new CollisionComponent({
+ *   type: 'trigger',
+ *   shape: 'sphere',
+ *   onCollision: (otherId) => console.log('Hit:', otherId)
+ * });
  * ```
+ *
+ * Dependencies:
+ * - Requires MeshComponent OR InstancedMeshComponent
  */
 export class CollisionComponent extends GameComponent {
   public readonly priority = ComponentPriority.PHYSICS; // 200 - depends on mesh
 
-  private config: I_PhysicsConfig;
+  private config: I_CollisionConfig;
   private isRegistered = false;
   private instanceIds: string[] = []; // Track physics IDs for instanced meshes
 
-  constructor(config: I_PhysicsConfig) {
+  constructor(config: I_CollisionConfig) {
     super();
     this.config = config;
   }
@@ -63,92 +59,39 @@ export class CollisionComponent extends GameComponent {
       return;
     }
 
-    // Check which mesh component is present
-    const { meshComp, instancedMeshComp, characterMeshComp } = this.verifyRequiredComponents();
-
-    // Register with physics service based on type
-    if (this.config.type === 'static') {
-      this.handleStaticMesh(meshComp, context, instancedMeshComp);
-    } else if (this.config.type === 'kinematic') {
-      // Kinematic character controller
-      this.handleKinematicMesh(meshComp, context, characterMeshComp);
-    }
-
-    this.isRegistered = true;
-  }
-
-
-  private verifyRequiredComponents() {
+    // Get mesh components
     const meshComp = this.getComponent(MeshComponent);
     const instancedMeshComp = this.getComponent(InstancedMeshComponent);
-    const characterMeshComp = this.getComponent(CharacterMeshComponent);
 
-    if (!meshComp && !instancedMeshComp && !characterMeshComp) {
+    if (!meshComp && !instancedMeshComp) {
       throw new Error(
-        `[PhysicsComponent] GameObject "${this.gameObject.id}" requires MeshComponent, InstancedMeshComponent, or CharacterMeshComponent`
+        `[CollisionComponent] GameObject "${this.gameObject.id}" requires MeshComponent or InstancedMeshComponent`,
       );
     }
-    return { meshComp, instancedMeshComp, characterMeshComp };
-  }
 
-  private handleStaticMesh(meshComp: MeshComponent | null, context: I_SceneContext, instancedMeshComp: InstancedMeshComponent | null) {
+    // Register collider with physics service
     if (meshComp) {
       // Single mesh registration
       context.services.physics.registerStaticFromMesh(
         this.gameObject.id,
         meshComp.mesh,
-        { showDebug: this.config.showDebug }
+        { showDebug: this.config.showDebug },
+      );
+      console.log(
+        `💥 [CollisionComponent] Registered ${this.config.type} collider for "${this.gameObject.id}"`,
       );
     } else if (instancedMeshComp) {
-      // Instanced mesh registration
+      // Instanced mesh registration (multiple static bodies)
       this.instanceIds = context.services.physics.registerInstancedStatic(
         this.gameObject.id,
-        instancedMeshComp.instancedMesh
+        instancedMeshComp.instancedMesh,
+      );
+      console.log(
+        `💥 [CollisionComponent] Registered ${this.instanceIds.length} instanced colliders for "${this.gameObject.id}"`,
       );
     }
-  }
 
-  private handleKinematicMesh(meshComp: MeshComponent | null, context: I_SceneContext, characterMeshComp: CharacterMeshComponent | null) {
-    if (!this.config.characterController) {
-      console.warn(
-        `[PhysicsComponent] Kinematic type requires characterController: true for GameObject "${this.gameObject.id}"`,
-      );
-      return;
-    }
-
-    // Determine which mesh to use for physics
-    let physicsBody: Mesh | undefined;
-
-    if (characterMeshComp) {
-      // Use body mesh from CharacterMeshComponent
-      physicsBody = characterMeshComp.bodyMesh;
-    } else if (meshComp) {
-      // Use regular mesh
-      physicsBody = meshComp.mesh;
-    } else {
-      console.warn(
-        `[PhysicsComponent] Kinematic character controller requires MeshComponent or CharacterMeshComponent for GameObject "${this.gameObject.id}"`,
-      );
-      return;
-    }
-
-    // Use provided initial position or default to [0, 1, 0]
-    const initialPos = this.config.initialPosition || [0, 1, 0];
-
-    // Register kinematic character from mesh
-    context.services.physics.registerKinematicFromMesh(
-      this.gameObject.id,
-      physicsBody,
-      initialPos,
-      this.config.characterOptions || {
-        enableAutostep: true,
-        enableSnapToGround: true,
-        maxStepHeight: 0.5,
-        minStepWidth: 0.2,
-        snapToGroundDistance: 0.5,
-      },
-    );
-
+    this.isRegistered = true;
   }
 
   /**

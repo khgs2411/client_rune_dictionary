@@ -1,10 +1,11 @@
 import { GameObject } from '@/game/GameObject';
 import { createPlayer } from './createPlayer';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
-import { CollisionComponent } from '@/game/components/interactions/CollisionComponent';
+import { CharacterControllerComponent } from '@/game/components/systems/CharacterControllerComponent';
 import { MovementComponent } from '@/game/components/systems/MovementComponent';
 import type { I_CharacterControls } from '@/composables/composables.types';
 import { SyncMovementComponent } from '@/game/components/multiplayer/SyncMovementComponent';
+import { Vec3 } from '@/common/types';
 
 /**
  * Configuration for LocalPlayer prefab
@@ -27,9 +28,9 @@ export interface I_LocalPlayerConfig {
  * - CharacterMeshComponent: Two-part visual (body + cone indicator, theme-aware)
  *
  * Behavior (LocalPlayer-specific):
- * - PhysicsComponent: Kinematic character controller (collision, auto-step, ground detection)
+ * - CharacterControllerComponent: Kinematic character controller (collision, auto-step, ground detection)
  * - MovementComponent: Movement logic (controller → physics → sync back)
- * - SyncMovementComponent: (NOT added yet - for future networking)
+ * - SyncMovementComponent: Network position/rotation sync
  *
  * The character controller (input handling) is owned by the scene and passed
  * to this GameObject. The controller holds DESIRED state from input, physics
@@ -55,6 +56,52 @@ export class LocalPlayer extends GameObject {
     this.characterController = config.characterController;
 
     // Get starting position from controller (source of truth)
+    const startPos: Vec3 = this.getSpawnPosition(config);
+
+    // Add shared components from factory (transform + mesh)
+    this.addBaseComponents(startPos);
+
+    // Add CharacterControllerComponent (kinematic character controller)
+    this.addComponent(
+      new CharacterControllerComponent({
+        controller: config.characterController,
+        initialPosition: startPos, // Physics body starts at correct position
+        characterOptions: {
+          enableAutostep: true,
+          enableSnapToGround: true,
+          maxStepHeight: 0.5,
+          minStepWidth: 0.2,
+          snapToGroundDistance: 0.5,
+        },
+      }),
+    );
+
+    // Add MovementComponent (movement logic, jumping, gravity)
+    this.addComponent(
+      new MovementComponent({
+        characterController: config.characterController,
+        enableJumping: true,
+        enableGravity: true,
+      }),
+    );
+
+    // SyncMovementComponent will be added later when networking is ready
+    this.addComponent(new SyncMovementComponent({ playerId: this.id, syncRotation: true }));
+  }
+
+  private addBaseComponents(startPos: Vec3) {
+    const sharedComponents = createPlayer({
+      position: startPos,
+      bodyRadius: 0.5,
+      bodyHeight: 1,
+      coneRadius: 0.2,
+      coneHeight: 0.4,
+      coneOffset: 0.7,
+    });
+    sharedComponents.forEach((comp) => this.addComponent(comp));
+  }
+
+  private getSpawnPosition(config: I_LocalPlayerConfig) {
     const controllerPos = config.characterController.getPosition();
     const startPos: [number, number, number] = [
       controllerPos.x,
@@ -79,46 +126,7 @@ export class LocalPlayer extends GameObject {
     //   startPos = [spawnData.x, spawnData.y, spawnData.z];
     //   config.characterController.setPosition(startPos[0], startPos[1], startPos[2]);
     // }
-
-
-    // Add shared components from factory (transform + mesh)
-    const sharedComponents = createPlayer({
-      position: startPos,
-      bodyRadius: 0.5,
-      bodyHeight: 1,
-      coneRadius: 0.2,
-      coneHeight: 0.4,
-      coneOffset: 0.7,
-    });
-    sharedComponents.forEach((comp) => this.addComponent(comp));
-
-    // Add PhysicsComponent (kinematic character controller)
-    this.addComponent(
-      new CollisionComponent({
-        type: 'kinematic',
-        characterController: true,
-        initialPosition: startPos, // Physics body starts at correct position
-        characterOptions: {
-          enableAutostep: true,
-          enableSnapToGround: true,
-          maxStepHeight: 0.5,
-          minStepWidth: 0.2,
-          snapToGroundDistance: 0.5,
-        },
-      }),
-    );
-
-    // Add MovementComponent (movement logic, jumping, gravity)
-    this.addComponent(
-      new MovementComponent({
-        characterController: config.characterController,
-        enableJumping: true,
-        enableGravity: true,
-      }),
-    );
-
-    // SyncMovementComponent will be added later when networking is ready
-    this.addComponent(new SyncMovementComponent({ playerId: this.id, syncRotation:true }));
+    return startPos;
   }
 
   /**
@@ -136,9 +144,9 @@ export class LocalPlayer extends GameObject {
     }
 
     // Update physics body
-    const physicsComp = this.getComponent(CollisionComponent);
-    if (physicsComp) {
-      physicsComp.updatePosition(x, y, z);
+    const characterControllerComp = this.getComponent(CharacterControllerComponent);
+    if (characterControllerComp) {
+      characterControllerComp.updatePosition(x, y, z);
     }
 
     // Reset vertical velocity
