@@ -94,27 +94,48 @@ export class KinematicCollisionComponent extends CollisionComponent {
   }
 
   /**
-   * Compute collision-aware movement
+   * Compute collision-corrected movement using Rapier's character controller
    * @param desiredMovement Desired movement delta {x, y, z}
-   * @returns Actual movement after collision correction + grounded state
+   * @returns Corrected movement vector after collision detection
    */
-  public computeMovement(desiredMovement: {
+  public computeColliderMovement(desiredMovement: {
     x: number;
     y: number;
     z: number;
-  }): { x: number; y: number; z: number; isGrounded: boolean } {
-    if (!this.isRegistered || !this.context) {
-      return { ...desiredMovement, isGrounded: false };
-    }
+  }): { x: number; y: number; z: number } | null {
+    if (!this.isRegistered || !this.context) return null;
 
-    return this.context.services.physics.moveKinematic(this.gameObject.id, desiredMovement);
+    const controller = this.context.services.physics.getKinematicController(this.gameObject.id);
+    const collider = this.context.services.physics.getCollider(this.gameObject.id);
+
+    if (!controller || !collider) return null;
+
+    // Use Rapier to compute collision-corrected movement
+    controller.computeColliderMovement(collider, desiredMovement);
+    const correctedMovement = controller.computedMovement();
+
+    return {
+      x: correctedMovement.x,
+      y: correctedMovement.y,
+      z: correctedMovement.z,
+    };
   }
 
   /**
-   * Check if character is on the ground
+   * Check if character is on the ground (call after computeColliderMovement)
    */
   public isGrounded(): boolean {
     if (!this.isRegistered || !this.context) return false;
-    return this.context.services.physics.isGrounded(this.gameObject.id);
+
+    const controller = this.context.services.physics.getKinematicController(this.gameObject.id);
+    return controller?.computedGrounded() ?? false;
+  }
+
+  /**
+   * Apply computed position to physics body
+   */
+  public applyPosition(position: { x: number; y: number; z: number }): void {
+    if (!this.isRegistered || !this.context) return;
+    this.context.services.physics.applyKinematicTranslation(this.gameObject.id, position);
   }
 }

@@ -464,48 +464,36 @@ export class PhysicsService extends SceneService {
   // ============================================================================
 
   /**
-   * Move a kinematic body with collision detection
-   * Returns the collision-corrected movement and grounded state
+   * Get kinematic controller (low-level Rapier API)
+   * Used by KinematicCollisionComponent to implement movement logic
    */
-  public moveKinematic(id: string, movement: Vector3Like): MovementResult {
+  public getKinematicController(id: string): any | null {
+    return this.kinematicControllers.get(id) || null;
+  }
+
+  /**
+   * Get collider (low-level Rapier API)
+   */
+  public getCollider(id: string): any | null {
+    return this.colliders.get(id) || null;
+  }
+
+  /**
+   * Get rigid body (low-level Rapier API)
+   */
+  public getBody(id: string): any | null {
+    return this.bodies.get(id) || null;
+  }
+
+  /**
+   * Apply kinematic translation (low-level Rapier API)
+   */
+  public applyKinematicTranslation(id: string, position: Vector3Like): void {
     const body = this.bodies.get(id);
-    const controller = this.kinematicControllers.get(id);
-    const collider = this.colliders.get(id);
-
-    if (!body || !controller || !collider) {
-      console.warn(`[PhysicsService] Kinematic body not found: ${id}`);
-      return { x: 0, y: 0, z: 0, isGrounded: false };
+    if (body) {
+      const vec = this.toVector3(position);
+      body.setNextKinematicTranslation(vec);
     }
-
-    const currentPos = body.translation();
-    const desiredMovement = this.toVector3(movement);
-
-    // Compute collision-corrected movement
-    const rapierMovement = new this.RAPIER.Vector3(
-      desiredMovement.x,
-      desiredMovement.y,
-      desiredMovement.z
-    );
-
-    controller.computeColliderMovement(collider, rapierMovement);
-    const correctedMovement = controller.computedMovement();
-    const isGrounded = controller.computedGrounded();
-
-    // Apply corrected movement
-    const newPos = {
-      x: currentPos.x + correctedMovement.x,
-      y: currentPos.y + correctedMovement.y,
-      z: currentPos.z + correctedMovement.z,
-    };
-
-    body.setNextKinematicTranslation(newPos);
-
-    return {
-      x: newPos.x,
-      y: newPos.y,
-      z: newPos.z,
-      isGrounded,
-    };
   }
 
   /**
@@ -519,13 +507,6 @@ export class PhysicsService extends SceneService {
     return { x: pos.x, y: pos.y, z: pos.z };
   }
 
-  /**
-   * Check if a kinematic body is grounded (last computed state)
-   */
-  public isGrounded(id: string): boolean {
-    const controller = this.kinematicControllers.get(id);
-    return controller?.computedGrounded() ?? false;
-  }
 
   /**
    * Set position directly (teleport)
