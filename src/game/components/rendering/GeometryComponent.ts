@@ -8,7 +8,7 @@ import {
   SphereGeometry,
 } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type { I_GameContext } from '../../common/gameobject.types';
+import { I_SceneContext } from '@/game/common/scenes.types';
 
 export type GeometryType = 'plane' | 'box' | 'sphere' | 'cylinder' | 'cone' | 'capsule';
 
@@ -53,7 +53,7 @@ export class GeometryComponent extends GameComponent {
     this.config = config;
   }
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     this.geometry = this.createGeometry();
 
     // Register geometry for disposal (geometries are disposable, not Object3D)

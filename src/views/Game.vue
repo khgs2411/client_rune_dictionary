@@ -4,7 +4,7 @@
             <!-- Application Console Debugger -->
             <DebugConsole />
             <!-- WebSocket Manager with Connect Modal -->
-            <WebSocketManager v-if="auth.isAuthenticated" :auto-connect="true" />
+            <WebSocketManager v-if="auth.isAuthenticated" :auto-connect="isDev" />
         </template>
         <!-- Scene Component (only shows when connected) -->
         <Scene v-if="websocketManager.isConnected" />
@@ -22,7 +22,7 @@
 
     const auth = useAuthStore();
     const websocketManager = useWebSocketStore();
-    // const isDev = import.meta.env.DEV;
+    const isDev = import.meta.env.DEV;
     const router = useRouter();
 
 

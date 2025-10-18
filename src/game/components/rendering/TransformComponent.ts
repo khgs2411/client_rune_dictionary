@@ -1,6 +1,6 @@
 import { Vector3, Euler, Quaternion } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type { I_GameContext } from '../../common/gameobject.types';
+import { I_SceneContext } from '@/game/common/scenes.types';
 
 export interface I_TransformConfig {
   position?: [number, number, number];
@@ -36,7 +36,7 @@ export class TransformComponent extends GameComponent {
     this.scale = new Vector3(...(config.scale || [1, 1, 1]));
   }
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     // Transform component doesn't need initialization
     // It just holds data that other components will use
   }

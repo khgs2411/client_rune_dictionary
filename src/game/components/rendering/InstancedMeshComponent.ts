@@ -1,9 +1,9 @@
 import { InstancedMesh, Matrix4, Euler, Quaternion, Vector3 } from 'three';
 import { GameComponent, ComponentPriority } from '../../GameComponent';
-import type { I_GameContext } from '../../common/gameobject.types';
 import { GeometryComponent } from './GeometryComponent';
 import { MaterialComponent } from './MaterialComponent';
 import { MeshComponent } from './MeshComponent';
+import { I_SceneContext } from '@/game/common/scenes.types';
 
 export interface I_InstanceTransform {
   position: [number, number, number];
@@ -61,7 +61,7 @@ export class InstancedMeshComponent extends GameComponent {
     }
   }
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     // Validate: cannot use with MeshComponent
     if (this.gameObject.hasComponent(MeshComponent)) {
       throw new Error(

@@ -1,9 +1,9 @@
 import { GameComponent, ComponentPriority } from '../../GameComponent';
-import type { I_GameContext } from '../../common/gameobject.types';
 import { MeshComponent } from '../rendering/MeshComponent';
 import { InstancedMeshComponent } from '../rendering/InstancedMeshComponent';
 import { CharacterMeshComponent } from '../rendering/CharacterMeshComponent';
 import { Mesh } from 'three';
+import { I_SceneContext } from '@/game/common/scenes.types';
 
 export interface I_PhysicsConfig {
   type: 'static' | 'kinematic';
@@ -54,7 +54,7 @@ export class PhysicsComponent extends GameComponent {
     this.config = config;
   }
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     // Check if physics service is ready
     if (!context.services.physics.isReady()) {
       console.warn(
@@ -91,7 +91,7 @@ export class PhysicsComponent extends GameComponent {
     return { meshComp, instancedMeshComp, characterMeshComp };
   }
 
-  private handleStaticMesh(meshComp: MeshComponent | null, context: I_GameContext, instancedMeshComp: InstancedMeshComponent | null) {
+  private handleStaticMesh(meshComp: MeshComponent | null, context: I_SceneContext, instancedMeshComp: InstancedMeshComponent | null) {
     if (meshComp) {
       // Single mesh registration
       context.services.physics.registerStaticFromMesh(
@@ -108,7 +108,7 @@ export class PhysicsComponent extends GameComponent {
     }
   }
 
-  private handleKinematicMesh(meshComp: MeshComponent | null, context: I_GameContext, characterMeshComp: CharacterMeshComponent | null) {
+  private handleKinematicMesh(meshComp: MeshComponent | null, context: I_SceneContext, characterMeshComp: CharacterMeshComponent | null) {
     if (!this.config.characterController) {
       console.warn(
         `[PhysicsComponent] Kinematic type requires characterController: true for GameObject "${this.gameObject.id}"`,
@@ -157,7 +157,7 @@ export class PhysicsComponent extends GameComponent {
   public updatePosition(x: number, y: number, z: number): void {
     if (!this.isRegistered) return;
 
-    const context = (this as any).context as I_GameContext;
+    const context = (this as any).context as I_SceneContext;
     if (context?.services?.physics) {
       context.services.physics.setPosition(this.gameObject.id, { x, y, z });
     }

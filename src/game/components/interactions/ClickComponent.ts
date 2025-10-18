@@ -1,6 +1,7 @@
 import { Intersection } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type { I_GameContext, I_Interactable, I_InteractionBuilder } from '../../common/gameobject.types';
+import type {  I_Interactable, I_InteractionBuilder } from '../../common/gameobject.types';
+import { I_SceneContext } from '@/game/common/scenes.types';
 
 export interface I_ClickConfig {
   vfxText?: string;
@@ -32,7 +33,7 @@ export class ClickComponent extends GameComponent implements I_Interactable {
     this.config = config;
   }
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     // No registration here - happens in registerWithService
   }
 
@@ -40,7 +41,7 @@ export class ClickComponent extends GameComponent implements I_Interactable {
    * Register click behavior with InteractionService builder
    * Called by GameObject during interaction lifecycle coordination
    */
-  registerInteractions(builder: I_InteractionBuilder, context: I_GameContext): void {
+  registerInteractions(builder: I_InteractionBuilder, context: I_SceneContext): void {
     if (this.config.vfxText) {
       builder.withClickVFX(this.config.vfxText, this.config.vfxColor);
     }

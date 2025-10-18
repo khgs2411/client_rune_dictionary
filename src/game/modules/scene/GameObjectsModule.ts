@@ -1,7 +1,6 @@
 import SceneModule from '@/game/modules/SceneModule';
 import type { I_SceneContext } from '@/game/common/scenes.types';
 import { GameObject } from '../../GameObject';
-import type { I_GameContext } from '../../common/gameobject.types';
 import { I_ThemeColors } from '@/composables/useTheme';
 import { I_GameComponent } from '../../GameComponent';
 
@@ -132,7 +131,7 @@ export class GameObjectsModule extends SceneModule {
    * @internal
    */
   protected async init(context: I_SceneContext): Promise<void> {
-    this.context = context as I_GameContext;
+    this.context = context;
 
     // Initialize all GameObjects
     for (const gameObject of this.gameObjects.values()) {

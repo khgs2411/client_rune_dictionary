@@ -1,8 +1,8 @@
 import { GameComponent, ComponentPriority } from '@/game/GameComponent';
-import type { I_GameContext } from '@/game/common/gameobject.types';
 import type { I_CharacterControls } from '@/composables/composables.types';
 import { TransformComponent } from '../rendering/TransformComponent';
 import { useGameConfigStore } from '@/stores/config.store';
+import { I_SceneContext } from '@/game/common/scenes.types';
 
 export interface I_MovementConfig {
   characterController: I_CharacterControls; // Scene-owned controller (handles input)
@@ -43,7 +43,7 @@ export class MovementComponent extends GameComponent {
   private enableGravity: boolean;
   private verticalVelocity = 5;
   private config = useGameConfigStore();
-  private context: I_GameContext | null = null;
+  private context: I_SceneContext | null = null;
 
   constructor(config: I_MovementConfig) {
     super();
@@ -52,7 +52,7 @@ export class MovementComponent extends GameComponent {
     this.enableGravity = config.enableGravity ?? true;
   }
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     this.context = context;
 
     // Verify required components

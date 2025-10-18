@@ -49,7 +49,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     this.addModule('lighting', new LightingModule());
     this.addModule('gameObjectsManager', new GameObjectsModule());
     this.addModule('multiplayer', new MultiplayerModule('multiplayer', this.getModule('gameObjectsManager')!));
-
   }
 
   protected addSceneObjects() {

@@ -1,6 +1,6 @@
 import { GridHelper } from 'three';
 import { GameComponent, ComponentPriority } from '../../GameComponent';
-import type { I_GameContext } from '../../common/gameobject.types';
+import { I_SceneContext } from '@/game/common/scenes.types';
 
 export interface I_GridHelperConfig {
   size?: number;
@@ -37,7 +37,7 @@ export class GridHelperComponent extends GameComponent {
     this.config = config;
   }
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     const size = this.config.size ?? 10;
     const divisions = this.config.divisions ?? 10;
     const centerColor = this.config.centerColor ?? 0x444444;

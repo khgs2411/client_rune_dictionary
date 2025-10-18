@@ -1,22 +1,8 @@
-import type { I_SceneContext } from '@/game/common/scenes.types';
 import type { ReactiveValue } from '@/game/common/interaction.types';
-import type { Vector3, Intersection } from 'three';
-import { MultiplayerModule } from '../modules/networking/MultiplayerModule';
+import type { I_SceneContext } from '@/game/common/scenes.types';
+import type { Intersection, Vector3 } from 'three';
 
-/**
- * Context passed to GameComponents during initialization
- * Contains all services and scene references needed by components
- */
-export interface I_GameContext extends I_SceneContext {
-  // I_ModuleContext already includes:
-  // - engine: Engine
-  // - scene: Scene
-  // - sceneName: string
-  // - cleanupRegistry: CleanupRegistry
-  // - services: { physics, interaction, vfx }
-  // - camera: I_GameCamera
-  // - character: I_GameCharacter
-}
+
 
 /**
  * Configuration for creating a GameObject
@@ -66,7 +52,7 @@ export interface I_InteractionBuilder {
  * coordinate a single registration with InteractionService
  */
 export interface I_Interactable {
-  registerInteractions(builder: I_InteractionBuilder, context: I_GameContext): void;
+  registerInteractions(builder: I_InteractionBuilder, context: I_SceneContext): void;
 }
 
 /**

@@ -1,9 +1,9 @@
 import { GameComponent, ComponentPriority } from '@/game/GameComponent';
-import type { I_GameContext } from '@/game/common/gameobject.types';
 import type {
   I_RemotePlayerConfig,
   I_PlayerPositionUpdate,
 } from '@/game/common/multiplayer.types';
+import { I_SceneContext } from '@/game/common/scenes.types';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 import { Vector3, Euler } from 'three';
 
@@ -58,7 +58,7 @@ export class RemotePlayerComponent extends GameComponent {
   private lastUpdateTime = 0;
   private timeSinceLastUpdate = 0;
 
-  private context: I_GameContext | null = null;
+  private context: I_SceneContext | null = null;
 
   constructor(config: I_RemotePlayerConfig) {
     super();
@@ -74,7 +74,7 @@ export class RemotePlayerComponent extends GameComponent {
     }
   }
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     this.context = context;
 
     // Verify TransformComponent exists

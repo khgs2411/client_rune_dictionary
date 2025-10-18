@@ -1,5 +1,6 @@
 import type { GameComponent, I_GameComponent } from './GameComponent';
-import type { I_GameContext, I_GameObjectConfig, I_Interactable } from './common/gameobject.types';
+import type {  I_GameObjectConfig, I_Interactable } from './common/gameobject.types';
+import { I_SceneContext } from './common/scenes.types';
 import { MeshComponent } from './components/rendering/MeshComponent';
 
 /**
@@ -22,7 +23,7 @@ export class GameObject {
   public readonly id: string;
   private components = new Map<Function, GameComponent>();
   private isInitialized = false;
-  private context: I_GameContext | null = null;
+  private context: I_SceneContext | null = null;
 
   constructor(config: I_GameObjectConfig) {
     this.id = config.id;
@@ -96,7 +97,7 @@ export class GameObject {
    * Called by GameObjectManager when GameObject is added to scene
    * @internal
    */
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     if (this.isInitialized) {
       console.warn(`[GameObject] GameObject "${this.id}" already initialized`);
       return;
@@ -127,7 +128,7 @@ export class GameObject {
    * require multiple components to work together (e.g. interaction)
    * @private
    */
-  private async registerWithServices(context: I_GameContext): Promise<void> {
+  private async registerWithServices(context: I_SceneContext): Promise<void> {
     // Handle interaction lifecycle coordination 
     await this.registerInteractions(context);
   }
@@ -141,7 +142,7 @@ export class GameObject {
    * coordinator for interaction system.
    * @private
    */
-  private async registerInteractions(context: I_GameContext): Promise<void> {
+  private async registerInteractions(context: I_SceneContext): Promise<void> {
     // Check if MeshComponent exists (required for interactions)
     const meshComp = this.getComponent(MeshComponent);
     if (!meshComp) {

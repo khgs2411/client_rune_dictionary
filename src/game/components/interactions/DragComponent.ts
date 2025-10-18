@@ -1,9 +1,9 @@
 import { Vector3 } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type { I_GameContext, I_Interactable, I_InteractionBuilder } from '../../common/gameobject.types';
-import { MeshComponent } from '../rendering/MeshComponent';
-import { PhysicsComponent } from './PhysicsComponent';
+import type {  I_Interactable, I_InteractionBuilder } from '../../common/gameobject.types';
 import { TransformComponent } from '../rendering/TransformComponent';
+import { PhysicsComponent } from './PhysicsComponent';
+import { I_SceneContext } from '@/game/common/scenes.types';
 
 export interface I_DragConfig {
   lockAxis?: ('x' | 'y' | 'z')[];
@@ -38,7 +38,7 @@ export interface I_DragConfig {
  */
 export class DragComponent extends GameComponent implements I_Interactable {
   private config: I_DragConfig;
-  private context!: I_GameContext;
+  private context!: I_SceneContext;
   private transformComp!: TransformComponent;
 
   constructor(config: I_DragConfig = {}) {
@@ -46,7 +46,7 @@ export class DragComponent extends GameComponent implements I_Interactable {
     this.config = config;
   }
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     this.context = context;
 
     // Restrict: cannot use with InstancedMeshComponent
@@ -66,7 +66,7 @@ export class DragComponent extends GameComponent implements I_Interactable {
    * Register drag behavior with InteractionService builder
    * Called by GameObject during interaction lifecycle coordination
    */
-  public registerInteractions(builder: I_InteractionBuilder, context: I_GameContext): void {
+  public registerInteractions(builder: I_InteractionBuilder, context: I_SceneContext): void {
     builder.withDrag({
       lockAxis: this.config.lockAxis,
       snapToGrid: this.config.snapToGrid,

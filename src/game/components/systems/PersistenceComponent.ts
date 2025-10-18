@@ -1,9 +1,9 @@
 import { Vector3 } from 'three';
 import { GameComponent, ComponentPriority } from '../../GameComponent';
-import type { I_GameContext } from '../../common/gameobject.types';
 import { TransformComponent } from '../rendering/TransformComponent';
 import { useSceneStore } from '@/stores/scene.store';
 import { DragComponent } from '../interactions/DragComponent';
+import { I_SceneContext } from '@/game/common/scenes.types';
 
 /**
  * PersistenceComponent - Saves and loads GameObject position
@@ -28,10 +28,10 @@ export class PersistenceComponent extends GameComponent {
   // Priority: 1 (default) - loads position early into TransformComponent
 
   private sceneStore = useSceneStore();
-  private context!: I_GameContext;
+  private context!: I_SceneContext;
   private transformComp!: TransformComponent;
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     this.context = context;
 
     // Require transform component

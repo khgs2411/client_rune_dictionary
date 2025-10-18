@@ -1,8 +1,8 @@
 import { I_ThemeColors } from '@/composables/useTheme';
 import type { GameObject } from './GameObject';
-import type { I_GameContext } from './common/gameobject.types';
 import { CleanupRegistry } from './CleanupRegistry';
 import { Scene } from 'three';
+import { I_SceneContext } from './common/scenes.types';
 
 /**
  * Component initialization priority
@@ -42,7 +42,7 @@ export enum ComponentPriority {
  * class DragComponent extends GameComponent {
  *   public readonly priority = ComponentPriority.INTERACTION;
  *
- *   async init(context: I_GameContext): Promise<void> {
+ *   async init(context: I_SceneContext): Promise<void> {
  *     const mesh = this.requireComponent(MeshComponent);
  *     const physics = this.getComponent(PhysicsComponent); // Optional
  *     // ... setup drag behavior
@@ -53,7 +53,7 @@ export enum ComponentPriority {
 
 
 export interface I_GameComponent {
-  init(context: I_GameContext): Promise<void>;
+  init(context: I_SceneContext): Promise<void>;
   onAttach(gameObject: GameObject): void;
   update?(delta: number): void;
   destroy?(scene: Scene): void;
@@ -139,7 +139,7 @@ export abstract class GameComponent implements I_GameComponent {
    * - Create Three.js objects
    * - Setup event listeners
    */
-  public abstract init(context: I_GameContext): Promise<void>;
+  public abstract init(context: I_SceneContext): Promise<void>;
 
   /**
    * Update component (called every frame)

@@ -1,9 +1,9 @@
 import { GameComponent, ComponentPriority } from '@/game/GameComponent';
-import type { I_GameContext } from '@/game/common/gameobject.types';
 import type {
   I_SyncMovementConfig,
   I_PlayerPositionUpdate,
 } from '@/game/common/multiplayer.types';
+import { I_SceneContext } from '@/game/common/scenes.types';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 import { E_NetworkEventCategory } from '@/game/services/NetworkingService';
 import { Vector3 } from 'three';
@@ -45,7 +45,7 @@ export class SyncMovementComponent extends GameComponent {
   private timeSinceLastSync = 0;
   private lastSyncedPosition = new Vector3();
   private lastSyncedRotation = { x: 0, y: 0, z: 0 };
-  private context: I_GameContext | null = null;
+  private context: I_SceneContext | null = null;
 
   constructor(config: I_SyncMovementConfig & { playerId: string }) {
     super();
@@ -57,7 +57,7 @@ export class SyncMovementComponent extends GameComponent {
     this.syncRotation = config.syncRotation ?? true;
   }
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     this.context = context;
 
     // Verify TransformComponent exists

@@ -1,9 +1,9 @@
 import { GameComponent, ComponentPriority } from '@/game/GameComponent';
-import type { I_GameContext } from '@/game/common/gameobject.types';
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
 import { TransformComponent } from './TransformComponent';
 import { useSettingsStore } from '@/stores/settings.store';
 import type { I_ThemeColors } from '@/composables/useTheme';
+import { I_SceneContext } from '@/game/common/scenes.types';
 
 export interface I_CharacterMeshConfig {
   bodyRadius?: number; // Default: 0.5
@@ -56,7 +56,7 @@ export class CharacterMeshComponent extends GameComponent {
     this.config = config;
   }
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     // Require TransformComponent (we read from it)
     const transform = this.requireComponent(TransformComponent);
 

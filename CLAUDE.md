@@ -717,7 +717,7 @@ export class RotateComponent extends GameComponent {
     this.axis = config.axis || 'y';
   }
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     // Query required sibling components
     const mesh = this.requireComponent(MeshComponent);
     console.log('RotateComponent initialized for', mesh.mesh.name);
@@ -750,7 +750,7 @@ const obj = new GameObject({ id: 'spinner' })
 export class PhysicsComponent extends GameComponent implements I_Interactable {
   public readonly priority = ComponentPriority.PHYSICS;
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     // Require MeshComponent (initialized before us due to priority)
     const mesh = this.requireComponent(MeshComponent);
 
@@ -763,7 +763,7 @@ export class PhysicsComponent extends GameComponent implements I_Interactable {
   }
 
   // Implement I_Interactable to add drag behavior
-  registerInteractions(builder: I_InteractionBuilder, context: I_GameContext): void {
+  registerInteractions(builder: I_InteractionBuilder, context: I_SceneContext): void {
     const dragConfig = this.config.drag;
     if (dragConfig) {
       builder.withDrag({

@@ -1,9 +1,9 @@
 import { Mesh } from 'three';
 import { GameComponent, ComponentPriority } from '../../GameComponent';
-import type { I_GameContext } from '../../common/gameobject.types';
 import { GeometryComponent } from './GeometryComponent';
 import { MaterialComponent } from './MaterialComponent';
 import { TransformComponent } from './TransformComponent';
+import { I_SceneContext } from '@/game/common/scenes.types';
 
 export interface I_MeshConfig {
   castShadow?: boolean;
@@ -40,7 +40,7 @@ export class MeshComponent extends GameComponent {
     this.config = config;
   }
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     // Restrict: cannot use with InstancedMeshComponent
     const InstancedMeshComponent = await import('./InstancedMeshComponent').then(
       (m) => m.InstancedMeshComponent,

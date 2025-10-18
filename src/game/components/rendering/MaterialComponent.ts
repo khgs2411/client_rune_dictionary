@@ -1,8 +1,8 @@
 import { MeshStandardMaterial } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type { I_GameContext } from '../../common/gameobject.types';
 import { useSettingsStore } from '@/stores/settings.store';
 import { I_ThemeColors } from '@/composables/useTheme';
+import { I_SceneContext } from '@/game/common/scenes.types';
 
 export interface I_MaterialConfig {
   color?: number; // Static color
@@ -48,7 +48,7 @@ export class MaterialComponent extends GameComponent {
     this.config = config;
   }
 
-  async init(context: I_GameContext): Promise<void> {
+  async init(context: I_SceneContext): Promise<void> {
     const color = this.getColor();
 
     this.material = new MeshStandardMaterial({
