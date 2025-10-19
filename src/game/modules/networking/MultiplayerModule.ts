@@ -1,12 +1,10 @@
 import MultiplayerAPI from '@/api/multiplayer.api';
 import { PositionVector3 } from '@/common/types';
 import type {
-  I_MultiplayerHandler,
-  I_PlayerPositionUpdate,
+  I_MultiplayerHandler
 } from '@/game/common/multiplayer.types';
 import type { I_SceneContext, I_SceneModule } from '@/game/common/scenes.types';
 import { RemotePlayerComponent } from '@/game/components/multiplayer/RemotePlayerComponent';
-import { GameObjectsModule } from '@/game/modules/objects/GameObjectsModule';
 import SceneModule from '@/game/modules/SceneModule';
 import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
 import { RemotePlayer } from '@/game/prefabs/character/RemotePlayer';
@@ -20,10 +18,10 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
   // Remote players tracking
   private remotePlayers = new Map<string, RemotePlayer>;
 
-  constructor(moduleName: string, private gameObjectManager: GameObjectsModule) {
+  constructor(moduleName?: string) {
     super(moduleName, false);
   }
-  
+
   /**
    * Initialize service and subscribe to WebSocket events
    */
@@ -32,7 +30,7 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     // Test API connection
     try {
       await this.fetchRemotePlayers(context);
-      this.registerWithNetworkingService();
+      this.registerWithNetworkingService(context);
 
       console.log('✅ [MultiplayerModule] Started');
       this.initialized(context.sceneName)
@@ -41,8 +39,9 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     }
   }
 
-  private registerWithNetworkingService() {
-    this.context.services.networking.register('MultiplayerModule', {
+  private registerWithNetworkingService(context: I_SceneContext) {
+    const networking = context.getService('networking');
+    networking.register('MultiplayerModule', {
       scene: this.handleSceneUpdates.bind(this),
     })
   }
@@ -59,7 +58,8 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
       const remotePlayer = new RemotePlayer({ playerId: player.id, username: player.username || "Remote Player", position: player.position });
 
       this.registerRemotePlayer(remotePlayer.id, remotePlayer);
-      this.gameObjectManager.add(remotePlayer, false);
+      const gom = context.getService('gameObjectsManager');
+      gom.add(remotePlayer, false);
     });
   }
 
@@ -97,7 +97,8 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
 
     const remotePlayer = new RemotePlayer({ playerId: data.id, username: data.username || "Remote Player", position: data.position });
     this.registerRemotePlayer(remotePlayer.id, remotePlayer);
-    this.gameObjectManager.add(remotePlayer, true);
+    const gom = this.context.getService('gameObjectsManager');
+    gom.add(remotePlayer, true);
   }
 
   private onPlayerPositionUpdate(message: WebsocketStructuredMessage<{
@@ -158,9 +159,10 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
    */
   public unregisterRemotePlayer(playerId: string): void {
     if (this.remotePlayers.has(playerId)) {
+      const gom = this.context.getService('gameObjectsManager');
       // Check if GameObject exists before removing
-      if (this.gameObjectManager.has(playerId)) {
-        this.gameObjectManager.remove(playerId);
+      if (gom.has(playerId)) {
+        gom.remove(playerId);
       }
       this.remotePlayers.delete(playerId);
       console.log(`👤 [MultiplayerModule] Unregistered remote player: ${playerId}`);

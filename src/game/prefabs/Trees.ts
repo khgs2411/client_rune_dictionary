@@ -41,8 +41,6 @@ export interface I_TreesConfig {
  *   ]
  * });
  *
- * gameObjectManager.add(trunks);
- * gameObjectManager.add(leaves);
  * ```
  */
 export class Trees {

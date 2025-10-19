@@ -1,9 +1,9 @@
+import { I_SceneContext } from '@/game/common/scenes.types';
 import { Vector3 } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type {  I_Interactable, I_InteractionBuilder } from '../../common/gameobject.types';
+import type { I_Interactable, I_InteractionBuilder } from '../../common/gameobject.types';
 import { TransformComponent } from '../rendering/TransformComponent';
 import { CollisionComponent } from './CollisionComponent';
-import { I_SceneContext } from '@/game/common/scenes.types';
 
 export interface I_DragConfig {
   lockAxis?: ('x' | 'y' | 'z')[];
@@ -99,8 +99,10 @@ export class DragComponent extends GameComponent implements I_Interactable {
 
     // Update physics if component exists
     const physicsComp = this.getComponent(CollisionComponent);
-    if (physicsComp && this.context.services.physics.isReady()) {
-      this.context.services.physics.setPosition(this.gameObject.id, {
+    const physics = this.context.getService('physics')
+
+    if (physicsComp && physics.isReady()) {
+      physics.setPosition(this.gameObject.id, {
         x: position.x,
         y: position.y,
         z: position.z,

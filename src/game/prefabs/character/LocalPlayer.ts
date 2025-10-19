@@ -44,8 +44,6 @@ export interface I_LocalPlayerConfig {
  *   characterController: this.character.controller,
  *   position: [0, 1, 0],
  * });
- * gameObjectManager.add(localPlayer);
- * ```
  */
 export class LocalPlayer extends GameObject {
   private characterController: I_CharacterControls;

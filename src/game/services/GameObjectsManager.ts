@@ -1,8 +1,8 @@
-import SceneModule from '@/game/modules/SceneModule';
-import type { I_SceneContext } from '@/game/common/scenes.types';
-import { GameObject } from '../../GameObject';
 import { I_ThemeColors } from '@/composables/useTheme';
-import { I_GameComponent } from '../../GameComponent';
+import type { I_SceneContext, I_SceneService } from '@/game/common/scenes.types';
+import SceneService from '@/game/services/SceneService';
+import { I_GameComponent } from '../GameComponent';
+import { GameObject } from '../GameObject';
 
 /**
  * GameObjectManager - Scene module that manages all GameObjects
@@ -12,34 +12,40 @@ import { I_GameComponent } from '../../GameComponent';
  * - GameObject lifecycle (init, update, destroy)
  * - Collection management
  * - Context passing to components
- *
- * Usage in scene:
- * ```typescript
- * class PlaygroundScene extends GameScene {
- *   protected registerModules(): void {
- *     this.addModule('gameObjects', new GameObjectManager());
- *   }
- *
- *   protected addSceneObjects(): void {
- *     const manager = this.getModule('gameObjects')!;
- *
- *     const box = new GameObject({ id: 'box' })
- *       .addComponent(new GeometryComponent({ ... }))
- *       .addComponent(new MeshComponent());
- *
- *     manager.add(box);
- *   }
- * }
- * ```
  */
-export class GameObjectsModule extends SceneModule {
+export class GameObjectsManager extends SceneService implements I_SceneService{
   private gameObjects = new Map<string, GameObject>();
+
+  /**
+   * Initialize all GameObjects
+   * Called by scene when module is loaded
+   * @internal
+   */
+  protected async init(context: I_SceneContext): Promise<void> {
+    this.context = context;
+
+    // Initialize all GameObjects
+    for (const gameObject of this.gameObjects.values()) {
+      try {
+        await gameObject.init(this.context);
+      } catch (error) {
+        console.error(
+          `[GameObjectManager] Failed to initialize GameObject "${gameObject.id}":`,
+          error,
+        );
+      }
+    }
+
+    console.log(
+      `✅ [GameObjectManager] Initialized ${this.gameObjects.size} GameObjects`,
+    );
+  }
 
   /**
    * Add a GameObject to the manager
    * If the manager is already initialized, the GameObject will be initialized immediately
    */
-  add(gameObject: GameObject, initialize:boolean = true): void {
+  add(gameObject: GameObject, initialize: boolean = true): void {
     if (this.gameObjects.has(gameObject.id)) {
       console.warn(
         `[GameObjectManager] GameObject with id "${gameObject.id}" already exists. Skipping.`,
@@ -125,30 +131,7 @@ export class GameObjectsModule extends SceneModule {
     console.log(`🎨 [GameObjectManager] Notified ${this.gameObjects.size} GameObjects of theme change to "${theme}"`);
   }
 
-  /**
-   * Initialize all GameObjects
-   * Called by scene when module is loaded
-   * @internal
-   */
-  protected async init(context: I_SceneContext): Promise<void> {
-    this.context = context;
-
-    // Initialize all GameObjects
-    for (const gameObject of this.gameObjects.values()) {
-      try {
-        await gameObject.init(this.context);
-      } catch (error) {
-        console.error(
-          `[GameObjectManager] Failed to initialize GameObject "${gameObject.id}":`,
-          error,
-        );
-      }
-    }
-
-    console.log(
-      `✅ [GameObjectManager] Initialized ${this.gameObjects.size} GameObjects`,
-    );
-  }
+  
 
   /**
    * Update all GameObjects

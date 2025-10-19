@@ -1,7 +1,7 @@
-import { GameComponent, ComponentPriority } from '../../GameComponent';
-import { MeshComponent } from '../rendering/MeshComponent';
-import { InstancedMeshComponent } from '../rendering/InstancedMeshComponent';
 import { I_SceneContext } from '@/game/common/scenes.types';
+import { ComponentPriority, GameComponent } from '../../GameComponent';
+import { InstancedMeshComponent } from '../rendering/InstancedMeshComponent';
+import { MeshComponent } from '../rendering/MeshComponent';
 
 export interface I_CollisionConfig {
   type: 'static' | 'dynamic' | 'trigger';
@@ -58,9 +58,10 @@ export class CollisionComponent extends GameComponent {
 
   async init(context: I_SceneContext): Promise<void> {
     this.context = context;
+    const physics = context.getService('physics')
 
     // Check if physics service is ready
-    if (!context.services.physics.isReady()) {
+    if (!physics.isReady()) {
       console.warn(
         `[CollisionComponent] Physics not ready for GameObject "${this.gameObject.id}". Skipping.`,
       );
@@ -80,14 +81,14 @@ export class CollisionComponent extends GameComponent {
     // Register collider with physics service
     if (meshComp) {
       // Single mesh registration
-      context.services.physics.registerStaticFromMesh(
+      physics.registerStaticFromMesh(
         this.gameObject.id,
         meshComp.mesh,
         { showDebug: this.config.showDebug },
       );
     } else if (instancedMeshComp) {
       // Instanced mesh registration (multiple static bodies)
-      this.instanceIds = context.services.physics.registerInstancedStatic(
+      this.instanceIds = physics.registerInstancedStatic(
         this.gameObject.id,
         instancedMeshComp.instancedMesh,
       );
@@ -105,13 +106,14 @@ export class CollisionComponent extends GameComponent {
    */
   protected registerCallbacks(): void {
     if (!this.context) return;
+    const physics = this.context.getService('physics')
 
     if (
       this.config.onCollisionEnter ||
       this.config.onCollisionStay ||
       this.config.onCollisionExit
     ) {
-      this.context.services.physics.registerCollisionCallbacks(this.gameObject.id, {
+      physics.registerCollisionCallbacks(this.gameObject.id, {
         onCollisionEnter: this.config.onCollisionEnter,
         onCollisionStay: this.config.onCollisionStay,
         onCollisionExit: this.config.onCollisionExit,
@@ -124,7 +126,8 @@ export class CollisionComponent extends GameComponent {
    */
   public updatePosition(x: number, y: number, z: number): void {
     if (!this.isRegistered || !this.context) return;
-    this.context.services.physics.setPosition(this.gameObject.id, { x, y, z });
+    const physics = this.context.getService('physics')
+    physics.setPosition(this.gameObject.id, { x, y, z });
   }
 
   /**
@@ -132,7 +135,8 @@ export class CollisionComponent extends GameComponent {
    */
   public getPosition(): { x: number; y: number; z: number } | null {
     if (!this.isRegistered || !this.context) return null;
-    return this.context.services.physics.getPosition(this.gameObject.id);
+    const physics = this.context.getService('physics')
+    return physics.getPosition(this.gameObject.id);
   }
 
   public destroy(): void {
@@ -143,8 +147,9 @@ export class CollisionComponent extends GameComponent {
       }
 
       // Unregister collision callbacks
-      if (this.context?.services?.physics) {
-        this.context.services.physics.unregisterCollisionCallbacks(this.gameObject.id);
+      const physics = this.context?.getService('physics')
+      if (physics) {
+        physics.unregisterCollisionCallbacks(this.gameObject.id);
       }
 
       // Physics cleanup happens automatically in PhysicsService.destroy()

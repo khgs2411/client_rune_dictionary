@@ -43,9 +43,6 @@ export interface I_EditableBoxConfig {
  *   color: 0xff1493,
  *   onDragEnd: (pos) => console.log('Box dragged to:', pos)
  * });
- *
- * gameObjectManager.add(box);
- * ```
  */
 export class EditableBox extends GameObject {
   constructor(config: I_EditableBoxConfig) {

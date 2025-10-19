@@ -1,11 +1,11 @@
-import { GameComponent, ComponentPriority } from '@/game/GameComponent';
+import { ComponentPriority, GameComponent } from '@/game/GameComponent';
 import type {
-  I_RemotePlayerConfig,
   I_PlayerPositionUpdate,
+  I_RemotePlayerConfig,
 } from '@/game/common/multiplayer.types';
 import { I_SceneContext } from '@/game/common/scenes.types';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
-import { Vector3, Euler } from 'three';
+import { Euler, Vector3 } from 'three';
 
 /**
  * RemotePlayerComponent - Interpolates other players' movement
@@ -86,16 +86,6 @@ export class RemotePlayerComponent extends GameComponent {
     this.currentRotation.copy(transform.rotation);
     this.targetRotation.copy(transform.rotation);
 
-    // Verify MultiplayerService exists
-    /* if (!context.services.multiplayer) {
-      throw new Error(
-        `[RemotePlayerComponent] MultiplayerService not found in scene services. Add it to your scene's services object.`,
-      );
-    } */
-
-    // Register with multiplayer service to receive updates
-    // context.services.multiplayer.registerRemotePlayer(this.playerId, this.handlePositionUpdate);
-
     console.log(
       `👤 [RemotePlayerComponent] Initialized for player: ${this.username} (${this.playerId})`,
     );
@@ -135,9 +125,6 @@ export class RemotePlayerComponent extends GameComponent {
 
   destroy(): void {
     // Unregister from multiplayer service
-    if (this.context?.services.multiplayer) {
-      // this.context.services.multiplayer.unregisterRemotePlayer(this.playerId);
-    }
 
     console.log(
       `👤 [RemotePlayerComponent] Destroyed for player: ${this.username} (${this.playerId})`,

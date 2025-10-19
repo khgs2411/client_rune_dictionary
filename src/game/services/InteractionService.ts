@@ -24,15 +24,6 @@ import SceneService from './SceneService';
  * - Drag system (move objects on XZ plane) - only in editor mode ✅
  * - Fluent builder API ✅
  * - Leverages Mouse utility's built-in drag detection ✅
- *
- * Usage:
- * ```typescript
- * context.services.interaction
- *   .register('box-1', mesh)
- *   .withHoverGlow()
- *   .withClickVFX('POW!')
- *   .withDrag({ lockAxis: ['y'] });
- * ```
  */
 export class InteractionService extends SceneService implements I_SceneService {
   private config: GameConfig;
@@ -184,7 +175,8 @@ export class InteractionService extends SceneService implements I_SceneService {
 
     // Apply hover glow
     if (hover.glow) {
-      this.context.services.vfx.applyEmissive(
+      const vfx = this.context.getService('vfx');
+      vfx.applyEmissive(
         object.object3D,
         hover.glow.color,
         this.resolve(hover.glow.intensity),
@@ -203,12 +195,13 @@ export class InteractionService extends SceneService implements I_SceneService {
     const hover = object?.behaviors.hover;
 
     // Restore glow
+    const vfx = this.context.getService('vfx');
     if (hover?.glow) {
-      this.context.services.vfx.restoreEmissive(object.object3D);
+      vfx.restoreEmissive(object.object3D);
     }
 
     // Hide tooltip
-    this.context.services.vfx.hideTooltip();
+    vfx.hideTooltip();
 
     // Fire custom callback
     hover?.customCallbacks?.onEnd?.();
@@ -225,7 +218,8 @@ export class InteractionService extends SceneService implements I_SceneService {
 
     // Show tooltip
     if (hover?.tooltip) {
-      this.context.services.vfx.showTooltip(
+      const vfx = this.context.getService('vfx');
+      vfx.showTooltip(
         object.object3D.position,
         hover.tooltip.title,
         hover.tooltip.description,
@@ -262,8 +256,9 @@ export class InteractionService extends SceneService implements I_SceneService {
     const intersection = intersects[0];
 
     // Apply click VFX
+    const vfx = this.context.getService('vfx');
     if (click.vfx) {
-      this.context.services.vfx.showClickEffect(
+      vfx.showClickEffect(
         intersection.point,
         click.vfx.text,
         click.vfx.color,
@@ -272,7 +267,7 @@ export class InteractionService extends SceneService implements I_SceneService {
 
     // Apply camera shake
     if (click.shake) {
-      this.context.services.vfx.shakeCamera(
+      vfx.shakeCamera(
         this.resolve(click.shake.intensity),
         this.resolve(click.shake.duration),
       );
@@ -280,7 +275,7 @@ export class InteractionService extends SceneService implements I_SceneService {
 
     // Apply particles
     if (click.particles) {
-      this.context.services.vfx.spawnParticles(
+      vfx.spawnParticles(
         intersection.point,
         this.resolve(click.particles.count),
         click.particles.color,

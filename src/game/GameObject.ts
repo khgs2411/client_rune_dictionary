@@ -1,5 +1,5 @@
-import type { GameComponent, I_GameComponent } from './GameComponent';
-import type {  I_GameObjectConfig, I_Interactable } from './common/gameobject.types';
+import type { GameComponent } from './GameComponent';
+import type { I_GameObjectConfig, I_Interactable } from './common/gameobject.types';
 import { I_SceneContext } from './common/scenes.types';
 import { MeshComponent } from './components/rendering/MeshComponent';
 
@@ -165,7 +165,8 @@ export class GameObject {
     }
 
     // Create single builder for all interactions
-    const builder = context.services.interaction.register(this.id, meshComp.mesh);
+    const interaction = context.getService('interaction')
+    const builder = interaction.register(this.id, meshComp.mesh);
 
     // Let each interactable component add its behaviors to the builder
     for (const interactable of interactables) {

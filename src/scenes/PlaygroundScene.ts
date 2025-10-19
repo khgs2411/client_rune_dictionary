@@ -11,10 +11,9 @@ import { GeometryComponent } from '@/game/components/rendering/GeometryComponent
 import { InstancedMeshComponent } from '@/game/components/rendering/InstancedMeshComponent';
 import { MaterialComponent } from '@/game/components/rendering/MaterialComponent';
 import { MultiplayerModule } from '@/game/modules/networking/MultiplayerModule';
-import { GameObjectsModule } from '@/game/modules/objects/GameObjectsModule';
+import { EditableBox } from '@/game/prefabs/EditableBox';
 import { Ground } from '@/game/prefabs/Ground';
 import { Trees } from '@/game/prefabs/Trees';
-import { EditableBox } from '@/game/prefabs/EditableBox';
 import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
 
 /**
@@ -24,7 +23,6 @@ import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
 interface PlaygroundModuleRegistry extends Record<string, any> {
   lighting: LightingModule;
   debug: DebugModule;
-  gameObjectsManager: GameObjectsModule;
 }
 
 export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
@@ -42,19 +40,15 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
    * Register scene-specific modules
    */
   protected registerModules(): void {
-    const gameObjectManager = new GameObjectsModule();
     this.addModule('lighting', new LightingModule());
-    this.addModule('gameObjectsManager', gameObjectManager);
-    this.addModule('multiplayer', new MultiplayerModule('multiplayer', gameObjectManager));
+    this.addModule('multiplayer', new MultiplayerModule());
   }
 
   protected addSceneObjects() {
-    // gameObjectsManager manager
-    const gameObjectManager = this.getModule('gameObjectsManager')!;
-
     // Ground
     const ground = new Ground({ size: 200, showGrid: true });
-    gameObjectManager.add(ground);
+    const gom = this.getService('gameObjectsManager');
+    gom.add(ground);
 
     // Editable box (using prefab)
     const modelComponentBox = new EditableBox({
@@ -92,11 +86,11 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
           ],
         }),
       );
-
-    gameObjectManager.add(modelComponentBox);
-    gameObjectManager.add(treeTrunks);
-    gameObjectManager.add(treeLeaves);
-    gameObjectManager.add(bushes);
+      
+    gom.add(modelComponentBox);
+    gom.add(treeTrunks);
+    gom.add(treeLeaves);
+    gom.add(bushes);
 
 
 
@@ -107,7 +101,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       characterController: this.character.controller,
     });
 
-    gameObjectManager.add(localPlayer);
+    gom.add(localPlayer);
   }
 
   /**
@@ -155,7 +149,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       border: this.settings.theme.border,
     };
 
-    // Update GameObjectManager (propagates to all gameObjectsManager with theme-aware components)
-    this.getModule('gameObjectsManager')?.onThemeChange?.(theme);
+    this.getService('gameObjectsManager').onThemeChange(theme);
   }
 }

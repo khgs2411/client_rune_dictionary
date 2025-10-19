@@ -39,7 +39,6 @@ export interface I_GroundConfig {
  *   showGrid: true,
  *   enablePhysics: true
  * });
- * gameObjectManager.add(ground);
  * ```
  */
 export class Ground extends GameObject {

@@ -4,12 +4,13 @@ import { useCharacter } from '@/composables/useCharacter';
 import { I_ThemeColors } from '@/composables/useTheme';
 import { CleanupRegistry } from '@/game/CleanupRegistry';
 import { Engine } from '@/game/Engine';
-import { VFXService } from '@/game/services/VFXService';
+import { GameObjectsManager } from '@/game/services/GameObjectsManager';
 import type { InteractionService } from '@/game/services/InteractionService';
 import { PhysicsService } from '@/game/services/PhysicsService';
+import { VFXService } from '@/game/services/VFXService';
 import { BufferGeometry, BufferGeometryEventMap, NormalBufferAttributes, Scene } from 'three';
-import type { I_InteractableBehaviors } from './interaction.types';
 import NetworkingService from '../services/NetworkingService';
+import type { I_InteractableBehaviors } from './interaction.types';
 
 /**
  * Configuration for creating a scene
@@ -87,11 +88,12 @@ export interface I_EntityModule {
  * Services available to modules via context
  * This is how cross-cutting concerns (interaction, audio, etc.) are shared
  */
-export interface I_ModuleServices extends Record<string, I_SceneService> {
+export interface I_ModuleServices {
   interaction: InteractionService;
   vfx: VFXService;
   physics: PhysicsService;
   networking: NetworkingService;
+  gameObjectsManager: GameObjectsManager;
 }
 
 /**
@@ -103,7 +105,11 @@ export interface I_SceneContext {
   scene: Scene;
   cleanupRegistry: CleanupRegistry;
   sceneName: string;
+  /**
+   * @deprecated Use getService instead
+   */
   services: I_ModuleServices;
+  getService<K extends keyof I_ModuleServices>(serviceName: K): I_ModuleServices[K];
   clientData: Partial<I_ConnectedClientData>;
   camera?: ReturnType<typeof useCamera>; // Optional: for modules that need camera
   character?: ReturnType<typeof useCharacter>; // Optional: for modules that need character

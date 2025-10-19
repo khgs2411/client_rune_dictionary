@@ -1,7 +1,7 @@
-import { GameComponent, ComponentPriority } from '@/game/GameComponent';
+import { ComponentPriority, GameComponent } from '@/game/GameComponent';
 import type {
-  I_SyncMovementConfig,
   I_PlayerPositionUpdate,
+  I_SyncMovementConfig,
 } from '@/game/common/multiplayer.types';
 import { I_SceneContext } from '@/game/common/scenes.types';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
@@ -106,7 +106,8 @@ export class SyncMovementComponent extends GameComponent {
 
     // Skip if no significant change
     if (positionChanged || rotationChanged) {
-      const clientData = this.context.services.networking.getClientData();
+      const networking = this.context.getService('networking');
+      const clientData = networking.getClientData();
       if (!clientData) return;
       // Build update message
       const update: I_PlayerPositionUpdate = {
@@ -142,13 +143,15 @@ export class SyncMovementComponent extends GameComponent {
   }
 
   private sendPositionUpdate(update: I_PlayerPositionUpdate): void {
-    if (!this.context?.services.networking) return;
+    const networking = this.context?.getService('networking');
+
+    if (!networking) return;
     const message = {
       action: 'player.position.update',
       ...update,
     };
 
-    this.context.services.networking.send(E_NetworkEventCategory.PLAYER, message);
+    networking.send(E_NetworkEventCategory.PLAYER, message);
   }
 
   /**

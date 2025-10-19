@@ -13,6 +13,7 @@ import { CleanupRegistry } from '@/game/CleanupRegistry';
 import { I_SceneContext, I_SceneModule, I_ModuleServices as I_SceneServices } from '@/game/common/scenes.types';
 import type { Engine } from '@/game/Engine';
 import { ModuleRegistry } from '@/game/ModuleRegistry';
+import { GameObjectsManager } from '@/game/services/GameObjectsManager';
 import { InteractionService } from '@/game/services/InteractionService';
 import { PhysicsService } from '@/game/services/PhysicsService';
 import { VFXService } from '@/game/services/VFXService';
@@ -55,6 +56,7 @@ export abstract class GameScene<
     vfx: new VFXService(),
     physics: new PhysicsService(),
     networking: new NetworkingService(),
+    gameObjectsManager: new GameObjectsManager()
   };
 
   // High-level entity composables
@@ -149,6 +151,10 @@ export abstract class GameScene<
     this.registry.forEach(callback);
   }
 
+  public getService<T extends keyof I_SceneServices>(serviceName: T): I_SceneServices[T] {
+    return this.services[serviceName];
+  }
+
   /**
    * Emit loading event with simple API
    */
@@ -229,7 +235,11 @@ export abstract class GameScene<
       scene: this.engine.scene,
       clientData: connectedClientData,
       cleanupRegistry: this.cleanupRegistry,
+      /**
+       * @deprecated
+       */
       services: this.services, // Pass services (interaction, etc.)
+      getService: this.getService.bind(this),
       camera: this.camera,
       character: this.character,
     };

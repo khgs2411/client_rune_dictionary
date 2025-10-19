@@ -1,5 +1,5 @@
-import { CollisionComponent, I_CollisionConfig } from '@/game/components/interactions/CollisionComponent';
 import type { I_SceneContext } from '@/game/common/scenes.types';
+import { CollisionComponent, I_CollisionConfig } from '@/game/components/interactions/CollisionComponent';
 import type { Mesh, Object3D } from 'three';
 
 export interface I_KinematicPhysicsConfig extends I_CollisionConfig {
@@ -50,9 +50,9 @@ export class KinematicCollisionComponent extends CollisionComponent {
 
   async init(context: I_SceneContext): Promise<void> {
     this.context = context;
-
+    const physics = context.getService('physics');
     // Check if physics service is ready
-    if (!context.services.physics.isReady()) {
+    if (!physics.isReady()) {
       console.warn(
         `[KinematicPhysicsComponent] Physics not ready for GameObject "${this.gameObject.id}". Skipping.`,
       );
@@ -71,7 +71,7 @@ export class KinematicCollisionComponent extends CollisionComponent {
     const initialPos = this.kinematicConfig.initialPosition || [0, 1, 0];
 
     // Register kinematic character with PhysicsService (not static!)
-    context.services.physics.registerKinematicFromMesh(
+    physics.registerKinematicFromMesh(
       this.gameObject.id,
       mesh,
       initialPos,
@@ -104,9 +104,9 @@ export class KinematicCollisionComponent extends CollisionComponent {
     z: number;
   }): { x: number; y: number; z: number } | null {
     if (!this.isRegistered || !this.context) return null;
-
-    const controller = this.context.services.physics.getKinematicController(this.gameObject.id);
-    const collider = this.context.services.physics.getCollider(this.gameObject.id);
+    const physics = this.context.getService('physics');
+    const controller = physics.getKinematicController(this.gameObject.id);
+    const collider = physics.getCollider(this.gameObject.id);
 
     if (!controller || !collider) return null;
 
@@ -126,8 +126,9 @@ export class KinematicCollisionComponent extends CollisionComponent {
    */
   public isGrounded(): boolean {
     if (!this.isRegistered || !this.context) return false;
+    const physics = this.context.getService('physics');
 
-    const controller = this.context.services.physics.getKinematicController(this.gameObject.id);
+    const controller = physics.getKinematicController(this.gameObject.id);
     return controller?.computedGrounded() ?? false;
   }
 
@@ -136,6 +137,7 @@ export class KinematicCollisionComponent extends CollisionComponent {
    */
   public applyPosition(position: { x: number; y: number; z: number }): void {
     if (!this.isRegistered || !this.context) return;
-    this.context.services.physics.applyKinematicTranslation(this.gameObject.id, position);
+    const physics = this.context.getService('physics');
+    physics.applyKinematicTranslation(this.gameObject.id, position);
   }
 }
