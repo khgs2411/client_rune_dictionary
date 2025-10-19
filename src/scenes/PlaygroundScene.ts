@@ -107,12 +107,21 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     const spawner = this.getService('spawner');
 
     // 1. PREFAB APPROACH - Register Fireball factory
-    spawner.registerFactory('fireball', (id, config) => {
-      return new Fireball({ id, ...config });
-    });
+    spawner.registerFactory(
+      'fireball',
+      (id, config) => {
+        return new Fireball({ id, ...config });
+      },
+      {
+        poolSize: 10, // Max 10 fireballs globally
+        maxActivePerOwner: 5, // Max 5 per player
+      },
+    );
 
     // 2. MANUAL APPROACH - Register custom spawnable (non-prefab)
-    spawner.registerFactory('ice-shard', (id, config) => {
+    spawner.registerFactory(
+      'ice-shard',
+      (id, config) => {
       const iceShard = new GameObject({ id })
         .addComponent(
           new TransformComponent({
@@ -139,7 +148,12 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       // TODO: Add TrajectoryComponent and CollisionComponent once implemented
 
       return iceShard;
-    });
+      },
+      {
+        poolSize: 20, // Max 20 ice shards globally
+        maxActivePerOwner: 10, // Max 10 per player
+      },
+    );
 
     // Create LocalPlayer GameObject (replaces CharacterModule)
     // Don't pass position config - let LocalPlayer read directly from controller
@@ -178,7 +192,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
     localPlayer.addComponent(
       new ClickSpawnComponent({
-        button: 'right',
+        button: 'left',
         objectName: 'ice-shard',
         cooldown: 500, // 0.5 second cooldown
         spawnAtCursor: true,

@@ -51,10 +51,19 @@ export class Fireball extends GameObject {
     const size = config.size ?? 0.3;
     const color = config.color ?? 0xff4500; // Orange-red
 
+    // Calculate trajectory: travel distance based on velocity and lifetime
+    const travelDistance = velocity * (lifetime / 1000); // Convert ms to seconds
+    const startPos: [number, number, number] = [position.x, position.y, position.z];
+    const endPos: [number, number, number] = [
+      position.x + direction.x * travelDistance,
+      position.y + direction.y * travelDistance,
+      position.z + direction.z * travelDistance,
+    ];
+
     // Transform
     this.addComponent(
       new TransformComponent({
-        position: [position.x, position.y, position.z],
+        position: startPos,
       }),
     );
 
@@ -88,17 +97,9 @@ export class Fireball extends GameObject {
     // Trajectory (physics movement)
     this.addComponent(
       new TrajectoryComponent({
-        startPosition: [
-          direction.x,
-          direction.y,
-          direction.z,
-        ],
-        endPosition: [
-          direction.x * velocity,
-          direction.y * velocity,
-          direction.z * velocity,
-        ],
-        duration: lifetime,
+        startPosition: startPos,
+        endPosition: endPos,
+        duration: lifetime / 1000, // Convert ms to seconds
       }),
     );
 

@@ -4,6 +4,14 @@ import SceneService from '@/game/services/SceneService';
 import { FactoryFunction, ObjectPool } from '@/game/utils/ObjectPool';
 
 /**
+ * Factory configuration for spawn limits
+ */
+export interface I_FactoryConfig {
+  poolSize?: number; // Max total instances globally (default: unlimited)
+  maxActivePerOwner?: number; // Max active instances per owner (default: unlimited)
+}
+
+/**
  * SpawnModule - Scene module for spawning and pooling GameObjects
  *
  * This module provides:
@@ -38,8 +46,10 @@ import { FactoryFunction, ObjectPool } from '@/game/utils/ObjectPool';
 export class Spawner extends SceneService implements I_SceneService {
   private pools = new Map<string, ObjectPool<GameObject>>();
   private factories = new Map<string, FactoryFunction>();
+  private factoryConfigs = new Map<string, I_FactoryConfig>(); // type → config
   private active = new Map<string, GameObject>(); // id → instance
   private typeMap = new Map<string, string>(); // id → type (for despawn lookup)
+  private ownerMap = new Map<string, string>(); // id → ownerId (for per-owner tracking)
 
   /**
    * Initialize spawn module
@@ -52,22 +62,24 @@ export class Spawner extends SceneService implements I_SceneService {
    * Spawn a GameObject from a type or factory function
    *
    * @param typeOrFactory - Registered type string OR inline factory function
+   * @param ownerId - ID of the owner (for per-owner limits)
    * @param config - Configuration passed to factory
-   * @returns Spawned GameObject instance
+   * @returns Spawned GameObject instance or null if limits reached
    *
    * Examples:
    * ```typescript
    * // From registered type
-   * spawn('fireball', { position: [0, 1, 0] });
+   * spawn('fireball', 'player-1', { position: [0, 1, 0] });
    *
    * // Inline factory (dynamic creation)
-   * spawn((id) => new GameObject({ id }), { poolKey: 'custom' });
+   * spawn((id) => new GameObject({ id }), 'player-1', { poolKey: 'custom' });
    * ```
    */
   spawn(
     typeOrFactory: string | FactoryFunction,
+    ownerId: string,
     config: any = {},
-  ): GameObject {
+  ): GameObject | null {
     let type: string;
     let factory: FactoryFunction;
 
@@ -92,6 +104,31 @@ export class Spawner extends SceneService implements I_SceneService {
       }
     }
 
+    // Check limits
+    const factoryConfig = this.factoryConfigs.get(type);
+
+    // 1. Check global poolSize limit
+    if (factoryConfig?.poolSize !== undefined) {
+      const totalActive = this.getActiveCount(type);
+      if (totalActive >= factoryConfig.poolSize) {
+        console.warn(
+          `🚫 [Spawner] Spawn blocked - global poolSize limit reached for "${type}" (${totalActive}/${factoryConfig.poolSize})`,
+        );
+        return null;
+      }
+    }
+
+    // 2. Check per-owner maxActivePerOwner limit
+    if (factoryConfig?.maxActivePerOwner !== undefined) {
+      const ownerActive = this.getOwnerActiveCount(ownerId, type);
+      if (ownerActive >= factoryConfig.maxActivePerOwner) {
+        console.warn(
+          `🚫 [Spawner] Spawn blocked - owner "${ownerId}" maxActive limit reached for "${type}" (${ownerActive}/${factoryConfig.maxActivePerOwner})`,
+        );
+        return null;
+      }
+    }
+
     // Get or create pool for this type
     let pool = this.pools.get(type);
     if (!pool) {
@@ -105,6 +142,7 @@ export class Spawner extends SceneService implements I_SceneService {
     // Track instance
     this.active.set(obj.id, obj);
     this.typeMap.set(obj.id, type);
+    this.ownerMap.set(obj.id, ownerId);
 
     // Add to scene via GameObjectsModule
     const gom = this.context.getService('gameObjectsManager');
@@ -145,6 +183,7 @@ export class Spawner extends SceneService implements I_SceneService {
     // Untrack
     this.active.delete(id);
     this.typeMap.delete(id);
+    this.ownerMap.delete(id);
 
     console.log(`🗑️  [SpawnModule] Despawned "${type}" (id: ${id})`);
 
@@ -192,14 +231,18 @@ export class Spawner extends SceneService implements I_SceneService {
    *
    * @param type - Type identifier (e.g., 'fireball', 'monster')
    * @param factory - Function that creates GameObject instances
+   * @param config - Optional spawn limits configuration
    */
-  registerFactory(type: string, factory: FactoryFunction): void {
+  registerFactory(type: string, factory: FactoryFunction, config: I_FactoryConfig = {}): void {
     if (this.factories.has(type)) {
       console.warn(`[SpawnModule] Factory for "${type}" already registered. Overwriting.`);
     }
 
     this.factories.set(type, factory);
-    console.log(`📝 [SpawnModule] Registered factory for type: "${type}"`);
+    this.factoryConfigs.set(type, config);
+    console.log(
+      `📝 [SpawnModule] Registered factory for type: "${type}"${config.poolSize ? ` (poolSize: ${config.poolSize})` : ''}${config.maxActivePerOwner ? ` (maxActivePerOwner: ${config.maxActivePerOwner})` : ''}`,
+    );
   }
 
   /**
@@ -257,6 +300,23 @@ export class Spawner extends SceneService implements I_SceneService {
       return this.getActive(type).length;
     }
     return this.active.size;
+  }
+
+  /**
+   * Get count of active objects for a specific owner and type
+   *
+   * @param ownerId - Owner ID to filter by
+   * @param type - Type to filter by
+   * @returns Count of active objects owned by this owner of this type
+   */
+  getOwnerActiveCount(ownerId: string, type: string): number {
+    let count = 0;
+    for (const [id, objType] of this.typeMap.entries()) {
+      if (objType === type && this.ownerMap.get(id) === ownerId) {
+        count++;
+      }
+    }
+    return count;
   }
 
   /**
@@ -318,8 +378,10 @@ export class Spawner extends SceneService implements I_SceneService {
 
     this.pools.clear();
     this.factories.clear();
+    this.factoryConfigs.clear();
     this.active.clear();
     this.typeMap.clear();
+    this.ownerMap.clear();
 
     console.log('🧹 [SpawnModule] Destroyed');
   }

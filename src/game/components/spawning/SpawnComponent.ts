@@ -10,7 +10,6 @@ import type { Vector3Like } from 'three';
 export interface I_SpawnConfig {
   objectName: string; // Registered spawn type (e.g., 'fireball', 'bullet')
   cooldown?: number; // Cooldown in milliseconds (default: 0)
-  maxActive?: number; // Max active spawned objects (default: unlimited)
   getSpawnData?: (owner: GameObject) => I_SpawnData; // Custom spawn data provider
   onSpawn?: (spawned: GameObject, owner: GameObject) => void; // Callback after spawn
   onCooldownStart?: () => void; // Callback when cooldown starts
@@ -32,12 +31,12 @@ export interface I_SpawnData {
  *
  * Provides:
  * - Cooldown management
- * - Active spawn tracking
- * - Max active limit enforcement
  * - Spawn data configuration
  * - Spawner service integration
+ * - Owner ID passing (for per-owner spawn limits in Spawner)
  *
  * Subclasses implement the trigger mechanism (hotkey, click, collision, etc.)
+ * Limit enforcement is handled by Spawner service (poolSize and maxActivePerOwner)
  *
  * Priority: INTERACTION (300) - Spawning happens after physics/rendering
  */
@@ -47,7 +46,6 @@ export abstract class SpawnComponent extends GameComponent {
   protected config: I_SpawnConfig;
   protected context!: I_SceneContext;
   protected onCooldown = false;
-  protected activeSpawns = new Set<string>(); // Track spawned object IDs
 
   constructor(config: I_SpawnConfig) {
     super();
@@ -60,7 +58,7 @@ export abstract class SpawnComponent extends GameComponent {
 
   /**
    * Attempt to spawn an object
-   * Handles cooldown and max active checks
+   * Handles cooldown check, delegates limit checking to Spawner service
    *
    * @returns Spawned GameObject or null if spawn failed
    */
@@ -71,30 +69,19 @@ export abstract class SpawnComponent extends GameComponent {
       return null;
     }
 
-    // Check max active limit
-    if (this.config.maxActive !== undefined) {
-      // Clean up despawned objects from tracking
-      this.cleanupInactive();
-
-      if (this.activeSpawns.size >= this.config.maxActive) {
-        console.log(
-          `🚫 [SpawnComponent] Spawn blocked - max active limit reached (${this.config.maxActive})`,
-        );
-        return null;
-      }
-    }
-
     // Get spawn data (custom or default)
     const spawnData = this.config.getSpawnData
       ? this.config.getSpawnData(this.gameObject)
       : this.getDefaultSpawnData();
 
-    // Spawn via Spawner service
+    // Spawn via Spawner service (pass owner ID for per-owner limits)
     const spawner = this.context.getService('spawner');
-    const spawned = spawner.spawn(this.config.objectName, spawnData);
+    const spawned = spawner.spawn(this.config.objectName, this.gameObject.id, spawnData);
 
-    // Track spawned object
-    this.activeSpawns.add(spawned.id);
+    // Spawn may return null if limits reached
+    if (!spawned) {
+      return null;
+    }
 
     // Callback
     if (this.config.onSpawn) {
@@ -104,9 +91,7 @@ export abstract class SpawnComponent extends GameComponent {
     // Start cooldown
     this.startCooldown();
 
-    console.log(
-      `✨ [SpawnComponent] Spawned "${this.config.objectName}" (id: ${spawned.id}, active: ${this.activeSpawns.size})`,
-    );
+    console.log(`✨ [SpawnComponent] Owner "${this.gameObject.id}" spawned "${this.config.objectName}" (id: ${spawned.id})`);
 
     return spawned;
   }
@@ -139,27 +124,6 @@ export abstract class SpawnComponent extends GameComponent {
   }
 
   /**
-   * Remove inactive spawns from tracking
-   */
-  protected cleanupInactive(): void {
-    const spawner = this.context.getService('spawner');
-
-    for (const id of this.activeSpawns) {
-      if (!spawner.has(id)) {
-        this.activeSpawns.delete(id);
-      }
-    }
-  }
-
-  /**
-   * Get count of currently active spawned objects
-   */
-  public getActiveSpawnCount(): number {
-    this.cleanupInactive();
-    return this.activeSpawns.size;
-  }
-
-  /**
    * Check if on cooldown
    */
   public isCooldown(): boolean {
@@ -168,6 +132,5 @@ export abstract class SpawnComponent extends GameComponent {
 
   destroy(): void {
     // Cleanup is automatic - spawned objects are managed by Spawner
-    this.activeSpawns.clear();
   }
 }
