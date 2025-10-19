@@ -101,6 +101,19 @@ export class MeshComponent extends GameComponent implements I_MeshProvider {
   }
 
   /**
+   * Sync mesh transform with TransformComponent every frame
+   */
+  update(delta: number): void {
+    const transformComp = this.getComponent(TransformComponent);
+    if (transformComp) {
+      // Sync position/rotation/scale from TransformComponent to mesh
+      this.mesh.position.copy(transformComp.position);
+      this.mesh.rotation.copy(transformComp.rotation);
+      this.mesh.scale.copy(transformComp.scale);
+    }
+  }
+
+  /**
    * Implements I_MeshProvider to return mesh for physics registration
    */
   public getMesh(): Mesh {
@@ -108,6 +121,9 @@ export class MeshComponent extends GameComponent implements I_MeshProvider {
   }
 
   destroy(): void {
-    // Mesh cleanup handled by lifecycle.register()
+    // Remove mesh from scene when GameObject is destroyed
+    if (this.mesh && this.mesh.parent) {
+      this.mesh.parent.remove(this.mesh);
+    }
   }
 }
