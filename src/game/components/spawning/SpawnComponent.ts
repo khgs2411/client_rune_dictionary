@@ -1,5 +1,6 @@
-import { GameComponent, ComponentPriority } from '@/game/GameComponent';
 import type { I_SceneContext } from '@/game/common/scenes.types';
+import { TransformComponent } from '@/game/components/rendering/TransformComponent';
+import { ComponentPriority, GameComponent } from '@/game/GameComponent';
 import type { GameObject } from '@/game/GameObject';
 import type { Vector3Like } from 'three';
 
@@ -7,7 +8,7 @@ import type { Vector3Like } from 'three';
  * Configuration for spawning objects
  */
 export interface I_SpawnConfig {
-  spawnType: string; // Registered spawn type (e.g., 'fireball', 'bullet')
+  objectName: string; // Registered spawn type (e.g., 'fireball', 'bullet')
   cooldown?: number; // Cooldown in milliseconds (default: 0)
   maxActive?: number; // Max active spawned objects (default: unlimited)
   getSpawnData?: (owner: GameObject) => I_SpawnData; // Custom spawn data provider
@@ -90,7 +91,7 @@ export abstract class SpawnComponent extends GameComponent {
 
     // Spawn via Spawner service
     const spawner = this.context.getService('spawner');
-    const spawned = spawner.spawn(this.config.spawnType, spawnData);
+    const spawned = spawner.spawn(this.config.objectName, spawnData);
 
     // Track spawned object
     this.activeSpawns.add(spawned.id);
@@ -104,7 +105,7 @@ export abstract class SpawnComponent extends GameComponent {
     this.startCooldown();
 
     console.log(
-      `✨ [SpawnComponent] Spawned "${this.config.spawnType}" (id: ${spawned.id}, active: ${this.activeSpawns.size})`,
+      `✨ [SpawnComponent] Spawned "${this.config.objectName}" (id: ${spawned.id}, active: ${this.activeSpawns.size})`,
     );
 
     return spawned;
@@ -115,7 +116,7 @@ export abstract class SpawnComponent extends GameComponent {
    * Subclasses can override or use config.getSpawnData
    */
   protected getDefaultSpawnData(): I_SpawnData {
-    const transform = this.gameObject.getComponent('TransformComponent');
+    const transform = this.gameObject.getComponent(TransformComponent);
     return {
       position: transform ? transform.position.clone() : { x: 0, y: 0, z: 0 },
     };

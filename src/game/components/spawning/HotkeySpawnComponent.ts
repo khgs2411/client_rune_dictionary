@@ -54,7 +54,7 @@ export class HotkeySpawnComponent extends SpawnComponent {
     this.cleanup.registerWatcher(stopListener);
 
     console.log(
-      `⌨️  [HotkeySpawnComponent] Registered hotkey "${this.hotkeyConfig.key}" for "${this.config.spawnType}"`,
+      `⌨️  [HotkeySpawnComponent] Registered hotkey "${this.hotkeyConfig.key}" for "${this.config.objectName}"`,
     );
   }
 

@@ -99,15 +99,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
 
 
-    // Create LocalPlayer GameObject (replaces CharacterModule)
-    // Don't pass position config - let LocalPlayer read directly from controller
-    const localPlayer = new LocalPlayer({
-      playerId: 'local-player',
-      characterController: this.character.controller,
-    });
-
-    gom.register(localPlayer);
-
     // ========================================
     // SPAWN SYSTEM DEMO
     // ========================================
@@ -150,13 +141,18 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       return iceShard;
     });
 
-    // Add spawn trigger components to player
+    // Create LocalPlayer GameObject (replaces CharacterModule)
+    // Don't pass position config - let LocalPlayer read directly from controller
+    const localPlayer = new LocalPlayer({
+      playerId: 'local-player',
+      characterController: this.character.controller,
+    });
+
+    // Add spawn trigger components to player BEFORE registration
     localPlayer.addComponent(
       new HotkeySpawnComponent({
         key: '1',
-        spawnType: 'fireball',
-        cooldown: 1000, // 1 second cooldown
-        maxActive: 5, // Max 5 fireballs at once
+        objectName: 'fireball',
         getSpawnData: (owner) => {
           const transform = owner.getComponent(TransformComponent);
           if (!transform) return {};
@@ -183,7 +179,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     localPlayer.addComponent(
       new ClickSpawnComponent({
         button: 'right',
-        spawnType: 'ice-shard',
+        objectName: 'ice-shard',
         cooldown: 500, // 0.5 second cooldown
         spawnAtCursor: true,
         spawnHeight: 1,
@@ -199,6 +195,9 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
         },
       }),
     );
+
+    // Register player AFTER all components are added
+    gom.register(localPlayer);
 
     console.log(`
 🎯 [PlaygroundScene] Spawn system initialized:

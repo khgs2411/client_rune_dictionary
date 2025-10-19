@@ -1,7 +1,7 @@
-import { SpawnComponent, I_SpawnConfig } from './SpawnComponent';
 import type { I_SceneContext } from '@/game/common/scenes.types';
 import { useEventListener } from '@vueuse/core';
 import { Raycaster, Vector2, Vector3 } from 'three';
+import { I_SpawnConfig, SpawnComponent } from './SpawnComponent';
 
 /**
  * Configuration for click-triggered spawning
@@ -54,7 +54,7 @@ export class ClickSpawnComponent extends SpawnComponent {
     this.cleanup.registerWatcher(stopListener);
 
     console.log(
-      `🖱️  [ClickSpawnComponent] Registered ${this.clickConfig.button || 'left'}-click for "${this.config.spawnType}"`,
+      `🖱️  [ClickSpawnComponent] Registered ${this.clickConfig.button || 'left'}-click for "${this.config.objectName}"`,
     );
   }
 
