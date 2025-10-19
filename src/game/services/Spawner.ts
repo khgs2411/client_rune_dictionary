@@ -35,7 +35,7 @@ import { FactoryFunction, ObjectPool } from '@/game/utils/ObjectPool';
  * spawnModule.despawn(fireball.id);
  * ```
  */
-export class SpawnModule extends SceneService implements I_SceneService {
+export class Spawner extends SceneService implements I_SceneService {
   private pools = new Map<string, ObjectPool<GameObject>>();
   private factories = new Map<string, FactoryFunction>();
   private active = new Map<string, GameObject>(); // id → instance
