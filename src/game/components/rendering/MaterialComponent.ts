@@ -10,6 +10,8 @@ export interface I_MaterialConfig {
   roughness?: number;
   metalness?: number;
   useTheme?: boolean; // Use primary theme color
+  emissive?: number; // Emissive color (glow)
+  emissiveIntensity?: number; // Emissive intensity (default: 1)
 }
 
 /**
@@ -55,6 +57,8 @@ export class MaterialComponent extends GameComponent {
       color,
       roughness: this.config.roughness ?? 0.8,
       metalness: this.config.metalness ?? 0.0,
+      emissive: this.config.emissive ?? 0x000000,
+      emissiveIntensity: this.config.emissiveIntensity ?? 1.0,
     });
 
     // Register material for disposal (materials are disposable, not Object3D)

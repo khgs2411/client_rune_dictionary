@@ -1,6 +1,6 @@
-import { Vector3, Euler, Quaternion } from 'three';
-import { GameComponent } from '../../GameComponent';
 import { I_SceneContext } from '@/game/common/scenes.types';
+import { Euler, Quaternion, Vector3 } from 'three';
+import { GameComponent } from '../../GameComponent';
 
 export interface I_TransformConfig {
   position?: [number, number, number];
@@ -36,15 +36,22 @@ export class TransformComponent extends GameComponent {
     this.scale = new Vector3(...(config.scale || [1, 1, 1]));
   }
 
-  async init(context: I_SceneContext): Promise<void> {
+  public async init(context: I_SceneContext): Promise<void> {
     // Transform component doesn't need initialization
     // It just holds data that other components will use
   }
 
+  public get forward(): Vector3 {
+    const forward = new Vector3(0, 0, -1);
+    forward.applyEuler(this.rotation);
+    return forward.normalize();
+  }
+
+
   /**
    * Set position
    */
-  setPosition(x: number | Vector3, y?: number, z?: number): void {
+  public setPosition(x: number | Vector3, y?: number, z?: number): void {
     if (x instanceof Vector3) {
       this.position.copy(x);
     } else {
@@ -55,7 +62,7 @@ export class TransformComponent extends GameComponent {
   /**
    * Set rotation (Euler angles in radians)
    */
-  setRotation(x: number | Euler, y?: number, z?: number): void {
+  public setRotation(x: number | Euler, y?: number, z?: number): void {
     if (x instanceof Euler) {
       this.rotation.copy(x);
     } else {
@@ -66,14 +73,14 @@ export class TransformComponent extends GameComponent {
   /**
    * Set rotation from quaternion
    */
-  setRotationFromQuaternion(quaternion: Quaternion): void {
+  public setRotationFromQuaternion(quaternion: Quaternion): void {
     this.rotation.setFromQuaternion(quaternion);
   }
 
   /**
    * Set scale
    */
-  setScale(x: number | Vector3, y?: number, z?: number): void {
+  public setScale(x: number | Vector3, y?: number, z?: number): void {
     if (x instanceof Vector3) {
       this.scale.copy(x);
     } else if (y === undefined && z === undefined) {
@@ -87,21 +94,21 @@ export class TransformComponent extends GameComponent {
   /**
    * Get position as array [x, y, z]
    */
-  getPositionArray(): [number, number, number] {
+  public getPositionArray(): [number, number, number] {
     return [this.position.x, this.position.y, this.position.z];
   }
 
   /**
    * Get rotation as array [x, y, z]
    */
-  getRotationArray(): [number, number, number] {
+  public getRotationArray(): [number, number, number] {
     return [this.rotation.x, this.rotation.y, this.rotation.z];
   }
 
   /**
    * Get scale as array [x, y, z]
    */
-  getScaleArray(): [number, number, number] {
+  public getScaleArray(): [number, number, number] {
     return [this.scale.x, this.scale.y, this.scale.z];
   }
 }

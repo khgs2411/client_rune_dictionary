@@ -10,8 +10,13 @@ import { GameObject } from '@/game/GameObject';
 import { GeometryComponent } from '@/game/components/rendering/GeometryComponent';
 import { InstancedMeshComponent } from '@/game/components/rendering/InstancedMeshComponent';
 import { MaterialComponent } from '@/game/components/rendering/MaterialComponent';
+import { MeshComponent } from '@/game/components/rendering/MeshComponent';
+import { TransformComponent } from '@/game/components/rendering/TransformComponent';
+import { ClickSpawnComponent } from '@/game/components/spawning/ClickSpawnComponent';
+import { HotkeySpawnComponent } from '@/game/components/spawning/HotkeySpawnComponent';
 import { MultiplayerModule } from '@/game/modules/networking/MultiplayerModule';
 import { EditableBox } from '@/game/prefabs/EditableBox';
+import { Fireball } from '@/game/prefabs/Fireball';
 import { Ground } from '@/game/prefabs/Ground';
 import { Trees } from '@/game/prefabs/Trees';
 import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
@@ -86,7 +91,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
           ],
         }),
       );
-      
+
     gom.register(modelComponentBox);
     gom.register(treeTrunks);
     gom.register(treeLeaves);
@@ -102,6 +107,104 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     });
 
     gom.register(localPlayer);
+
+    // ========================================
+    // SPAWN SYSTEM DEMO
+    // ========================================
+
+    // Get spawner service
+    const spawner = this.getService('spawner');
+
+    // 1. PREFAB APPROACH - Register Fireball factory
+    spawner.registerFactory('fireball', (id, config) => {
+      return new Fireball({ id, ...config });
+    });
+
+    // 2. MANUAL APPROACH - Register custom spawnable (non-prefab)
+    spawner.registerFactory('ice-shard', (id, config) => {
+      const iceShard = new GameObject({ id })
+        .addComponent(
+          new TransformComponent({
+            position: config.position || [0, 1, 0],
+          }),
+        )
+        .addComponent(
+          new GeometryComponent({
+            type: 'cone',
+            params: [0.2, 0.8, 8], // Sharp cone for ice shard
+          }),
+        )
+        .addComponent(
+          new MaterialComponent({
+            color: 0x00bfff, // Deep sky blue
+            emissive: 0x00bfff,
+            emissiveIntensity: 0.3,
+            roughness: 0.2,
+            metalness: 0.8,
+          }),
+        )
+        .addComponent(new MeshComponent());
+
+      // TODO: Add TrajectoryComponent and CollisionComponent once implemented
+
+      return iceShard;
+    });
+
+    // Add spawn trigger components to player
+    localPlayer.addComponent(
+      new HotkeySpawnComponent({
+        key: '1',
+        spawnType: 'fireball',
+        cooldown: 1000, // 1 second cooldown
+        maxActive: 5, // Max 5 fireballs at once
+        getSpawnData: (owner) => {
+          const transform = owner.getComponent(TransformComponent);
+          if (!transform) return {};
+
+          // Get forward direction from player rotation
+          const forward = transform.forward;
+
+          return {
+            position: [
+              transform.position.x + forward.x,
+              transform.position.y + 1,
+              transform.position.z + forward.z,
+            ],
+            direction: [forward.x, 0.1, forward.z], // Slight upward arc
+            velocity: 15,
+          };
+        },
+        onSpawn: (spawned, owner) => {
+          console.log(`🔥 [PlaygroundScene] ${owner.id} spawned ${spawned.id}`);
+        },
+      }),
+    );
+
+    localPlayer.addComponent(
+      new ClickSpawnComponent({
+        button: 'right',
+        spawnType: 'ice-shard',
+        cooldown: 500, // 0.5 second cooldown
+        spawnAtCursor: true,
+        spawnHeight: 1,
+        getSpawnData: (owner) => {
+          const transform = owner.getComponent(TransformComponent);
+          return {
+            direction: [0, -1, 0], // Downward
+            velocity: 5,
+          };
+        },
+        onSpawn: (spawned, owner) => {
+          console.log(`❄️  [PlaygroundScene] ${owner.id} spawned ${spawned.id} at cursor`);
+        },
+      }),
+    );
+
+    console.log(`
+🎯 [PlaygroundScene] Spawn system initialized:
+- Press '1' to spawn Fireball (prefab)
+- Right-click to spawn Ice Shard (manual) at cursor
+    `);
   }
 
   /**
