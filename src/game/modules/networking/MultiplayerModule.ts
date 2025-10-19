@@ -59,7 +59,7 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
 
       this.registerRemotePlayer(remotePlayer.id, remotePlayer);
       const gom = context.getService('gameObjectsManager');
-      gom.add(remotePlayer, false);
+      gom.register(remotePlayer, false);
     });
   }
 
@@ -98,7 +98,7 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     const remotePlayer = new RemotePlayer({ playerId: data.id, username: data.username || "Remote Player", position: data.position });
     this.registerRemotePlayer(remotePlayer.id, remotePlayer);
     const gom = this.context.getService('gameObjectsManager');
-    gom.add(remotePlayer, true);
+    gom.register(remotePlayer, true);
   }
 
   private onPlayerPositionUpdate(message: WebsocketStructuredMessage<{
@@ -162,7 +162,7 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
       const gom = this.context.getService('gameObjectsManager');
       // Check if GameObject exists before removing
       if (gom.has(playerId)) {
-        gom.remove(playerId);
+        gom.unregister(playerId);
       }
       this.remotePlayers.delete(playerId);
       console.log(`👤 [MultiplayerModule] Unregistered remote player: ${playerId}`);

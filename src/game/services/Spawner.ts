@@ -1,8 +1,7 @@
-import type { I_SceneContext, I_SceneModule } from '@/game/common/scenes.types';
+import type { I_SceneContext, I_SceneService } from '@/game/common/scenes.types';
 import { GameObject } from '@/game/GameObject';
-import { GameObjectsModule } from '@/game/modules/objects/GameObjectsModule';
-import SceneModule from '@/game/modules/SceneModule';
-import { ObjectPool, FactoryFunction } from '@/game/utils/ObjectPool';
+import SceneService from '@/game/services/SceneService';
+import { FactoryFunction, ObjectPool } from '@/game/utils/ObjectPool';
 
 /**
  * SpawnModule - Scene module for spawning and pooling GameObjects
@@ -36,22 +35,17 @@ import { ObjectPool, FactoryFunction } from '@/game/utils/ObjectPool';
  * spawnModule.despawn(fireball.id);
  * ```
  */
-export class SpawnModule extends SceneModule implements I_SceneModule {
+export class SpawnModule extends SceneService implements I_SceneService {
   private pools = new Map<string, ObjectPool<GameObject>>();
   private factories = new Map<string, FactoryFunction>();
   private active = new Map<string, GameObject>(); // id → instance
   private typeMap = new Map<string, string>(); // id → type (for despawn lookup)
-
-  constructor(moduleName: string, private gameObjectManager: GameObjectsModule) {
-    super(moduleName, false);
-  }
 
   /**
    * Initialize spawn module
    */
   async init(context: I_SceneContext): Promise<void> {
     console.log('✅ [SpawnModule] Initialized');
-    this.initialized(context.sceneName);
   }
 
   /**
@@ -113,7 +107,8 @@ export class SpawnModule extends SceneModule implements I_SceneModule {
     this.typeMap.set(obj.id, type);
 
     // Add to scene via GameObjectsModule
-    this.gameObjectManager.add(obj, true);
+    const gom = this.context.getService('gameObjectsManager');
+    gom.register(obj, true);
 
     console.log(
       `🎯 [SpawnModule] Spawned "${type}" (id: ${obj.id}, active: ${pool.getActiveCount()})`,
@@ -138,7 +133,8 @@ export class SpawnModule extends SceneModule implements I_SceneModule {
     }
 
     // Remove from scene
-    this.gameObjectManager.remove(id);
+    const gom = this.context.getService('gameObjectsManager');
+    gom.unregister(id);
 
     // Return to pool
     const pool = this.pools.get(type);

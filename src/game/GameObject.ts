@@ -41,7 +41,7 @@ export class GameObject {
    *   .addComponent(new MeshComponent());
    * ```
    */
-  addComponent(component: GameComponent): this {
+  public addComponent(component: GameComponent): this {
     if (this.isInitialized) {
       console.warn(
         `[GameObject] Adding component ${component.constructor.name} to already initialized GameObject "${this.id}". Component will not be initialized.`,
@@ -97,7 +97,7 @@ export class GameObject {
    * Called by GameObjectManager when GameObject is added to scene
    * @internal
    */
-  async init(context: I_SceneContext): Promise<void> {
+  public async init(context: I_SceneContext): Promise<void> {
     if (this.isInitialized) {
       console.warn(`[GameObject] GameObject "${this.id}" already initialized`);
       return;
@@ -181,7 +181,7 @@ export class GameObject {
    * Called by GameObjectManager every frame
    * @internal
    */
-  update(delta: number): void {
+  public update(delta: number): void {
     if (!this.isInitialized) return;
 
     for (const component of this.components.values()) {
@@ -196,7 +196,7 @@ export class GameObject {
    * Called by GameObjectManager when GameObject is removed
    * @internal
    */
-  destroy(): void {
+  public destroy(): void {
     if (!this.context) {
       console.warn(`[GameObject] GameObject "${this.id}" destroyed before initialization`);
       this.components.clear();

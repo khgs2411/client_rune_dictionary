@@ -45,7 +45,7 @@ export class GameObjectsManager extends SceneService implements I_SceneService{
    * Add a GameObject to the manager
    * If the manager is already initialized, the GameObject will be initialized immediately
    */
-  add(gameObject: GameObject, initialize: boolean = true): void {
+  register(gameObject: GameObject, initialize: boolean = true): void {
     if (this.gameObjects.has(gameObject.id)) {
       console.warn(
         `[GameObjectManager] GameObject with id "${gameObject.id}" already exists. Skipping.`,
@@ -70,7 +70,7 @@ export class GameObjectsManager extends SceneService implements I_SceneService{
    * Remove a GameObject from the manager
    * Calls destroy() on the GameObject before removing
    */
-  remove(id: string): void {
+  unregister(id: string): void {
     const gameObject = this.gameObjects.get(id);
     if (gameObject) {
       gameObject.destroy();

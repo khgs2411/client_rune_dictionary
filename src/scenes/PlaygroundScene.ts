@@ -48,7 +48,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     // Ground
     const ground = new Ground({ size: 200, showGrid: true });
     const gom = this.getService('gameObjectsManager');
-    gom.add(ground);
+    gom.register(ground);
 
     // Editable box (using prefab)
     const modelComponentBox = new EditableBox({
@@ -87,10 +87,10 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
         }),
       );
       
-    gom.add(modelComponentBox);
-    gom.add(treeTrunks);
-    gom.add(treeLeaves);
-    gom.add(bushes);
+    gom.register(modelComponentBox);
+    gom.register(treeTrunks);
+    gom.register(treeLeaves);
+    gom.register(bushes);
 
 
 
@@ -101,7 +101,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       characterController: this.character.controller,
     });
 
-    gom.add(localPlayer);
+    gom.register(localPlayer);
   }
 
   /**
