@@ -1,45 +1,49 @@
-import { I_SceneContext } from '@/game/common/scenes.types';
-import { Vector3 } from 'three';
-import { GameComponent } from '../../GameComponent';
-import type { I_Interactable, I_InteractionBuilder } from '../../common/gameobject.types';
+import type { I_SceneContext } from '@/game/common/scenes.types';
+import { ComponentPriority, GameComponent } from '@/game/GameComponent';
+import { useGameConfigStore } from '@/stores/config.store';
+import type { Vector3 } from 'three';
+import { MeshComponent } from '../rendering/MeshComponent';
 import { TransformComponent } from '../rendering/TransformComponent';
-import { CollisionComponent } from './CollisionComponent';
 
 export interface I_DragConfig {
-  lockAxis?: ('x' | 'y' | 'z')[];
-  snapToGrid?: number;
-  onStart?: (position: Vector3) => void;
-  onMove?: (position: Vector3) => void;
-  onEnd?: (position: Vector3) => void;
+  lockAxis?: ('x' | 'y' | 'z')[]; // Lock specific axes from dragging
+  snapToGrid?: number; // Grid snap size in world units (0 = no snapping, uses config.editor.snapToGrid by default)
+  onDragStart?: (startPos: Vector3) => void; // Callback when drag starts
+  onDragMove?: (currentPos: Vector3) => void; // Callback during drag
+  onDragEnd?: (endPos: Vector3) => void; // Callback when drag ends
 }
 
 /**
- * DragComponent - Enables drag-and-drop interaction for GameObject
+ * DragComponent - Drag objects in editor mode
  *
- * This component requires:
- * - MeshComponent (for interaction registration)
- * - TransformComponent (for position updates)
+ * Uses InteractionService for drag detection and updates GameObject position
+ * via TransformComponent. Only works when editor mode is enabled.
  *
- * Optionally uses:
- * - PhysicsComponent (to update physics body on drag end)
+ * This replaces the drag functionality from InteractableBuilder with a
+ * reusable component that can be added to any GameObject.
  *
- * Implements I_Interactable for lifecycle coordination by GameObject
+ * Features:
+ * - Only active in editor mode (config.editor.enabled)
+ * - Drag on XZ plane with optional axis locking
+ * - Grid snapping support (uses config.editor.snapToGrid by default)
+ * - Callbacks for drag lifecycle events
  *
  * Usage:
  * ```typescript
  * gameObject.addComponent(new DragComponent({
- *   lockAxis: ['y'], // Lock Y axis (XZ plane only)
- *   snapToGrid: 0.5, // Snap to 0.5 unit grid
- *   onEnd: (pos) => {
- *     console.log('Dragged to:', pos);
- *   }
+ *   lockAxis: ['y'], // Lock Y axis (drag only on XZ plane)
+ *   snapToGrid: 0.5, // Snap to 0.5 world unit grid
+ *   onDragEnd: (pos) => console.log('Dragged to:', pos)
  * }));
  * ```
+ *
+ * Priority: INTERACTION (300) - Runs after rendering and physics
  */
-export class DragComponent extends GameComponent implements I_Interactable {
+export class DragComponent extends GameComponent {
+  public readonly priority = ComponentPriority.INTERACTION;
+
   private config: I_DragConfig;
-  private context!: I_SceneContext;
-  private transformComp!: TransformComponent;
+  private unregister?: () => void;
 
   constructor(config: I_DragConfig = {}) {
     super();
@@ -47,73 +51,67 @@ export class DragComponent extends GameComponent implements I_Interactable {
   }
 
   async init(context: I_SceneContext): Promise<void> {
-    this.context = context;
+    // Require MeshComponent for hover detection
+    const meshComp = this.requireComponent(MeshComponent);
+    // Require TransformComponent for position updates
+    const transformComp = this.requireComponent(TransformComponent);
 
-    // Restrict: cannot use with InstancedMeshComponent
-    const InstancedMeshComponent = await import('../rendering/InstancedMeshComponent').then(
-      (m) => m.InstancedMeshComponent,
+    const interaction = context.getService('interaction');
+    const gameConfig = useGameConfigStore();
+
+    // Use config.editor.snapToGrid if not specified
+    const snapToGrid = this.config.snapToGrid ?? gameConfig.editor.snapToGrid;
+
+    // Register drag callbacks with InteractionService
+    this.unregister = interaction.registerDrag(
+      `${this.gameObject.id}-drag`,
+      meshComp.mesh,
+      {
+        onStart: (startPos) => {
+          // Only allow dragging in editor mode
+          if (!gameConfig.editor.enabled) return;
+
+          console.log(`📦 [DragComponent] Drag started for "${this.gameObject.id}"`);
+          this.config.onDragStart?.(startPos);
+        },
+        onMove: (currentPos) => {
+          // Only allow dragging in editor mode
+          if (!gameConfig.editor.enabled) return;
+
+          // Update GameObject position via TransformComponent
+          transformComp.position.copy(currentPos);
+
+          this.config.onDragMove?.(currentPos);
+        },
+        onEnd: (endPos) => {
+          // Only allow dragging in editor mode
+          if (!gameConfig.editor.enabled) return;
+
+          console.log(
+            `📦 [DragComponent] Drag ended for "${this.gameObject.id}" at [${endPos.x.toFixed(2)}, ${endPos.y.toFixed(2)}, ${endPos.z.toFixed(2)}]`,
+          );
+
+          // Final position update
+          transformComp.position.copy(endPos);
+
+          this.config.onDragEnd?.(endPos);
+        },
+      },
+      {
+        lockAxis: this.config.lockAxis,
+        snapToGrid,
+      },
     );
-    this.restrictComponent(
-      InstancedMeshComponent,
-      'Individual instances cannot be dragged. Drag is only for single-mesh GameObjects.',
-    );
 
-    // Store references for later use in registerWithService
-    this.transformComp = this.requireComponent(TransformComponent);
-  }
-
-  /**
-   * Register drag behavior with InteractionService builder
-   * Called by GameObject during interaction lifecycle coordination
-   */
-  public registerInteractions(builder: I_InteractionBuilder, context: I_SceneContext): void {
-    builder.withDrag({
-      lockAxis: this.config.lockAxis,
-      snapToGrid: this.config.snapToGrid,
-      onStart: (pos) => this.handleDragStart(pos),
-      onMove: (pos) => this.handleDragMove(pos),
-      onEnd: (pos) => this.handleDragEnd(pos),
-    });
-  }
-
-  public getConfig(): I_DragConfig {
-    return this.config;
-  }
-
-  private handleDragStart(position: Vector3): void {
-    // Custom callback
-    this.config.onStart?.(position);
-  }
-
-  private handleDragMove(position: Vector3): void {
-    // Update transform component
-    this.transformComp.setPosition(position);
-
-    // Custom callback
-    this.config.onMove?.(position);
-  }
-
-  private handleDragEnd(position: Vector3): void {
-    // Update transform component
-    this.transformComp.setPosition(position);
-
-    // Update physics if component exists
-    const physicsComp = this.getComponent(CollisionComponent);
-    const physics = this.context.getService('physics')
-
-    if (physicsComp && physics.isReady()) {
-      physics.setPosition(this.gameObject.id, {
-        x: position.x,
-        y: position.y,
-        z: position.z,
-      });
-    }
-
-    // Custom callback
-    this.config.onEnd?.(position);
+    console.log(`📦 [DragComponent] Registered drag for GameObject "${this.gameObject.id}"`);
   }
 
   destroy(): void {
-    // Interaction cleanup happens automatically in InteractionService.destroy()
+    // Unregister from InteractionService
+    if (this.unregister) {
+      this.unregister();
+    }
+
+    console.log(`📦 [DragComponent] Unregistered drag for GameObject "${this.gameObject.id}"`);
   }
 }

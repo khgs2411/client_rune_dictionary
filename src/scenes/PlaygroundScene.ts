@@ -7,13 +7,15 @@ import { watch } from 'vue';
 import { I_SceneConfig } from '../game/common/scenes.types';
 
 import { GameObject } from '@/game/GameObject';
+import { ClickVFXComponent } from '@/game/components/interactions/ClickVFXComponent';
+import { DragComponent } from '@/game/components/interactions/DragComponent';
+import { HoverGlowComponent } from '@/game/components/interactions/HoverGlowComponent';
 import { GeometryComponent } from '@/game/components/rendering/GeometryComponent';
 import { InstancedMeshComponent } from '@/game/components/rendering/InstancedMeshComponent';
 import { MaterialComponent } from '@/game/components/rendering/MaterialComponent';
 import { MeshComponent } from '@/game/components/rendering/MeshComponent';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 import { MultiplayerModule } from '@/game/modules/networking/MultiplayerModule';
-import { EditableBox } from '@/game/prefabs/EditableBox';
 import { Fireball } from '@/game/prefabs/Fireball';
 import { Ground } from '@/game/prefabs/Ground';
 import { Trees } from '@/game/prefabs/Trees';
@@ -53,16 +55,28 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     const gom = this.getService('gameObjectsManager');
     gom.register(ground);
 
-    // Editable box (using prefab)
-    const modelComponentBox = new EditableBox({
-      id: 'modelComponent-editable-box',
-      position: [5, 1, 5],
-      size: [1.5, 1.5, 1.5],
-      useTheme: true,
-      snapToGrid: this.config.editor.snapToGrid,
-      tooltip: { title: 'modelComponent Box', description: 'Draggable in editor mode' },
-      onDragEnd: (pos) => console.log('✅ modelComponent box dragged to:', pos),
-    });
+    // Interactive box using new component architecture
+    const interactiveBox = new GameObject({ id: 'interactive-box' })
+      .addComponent(new TransformComponent({ position: [5, 1, 5] }))
+      .addComponent(new GeometryComponent({ type: 'box', params: [1.5, 1.5, 1.5] }))
+      .addComponent(new MaterialComponent({ color: 0xff1493, roughness: 0.8, metalness: 0.2 }))
+      .addComponent(new MeshComponent())
+      .addComponent(new HoverGlowComponent({
+        glowColor: 0xff8c00,
+        glowIntensity: 0.5,
+        tooltip: { title: 'Interactive Box', description: 'Click for VFX, drag in editor mode' }
+      }))
+      .addComponent(new ClickVFXComponent({
+        text: 'BOOM!',
+        textColor: '#FF69B4',
+        cameraShake: { intensity: 0.2, duration: 0.5 },
+        particles: { count: 30, color: 0xff1493, speed: 4 }
+      }))
+      .addComponent(new DragComponent({
+        lockAxis: ['y'],
+        snapToGrid: this.config.editor.snapToGrid,
+        onDragEnd: (pos) => console.log('✅ Interactive box dragged to:', pos)
+      }));
 
     // Trees (using prefab)
     const [treeTrunks, treeLeaves] = Trees.create({
@@ -90,7 +104,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
         }),
       );
 
-    gom.register(modelComponentBox);
+    gom.register(interactiveBox);
     gom.register(treeTrunks);
     gom.register(treeLeaves);
     gom.register(bushes);

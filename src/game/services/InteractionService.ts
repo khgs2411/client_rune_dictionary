@@ -1,159 +1,440 @@
-import type {
-  I_DragState,
-  I_HoverState,
-  I_InteractableBehaviors,
-  I_InteractableObject,
-  I_InteractionConfig,
-  ReactiveValue,
-} from '@/game/common/interaction.types';
 import type { I_SceneContext, I_SceneService } from '@/game/common/scenes.types';
 import { Mouse } from '@/game/utils/Mouse';
 import { Raycast } from '@/game/utils/Raycast';
-import { useGameConfigStore, type GameConfig } from '@/stores/config.store';
-import { GridHelper, Intersection, Object3D, Plane, Vector3 } from 'three';
-import { InteractableBuilder } from './InteractableBuilder';
+import { Intersection, Object3D, Plane, Vector3 } from 'three';
 import SceneService from './SceneService';
 
 /**
- * Interaction Service (Refactored v2)
- * Cleaner architecture with separated hover, click, and drag systems
+ * Callback types for interaction events
+ */
+export type MouseClickCallback = (event: MouseEvent, intersection?: Intersection) => void;
+export type KeyPressCallback = (event: KeyboardEvent) => void;
+export type HoverCallback = (intersection: Intersection) => void;
+export type HoverEndCallback = () => void;
+export type DragStartCallback = (startPos: Vector3) => void;
+export type DragMoveCallback = (currentPos: Vector3) => void;
+export type DragEndCallback = (endPos: Vector3) => void;
+
+/**
+ * Registered interaction handlers
+ */
+interface MouseClickHandler {
+  id: string;
+  button: 'left' | 'right' | 'middle';
+  callback: MouseClickCallback;
+  requireHover?: boolean; // Only trigger if hovering over registered object
+  object3D?: Object3D; // Optional - for raycasting
+}
+
+interface KeyPressHandler {
+  id: string;
+  key: string;
+  modifiers?: { ctrl?: boolean; shift?: boolean; alt?: boolean };
+  callback: KeyPressCallback;
+}
+
+interface HoverHandler {
+  id: string;
+  object3D: Object3D;
+  onStart?: HoverCallback;
+  onEnd?: HoverEndCallback;
+}
+
+interface DragHandler {
+  id: string;
+  object3D: Object3D;
+  onStart?: DragStartCallback;
+  onMove?: DragMoveCallback;
+  onEnd?: DragEndCallback;
+  lockAxis?: ('x' | 'y' | 'z')[];
+  snapToGrid?: number;
+}
+
+/**
+ * InteractionService - Clean API layer for input event registration
  *
- * Features:
- * - Event-driven hover detection (only raycasts when pointer moves) ✅
- * - Click behaviors (VFX, shake, particles) - disabled in editor mode ✅
- * - Drag system (move objects on XZ plane) - only in editor mode ✅
- * - Fluent builder API ✅
- * - Leverages Mouse utility's built-in drag detection ✅
+ * This service provides a clean API for registering input event callbacks.
+ * It handles the low-level event listening, raycasting, and drag detection,
+ * but delegates all behavior logic to components via callbacks.
+ *
+ * Key principles:
+ * - Pure event registration API (like PhysicsService)
+ * - No VFX logic (components decide what VFX to use)
+ * - No behavior logic (components implement their own logic)
+ * - Reusable for any input-driven component
+ *
+ * API:
+ * - registerMouseClick() - Register mouse click callback
+ * - registerKeyPress() - Register keyboard callback
+ * - registerHover() - Register hover callbacks with raycast detection
+ * - registerDrag() - Register drag callbacks with plane intersection
+ * - unregister() - Clean up registered handler
  */
 export class InteractionService extends SceneService implements I_SceneService {
-  private config: GameConfig;
-
   // Utilities
   private raycast = new Raycast();
   private mouse!: Mouse;
 
-  // State
-  private objects = new Map<string, I_InteractableObject>();
-  private objectArray: Object3D[] = []; // Cached array for raycasting
-  private hoverState: I_HoverState | null = null;
-  private dragState: I_DragState | null = null;
+  // Handler registries
+  private mouseClickHandlers = new Map<string, MouseClickHandler>();
+  private keyPressHandlers = new Map<string, KeyPressHandler>();
+  private hoverHandlers = new Map<string, HoverHandler>();
+  private dragHandlers = new Map<string, DragHandler>();
+
+  // Hover state
+  private currentHover: { id: string; object3D: Object3D } | null = null;
   private pointerDirty = false;
 
-  // Visual helpers
-  private gridHelper: GridHelper | null = null;
+  // Drag state
+  private activeDrag: {
+    id: string;
+    startPos: Vector3;
+    currentPos: Vector3;
+    dragPlane: Plane;
+  } | null = null;
 
-  // Config
-  private interactionConfig: Required<I_InteractionConfig> = {
-    hoverHoldThreshold: 500,
-    enabled: true,
-  };
-
-  constructor(config?: I_InteractionConfig) {
-    super();
-    if (config) {
-      this.interactionConfig = { ...this.interactionConfig, ...config };
-    }
-    // Initialize game config early (before start() is called)
-    this.config = useGameConfigStore();
-  }
+  // Cached arrays for raycasting
+  private hoverObjectsArray: Object3D[] = [];
 
   // ============================================
   // LIFECYCLE
   // ============================================
 
-  /**
-   * Initialize service with scene context
-   */
   async init(ctx: I_SceneContext): Promise<void> {
     this.context = ctx;
-    // Config already initialized in constructor
 
-    // Initialize Mouse utility with drag detection
+    // Initialize Mouse utility
     this.mouse = new Mouse({
       target: ctx.engine.renderer.domElement,
       preventContextMenu: true,
       trackScroll: false,
-      dragThreshold: 5, // 5px threshold for drag vs click
+      dragThreshold: 5,
     });
 
-    // Create grid helper (hidden by default)
-    this.createGridHelper();
-
-    // HOVER SYSTEM: Track pointer movement
+    // Track pointer movement for hover detection
     this.mouse.on('move', () => {
-      if (!this.interactionConfig.enabled) return;
       this.pointerDirty = true;
     });
 
-    // DRAG SYSTEM: Use Mouse utility's built-in drag events!
+    // Mouse click events
+    this.mouse.on('click', this.handleClick.bind(this));
+
+    // Drag events
     this.mouse.on('dragstart', this.handleDragStart.bind(this));
     this.mouse.on('drag', this.handleDrag.bind(this));
     this.mouse.on('dragend', this.handleDragEnd.bind(this));
 
-    // CLICK SYSTEM: Mouse utility handles drag threshold automatically
-    this.mouse.on('click', this.handleClick.bind(this));
+    // Clear hover when pointer leaves
+    this.mouse.on('leave', () => this.clearHover());
 
-    // CLEANUP: Clear hover when pointer leaves canvas
-    this.mouse.on('leave', this.clearHover.bind(this));
+    // Keyboard events
+    window.addEventListener('keydown', this.handleKeyDown.bind(this));
 
+    console.log('✅ [InteractionService] Initialized (API layer)');
   }
 
-  /**
-   * Update (called each frame by GameScene)
-   * ONLY runs raycasting if pointer moved (event-driven hover)
-   * Always checks hover-hold timing (lightweight)
-   */
   public update(_delta: number): void {
-    if (!this.interactionConfig.enabled || !this.context.camera) return;
-
-    // RAYCAST: Only when pointer moved AND not dragging
-    if (this.pointerDirty && !this.dragState) {
+    // Update hover detection if pointer moved
+    if (this.pointerDirty && !this.activeDrag) {
       this.updateHover();
       this.pointerDirty = false;
     }
-
-    // HOVER-HOLD: Check timing
-    if (this.hoverState && !this.hoverState.holdFired) {
-      const elapsed = Date.now() - this.hoverState.startTime;
-      if (elapsed >= this.interactionConfig.hoverHoldThreshold) {
-        this.fireHoverHold(elapsed);
-        this.hoverState.holdFired = true;
-      }
-    }
   }
 
-  /**
-   * Cleanup
-   */
   async destroy(): Promise<void> {
     this.mouse.destroy();
-    this.objects.clear();
-    this.objectArray = [];
-    this.hoverState = null;
-    this.dragState = null;
+    this.mouseClickHandlers.clear();
+    this.keyPressHandlers.clear();
+    this.hoverHandlers.clear();
+    this.dragHandlers.clear();
+    window.removeEventListener('keydown', this.handleKeyDown.bind(this));
     console.log('🧹 [InteractionService] Destroyed');
   }
 
   // ============================================
-  // HOVER SYSTEM
+  // MOUSE CLICK API
   // ============================================
 
+  /**
+   * Register a mouse click callback
+   *
+   * @param id - Unique identifier
+   * @param button - Mouse button to listen for
+   * @param callback - Function to call when clicked
+   * @param options - Optional configuration
+   * @returns Unregister function
+   *
+   * @example
+   * ```typescript
+   * interactionService.registerMouseClick('my-click', 'left', (event, intersection) => {
+   *   console.log('Clicked at:', intersection?.point);
+   * }, { requireHover: true, object3D: mesh });
+   * ```
+   */
+  public registerMouseClick(
+    id: string,
+    button: 'left' | 'right' | 'middle',
+    callback: MouseClickCallback,
+    options?: {
+      requireHover?: boolean;
+      object3D?: Object3D;
+    },
+  ): () => void {
+    this.mouseClickHandlers.set(id, {
+      id,
+      button,
+      callback,
+      requireHover: options?.requireHover,
+      object3D: options?.object3D,
+    });
+
+    return () => this.unregisterMouseClick(id);
+  }
+
+  private unregisterMouseClick(id: string): void {
+    this.mouseClickHandlers.delete(id);
+  }
+
+  // ============================================
+  // KEYBOARD API
+  // ============================================
+
+  /**
+   * Register a keyboard callback
+   *
+   * @param id - Unique identifier
+   * @param key - Key to listen for (e.g., '1', 'a', 'Escape')
+   * @param callback - Function to call when key pressed
+   * @param modifiers - Optional modifier keys (ctrl, shift, alt)
+   * @returns Unregister function
+   *
+   * @example
+   * ```typescript
+   * interactionService.registerKeyPress('spawn-fireball', '1', (event) => {
+   *   spawner.spawn('fireball', ownerId);
+   * });
+   * ```
+   */
+  public registerKeyPress(
+    id: string,
+    key: string,
+    callback: KeyPressCallback,
+    modifiers?: { ctrl?: boolean; shift?: boolean; alt?: boolean },
+  ): () => void {
+    this.keyPressHandlers.set(id, {
+      id,
+      key,
+      modifiers,
+      callback,
+    });
+
+    return () => this.unregisterKeyPress(id);
+  }
+
+  private unregisterKeyPress(id: string): void {
+    this.keyPressHandlers.delete(id);
+  }
+
+  // ============================================
+  // HOVER API
+  // ============================================
+
+  /**
+   * Register hover callbacks with raycast detection
+   *
+   * @param id - Unique identifier
+   * @param object3D - Object to detect hover on
+   * @param callbacks - Hover start/end callbacks
+   * @returns Unregister function
+   *
+   * @example
+   * ```typescript
+   * interactionService.registerHover('my-hover', mesh, {
+   *   onStart: (intersection) => {
+   *     vfxService.applyGlow(mesh, 0xff8c00, 0.3);
+   *   },
+   *   onEnd: () => {
+   *     vfxService.restoreGlow(mesh);
+   *   }
+   * });
+   * ```
+   */
+  public registerHover(
+    id: string,
+    object3D: Object3D,
+    callbacks: {
+      onStart?: HoverCallback;
+      onEnd?: HoverEndCallback;
+    },
+  ): () => void {
+    this.hoverHandlers.set(id, {
+      id,
+      object3D,
+      onStart: callbacks.onStart,
+      onEnd: callbacks.onEnd,
+    });
+
+    // Update cached array for raycasting
+    this.rebuildHoverArray();
+
+    return () => this.unregisterHover(id);
+  }
+
+  private unregisterHover(id: string): void {
+    this.hoverHandlers.delete(id);
+    this.rebuildHoverArray();
+
+    // Clear hover if this was the active one
+    if (this.currentHover?.id === id) {
+      this.clearHover();
+    }
+  }
+
+  private rebuildHoverArray(): void {
+    this.hoverObjectsArray = Array.from(this.hoverHandlers.values()).map((h) => h.object3D);
+  }
+
+  // ============================================
+  // DRAG API
+  // ============================================
+
+  /**
+   * Register drag callbacks
+   *
+   * @param id - Unique identifier
+   * @param object3D - Object to drag
+   * @param callbacks - Drag start/move/end callbacks
+   * @param options - Drag configuration (axis lock, grid snap)
+   * @returns Unregister function
+   *
+   * @example
+   * ```typescript
+   * interactionService.registerDrag('my-drag', mesh, {
+   *   onStart: (startPos) => console.log('Drag started'),
+   *   onMove: (currentPos) => mesh.position.copy(currentPos),
+   *   onEnd: (endPos) => console.log('Drag ended at:', endPos)
+   * }, { lockAxis: ['y'], snapToGrid: 0.5 });
+   * ```
+   */
+  public registerDrag(
+    id: string,
+    object3D: Object3D,
+    callbacks: {
+      onStart?: DragStartCallback;
+      onMove?: DragMoveCallback;
+      onEnd?: DragEndCallback;
+    },
+    options?: {
+      lockAxis?: ('x' | 'y' | 'z')[];
+      snapToGrid?: number;
+    },
+  ): () => void {
+    this.dragHandlers.set(id, {
+      id,
+      object3D,
+      onStart: callbacks.onStart,
+      onMove: callbacks.onMove,
+      onEnd: callbacks.onEnd,
+      lockAxis: options?.lockAxis,
+      snapToGrid: options?.snapToGrid,
+    });
+
+    return () => this.unregisterDrag(id);
+  }
+
+  private unregisterDrag(id: string): void {
+    this.dragHandlers.delete(id);
+
+    // Cancel drag if this was the active one
+    if (this.activeDrag?.id === id) {
+      this.activeDrag = null;
+    }
+  }
+
+  // ============================================
+  // GENERIC UNREGISTER
+  // ============================================
+
+  /**
+   * Unregister any handler by ID
+   */
+  public unregister(id: string): void {
+    this.unregisterMouseClick(id);
+    this.unregisterKeyPress(id);
+    this.unregisterHover(id);
+    this.unregisterDrag(id);
+  }
+
+  // ============================================
+  // INTERNAL EVENT HANDLERS
+  // ============================================
+
+  private handleClick(): void {
+    const buttonMap = { left: 0, middle: 1, right: 2 };
+
+    this.mouseClickHandlers.forEach((handler) => {
+      // Get current mouse button from last event
+      const lastButton = (this.mouse as any).lastButton || 0;
+
+      if (lastButton !== buttonMap[handler.button]) return;
+
+      // If requireHover, check if hovering over the object
+      if (handler.requireHover && handler.object3D) {
+        if (!this.currentHover || this.currentHover.object3D !== handler.object3D) {
+          return;
+        }
+      }
+
+      // Raycast to get intersection point (if object3D provided)
+      let intersection: Intersection | undefined;
+      if (handler.object3D && this.context.camera) {
+        const intersects = this.raycast.fromCamera(
+          this.mouse.normalizedPositionRef,
+          this.context.camera.instance,
+          [handler.object3D],
+        );
+        intersection = intersects[0];
+      }
+
+      // Trigger callback (components decide what to do)
+      handler.callback(new MouseEvent('click'), intersection);
+    });
+  }
+
+  private handleKeyDown(event: KeyboardEvent): void {
+    this.keyPressHandlers.forEach((handler) => {
+      if (event.key !== handler.key) return;
+
+      // Check modifiers
+      if (handler.modifiers) {
+        if (handler.modifiers.ctrl && !event.ctrlKey) return;
+        if (handler.modifiers.shift && !event.shiftKey) return;
+        if (handler.modifiers.alt && !event.altKey) return;
+      }
+
+      event.preventDefault();
+      handler.callback(event);
+    });
+  }
+
   private updateHover(): void {
-    if (!this.context.camera) return;
+    if (!this.context.camera || this.hoverObjectsArray.length === 0) return;
+
     const intersects = this.raycast.fromCamera(
       this.mouse.normalizedPositionRef,
       this.context.camera.instance,
-      this.objectArray,
+      this.hoverObjectsArray,
     );
 
     if (intersects.length > 0) {
-      const object = this.findObject(intersects[0].object);
+      const hitObject = intersects[0].object;
+      const handler = this.findHoverHandler(hitObject);
 
-      if (object && object.behaviors.hover) {
+      if (handler) {
         // Start new hover or continue existing
-        if (!this.hoverState || this.hoverState.objectId !== object.id) {
+        if (!this.currentHover || this.currentHover.id !== handler.id) {
           this.clearHover();
-          this.startHover(object, intersects[0]);
+          this.startHover(handler, intersects[0]);
         }
         return;
       }
@@ -163,309 +444,95 @@ export class InteractionService extends SceneService implements I_SceneService {
     this.clearHover();
   }
 
-  private startHover(object: I_InteractableObject, intersection: Intersection): void {
-    this.hoverState = {
-      objectId: object.id,
-      startTime: Date.now(),
-      holdFired: false,
-    };
-
-    const hover = object.behaviors.hover;
-    if (!hover) return;
-
-    // Apply hover glow
-    if (hover.glow) {
-      const vfx = this.context.getService('vfx');
-      vfx.applyEmissive(
-        object.object3D,
-        hover.glow.color,
-        this.resolve(hover.glow.intensity),
-      );
-    }
-
-    // Fire custom callback
-    hover.customCallbacks?.onStart?.(intersection);
-  }
-
-  private clearHover(): void {
-    if (!this.hoverState) return;
-
-    const object = this.objects.get(this.hoverState.objectId);
-    if (!object) return;
-    const hover = object?.behaviors.hover;
-
-    // Restore glow
-    const vfx = this.context.getService('vfx');
-    if (hover?.glow) {
-      vfx.restoreEmissive(object.object3D);
-    }
-
-    // Hide tooltip
-    vfx.hideTooltip();
-
-    // Fire custom callback
-    hover?.customCallbacks?.onEnd?.();
-
-    this.hoverState = null;
-  }
-
-  private fireHoverHold(duration: number): void {
-    if (!this.hoverState) return;
-
-    const object = this.objects.get(this.hoverState.objectId);
-    if (!object) return;
-    const hover = object?.behaviors.hover;
-
-    // Show tooltip
-    if (hover?.tooltip) {
-      const vfx = this.context.getService('vfx');
-      vfx.showTooltip(
-        object.object3D.position,
-        hover.tooltip.title,
-        hover.tooltip.description,
-      );
-    }
-
-    // Fire custom callback
-    hover?.customCallbacks?.onHold?.(duration);
-  }
-
-  // ============================================
-  // CLICK SYSTEM
-  // ============================================
-
-  private handleClick(): void {
-    if (!this.hoverState) return;
-
-    const object = this.objects.get(this.hoverState.objectId);
-    const click = object?.behaviors.click;
-
-    if (!click) return;
-
-
-
-    // Perform fresh raycast for accurate position
-    const intersects = this.raycast.fromCamera(
-      this.mouse.normalizedPositionRef,
-      this.context.camera!.instance,
-      [object.object3D],
-    );
-
-    if (intersects.length === 0) return;
-
-    const intersection = intersects[0];
-
-    // Apply click VFX
-    const vfx = this.context.getService('vfx');
-    if (click.vfx) {
-      vfx.showClickEffect(
-        intersection.point,
-        click.vfx.text,
-        click.vfx.color,
-      );
-    }
-
-    // Apply camera shake
-    if (click.shake) {
-      vfx.shakeCamera(
-        this.resolve(click.shake.intensity),
-        this.resolve(click.shake.duration),
-      );
-    }
-
-    // Apply particles
-    if (click.particles) {
-      vfx.spawnParticles(
-        intersection.point,
-        this.resolve(click.particles.count),
-        click.particles.color,
-        click.particles.speed ? this.resolve(click.particles.speed) : undefined,
-      );
-    }
-
-    // Fire custom callback
-    click.customCallbacks?.onClick?.(intersection);
-  }
-
-  // ============================================
-  // DRAG SYSTEM (NEW!)
-  // ============================================
-
-  private handleDragStart(): void {
-    if (!this.hoverState) return;
-
-    const object = this.objects.get(this.hoverState.objectId);
-    if (!object) return;
-    const drag = object?.behaviors.drag;
-
-    // Check if draggable
-    if (!drag?.enabled) return;
-
-    // 🛠️ EDITOR MODE: Only allow dragging in editor mode
-    if (!this.config.editor.enabled) return;
-
-    // Create drag state
-    this.dragState = {
-      objectId: object.id,
-      startPos: object.object3D.position.clone(),
-      currentPos: object.object3D.position.clone(),
-      dragPlane: this.createDragPlane(object.object3D.position.y),
-    };
-
-    // Apply drag styling (opacity)
-    this.applyDragStyle(object.object3D, true);
-
-    // Show grid helper
-    this.showGrid();
-
-    // Fire custom callback
-    drag.customCallbacks?.onStart?.(this.dragState.startPos.clone());
-
-    console.log('🎯 [InteractionService] Started dragging:', object.id);
-  }
-
-  private handleDrag(): void {
-    if (!this.dragState) return;
-
-    const object = this.objects.get(this.dragState.objectId);
-    const drag = object?.behaviors.drag;
-
-    if (!object || !drag) return;
-
-    // Raycast to drag plane
-    const intersectionPoint = this.raycastToPlane(this.dragState.dragPlane);
-    if (!intersectionPoint) return;
-
-    const newPos = intersectionPoint.clone();
-
-    // Apply axis locks (default: lock Y)
-    const lockedAxes = drag.lockAxis || ['y'];
-    if (lockedAxes.includes('x')) {
-      newPos.x = this.dragState.startPos.x;
-    }
-    if (lockedAxes.includes('y')) {
-      newPos.y = this.dragState.startPos.y;
-    }
-    if (lockedAxes.includes('z')) {
-      newPos.z = this.dragState.startPos.z;
-    }
-
-    // Apply grid snapping
-    const snapSize = drag.snapToGrid ?? this.config.editor.snapToGrid;
-    if (snapSize && this.config.editor.enabled) {
-      newPos.x = Math.round(newPos.x / snapSize) * snapSize;
-      newPos.z = Math.round(newPos.z / snapSize) * snapSize;
-    }
-
-    // Update object position
-    object.object3D.position.copy(newPos);
-    this.dragState.currentPos.copy(newPos);
-
-    // Fire custom callback
-    drag.customCallbacks?.onMove?.(newPos.clone());
-  }
-
-  private handleDragEnd(): void {
-    if (!this.dragState) return;
-
-    const object = this.objects.get(this.dragState.objectId);
-    const drag = object?.behaviors.drag;
-
-    if (!object || !drag) return;
-
-    const finalPos = this.dragState.currentPos.clone();
-
-    // Restore styling
-    this.applyDragStyle(object.object3D, false);
-
-    // Hide grid helper
-    this.hideGrid();
-
-    // Fire custom callback
-    drag.customCallbacks?.onEnd?.(finalPos);
-
-    console.log('✅ [InteractionService] Finished dragging at:', finalPos);
-
-    // Clear drag state
-    this.dragState = null;
-  }
-
-  // ============================================
-  // DRAG HELPERS
-  // ============================================
-
-  private createDragPlane(y: number): Plane {
-    return new Plane(new Vector3(0, 1, 0), -y); // XZ plane at object height
-  }
-
-  private raycastToPlane(plane: Plane): Vector3 | null {
-    const raycaster = this.raycast.getRaycaster();
-    raycaster.setFromCamera(this.mouse.normalizedPositionRef, this.context.camera!.instance);
-
-    const intersectionPoint = new Vector3();
-    const hit = raycaster.ray.intersectPlane(plane, intersectionPoint);
-
-    return hit ? intersectionPoint : null;
-  }
-
-  private applyDragStyle(object: Object3D, isDragging: boolean): void {
-    const opacity = isDragging ? this.config.editor.dragOpacity : 1.0;
-
-    object.traverse((child) => {
-      if ((child as any).material) {
-        const material = (child as any).material;
-        material.transparent = isDragging;
-        material.opacity = opacity;
-        material.needsUpdate = true;
-      }
-    });
-  }
-
-  // ============================================
-  // GRID HELPER
-  // ============================================
-
-  private createGridHelper(): void {
-    // Create a large grid (100x100 units, 0.5 unit divisions)
-    const size = 100;
-    const divisions = size / this.config.editor.snapToGrid;
-
-    this.gridHelper = new GridHelper(size, divisions, 0x888888, 0x444444);
-    this.gridHelper.position.y = 0.01; // Slightly above ground to prevent z-fighting
-    this.gridHelper.visible = false; // Hidden by default
-
-    // Add to scene
-    this.context.scene.add(this.gridHelper);
-    this.context.cleanupRegistry.registerObject(this.gridHelper);
-
-  }
-
-  private showGrid(): void {
-    if (this.gridHelper && this.config.editor.showGrid) {
-      this.gridHelper.visible = true;
-    }
-  }
-
-  private hideGrid(): void {
-    if (this.gridHelper) {
-      this.gridHelper.visible = false;
-    }
-  }
-
-  // ============================================
-  // UTILITIES
-  // ============================================
-
-  private findObject(threeObj: Object3D): I_InteractableObject | null {
-    for (const obj of this.objects.values()) {
-      if (obj.object3D === threeObj || this.isChildOf(threeObj, obj.object3D)) {
-        return obj;
+  private findHoverHandler(object3D: Object3D): HoverHandler | null {
+    for (const handler of this.hoverHandlers.values()) {
+      if (handler.object3D === object3D || this.isChildOf(object3D, handler.object3D)) {
+        return handler;
       }
     }
     return null;
   }
 
+  private startHover(handler: HoverHandler, intersection: Intersection): void {
+    this.currentHover = { id: handler.id, object3D: handler.object3D };
+    handler.onStart?.(intersection);
+  }
 
+  private clearHover(): void {
+    if (!this.currentHover) return;
+
+    const handler = this.hoverHandlers.get(this.currentHover.id);
+    handler?.onEnd?.();
+
+    this.currentHover = null;
+  }
+
+  private handleDragStart(): void {
+    if (!this.currentHover) return;
+
+    const handler = this.dragHandlers.get(this.currentHover.id);
+    if (!handler) return;
+
+    const startPos = handler.object3D.position.clone();
+
+    this.activeDrag = {
+      id: handler.id,
+      startPos,
+      currentPos: startPos.clone(),
+      dragPlane: new Plane(new Vector3(0, 1, 0), -startPos.y),
+    };
+
+    handler.onStart?.(startPos);
+  }
+
+  private handleDrag(): void {
+    if (!this.activeDrag || !this.context.camera) return;
+
+    const handler = this.dragHandlers.get(this.activeDrag.id);
+    if (!handler) return;
+
+    // Raycast to drag plane
+    const raycaster = this.raycast.getRaycaster();
+    raycaster.setFromCamera(this.mouse.normalizedPositionRef, this.context.camera.instance);
+
+    const intersectionPoint = new Vector3();
+    const hit = raycaster.ray.intersectPlane(this.activeDrag.dragPlane, intersectionPoint);
+
+    if (!hit) return;
+
+    let newPos = intersectionPoint.clone();
+
+    // Apply axis locks
+    if (handler.lockAxis) {
+      if (handler.lockAxis.includes('x')) newPos.x = this.activeDrag.startPos.x;
+      if (handler.lockAxis.includes('y')) newPos.y = this.activeDrag.startPos.y;
+      if (handler.lockAxis.includes('z')) newPos.z = this.activeDrag.startPos.z;
+    }
+
+    // Apply grid snapping
+    if (handler.snapToGrid) {
+      newPos.x = Math.round(newPos.x / handler.snapToGrid) * handler.snapToGrid;
+      newPos.z = Math.round(newPos.z / handler.snapToGrid) * handler.snapToGrid;
+    }
+
+    this.activeDrag.currentPos.copy(newPos);
+    handler.onMove?.(newPos);
+  }
+
+  private handleDragEnd(): void {
+    if (!this.activeDrag) return;
+
+    const handler = this.dragHandlers.get(this.activeDrag.id);
+    if (handler) {
+      handler.onEnd?.(this.activeDrag.currentPos.clone());
+    }
+
+    this.activeDrag = null;
+  }
+
+  // ============================================
+  // UTILITIES
+  // ============================================
 
   private isChildOf(child: Object3D, parent: Object3D): boolean {
     let current: Object3D | null = child;
@@ -476,80 +543,17 @@ export class InteractionService extends SceneService implements I_SceneService {
     return false;
   }
 
-  private resolve<T>(value: ReactiveValue<T>): T {
-    return typeof value === 'function' ? (value as () => T)() : value;
-  }
-
-  // ============================================
-  // PUBLIC API
-  // ============================================
-
   /**
-   * Register interactable with fluent builder API
-   *
-   * @example
-   * ```typescript
-   * ctx.services.interaction
-   *   .register('box-1', mesh)
-   *   .withHoverGlow()
-   *   .withClickVFX('POW!')
-   *   .withDrag({ lockAxis: ['y'] });
-   * ```
+   * Get mouse utility (for advanced use cases)
    */
-  public register(id: string, object3D: Object3D): InteractableBuilder {
-    // Builder auto-registers via callback when chaining completes
-    return new InteractableBuilder((behaviors) => {
-      this._register(id, object3D, behaviors);
-    });
+  public getMouse(): Mouse {
+    return this.mouse;
   }
 
   /**
-   * Unregister interactable
+   * Get raycast utility (for advanced use cases)
    */
-  public unregister(id: string): void {
-    const obj = this.objects.get(id);
-    if (!obj) return;
-
-    // Clear states if active
-    if (this.hoverState?.objectId === id) {
-      this.clearHover();
-    }
-    if (this.dragState?.objectId === id) {
-      this.dragState = null;
-    }
-
-    // Remove from collections
-    this.objects.delete(id);
-    const index = this.objectArray.indexOf(obj.object3D);
-    if (index !== -1) {
-      this.objectArray.splice(index, 1);
-    }
-  }
-
-  /**
-   * Enable/disable interaction system
-   */
-  public setEnabled(enabled: boolean): void {
-    this.interactionConfig.enabled = enabled;
-    if (!enabled) {
-      this.clearHover();
-      this.dragState = null;
-    }
-  }
-
-  // ============================================
-  // INTERNAL
-  // ============================================
-
-  private _register(id: string, object3D: Object3D, behaviors: I_InteractableBehaviors): void {
-    const interactable: I_InteractableObject = {
-      id,
-      object3D,
-      behaviors,
-    };
-
-    this.objects.set(id, interactable);
-    this.objectArray.push(object3D);
-
+  public getRaycast(): Raycast {
+    return this.raycast;
   }
 }
