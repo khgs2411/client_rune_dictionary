@@ -59,9 +59,6 @@ export class DragComponent extends GameComponent {
     const interaction = context.getService('interaction');
     const gameConfig = useGameConfigStore();
 
-    // Use config.editor.snapToGrid if not specified
-    const snapToGrid = this.config.snapToGrid ?? gameConfig.editor.snapToGrid;
-
     // Register drag callbacks with InteractionService
     this.unregister = interaction.registerDrag(
       `${this.gameObject.id}-drag`,
@@ -99,7 +96,11 @@ export class DragComponent extends GameComponent {
       },
       {
         lockAxis: this.config.lockAxis,
-        snapToGrid,
+        // Use getter function to read live value from gameConfig
+        // Falls back to static config value if specified
+        snapToGrid: this.config.snapToGrid !== undefined
+          ? this.config.snapToGrid
+          : () => gameConfig.editor.snapToGrid,
       },
     );
 

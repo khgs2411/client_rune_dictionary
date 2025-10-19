@@ -51,7 +51,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
   protected addSceneObjects() {
     // Ground
-    const ground = new Ground({ size: 200, showGrid: true });
+    const ground = new Ground({ size: 200, showGrid: false });
     const gom = this.getService('gameObjectsManager');
     gom.register(ground);
 
@@ -74,7 +74,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       }))
       .addComponent(new DragComponent({
         lockAxis: ['y'],
-        snapToGrid: this.config.editor.snapToGrid,
+        // snapToGrid omitted - will use live gameConfig.editor.snapToGrid value
         onDragEnd: (pos) => console.log('✅ Interactive box dragged to:', pos)
       }));
 

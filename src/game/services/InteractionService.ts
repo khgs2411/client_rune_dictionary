@@ -1,8 +1,9 @@
 import type { I_SceneContext, I_SceneService } from '@/game/common/scenes.types';
 import { Mouse } from '@/game/utils/Mouse';
 import { Raycast } from '@/game/utils/Raycast';
-import { Intersection, Object3D, Plane, Vector3 } from 'three';
+import { GridHelper, Intersection, Mesh, Object3D, Plane, Vector3 } from 'three';
 import SceneService from './SceneService';
+import { useGameConfigStore } from '@/stores/config.store';
 
 /**
  * Callback types for interaction events
@@ -47,7 +48,7 @@ interface DragHandler {
   onMove?: DragMoveCallback;
   onEnd?: DragEndCallback;
   lockAxis?: ('x' | 'y' | 'z')[];
-  snapToGrid?: number;
+  snapToGrid?: number | (() => number); // Can be static value or dynamic getter
 }
 
 /**
@@ -96,6 +97,12 @@ export class InteractionService extends SceneService implements I_SceneService {
   // Cached arrays for raycasting
   private hoverObjectsArray: Object3D[] = [];
 
+  // Grid helper for drag visualization
+  private gridHelper: GridHelper | null = null;
+
+  // Opacity cache for drag (to restore original values)
+  private opacityCache = new Map<string, number>();
+
   // ============================================
   // LIFECYCLE
   // ============================================
@@ -130,6 +137,12 @@ export class InteractionService extends SceneService implements I_SceneService {
     // Keyboard events
     window.addEventListener('keydown', this.handleKeyDown.bind(this));
 
+    // Create grid helper for drag visualization (100x100 grid, 1 unit divisions)
+    this.gridHelper = new GridHelper(100, 100, 0x444444, 0x222222);
+    this.gridHelper.visible = false; // Hidden by default
+    ctx.scene.add(this.gridHelper);
+    ctx.cleanupRegistry.registerObject(this.gridHelper);
+
     console.log('✅ [InteractionService] Initialized (API layer)');
   }
 
@@ -147,6 +160,8 @@ export class InteractionService extends SceneService implements I_SceneService {
     this.keyPressHandlers.clear();
     this.hoverHandlers.clear();
     this.dragHandlers.clear();
+    this.opacityCache.clear();
+    this.gridHelper = null; // Cleanup is handled by cleanupRegistry
     window.removeEventListener('keydown', this.handleKeyDown.bind(this));
     console.log('🧹 [InteractionService] Destroyed');
   }
@@ -314,6 +329,11 @@ export class InteractionService extends SceneService implements I_SceneService {
    *   onMove: (currentPos) => mesh.position.copy(currentPos),
    *   onEnd: (endPos) => console.log('Drag ended at:', endPos)
    * }, { lockAxis: ['y'], snapToGrid: 0.5 });
+   *
+   * // Or use a getter for dynamic values:
+   * interactionService.registerDrag('my-drag', mesh, {
+   *   onMove: (currentPos) => mesh.position.copy(currentPos),
+   * }, { snapToGrid: () => gameConfig.editor.snapToGrid });
    * ```
    */
   public registerDrag(
@@ -326,7 +346,7 @@ export class InteractionService extends SceneService implements I_SceneService {
     },
     options?: {
       lockAxis?: ('x' | 'y' | 'z')[];
-      snapToGrid?: number;
+      snapToGrid?: number | (() => number); // Can be static or dynamic
     },
   ): () => void {
     this.dragHandlers.set(id, {
@@ -453,6 +473,15 @@ export class InteractionService extends SceneService implements I_SceneService {
     return null;
   }
 
+  private findDragHandler(object3D: Object3D): DragHandler | null {
+    for (const handler of this.dragHandlers.values()) {
+      if (handler.object3D === object3D || this.isChildOf(object3D, handler.object3D)) {
+        return handler;
+      }
+    }
+    return null;
+  }
+
   private startHover(handler: HoverHandler, intersection: Intersection): void {
     this.currentHover = { id: handler.id, object3D: handler.object3D };
     handler.onStart?.(intersection);
@@ -470,7 +499,8 @@ export class InteractionService extends SceneService implements I_SceneService {
   private handleDragStart(): void {
     if (!this.currentHover) return;
 
-    const handler = this.dragHandlers.get(this.currentHover.id);
+    // Find drag handler by object3D (not by ID, as drag and hover may have different IDs)
+    const handler = this.findDragHandler(this.currentHover.object3D);
     if (!handler) return;
 
     const startPos = handler.object3D.position.clone();
@@ -481,6 +511,17 @@ export class InteractionService extends SceneService implements I_SceneService {
       currentPos: startPos.clone(),
       dragPlane: new Plane(new Vector3(0, 1, 0), -startPos.y),
     };
+
+    const gameConfig = useGameConfigStore();
+
+    // Show grid helper if enabled in editor settings
+    if (this.gridHelper && gameConfig.editor.showGrid) {
+      this.gridHelper.position.y = startPos.y; // Position grid at drag plane height
+      this.gridHelper.visible = true;
+    }
+
+    // Apply drag opacity (read live from config)
+    this.applyDragOpacity(handler.object3D, gameConfig.editor.dragOpacity);
 
     handler.onStart?.(startPos);
   }
@@ -509,10 +550,16 @@ export class InteractionService extends SceneService implements I_SceneService {
       if (handler.lockAxis.includes('z')) newPos.z = this.activeDrag.startPos.z;
     }
 
-    // Apply grid snapping
+    // Apply grid snapping (resolve value if it's a function)
     if (handler.snapToGrid) {
-      newPos.x = Math.round(newPos.x / handler.snapToGrid) * handler.snapToGrid;
-      newPos.z = Math.round(newPos.z / handler.snapToGrid) * handler.snapToGrid;
+      const snapValue = typeof handler.snapToGrid === 'function'
+        ? handler.snapToGrid()
+        : handler.snapToGrid;
+
+      if (snapValue > 0) {
+        newPos.x = Math.round(newPos.x / snapValue) * snapValue;
+        newPos.z = Math.round(newPos.z / snapValue) * snapValue;
+      }
     }
 
     this.activeDrag.currentPos.copy(newPos);
@@ -524,7 +571,15 @@ export class InteractionService extends SceneService implements I_SceneService {
 
     const handler = this.dragHandlers.get(this.activeDrag.id);
     if (handler) {
+      // Restore opacity before calling onEnd
+      this.restoreDragOpacity(handler.object3D);
+
       handler.onEnd?.(this.activeDrag.currentPos.clone());
+    }
+
+    // Hide grid helper
+    if (this.gridHelper) {
+      this.gridHelper.visible = false;
     }
 
     this.activeDrag = null;
@@ -541,6 +596,54 @@ export class InteractionService extends SceneService implements I_SceneService {
       current = current.parent;
     }
     return false;
+  }
+
+  /**
+   * Apply drag opacity to object (makes it semi-transparent while dragging)
+   */
+  private applyDragOpacity(object3D: Object3D, opacity: number): void {
+    object3D.traverse((child) => {
+      if ('isMesh' in child && child.isMesh) {
+        const mesh = child as Mesh;
+        const mat = mesh.material as any; // Material types vary
+
+        if (mat && mat.opacity !== undefined) {
+          // Cache original opacity
+          if (!this.opacityCache.has(mesh.uuid)) {
+            this.opacityCache.set(mesh.uuid, mat.opacity);
+          }
+
+          // Apply drag opacity
+          mat.transparent = true; // Ensure transparency is enabled
+          mat.opacity = opacity;
+          mat.needsUpdate = true;
+        }
+      }
+    });
+  }
+
+  /**
+   * Restore original opacity after drag
+   */
+  private restoreDragOpacity(object3D: Object3D): void {
+    object3D.traverse((child) => {
+      if ('isMesh' in child && child.isMesh) {
+        const mesh = child as Mesh;
+        const original = this.opacityCache.get(mesh.uuid);
+
+        if (original !== undefined) {
+          const mat = mesh.material as any; // Material types vary
+          if (mat && mat.opacity !== undefined) {
+            mat.opacity = original;
+            mat.transparent = original < 1.0; // Only keep transparent if original was transparent
+            mat.needsUpdate = true;
+          }
+
+          // Clear from cache
+          this.opacityCache.delete(mesh.uuid);
+        }
+      }
+    });
   }
 
   /**
