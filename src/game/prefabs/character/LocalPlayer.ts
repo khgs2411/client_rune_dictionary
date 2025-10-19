@@ -1,12 +1,14 @@
-import { GameObject } from '@/game/GameObject';
-import { createPlayer } from './createPlayer';
-import { TransformComponent } from '@/game/components/rendering/TransformComponent';
-import { KinematicMovementComponent } from '@/game/components/systems/KinematicMovementComponent';
+import { Vec3 } from '@/common/types';
 import type { I_CharacterControls } from '@/composables/composables.types';
 import { SyncMovementComponent } from '@/game/components/multiplayer/SyncMovementComponent';
-import { Vec3 } from '@/common/types';
-import { KinematicCollisionComponent } from '@/game/components/systems/KinematicCollisionComponent';
 import { CharacterMeshComponent } from '@/game/components/rendering/CharacterMeshComponent';
+import { TransformComponent } from '@/game/components/rendering/TransformComponent';
+import { ClickSpawnComponent } from '@/game/components/spawning/ClickSpawnComponent';
+import { HotkeySpawnComponent } from '@/game/components/spawning/HotkeySpawnComponent';
+import { KinematicCollisionComponent } from '@/game/components/systems/KinematicCollisionComponent';
+import { KinematicMovementComponent } from '@/game/components/systems/KinematicMovementComponent';
+import { GameObject } from '@/game/GameObject';
+import { createPlayer } from './createPlayer';
 
 /**
  * Configuration for LocalPlayer prefab
@@ -61,6 +63,63 @@ export class LocalPlayer extends GameObject {
     this.addBaseComponents(startPos);
 
     // Add KinematicPhysicsComponent (kinematic character controller)
+    this.addCharacterControllerComponents(startPos, config);
+
+    // Add components that I am testing
+    this.addTestingComponents()
+  }
+
+  private addTestingComponents() {
+    // Add spawn trigger components to player BEFORE registration
+    this.addComponent(
+      new HotkeySpawnComponent({
+        key: '1',
+        objectName: 'fireball',
+        getSpawnData: (owner) => {
+          const transform = owner.getComponent(TransformComponent);
+          if (!transform) return {};
+
+          // Get forward direction from player rotation
+          const forward = transform.forward;
+
+          return {
+            position: [
+              transform.position.x + forward.x,
+              transform.position.y + 1,
+              transform.position.z + forward.z,
+            ],
+            direction: [forward.x, 0.1, forward.z], // Slight upward arc
+            velocity: 15,
+          };
+        },
+        onSpawn: (spawned, owner) => {
+          console.log(`🔥 [PlaygroundScene] ${owner.id} spawned ${spawned.id}`);
+        },
+      }),
+    );
+
+    this.addComponent(
+      new ClickSpawnComponent({
+        button: 'left',
+        objectName: 'ice-shard',
+        cooldown: 500, // 0.5 second cooldown
+        spawnAtCursor: true,
+        spawnHeight: 1,
+        getSpawnData: (owner) => {
+          const transform = owner.getComponent(TransformComponent);
+          return {
+            direction: [0, -1, 0], // Downward
+            velocity: 5,
+          };
+        },
+        onSpawn: (spawned, owner) => {
+          console.log(`❄️  [PlaygroundScene] ${owner.id} spawned ${spawned.id} at cursor`);
+        },
+      }),
+    );
+  }
+
+  private addCharacterControllerComponents(startPos: Vec3, config: I_LocalPlayerConfig) {
     this.addComponent(
       new KinematicCollisionComponent({
         type: 'static', // Required by base, but overridden for kinematic
@@ -73,7 +132,7 @@ export class LocalPlayer extends GameObject {
           minStepWidth: 0.2,
           snapToGroundDistance: 0.5,
         },
-      }),
+      })
     );
 
     // Add MovementComponent (movement logic, jumping, gravity)
@@ -82,7 +141,7 @@ export class LocalPlayer extends GameObject {
         characterController: config.characterController,
         enableJumping: true,
         enableGravity: true,
-      }),
+      })
     );
 
     // SyncMovementComponent will be added later when networking is ready

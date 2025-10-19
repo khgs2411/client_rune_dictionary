@@ -12,8 +12,6 @@ import { InstancedMeshComponent } from '@/game/components/rendering/InstancedMes
 import { MaterialComponent } from '@/game/components/rendering/MaterialComponent';
 import { MeshComponent } from '@/game/components/rendering/MeshComponent';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
-import { ClickSpawnComponent } from '@/game/components/spawning/ClickSpawnComponent';
-import { HotkeySpawnComponent } from '@/game/components/spawning/HotkeySpawnComponent';
 import { MultiplayerModule } from '@/game/modules/networking/MultiplayerModule';
 import { EditableBox } from '@/game/prefabs/EditableBox';
 import { Fireball } from '@/game/prefabs/Fireball';
@@ -162,53 +160,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       characterController: this.character.controller,
     });
 
-    // Add spawn trigger components to player BEFORE registration
-    localPlayer.addComponent(
-      new HotkeySpawnComponent({
-        key: '1',
-        objectName: 'fireball',
-        getSpawnData: (owner) => {
-          const transform = owner.getComponent(TransformComponent);
-          if (!transform) return {};
-
-          // Get forward direction from player rotation
-          const forward = transform.forward;
-
-          return {
-            position: [
-              transform.position.x + forward.x,
-              transform.position.y + 1,
-              transform.position.z + forward.z,
-            ],
-            direction: [forward.x, 0.1, forward.z], // Slight upward arc
-            velocity: 15,
-          };
-        },
-        onSpawn: (spawned, owner) => {
-          console.log(`🔥 [PlaygroundScene] ${owner.id} spawned ${spawned.id}`);
-        },
-      }),
-    );
-
-    localPlayer.addComponent(
-      new ClickSpawnComponent({
-        button: 'left',
-        objectName: 'ice-shard',
-        cooldown: 500, // 0.5 second cooldown
-        spawnAtCursor: true,
-        spawnHeight: 1,
-        getSpawnData: (owner) => {
-          const transform = owner.getComponent(TransformComponent);
-          return {
-            direction: [0, -1, 0], // Downward
-            velocity: 5,
-          };
-        },
-        onSpawn: (spawned, owner) => {
-          console.log(`❄️  [PlaygroundScene] ${owner.id} spawned ${spawned.id} at cursor`);
-        },
-      }),
-    );
+  
 
     // Register player AFTER all components are added
     gom.register(localPlayer);
