@@ -885,3 +885,4 @@ This codebase uses **two complementary patterns**:
   - Drag: `.withDrag({ lockAxis, snapToGrid, onEnd })` (editor mode only)
 - Components implement `I_Interactable` interface to register with builder
 - GameObject coordinates registration via `registerInteractions()` lifecycle hook
+- Never run bun run build unless excplicitly told to do so

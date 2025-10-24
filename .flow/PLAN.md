@@ -64,14 +64,14 @@ Reimplement the combat/match system from the deprecated 2D PrimeVue application 
 **Current Work**:
 - **Phase**: [Phase 2 - Match Instantiation & Initialization](#phase-2-match-instantiation--initialization-) 🚧 IMPLEMENTING
 - **Task**: [Task 1 - Match State Management](#task-1-match-state-management-) 🚧 IN PROGRESS
-- **Iteration**: [Iteration 1 - Create Match Store](#iteration-1-create-match-store-) 🚧 IN PROGRESS
+- **Iteration**: [Iteration 2 - Match Creation Composable](#iteration-2-match-creation-composable-) ⏳ READY
 
 **Completion Status**:
-- Phase 1: ✅ 100% | Phase 2: 🚧 0% (started) | Phases 3-18: ⏳ 0%
+- Phase 1: ✅ 100% | Phase 2: 🚧 16% (1/6 iterations) | Phases 3-18: ⏳ 0%
 
 **Progress Overview**:
 - ✅ **Phase 1**: Analysis & Planning (verified & frozen)
-- 🚧 **Phase 2**: Match Instantiation & Initialization ← **YOU ARE HERE** (Implementing Task 1, Iteration 1)
+- 🚧 **Phase 2**: Match Instantiation & Initialization ← **YOU ARE HERE** (Task 1 - Iteration 1 ✅, Iteration 2 next)
 - ⏳ **Phase 3**: PvE Match Flow
 - ⏳ **Phase 4**: Match Lifecycle Management
 - ⏳ **Phase 5**: Aborting/Leaving a Match
@@ -983,55 +983,206 @@ private async pve(req: Request): Promise<I_ApplicationResponse> {
 
 ---
 
-##### Iteration 1: Create Match Store 🚧
+##### Iteration 1: Create Match Store ✅
 
 **Goal**: Implement Pinia store with persistence for match state
 
 **Action Items**:
-- [ ] Create `src/stores/match.store.ts`
-- [ ] Define store structure: `{ currentMatchId, currentChannelId, channelName, matchState, isConnectedToMatch, gameState, matchResult }`
-- [ ] Add `pinia-plugin-persistedstate` configuration
-- [ ] Define TypeScript interfaces for state types (PlayerParticipant, NPCParticipant, TurnState, ATBState, TimerConfig, MatchResult)
-- [ ] Export store composable
+- [x] Create `src/stores/match.store.ts`
+- [x] Define store structure: `{ currentMatchId, currentChannelId, channelName, matchState, isConnectedToMatch, gameState, matchResult }`
+- [x] ~~Add `pinia-plugin-persistedstate` configuration~~ (REMOVED - matches will not persist)
+- [x] Define TypeScript interfaces for state types (PlayerParticipant, NPCParticipant, TurnState, ATBState, TimerConfig, MatchResult)
+- [x] Export store composable
 
-**Verification**: Store can be imported and state persists across page refreshes
+**Verification**: Store can be imported and state is managed correctly
 
 ---
 
 ### **Implementation - Iteration 1: Create Match Store**
 
-**Status**: 🚧 IN PROGRESS
+**Status**: ✅ COMPLETE
 
-**Action Items**: See action items above
+**Action Items**: See action items above (all completed)
 
 **Implementation Notes**:
 
-[Document discoveries and decisions during implementation]
+Created comprehensive match store following Pinia composition API pattern:
+
+1. **TypeScript Interfaces** (7 total):
+   - `I_ParticipantStats` - Shared stats structure (attack, defense, speed)
+   - `I_PlayerParticipant` - Player combatant data
+   - `I_NPCParticipant` - NPC combatant data
+   - `I_TurnState` - Turn number, current entity, isPlayerTurn flag
+   - `I_ATBState` - ATB readiness percentages (0-100)
+   - `I_TimerConfig` - Turn duration config (duration, warningThreshold, fallbackAction)
+   - `I_GameState` - Complete game state container
+   - `I_MatchResult` - Post-match statistics
+   - `MatchState` - UI state machine type ('LOBBY' | 'IN_PROGRESS' | 'FINISHED')
+
+2. **Store State**:
+   - All required fields from brainstorming session
+   - Proper null handling for optional/inactive match state
+   - Boolean flags for connection status
+
+3. **Computed Properties**:
+   - `hasActiveMatch` - Quick check for match existence
+   - `isMatchInProgress` - UI state check
+   - `isInLobby` - UI state check
+   - `isMatchFinished` - UI state check
+
+4. **Actions** (11 total):
+   - `initializeMatch()` - Populate from HTTP response
+   - `confirmMatchConnection()` - Set WebSocket connected flag
+   - `updateGameState()` - Generic partial updates
+   - `updatePlayerHealth()` - Specific player health update
+   - `updateNPCHealth()` - Specific NPC health update
+   - `updateTurnState()` - Turn state updates
+   - `updateATBState()` - ATB readiness updates
+   - `endMatch()` - Transition to FINISHED with result
+   - `leaveMatch()` - Return to LOBBY and clear state
+   - `$reset()` - Reset to initial state
+
+5. **Persistence**: ~~Initially planned~~ **REMOVED** - Matches will not persist across page refreshes (simpler V1, avoids stale state issues)
+
+**Design Decisions**:
+- Used composition API (consistent with other stores: settings, websocket)
+- Separate update methods for health (common operation, cleaner than generic update)
+- Computed properties for UI state checks (avoid repeated conditionals in components)
+- `initializeMatch()` expects full state from HTTP response (per Subject 3 resolution)
+- Dual-signal pattern: HTTP populates state, WebSocket confirms connection
+- **No persistence**: User decision - matches reset on page refresh (cleaner for V1, avoids edge cases)
 
 **Files Modified**:
-
-[Track files as work progresses]
+- `src/stores/match.store.ts` - Created (285 lines, comprehensive type definitions and state management)
 
 **Verification**:
 
-[How work will be verified - per Testing Strategy: manual import test + persistence check]
+Verified via code review:
+- ✅ All TypeScript interfaces defined correctly
+- ✅ Store structure matches brainstorming requirements
+- ✅ Composition API pattern consistent with existing stores
+- ✅ All required actions implemented (initialize, update, end, leave, reset)
+- ✅ Computed properties for state checks
+- ✅ Persistence removed per user decision
+
+Will be fully tested during Iteration 2 integration with Match.vue.
+
+**Completion Notes**:
+- Iteration completed successfully
+- Store ready for use in next iteration (Match Creation Composable)
+- No persistence added (user decision - simpler V1, avoids stale state edge cases)
 
 ---
 
-##### Iteration 2: Match Creation Composable ⏳
+##### Iteration 2: Match Creation from Game World 🎨 READY FOR IMPLEMENTATION
 
-**Goal**: Implement composable for creating PvE matches
+**Goal**: Implement match creation from Three.js game world (MatchModule + SceneStateService)
 
-**Action Items**:
-- [ ] Create `src/composables/useMatchCreation.ts`
-- [ ] Implement `createPveMatch()` function
-- [ ] Make POST request to `/match/pve` with `whoami` payload
-- [ ] Handle HTTP 200 OK → populate match.store.ts with response data
-- [ ] Handle HTTP 4xx/5xx → show error message, stay in LOBBY
-- [ ] Parse `success: false` responses and display error message
-- [ ] Return loading state, error state, and success callback
+**Status**: ✅ All brainstorming complete, pre-implementation tasks done, ready for implementation
 
-**Verification**: Calling `createPveMatch()` successfully populates store and handles errors
+**Brainstorming Session**:
+
+**Context**: The original iteration design assumed match creation would be triggered from a Vue component using a composable. However, the actual architecture requires:
+1. Matches start from the Three.js game overworld (not Vue component)
+2. Player interacts with NPC/player via double left-click
+3. Game shifts into PVE mode (hide non-participants)
+4. Vue composable couples gameplay logic with Vue app layer (anti-pattern)
+5. Need scene module that integrates with InteractionService for mouse clicks
+6. Need scene state logic to control allowed actions during different states
+
+**Subjects for Discussion**:
+
+**Subject 1: Scene Module Architecture** ✅ RESOLVED (Type D)
+- **Question**: How to create a scene module that handles match instantiation and integrates with InteractionService?
+- **Context**: Need to follow existing scene module patterns, but as a MODULE (not service) that consumes InteractionService
+- **Resolution**: Type D - Create MatchModule as iteration action item
+- **Decision**: MatchModule will define integration with InteractionService and overworld game objects
+- **Dependencies**: None
+
+**Subject 2: NPC/Player Interaction Detection** ✅ RESOLVED (Type C)
+- **Question**: How to detect double left-click on NPC/player objects using InteractionService?
+- **Context**: InteractionService.registerMouseClick() exists, need to determine how to filter for NPCs/players and detect double-click
+- **Resolution**: Type C - Auto-resolved as implementation detail of MatchModule
+- **Decision**: This will be handled within MatchModule's init() method when defining InteractionService integration
+- **Dependencies**: Subject 1
+
+**Subject 3: Scene State Management** ✅ RESOLVED (Type D)
+- **Question**: How to implement scene state logic to control allowed actions during different states (e.g., disable movement during match instantiation)?
+- **Context**: Need to prevent movement/other interactions while match is instantiating
+- **Resolution**: Type D - Create SceneStateService as iteration action item
+- **Decision**: Cross-cutting service that MatchModule can modify and components like KinematicMovementComponent can query to prevent movement
+- **Dependencies**: Subject 1
+
+**Subject 4: Game Mode Shift** ✅ RESOLVED (Type C)
+- **Question**: How to transition game into PVE mode (hide non-participants, manage visible objects)?
+- **Context**: Only match participants and non-player game objects should be visible during match
+- **Resolution**: Type C - Auto-resolved as implementation detail of MatchModule
+- **Decision**: MatchModule orchestrates visibility changes during match creation flow (part of match instantiation logic)
+- **Dependencies**: Subject 3
+
+**Subject 5: Integration with Match Store** ✅ RESOLVED (Type C)
+- **Question**: How does scene module communicate with Pinia match store for state management?
+- **Context**: Store is acceptable as "glorified singleton" for state storage
+- **Resolution**: Type C - Auto-resolved as trivial import and usage pattern
+- **Decision**: MatchModule directly imports and uses `useMatchStore()` (pattern already exists in KinematicMovementComponent with useGameConfigStore)
+- **Dependencies**: Subject 1
+
+**Subject 6: HTTP Request from Scene Module** ✅ RESOLVED (Type A)
+- **Question**: How does scene module make POST request to `/match/pve` endpoint?
+- **Context**: Original design had composable making request, now scene module owns this responsibility
+- **Resolution**: Type A - Create MatchAPI class as pre-implementation task (< 30 min, blocking)
+- **Decision**: Create `src/api/match.api.ts` extending BaseAPI with `createPveMatch()` method following MultiplayerAPI pattern
+- **Dependencies**: Subject 1
+
+---
+
+**Pre-Implementation Tasks** (Complete before main implementation):
+
+**Pre-Task 1: Create MatchAPI Class** ✅ COMPLETE
+- **Why it blocks**: MatchModule needs this API to make HTTP requests to `/match/pve` endpoint
+- **Estimated time**: < 30 minutes
+- **Action Items**:
+  - [x] Create `src/api/match.api.ts` extending BaseAPI from topsyde-utils
+  - [x] Implement `createPveMatch(payload)` method using `this.post('/pve', payload)`
+  - [x] Add proper TypeScript interfaces for request/response (`I_CreatePveMatchRequest`, `CreatePveMatchResponseData`, `I_CreatePveMatchResponse`)
+  - [x] Add error handling with `BaseAPI.Status(response)`
+  - [x] Follow pattern from `src/api/multiplayer.api.ts`
+
+**Verification**: ✅ MatchAPI reviewed and confirmed working
+
+---
+
+**Updated Action Items** (Main implementation work):
+
+- [ ] Create `src/game/services/SceneStateService.ts` extending SceneService
+- [ ] Define scene states enum: `OVERWORLD`, `MATCH_INSTANTIATING`, `PVE_MATCH`
+- [ ] Implement state getter and setter methods in SceneStateService
+- [ ] Create `src/game/modules/scene/MatchModule.ts` extending SceneModule
+- [ ] Implement MatchModule.init() - register double-click handler with InteractionService
+- [ ] Implement double-click detection logic for NPC/player objects
+- [ ] Implement match creation flow: detect interaction → call MatchAPI → update match store
+- [ ] Integrate MatchModule with SceneStateService for state transitions
+- [ ] Implement game mode shift: hide non-participants when entering PVE mode
+- [ ] Update KinematicMovementComponent to query SceneStateService before allowing movement
+- [ ] Add MatchModule and SceneStateService to PlaygroundScene module registry
+- [ ] Handle error cases: show error message on API failure, stay in OVERWORLD state
+
+**Verification**:
+- Double-clicking NPC/player triggers match creation
+- Match store populated with response data
+- Game shifts to PVE mode (non-participants hidden)
+- Movement disabled during MATCH_INSTANTIATING state
+- Error handling works (show message on failure)
+
+---
+
+## 🎯 What's Next
+
+Brainstorming session complete! Iteration 2 marked 🎨 READY FOR IMPLEMENTATION.
+
+**REQUIRED NEXT STEP**: Use `/flow-implement-start` to begin implementation.
+
+**Before implementing**: Review your action items and ensure you understand the scope. If you discover new issues during implementation (scope violations), STOP and discuss with the user before proceeding.
 
 ---
 
