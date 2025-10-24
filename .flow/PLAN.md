@@ -1264,13 +1264,14 @@ Handler object3D: undefined
 - [x] Analyze MultiplayerModule to see if similar pattern exists for player spawning
 - [x] Propose architectural solution with pros/cons
 - [x] User approved Option A Extended
-- [ ] Create InteractionComponent (generic event proxy)
-- [ ] Create MatchComponent (match creation logic)
-- [ ] Create NPC prefab (TrainingDummy or similar)
-- [ ] Add NPC to PlaygroundScene
-- [ ] Remove or refactor MatchModule (no longer needed)
-- [ ] Test double-click → match creation flow
-- [ ] Verify state transitions work correctly
+- [x] Create InteractionComponent (generic event proxy)
+- [x] Create MatchComponent (match creation logic)
+- [x] Create NPC prefab (TrainingDummy or similar)
+- [x] Add NPC to PlaygroundScene
+- [x] Remove MatchModule (no longer needed)
+- [x] Fix hover registration bug (requireHover now works!)
+- [x] Test double-click → match creation flow (✅ WORKING!)
+- [x] Verify state transitions work correctly (✅ WORKING!)
 
 ---
 

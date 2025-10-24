@@ -50,8 +50,9 @@ export class InteractionComponent extends GameComponent {
   private lastClickTime = 0;
   private readonly DOUBLE_CLICK_THRESHOLD = 300; // milliseconds
 
-  // Unregister function from InteractionService
-  private unregister?: () => void;
+  // Unregister functions from InteractionService
+  private unregisterClick?: () => void;
+  private unregisterHover?: () => void;
 
   /**
    * Register event listener
@@ -81,9 +82,24 @@ export class InteractionComponent extends GameComponent {
     const meshComp = this.requireComponent(MeshComponent);
     const interaction = context.getService('interaction');
 
-    // Register with InteractionService
-    this.unregister = interaction.registerMouseClick(
-      `${this.gameObject.id}-interaction`,
+    // Register hover handler (required for hover detection to work!)
+    // We don't need callbacks, just need object in hover system for raycasting
+    this.unregisterHover = interaction.registerHover(
+      `${this.gameObject.id}-interaction-hover`,
+      meshComp.mesh,
+      {
+        onStart: () => {
+          // Optional: Could emit 'hoverstart' event here if needed
+        },
+        onEnd: () => {
+          // Optional: Could emit 'hoverend' event here if needed
+        },
+      },
+    );
+
+    // Register click handler with requireHover
+    this.unregisterClick = interaction.registerMouseClick(
+      `${this.gameObject.id}-interaction-click`,
       'left',
       (_event, intersection) => {
         if (!intersection) return;
@@ -117,8 +133,11 @@ export class InteractionComponent extends GameComponent {
 
   destroy(): void {
     // Unregister from InteractionService
-    if (this.unregister) {
-      this.unregister();
+    if (this.unregisterClick) {
+      this.unregisterClick();
+    }
+    if (this.unregisterHover) {
+      this.unregisterHover();
     }
 
     // Clear all event listeners
