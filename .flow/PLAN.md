@@ -59,10 +59,10 @@ Reimplement the combat/match system from the deprecated 2D PrimeVue application 
 
 ## 📋 Progress Dashboard
 
-**Last Updated**: 2025-10-19
+**Last Updated**: 2025-10-24
 
 **Current Work**:
-- **Phase**: [Phase 2 - Match Instantiation & Initialization](#phase-2-match-instantiation--initialization-) ⏳ PENDING
+- **Phase**: [Phase 2 - Match Instantiation & Initialization](#phase-2-match-instantiation--initialization-) 🚧 IN PROGRESS (Brainstorming)
 - **Task**: Not started (concept-based phases, no tasks yet)
 - **Iteration**: Not started
 
@@ -71,7 +71,7 @@ Reimplement the combat/match system from the deprecated 2D PrimeVue application 
 
 **Progress Overview**:
 - ✅ **Phase 1**: Analysis & Planning (verified & frozen)
-- ⏳ **Phase 2**: Match Instantiation & Initialization ← **YOU ARE HERE**
+- 🚧 **Phase 2**: Match Instantiation & Initialization ← **YOU ARE HERE** (Brainstorming)
 - ⏳ **Phase 3**: PvE Match Flow
 - ⏳ **Phase 4**: Match Lifecycle Management
 - ⏳ **Phase 5**: Aborting/Leaving a Match
@@ -429,17 +429,515 @@ Combat event log:
 
 ---
 
-### Phase 2: Match Instantiation & Initialization ⏳
+### Phase 2: Match Instantiation & Initialization 🚧
 
-**Status**: PENDING
+**Status**: IN PROGRESS (Brainstorming)
 
 **Purpose**: Understand and implement how matches are created and initialized
 
-**Key Concepts**:
-- How does a player request a new match?
-- What data is needed to create a match?
-- What is the initial state when a match starts?
-- How does the client know a match was successfully created?
+---
+
+### **Brainstorming Session - Match Instantiation & Initialization**
+
+**Focus**: Design the client-side architecture for creating and initializing matches based on the deprecated system analysis
+
+**Subjects to Discuss** (tackle one at a time):
+
+1. ✅ **Match Request Flow** - How does a player request a new match? What UI triggers it? What WebSocket event is sent?
+2. ✅ **Match Creation Data** - What data is needed to create a match? (character selection, game mode, difficulty, etc.)
+3. ✅ **Initial Match State** - What is the initial state when a match starts? What data structures need to be initialized?
+4. ✅ **Match Creation Confirmation** - How does the client know a match was successfully created? What WebSocket events signal success/failure?
+
+**Resolved Subjects**:
+
+---
+
+### ✅ Subject 1: Match Request Flow
+
+**Decision**:
+
+The match request flow follows a **REST API → WebSocket confirmation** pattern:
+
+1. **UI Trigger**: Match.vue in `LOBBY` state displays "Find PvE Match" button
+2. **API Call**: Button click triggers POST request to `/match/pve` endpoint (Axios via REST API)
+3. **Server Processing**: Backend creates match instance and establishes WebSocket connection
+4. **Confirmation**: Server broadcasts `match.created` WebSocket event with match data
+5. **State Transition**: WebSocket event handler updates Pinia store → Match.vue transitions to `IN_PROGRESS` state
+
+**Key Characteristics**:
+- **Hybrid approach**: REST for creation (idempotent, easy error handling), WebSocket for real-time updates
+- **Server-authoritative**: Backend controls match creation and broadcasts confirmation
+- **Event-driven state**: `match.created` event triggers UI state machine transition
+
+**Resolution Type**: B (Immediate Documentation)
+
+**Rationale**: This is an architectural pattern confirmation. The flow is already documented in the Architecture section (lines 271-279). No code needs to be written yet - we're establishing the design pattern that will guide implementation in future iterations.
+
+**References**:
+- Architecture → Combat Flow (lines 271-279)
+- Architecture → Key Components → Match.vue (lines 218-225)
+- Backend `/match/pve` endpoint confirmed available in server_rune_matchmaking workspace
+
+---
+
+### ✅ Subject 2: Match Creation Data
+
+**Decision**:
+
+**V1 uses a systems-first, minimal data approach** - focusing on combat infrastructure, not RPG progression.
+
+**Match Creation Request**:
+```typescript
+POST /match/pve
+Body: {
+  whoami: {
+    id: string,      // From websocket.store.clientId
+    name: string     // From websocket.store.username
+  }
+}
+```
+
+**What Client Provides**:
+- Player identity only (`whoami` object)
+- No character stats, equipment, or customization
+- No difficulty selection or NPC choice
+
+**What Server Generates** (per match.service.ts:28-37):
+- Player combatant with **randomly generated stats** (via `MatchParticipant.FromEntity()`)
+- NPC combatant with **randomly generated stats** (via `NPCManager.GenerateMatchParticipant({})`)
+- Match instance, WebSocket channel, timer configuration
+- **No persistence**: Stats generated fresh each match, discarded after
+
+**V1 Philosophy**:
+- **Systems-first, not gameplay-first**: Build combat mechanics infrastructure before RPG content layer
+- **Intentionally shallow**: Random stats, no progression, no rewards
+- **Infrastructure validation**: Proves WebSocket flow, state sync, 3D visualization work correctly
+- **Content deferred**: Persistent characters, overworld NPCs, progression, rewards come later
+
+**Future Enhancements** (when adding RPG layer):
+- Persistent character stats and equipment
+- Overworld NPCs to interact with and challenge
+- Match rewards (XP, gold, items)
+- NPC variety and difficulty scaling
+
+**Resolution Type**: B (Immediate Documentation)
+
+**Rationale**: This confirms the minimal data contract for V1. Backend already implements this pattern (match.controller.ts:41-72). No code changes needed - we're documenting the existing design and explicitly separating systems development from content development.
+
+**References**:
+- Backend: `server_rune_matchmaking/src/components/match/match.controller.ts` (pve method, lines 41-72)
+- Backend: `server_rune_matchmaking/src/components/match/match.service.ts` (createPVE method, lines 28-37)
+- WebSocket store for player identity: `websocket.store.ts` (clientId, username)
+
+---
+
+### ✅ Subject 3: Initial Match State
+
+**Decision**:
+
+**Initial match state will be delivered via HTTP response** (not WebSocket) to avoid race conditions and guarantee delivery.
+
+**Revised Backend Interface** (to be implemented):
+
+```typescript
+POST /match/pve → HTTP Response
+{
+  success: true,
+  data: {
+    matchId: string,
+    channelId: string,
+    channelName: string,
+
+    state: {
+      player: {
+        entityId: string,
+        name: string,
+        health: number,
+        maxHealth: number,
+        stats: {
+          attack: number,
+          defense: number,
+          speed: number,
+          // Additional stats as needed
+        }
+      },
+
+      npc: {
+        entityId: string,
+        name: string,
+        health: number,
+        maxHealth: number,
+        stats: {
+          attack: number,
+          defense: number,
+          speed: number,
+        }
+      },
+
+      turn: {
+        number: 1,                    // Always starts at 1
+        currentEntityId: string,      // Who goes first
+        isPlayerTurn: boolean         // Convenience flag
+      },
+
+      atb: {
+        playerReadiness: 0,           // Initial readiness (0-100 or 0-1000)
+        npcReadiness: 0
+      },
+
+      timer: {
+        duration: number,             // ms per turn
+        warningThreshold: number,     // % threshold for warning (e.g., 80)
+        fallbackAction: 'pass' | 'skip'  // Action on timeout
+      }
+    }
+  }
+}
+```
+
+**Client State Structure** (match.store.ts):
+
+```typescript
+{
+  // Match identifiers
+  currentMatchId: string | null,
+  currentChannelId: string | null,
+  channelName: string | null,
+
+  // UI state
+  matchState: 'LOBBY' | 'IN_PROGRESS' | 'FINISHED',
+  isConnectedToMatch: boolean,
+
+  // Game state (from HTTP response)
+  gameState: {
+    player: PlayerParticipant,
+    npc: NPCParticipant,
+    turn: TurnState,
+    atb: ATBState,
+    timer: TimerConfig
+  } | null,
+
+  // Match result (populated on MATCH_END event)
+  matchResult: MatchResult | null
+}
+```
+
+**Why HTTP Response over WebSocket?**
+
+1. ✅ **Guaranteed delivery** - HTTP response is synchronous, no missed events
+2. ✅ **No race conditions** - State available immediately when POST completes
+3. ✅ **Simple reconnection** - Client stores matchId, can rejoin if disconnected
+4. ✅ **RESTful design** - Match creation returns the created resource
+5. ✅ **WebSocket for updates only** - Real-time events (TURN_START, HEALTH_UPDATE, DAMAGE_DEALT, ATB_TICK, MATCH_END)
+
+**Named Structure (player/npc) vs Array:**
+- Using named `player`/`npc` structure for PvE clarity
+- Server-authoritative: client uses exactly what backend provides
+- Extensible: easy to add fields (buffs, status effects, equipment) later
+
+**ATB-Only Design:**
+- No `combatMode` field - ATB is the only mode
+- ATB readiness included from initial state (both start at 0)
+- Round-robin completely removed from design
+
+**Resolution Type**: B (Immediate Documentation)
+
+**Rationale**: This defines the ideal initial state interface. Backend needs to be updated to return this structure in HTTP response. This is an architectural decision that prevents race conditions and simplifies client state management.
+
+**Action Required**: Backend `/match/pve` endpoint needs refactoring to return full state in HTTP response instead of minimal data.
+
+**References**:
+- Current backend: `server_rune_matchmaking/src/components/match/match.controller.ts` (lines 41-72)
+- Backend types: `server_rune_matchmaking/src/domains/match/match.types.ts`
+- Deprecated frontend store structure: `src_deprecated/stores/match.store.ts`
+
+---
+
+### ✅ Subject 4: Match Creation Confirmation
+
+**Decision**:
+
+**Dual-signal confirmation approach** - HTTP response is primary, WebSocket event is secondary.
+
+**Primary Confirmation: HTTP Response**
+
+```typescript
+POST /match/pve → 200 OK
+{
+  success: true,
+  data: {
+    matchId: string,
+    channelId: string,
+    channelName: string,
+    state: { /* full initial state */ }
+  }
+}
+```
+
+**Client knows match created successfully when:**
+- ✅ HTTP status `200 OK`
+- ✅ Response body has `success: true`
+- ✅ `matchId` is present (valid UUID)
+- ✅ `state` object is populated with player/npc/turn/atb/timer data
+
+**Secondary Confirmation: WebSocket Event**
+
+```typescript
+WebSocket: 'match created'
+{
+  matchId: string,
+  channelName: string
+}
+```
+
+**This signals:**
+- ✅ WebSocket channel is established and ready
+- ✅ Client can now send/receive real-time events
+- ✅ Match is ready for gameplay
+
+**Error Handling:**
+
+```typescript
+// HTTP Error Response
+POST /match/pve → 400/500
+{
+  success: false,
+  error: {
+    code: string,              // e.g., 'MATCH_CREATION_FAILED'
+    message: string,           // Human-readable error
+    details?: any              // Optional error context
+  }
+}
+```
+
+**Client Error Handling:**
+- ❌ HTTP 4xx/5xx → Show error message, remain in LOBBY state
+- ❌ `success: false` → Parse error.message, display to user
+- ❌ Missing `matchId` → Treat as failed creation
+- ❌ WebSocket timeout (no 'match created' after 5s) → Show reconnect option
+
+**State Transition Flow:**
+
+```
+1. User clicks "Find PvE Match"
+   → matchState = 'LOBBY'
+   → isConnectedToMatch = false
+   → Show loading spinner
+
+2. POST /match/pve sent
+
+3a. Success Path: HTTP 200 OK received
+   → Populate gameState from response.data.state
+   → matchState = 'IN_PROGRESS' (tentative)
+   → isConnectedToMatch = false (waiting for WS confirmation)
+
+3b. Error Path: HTTP 4xx/5xx received
+   → matchState = 'LOBBY'
+   → Show error toast/message
+   → Stop here (no match created)
+
+4. WebSocket 'match created' received
+   → isConnectedToMatch = true
+   → matchState = 'IN_PROGRESS' (confirmed)
+   → Match.vue renders BattleArena + GameActions
+
+5. First TURN_START event
+   → Gameplay begins
+```
+
+**Why Dual Signals?**
+
+1. **HTTP = Data Authority**: Contains full state, guaranteed delivery, synchronous
+2. **WebSocket = Channel Readiness**: Confirms real-time connection established
+3. **Graceful Degradation**: Client has full state even if WebSocket is delayed/missed
+4. **Clear Error Path**: HTTP errors prevent state population, easy to handle
+
+**Resolution Type**: C (Auto-Resolved)
+
+**Rationale**: This subject was answered by decisions in Subject 1 (Match Request Flow) and Subject 3 (Initial Match State). The confirmation mechanism is a natural consequence of:
+- HTTP response returning full state (Subject 3)
+- WebSocket event for channel acknowledgment (Subject 1)
+
+No new design decisions needed - just documenting the confirmation flow.
+
+**References**:
+- Subject 1: Match Request Flow (HTTP + WebSocket pattern)
+- Subject 3: Initial Match State (HTTP response structure)
+- Backend: `server_rune_matchmaking/src/components/match/match.controller.ts` (lines 57, 61-68)
+
+---
+
+### **Pre-Implementation Tasks:**
+
+#### ⏳ Task 1: Refactor Backend `/match/pve` Endpoint (PENDING)
+
+**Objective**: Update backend endpoint to return full initial state in HTTP response instead of minimal data
+
+**Why This Blocks Frontend**: Frontend implementation depends on receiving complete structured initial state (player, npc, turn, atb, timer) from the backend. Current endpoint returns minimal data, causing race conditions and requiring additional WebSocket events.
+
+**Current Behavior** (`server_rune_matchmaking/src/components/match/match.controller.ts:61-68`):
+```typescript
+return this.success({
+  message: 'PVE match created',
+  whoami: body.whoami,
+  matchId: match.id,
+  channelId: channel.id,
+  match: match,              // Full Match object (needs extraction)
+  timerInfo: gameState.turnManager.getTimerConfig(),
+});
+```
+
+**Required Behavior** (from Subject 3 resolution):
+```typescript
+return this.success({
+  success: true,
+  data: {
+    matchId: match.id,
+    channelId: channel.id,
+    channelName: channel.name,
+
+    state: {
+      player: {
+        entityId: string,
+        name: string,
+        health: number,
+        maxHealth: number,
+        stats: { attack, defense, speed, ... }
+      },
+      npc: {
+        entityId: string,
+        name: string,
+        health: number,
+        maxHealth: number,
+        stats: { attack, defense, speed, ... }
+      },
+      turn: {
+        number: 1,
+        currentEntityId: string,
+        isPlayerTurn: boolean
+      },
+      atb: {
+        playerReadiness: 0,
+        npcReadiness: 0
+      },
+      timer: {
+        duration: number,
+        warningThreshold: number,
+        fallbackAction: 'pass' | 'skip'
+      }
+    }
+  }
+});
+```
+
+**Action Items**:
+- [ ] Extract player participant data from `match.getParticipants()`
+- [ ] Extract NPC participant data from `match.getParticipants()`
+- [ ] Get turn state from `gameState.turnManager`
+- [ ] Get ATB readiness from `gameState.atbManager`
+- [ ] Structure response with `state` object containing player/npc/turn/atb/timer
+- [ ] Update response format to use `success: true` and `data` wrapper
+- [ ] Test endpoint returns complete state
+
+**Files to Modify**:
+- `server_rune_matchmaking/src/components/match/match.controller.ts` (pve method, lines 41-72)
+
+**Estimated Time**: 30-60 minutes
+
+---
+
+### **Implementation Tasks:**
+
+#### Task 1: Match State Management ⏳
+
+**Purpose**: Create Pinia store and state management for match lifecycle
+
+---
+
+##### Iteration 1: Create Match Store ⏳
+
+**Goal**: Implement Pinia store with persistence for match state
+
+**Action Items**:
+- [ ] Create `src/stores/match.store.ts`
+- [ ] Define store structure: `{ currentMatchId, currentChannelId, channelName, matchState, isConnectedToMatch, gameState, matchResult }`
+- [ ] Add `pinia-plugin-persistedstate` configuration
+- [ ] Define TypeScript interfaces for state types (PlayerParticipant, NPCParticipant, TurnState, ATBState, TimerConfig, MatchResult)
+- [ ] Export store composable
+
+**Verification**: Store can be imported and state persists across page refreshes
+
+---
+
+##### Iteration 2: Match Creation Composable ⏳
+
+**Goal**: Implement composable for creating PvE matches
+
+**Action Items**:
+- [ ] Create `src/composables/useMatchCreation.ts`
+- [ ] Implement `createPveMatch()` function
+- [ ] Make POST request to `/match/pve` with `whoami` payload
+- [ ] Handle HTTP 200 OK → populate match.store.ts with response data
+- [ ] Handle HTTP 4xx/5xx → show error message, stay in LOBBY
+- [ ] Parse `success: false` responses and display error message
+- [ ] Return loading state, error state, and success callback
+
+**Verification**: Calling `createPveMatch()` successfully populates store and handles errors
+
+---
+
+#### Task 2: Match UI Components ⏳
+
+**Purpose**: Create UI components for match flow
+
+---
+
+##### Iteration 1: Match.vue State Machine ⏳
+
+**Goal**: Implement main match view with LOBBY/IN_PROGRESS/FINISHED states
+
+**Action Items**:
+- [ ] Create `src/views/Match.vue`
+- [ ] Implement state machine watching `match.store.matchState`
+- [ ] LOBBY state: Render "Find PvE Match" button
+- [ ] IN_PROGRESS state: Render BattleArena + GameActions + TurnTimer + GameLog (placeholders for now)
+- [ ] FINISHED state: Render MatchResult (placeholder for now)
+- [ ] Handle button click → call `createPveMatch()`
+- [ ] Show loading spinner during match creation
+
+**Verification**: Match.vue transitions between states correctly
+
+---
+
+##### Iteration 2: WebSocket Event Handler ⏳
+
+**Goal**: Implement WebSocket handler for match events
+
+**Action Items**:
+- [ ] Create `src/composables/useMatchWebsocketHandler.ts`
+- [ ] Listen for `'match created'` event
+- [ ] Update `isConnectedToMatch = true` when event received
+- [ ] Confirm `matchState` transitions to `IN_PROGRESS`
+- [ ] Handle WebSocket timeout (no event after 5s) → show reconnect option
+- [ ] Export handler to be used in Match.vue
+
+**Verification**: WebSocket event triggers state update and confirms connection
+
+---
+
+##### Iteration 3: Error Handling UI ⏳
+
+**Goal**: Implement user-friendly error handling
+
+**Action Items**:
+- [ ] Create error toast/notification component (or use existing Reka UI)
+- [ ] Display HTTP error messages
+- [ ] Display `success: false` error messages
+- [ ] Handle missing matchId scenario
+- [ ] Add "Retry" button for failed match creation
+- [ ] Add "Reconnect" option for WebSocket timeout
+
+**Verification**: Errors are displayed clearly and user can retry
 
 ---
 
