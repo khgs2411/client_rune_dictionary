@@ -13,6 +13,14 @@ export interface I_CreatePveMatchRequest {
   whoami: I_ClientData; // Player entity initiating the match
 }
 
+/**
+ * Request payload for leaving a match
+ */
+export interface I_LeaveMatchRequest {
+  whoami: I_ClientData; // Player entity leaving the match
+  matchId: string; // Match ID to leave
+}
+
 export type CreatePveMatchResponseData = {
   matchId: string;
   channelId: string;
@@ -40,6 +48,7 @@ export interface I_CreatePveMatchResponse {
  *
  * Endpoints:
  * - POST /match/pve - Create a PvE match
+ * - POST /match/:matchId/leave - Leave a match
  */
 export default class MatchAPI extends BaseAPI {
   constructor() {
@@ -60,5 +69,21 @@ export default class MatchAPI extends BaseAPI {
     BaseAPI.Status(response);
 
     return response.data.data.data;
+  }
+
+  /**
+   * Leave a match
+   *
+   * @param payload - Player entity data and match ID
+   * @returns Success message
+   * @throws Error if request fails or server returns error
+   */
+  public async leaveMatch(payload: I_LeaveMatchRequest): Promise<{ message: string }> {
+    const response = await this.post<{ status: boolean; data: { message: string } }>('leave', payload);
+
+    // BaseAPI.Status() throws on error responses (4xx/5xx)
+    BaseAPI.Status(response);
+
+    return response.data.data;
   }
 }

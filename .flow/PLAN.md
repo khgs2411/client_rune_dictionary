@@ -64,14 +64,14 @@ Reimplement the combat/match system from the deprecated 2D PrimeVue application 
 **Current Work**:
 - **Phase**: [Phase 2 - Match Instantiation & Initialization](#phase-2-match-instantiation--initialization-) 🚧 IMPLEMENTING
 - **Task**: [Task 1 - Match State Management](#task-1-match-state-management-) 🚧 IN PROGRESS
-- **Iteration**: [Iteration 3 - Fix Interaction System for Match Creation](#iteration-3-fix-interaction-system-for-match-creation-) ⏳ PENDING
+- **Iteration**: [Iteration 5 - Leave Match API & HUD Display](#iteration-5-leave-match-api--hud-display-) ⏳ PENDING
 
 **Completion Status**:
 - Phase 1: ✅ 100% | Phase 2: 🚧 16% (1/6 iterations) | Phases 3-18: ⏳ 0%
 
 **Progress Overview**:
 - ✅ **Phase 1**: Analysis & Planning (verified & frozen)
-- 🚧 **Phase 2**: Match Instantiation & Initialization ← **YOU ARE HERE** (Task 1 - Iteration 1 ✅, Iteration 2 🚧, Iteration 3 ⏳, Iteration 4 ⏳)
+- 🚧 **Phase 2**: Match Instantiation & Initialization ← **YOU ARE HERE** (Task 1 - Iteration 1 ✅, Iteration 2 🚧, Iteration 3 ✅, Iteration 4 ⏳, Iteration 5 ⏳)
 - ⏳ **Phase 3**: PvE Match Flow
 - ⏳ **Phase 4**: Match Lifecycle Management
 - ⏳ **Phase 5**: Aborting/Leaving a Match
@@ -1208,11 +1208,11 @@ Will be fully tested during Iteration 2 integration with Match.vue.
 
 ---
 
-##### Iteration 3: Fix Interaction System for Match Creation ⏳
+##### Iteration 3: Fix Interaction System for Match Creation ✅
 
 **Goal**: Redesign match creation interaction to work with InteractionService's object-based registration pattern
 
-**Status**: ⏳ PENDING
+**Status**: ✅ COMPLETE
 
 **Problem Statement**:
 
@@ -1306,6 +1306,52 @@ Handler object3D: undefined
 - Players reappear when exiting PVE mode
 - Error toast shows when match creation fails
 - "Retry" button works and attempts match creation again
+
+---
+
+##### Iteration 5: Leave Match API & HUD Display ⏳
+
+**Goal**: Implement match leave functionality and basic in-match HUD display
+
+**Status**: ⏳ PENDING
+
+**Action Items**:
+
+**Part 1: Leave Match API**
+- [ ] Create `/match/leave` endpoint in MatchAPI
+  - Method: `leaveMatch(matchId: string)`
+  - POST request to `/match/{matchId}/leave`
+  - Returns success/failure response
+- [ ] Add LeaveMatchComponent (or extend MatchComponent)
+  - Listen to keyboard event (e.g., 'Escape' key)
+  - Call MatchAPI.leaveMatch()
+  - Update match store (clear matchId, reset state)
+  - Transition scene state: PVE_MATCH → OVERWORLD
+- [ ] Test leave flow: In match → Press Escape → Return to overworld
+
+**Part 2: Match HUD Display**
+- [ ] Create basic Match HUD component (Vue)
+  - Display match state (LOBBY, IN_PROGRESS, FINISHED)
+  - Show match ID and channel name
+  - Show "Press ESC to leave" hint
+- [ ] Style HUD with Tailwind CSS
+  - Top-right corner positioning
+  - Semi-transparent background
+  - Readable text (white with shadow)
+- [ ] Show/hide HUD based on scene state
+  - Hidden in OVERWORLD
+  - Visible in MATCH_INSTANTIATING and PVE_MATCH
+- [ ] Connect HUD to match store (reactive)
+  - Watch `DataStore.match` for state changes
+  - Auto-update when match state changes
+
+**Verification**:
+- Pressing Escape in match calls leave API
+- Match store is cleared
+- Scene state returns to OVERWORLD
+- HUD displays correctly in match states
+- HUD hidden in overworld
+- Leave flow is smooth (no errors)
 
 ---
 
