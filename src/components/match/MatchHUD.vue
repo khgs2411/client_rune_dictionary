@@ -1,3 +1,24 @@
+<template>
+  <div v-if="isVisible" class="fixed top-20 right-4 bg-black/70 backdrop-blur-sm rounded-lg p-4 text-white shadow-2xl">
+    <!-- Match Info -->
+    <div class="space-y-2 mb-4">
+      <div class="text-sm font-semibold text-primary">IN MATCH</div>
+      <div class="text-xs text-muted-foreground">
+        Match ID: <span class="font-mono">{{ matchStore.currentMatchId?.slice(0, 8) }}...</span>
+      </div>
+      <div v-if="matchStore.channelName" class="text-xs text-muted-foreground">
+        Channel: {{ matchStore.channelName }}
+      </div>
+    </div>
+
+    <!-- Leave Button -->
+    <button @click="handleLeaveMatch" :disabled="isLeaving"
+      class="w-full px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-md font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+      {{ isLeaving ? 'Leaving...' : 'Leave Match' }}
+    </button>
+  </div>
+</template>
+
 <script setup lang="ts">
   import MatchAPI from '@/api/match.api';
 import { E_SceneState } from '@/game/services/SceneStateService';
@@ -63,24 +84,3 @@ import { computed, ref } from 'vue';
     }
   }
 </script>
-
-<template>
-  <div v-if="isVisible" class="fixed top-4 right-4 bg-black/70 backdrop-blur-sm rounded-lg p-4 text-white shadow-2xl">
-    <!-- Match Info -->
-    <div class="space-y-2 mb-4">
-      <div class="text-sm font-semibold text-primary">IN MATCH</div>
-      <div class="text-xs text-muted-foreground">
-        Match ID: <span class="font-mono">{{ matchStore.currentMatchId?.slice(0, 8) }}...</span>
-      </div>
-      <div v-if="matchStore.channelName" class="text-xs text-muted-foreground">
-        Channel: {{ matchStore.channelName }}
-      </div>
-    </div>
-
-    <!-- Leave Button -->
-    <button @click="handleLeaveMatch" :disabled="isLeaving"
-      class="w-full px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-md font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-      {{ isLeaving ? 'Leaving...' : 'Leave Match' }}
-    </button>
-  </div>
-</template>

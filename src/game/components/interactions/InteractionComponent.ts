@@ -54,6 +54,13 @@ export class InteractionComponent extends GameComponent {
   private unregisterClick?: () => void;
   private unregisterHover?: () => void;
 
+  public async init(context: I_SceneContext): Promise<void> {
+    this.registerInteractions(context);
+    console.log(
+      `👆 [InteractionComponent] Registered interaction events for GameObject "${this.gameObject.id}"`,
+    );
+  }
+
   /**
    * Register event listener
    *
@@ -67,21 +74,12 @@ export class InteractionComponent extends GameComponent {
     this.events.get(event)!.push(callback);
   }
 
-  /**
-   * Emit event to all registered listeners
-   */
-  private emit(event: string, intersection: Intersection): void {
-    const callbacks = this.events.get(event);
-    if (callbacks) {
-      callbacks.forEach((cb) => cb(intersection));
-    }
-  }
-
-  async init(context: I_SceneContext): Promise<void> {
+  private registerInteractions(context: I_SceneContext): void {
     // Require MeshComponent for raycasting
     const meshComp = this.requireComponent(MeshComponent);
+    // Get InteractionService
     const interaction = context.getService('interaction');
-
+    
     // Register hover handler (required for hover detection to work!)
     // We don't need callbacks, just need object in hover system for raycasting
     this.unregisterHover = interaction.registerHover(
@@ -101,37 +99,53 @@ export class InteractionComponent extends GameComponent {
     this.unregisterClick = interaction.registerMouseClick(
       `${this.gameObject.id}-interaction-click`,
       'left',
-      (_event, intersection) => {
-        if (!intersection) return;
-
-        // Always emit 'click' event
-        this.emit('click', intersection);
-
-        // Double-click detection
-        const now = Date.now();
-        const timeSinceLastClick = now - this.lastClickTime;
-
-        if (timeSinceLastClick < this.DOUBLE_CLICK_THRESHOLD) {
-          // Double-click detected!
-          this.emit('doubleclick', intersection);
-          this.lastClickTime = 0; // Reset to prevent triple-click
-        } else {
-          // Single click (start timer for potential double-click)
-          this.lastClickTime = now;
-        }
-      },
+      this.onClick.bind(this),
       {
         requireHover: true,
         object3D: meshComp.mesh,
       },
     );
 
-    console.log(
-      `👆 [InteractionComponent] Registered interaction events for GameObject "${this.gameObject.id}"`,
-    );
   }
 
-  destroy(): void {
+
+  /**
+   * Emit event to all registered listeners
+   */
+  private emit(event: string, intersection: Intersection): void {
+    const callbacks = this.events.get(event);
+    if (callbacks) {
+      callbacks.forEach((cb) => cb(intersection));
+    }
+  }
+
+  /**
+   * Handle click event from InteractionService
+   * @param _event 
+   * @param intersection 
+   * @returns void
+   */
+  private onClick(_event: MouseEvent, intersection: Intersection | undefined): void {
+    if (!intersection) return;
+
+    // Always emit 'click' event
+    this.emit('click', intersection);
+
+    // Double-click detection
+    const now = Date.now();
+    const timeSinceLastClick = now - this.lastClickTime;
+
+    if (timeSinceLastClick < this.DOUBLE_CLICK_THRESHOLD) {
+      // Double-click detected!
+      this.emit('doubleclick', intersection);
+      this.lastClickTime = 0; // Reset to prevent triple-click
+    } else {
+      // Single click (start timer for potential double-click)
+      this.lastClickTime = now;
+    }
+  }
+
+  public destroy(): void {
     // Unregister from InteractionService
     if (this.unregisterClick) {
       this.unregisterClick();

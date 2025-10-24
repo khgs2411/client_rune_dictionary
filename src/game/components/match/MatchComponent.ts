@@ -47,6 +47,14 @@ export class MatchComponent extends GameComponent {
 
   async init(context: I_SceneContext): Promise<void> {
     // Require InteractionComponent for event system
+    this.onInteraction(context);
+
+    console.log(
+      `⚔️ [MatchComponent] Listening for double-click events on GameObject "${this.gameObject.id}"`,
+    );
+  }
+
+  private onInteraction(context: I_SceneContext) {
     const interaction = this.requireComponent(InteractionComponent);
 
     // Listen to doubleclick event
@@ -54,10 +62,6 @@ export class MatchComponent extends GameComponent {
       console.log('⚔️ [MatchComponent] Double-click detected, initiating match creation...');
       await this.handleMatchCreation(context);
     });
-
-    console.log(
-      `⚔️ [MatchComponent] Listening for double-click events on GameObject "${this.gameObject.id}"`,
-    );
   }
 
   /**
@@ -72,7 +76,6 @@ export class MatchComponent extends GameComponent {
     }
 
     // Transition to MATCH_INSTANTIATING
-    console.log('⚔️ [MatchComponent] Transitioning to MATCH_INSTANTIATING state');
     stateService.setState(E_SceneState.MATCH_INSTANTIATING);
 
     try {
