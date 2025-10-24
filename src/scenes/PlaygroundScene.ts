@@ -3,6 +3,7 @@ import type { Engine } from '@/game/Engine';
 import { GameScene } from '@/game/GameScene';
 import { DebugModule } from '@/game/modules/scene/DebugModule';
 import { LightingModule } from '@/game/modules/scene/LightingModule';
+import MatchModule from '@/game/modules/scene/MatchModule';
 import { watch } from 'vue';
 import { I_SceneConfig } from '../game/common/scenes.types';
 
@@ -47,6 +48,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
   protected registerModules(): void {
     this.addModule('lighting', new LightingModule());
     this.addModule('multiplayer', new MultiplayerModule());
+    this.addModule('match', new MatchModule());
   }
 
   protected addSceneObjects() {

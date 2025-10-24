@@ -342,17 +342,16 @@ Combat event log:
 
 ### Methodology
 
-**Primary**: Manual integration testing with live WebSocket server
+**Primary**: Manual integration testing with iterative code review
+- User will manually test features as they are implemented
+- User will review code iteratively during development
 - Start matchmaking server (`bun run serve` in `server_rune_matchmaking`)
 - Start frontend dev server (`bun run dev` in `client_rune_dictionary`)
 - Test full combat flow from match creation to completion
 
-**Secondary**: Simulation scripts for event handler logic
-- Mock WebSocket events in composables/__test__/
-- Verify Pinia state updates correctly for each event type
-- Use Bun test runner (`bun test`)
-
 **Focus**: Integration over unit tests (game development prioritizes end-to-end flow)
+- No automated tests for this phase
+- Iterative manual verification by user
 
 ### Test Files Location
 
@@ -1074,11 +1073,11 @@ Will be fully tested during Iteration 2 integration with Match.vue.
 
 ---
 
-##### Iteration 2: Match Creation from Game World 🎨 READY FOR IMPLEMENTATION
+##### Iteration 2: Match Creation from Game World 🚧 IN PROGRESS
 
 **Goal**: Implement match creation from Three.js game world (MatchModule + SceneStateService)
 
-**Status**: ✅ All brainstorming complete, pre-implementation tasks done, ready for implementation
+**Status**: 🚧 Implementation in progress
 
 **Brainstorming Session**:
 
@@ -1176,13 +1175,26 @@ Will be fully tested during Iteration 2 integration with Match.vue.
 
 ---
 
-## 🎯 What's Next
+---
 
-Brainstorming session complete! Iteration 2 marked 🎨 READY FOR IMPLEMENTATION.
+### **Implementation - Iteration 2: Match Creation from Game World**
 
-**REQUIRED NEXT STEP**: Use `/flow-implement-start` to begin implementation.
+**Status**: 🚧 IN PROGRESS
 
-**Before implementing**: Review your action items and ensure you understand the scope. If you discover new issues during implementation (scope violations), STOP and discuss with the user before proceeding.
+**Action Items**: See "Updated Action Items (Main implementation work)" section above for 12 implementation tasks
+
+**Implementation Notes**:
+
+- MatchAPI pre-task completed (src/api/match.api.ts)
+- Ready to implement SceneStateService and MatchModule
+
+**Files Modified**:
+
+- `src/api/match.api.ts` (pre-task - ✅ complete)
+
+**Verification**:
+- Manual integration testing (primary): Start matchmaking server + frontend dev server, test double-click on NPC/player
+- Check all success criteria from Updated Action Items verification section
 
 ---
 

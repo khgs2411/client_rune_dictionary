@@ -16,6 +16,7 @@ import { ModuleRegistry } from '@/game/ModuleRegistry';
 import { GameObjectsManager } from '@/game/services/GameObjectsManager';
 import { InteractionService } from '@/game/services/InteractionService';
 import { PhysicsService } from '@/game/services/PhysicsService';
+import SceneStateService from '@/game/services/SceneStateService';
 import { Spawner } from '@/game/services/Spawner';
 import { VFXService } from '@/game/services/VFXService';
 import { GameConfig, useGameConfigStore } from '@/stores/config.store';
@@ -58,7 +59,8 @@ export abstract class GameScene<
     physics: new PhysicsService(),
     networking: new NetworkingService(),
     gameObjectsManager: new GameObjectsManager(),
-    spawner: new Spawner()
+    spawner: new Spawner(),
+    state: new SceneStateService(),
   };
 
   // High-level entity composables

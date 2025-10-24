@@ -7,6 +7,7 @@ import { Engine } from '@/game/Engine';
 import { GameObjectsManager } from '@/game/services/GameObjectsManager';
 import type { InteractionService } from '@/game/services/InteractionService';
 import { PhysicsService } from '@/game/services/PhysicsService';
+import SceneStateService from '@/game/services/SceneStateService';
 import { Spawner } from '@/game/services/Spawner';
 import { VFXService } from '@/game/services/VFXService';
 import { BufferGeometry, BufferGeometryEventMap, NormalBufferAttributes, Scene } from 'three';
@@ -95,7 +96,8 @@ export interface I_ModuleServices {
   physics: PhysicsService;
   networking: NetworkingService;
   gameObjectsManager: GameObjectsManager;
-  spawner: Spawner
+  spawner: Spawner; 
+  state: SceneStateService;
 }
 
 /**
