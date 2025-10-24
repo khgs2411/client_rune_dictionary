@@ -64,14 +64,14 @@ Reimplement the combat/match system from the deprecated 2D PrimeVue application 
 **Current Work**:
 - **Phase**: [Phase 2 - Match Instantiation & Initialization](#phase-2-match-instantiation--initialization-) 🚧 IMPLEMENTING
 - **Task**: [Task 1 - Match State Management](#task-1-match-state-management-) 🚧 IN PROGRESS
-- **Iteration**: [Iteration 2 - Match Creation Composable](#iteration-2-match-creation-composable-) ⏳ READY
+- **Iteration**: [Iteration 3 - Fix Interaction System for Match Creation](#iteration-3-fix-interaction-system-for-match-creation-) ⏳ PENDING
 
 **Completion Status**:
 - Phase 1: ✅ 100% | Phase 2: 🚧 16% (1/6 iterations) | Phases 3-18: ⏳ 0%
 
 **Progress Overview**:
 - ✅ **Phase 1**: Analysis & Planning (verified & frozen)
-- 🚧 **Phase 2**: Match Instantiation & Initialization ← **YOU ARE HERE** (Task 1 - Iteration 1 ✅, Iteration 2 next)
+- 🚧 **Phase 2**: Match Instantiation & Initialization ← **YOU ARE HERE** (Task 1 - Iteration 1 ✅, Iteration 2 🚧, Iteration 3 ⏳, Iteration 4 ⏳)
 - ⏳ **Phase 3**: PvE Match Flow
 - ⏳ **Phase 4**: Match Lifecycle Management
 - ⏳ **Phase 5**: Aborting/Leaving a Match
@@ -1186,15 +1186,125 @@ Will be fully tested during Iteration 2 integration with Match.vue.
 **Implementation Notes**:
 
 - MatchAPI pre-task completed (src/api/match.api.ts)
-- Ready to implement SceneStateService and MatchModule
+- SceneStateService created with OVERWORLD/MATCH_INSTANTIATING/PVE_MATCH states
+- MatchModule created following MultiplayerModule patterns
+- MatchModule uses context.getService('state') to access SceneStateService
+- Double-click detection implemented (300ms threshold)
+- Match creation flow: double-click → API call → populate store → state transition
+- SceneStateService already registered in GameScene.ts as 'state' service
+- MatchModule added to PlaygroundScene.registerModules()
+- KinematicMovementComponent integration removed (will be added via SceneStateService later)
 
 **Files Modified**:
 
 - `src/api/match.api.ts` (pre-task - ✅ complete)
+- `src/game/services/SceneStateService.ts` (✅ complete)
+- `src/game/modules/scene/MatchModule.ts` (✅ complete)
+- `src/scenes/PlaygroundScene.ts` (✅ imports added, MatchModule registered)
 
 **Verification**:
 - Manual integration testing (primary): Start matchmaking server + frontend dev server, test double-click on NPC/player
 - Check all success criteria from Updated Action Items verification section
+
+---
+
+##### Iteration 3: Fix Interaction System for Match Creation ⏳
+
+**Goal**: Redesign match creation interaction to work with InteractionService's object-based registration pattern
+
+**Status**: ⏳ PENDING
+
+**Problem Statement**:
+
+The current MatchModule implementation doesn't work because:
+- InteractionService expects objects to register their own "clickability"
+- MatchModule tries to register a global click handler without an object3D
+- Result: `intersection` is undefined, can't detect which object was clicked
+
+**Console Output**:
+```
+Processing click handler: {id: 'match-module-click', button: 'left', requireHover: undefined, object3D: undefined, callback: ƒ}
+Handler object3D: undefined
+🖱️ [MatchModule] Object clicked: undefined
+```
+
+**Proposed Solutions Explored**:
+
+✅ **Analysis Complete** - Three options analyzed (NPC GameObject, Modify InteractionService, Hybrid approach)
+
+**Chosen Solution: Option A Extended** - NPC GameObject + InteractionComponent + MatchComponent
+
+**Architecture Decision**:
+- **InteractionComponent**: Generic proxy layer between InteractionService and functionality
+  - Provides event emitter API: `on('click', callback)`, `on('doubleclick', callback)`
+  - Abstracts InteractionService complexity away from other components
+  - Reusable for any GameObject that needs interaction events (doors, chests, NPCs, etc.)
+
+- **MatchComponent**: Match creation logic only
+  - Requires InteractionComponent
+  - Listens to `doubleclick` event
+  - Handles match instantiation and state transition
+  - Single responsibility: match creation
+
+- **NPC Prefab**: Composition of components
+  - Transform + Geometry + Material + Mesh (visual)
+  - InteractionComponent (interaction events)
+  - MatchComponent (match creation behavior)
+
+**Why This Is Better**:
+- ✅ Clean separation of concerns
+- ✅ Reusable InteractionComponent for other GameObjects
+- ✅ MatchComponent only handles match logic (single responsibility)
+- ✅ Composition over inheritance (mix and match behaviors)
+- ✅ Follows GameObject/Component architecture patterns
+
+**Action Items**:
+- [x] Read InteractionService.ts to understand object registration pattern
+- [x] Review ClickVFXComponent and HoverGlowComponent for component-based interaction pattern
+- [x] Analyze MultiplayerModule to see if similar pattern exists for player spawning
+- [x] Propose architectural solution with pros/cons
+- [x] User approved Option A Extended
+- [ ] Create InteractionComponent (generic event proxy)
+- [ ] Create MatchComponent (match creation logic)
+- [ ] Create NPC prefab (TrainingDummy or similar)
+- [ ] Add NPC to PlaygroundScene
+- [ ] Remove or refactor MatchModule (no longer needed)
+- [ ] Test double-click → match creation flow
+- [ ] Verify state transitions work correctly
+
+---
+
+##### Iteration 4: Game Mode Controls & Visibility Management ⏳
+
+**Goal**: Complete remaining action items from Iteration 2 - movement control, visibility management, and user-facing error handling
+
+**Status**: ⏳ PENDING
+
+**Action Items**:
+- [ ] Update KinematicMovementComponent to query SceneStateService before allowing movement
+  - Query `context.getService('state').isOverworld()` in update() method
+  - Skip movement processing if not in OVERWORLD state
+  - Add console log for debugging: "Movement disabled during [state]"
+- [ ] Implement game mode shift: hide non-participants when entering PVE mode
+  - In MatchModule.enterPVEMode(), get all player GameObjects from scene
+  - Hide all players except local player (match participant)
+  - Keep environment objects visible (trees, ground, bushes, etc.)
+  - Store hidden objects list for restoration on match end
+- [ ] Implement exitPVEMode visibility restoration
+  - Show all previously hidden player objects
+  - Reset visibility state
+- [ ] Handle error cases: show error message on API failure
+  - Replace console.error() in MatchModule.handleMatchCreationError() with user-facing notification
+  - Create toast/notification component (or use existing Reka UI toast)
+  - Display error message with "Retry" option
+  - Keep game in OVERWORLD state on error
+
+**Verification**:
+- Movement disabled during MATCH_INSTANTIATING state (character cannot move)
+- Non-participant players hidden when entering PVE mode
+- Players reappear when exiting PVE mode
+- Error toast shows when match creation fails
+- "Retry" button works and attempts match creation again
 
 ---
 

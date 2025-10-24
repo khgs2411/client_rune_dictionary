@@ -3,7 +3,6 @@ import type { Engine } from '@/game/Engine';
 import { GameScene } from '@/game/GameScene';
 import { DebugModule } from '@/game/modules/scene/DebugModule';
 import { LightingModule } from '@/game/modules/scene/LightingModule';
-import MatchModule from '@/game/modules/scene/MatchModule';
 import { watch } from 'vue';
 import { I_SceneConfig } from '../game/common/scenes.types';
 
@@ -21,6 +20,7 @@ import { Fireball } from '@/game/prefabs/Fireball';
 import { Ground } from '@/game/prefabs/Ground';
 import { Trees } from '@/game/prefabs/Trees';
 import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
+import { TrainingDummy } from '@/game/prefabs/npc/TrainingDummy';
 
 /**
  * Module Registry for PlaygroundScene
@@ -48,7 +48,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
   protected registerModules(): void {
     this.addModule('lighting', new LightingModule());
     this.addModule('multiplayer', new MultiplayerModule());
-    this.addModule('match', new MatchModule());
   }
 
   protected addSceneObjects() {
@@ -111,7 +110,13 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     gom.register(treeLeaves);
     gom.register(bushes);
 
-
+    // Training Dummy NPC (for match creation testing)
+    const trainingDummy = new TrainingDummy({
+      id: 'training-dummy-1',
+      position: [-5, 0.9, 5], // Positioned away from other objects
+      color: 0xff0000, // Red (indicates enemy/NPC)
+    });
+    gom.register(trainingDummy);
 
     // ========================================
     // SPAWN SYSTEM DEMO

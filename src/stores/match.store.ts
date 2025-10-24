@@ -169,7 +169,7 @@ export const useMatchStore = defineStore(
     /**
      * Initialize match with data from server HTTP response
      */
-    function initializeMatch(data: {
+    function setInitialMatchState(data: {
       matchId: string;
       channelId: string;
       channelName: string;
@@ -286,7 +286,7 @@ export const useMatchStore = defineStore(
       isMatchFinished,
 
       // Actions
-      initializeMatch,
+      setInitialMatchState,
       confirmMatchConnection,
       updateGameState,
       updatePlayerHealth,

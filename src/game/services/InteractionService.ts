@@ -1,9 +1,9 @@
 import type { I_SceneContext, I_SceneService } from '@/game/common/scenes.types';
 import { Mouse } from '@/game/utils/Mouse';
 import { Raycast } from '@/game/utils/Raycast';
+import { useGameConfigStore } from '@/stores/config.store';
 import { GridHelper, Intersection, Mesh, Object3D, Plane, Vector3 } from 'three';
 import SceneService from './SceneService';
-import { useGameConfigStore } from '@/stores/config.store';
 
 /**
  * Callback types for interaction events
@@ -391,13 +391,15 @@ export class InteractionService extends SceneService implements I_SceneService {
 
   private handleClick(): void {
     const buttonMap = { left: 0, middle: 1, right: 2 };
-
+    console.clear();
     this.mouseClickHandlers.forEach((handler) => {
+
       // Get current mouse button from last event
       const lastButton = (this.mouse as any).lastButton || 0;
 
       if (lastButton !== buttonMap[handler.button]) return;
 
+      console.log('Processing click handler:', handler, this.currentHover, (!this.currentHover || this.currentHover.object3D !== handler.object3D));
       // If requireHover, check if hovering over the object
       if (handler.requireHover && handler.object3D) {
         if (!this.currentHover || this.currentHover.object3D !== handler.object3D) {
@@ -407,6 +409,7 @@ export class InteractionService extends SceneService implements I_SceneService {
 
       // Raycast to get intersection point (if object3D provided)
       let intersection: Intersection | undefined;
+      console.log('Handler object3D:', handler.object3D, handler);
       if (handler.object3D && this.context.camera) {
         const intersects = this.raycast.fromCamera(
           this.mouse.normalizedPositionRef,
@@ -414,6 +417,7 @@ export class InteractionService extends SceneService implements I_SceneService {
           [handler.object3D],
         );
         intersection = intersects[0];
+        console.log('Intersection found:', intersection);
       }
 
       // Trigger callback (components decide what to do)
