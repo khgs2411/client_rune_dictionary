@@ -62,16 +62,16 @@ Reimplement the combat/match system from the deprecated 2D PrimeVue application 
 **Last Updated**: 2025-10-24
 
 **Current Work**:
-- **Phase**: [Phase 2 - Match Instantiation & Initialization](#phase-2-match-instantiation--initialization-) 🚧 IN PROGRESS (Brainstorming)
-- **Task**: Not started (concept-based phases, no tasks yet)
-- **Iteration**: Not started
+- **Phase**: [Phase 2 - Match Instantiation & Initialization](#phase-2-match-instantiation--initialization-) 🚧 IMPLEMENTING
+- **Task**: [Task 1 - Match State Management](#task-1-match-state-management-) 🚧 IN PROGRESS
+- **Iteration**: [Iteration 1 - Create Match Store](#iteration-1-create-match-store-) 🚧 IN PROGRESS
 
 **Completion Status**:
-- Phase 1: ✅ 100% | Phases 2-18: ⏳ 0%
+- Phase 1: ✅ 100% | Phase 2: 🚧 0% (started) | Phases 3-18: ⏳ 0%
 
 **Progress Overview**:
 - ✅ **Phase 1**: Analysis & Planning (verified & frozen)
-- 🚧 **Phase 2**: Match Instantiation & Initialization ← **YOU ARE HERE** (Brainstorming)
+- 🚧 **Phase 2**: Match Instantiation & Initialization ← **YOU ARE HERE** (Implementing Task 1, Iteration 1)
 - ⏳ **Phase 3**: PvE Match Flow
 - ⏳ **Phase 4**: Match Lifecycle Management
 - ⏳ **Phase 5**: Aborting/Leaving a Match
@@ -429,9 +429,9 @@ Combat event log:
 
 ---
 
-### Phase 2: Match Instantiation & Initialization 🚧
+### Phase 2: Match Instantiation & Initialization 🎨
 
-**Status**: IN PROGRESS (Brainstorming)
+**Status**: READY FOR IMPLEMENTATION (Brainstorming complete, pre-implementation tasks done)
 
 **Purpose**: Understand and implement how matches are created and initialized
 
@@ -769,11 +769,90 @@ No new design decisions needed - just documenting the confirmation flow.
 
 ### **Pre-Implementation Tasks:**
 
-#### ⏳ Task 1: Refactor Backend `/match/pve` Endpoint (PENDING)
+#### ✅ Task 1: Add "After Action" Hook to topsyde-utils (COMPLETED)
+
+**Objective**: Implement after-response lifecycle hook in topsyde-utils Application framework to allow WebSocket notifications AFTER HTTP response is sent
+
+**Why This Blocked Frontend**: Current implementation sent WebSocket events BEFORE HTTP response returns, creating race condition where client might receive WebSocket confirmation before HTTP response completes. This violated the dual-signal pattern where HTTP is primary (guaranteed) and WebSocket is secondary (real-time notification).
+
+**Implementation Approach**:
+
+1. **Extended `I_ApplicationResponse` interface** (`topsyde_utils/src/types.ts`):
+   ```typescript
+   export interface I_ApplicationResponse<T = unknown> {
+       status: boolean | number;
+       data: T;
+       error?: T;
+       after_action?: Function; // ✅ New field
+   }
+   ```
+
+2. **Updated Controller methods** (`topsyde_utils/src/server/controller.ts`):
+   ```typescript
+   public success<T>(data: T, after_action?: Function): I_ApplicationResponse<T> {
+       return { status: true, data, after_action };
+   }
+
+   public failure<T>(data: T, after_action?: Function): I_ApplicationResponse<T> {
+       return { status: false, data, after_action };
+   }
+   ```
+
+3. **Implemented queueMicrotask timing** (`topsyde_utils/src/application.ts`):
+   ```typescript
+   public static Response<T>(data: T | I_ApplicationResponse<T>, after_action?: Function, status = 200, headers?: HeadersInit): Response {
+       const response = isApplicationResponse(data) ? data : { status: true, data };
+       const output = Response.json(response, RESPONSE_INIT(status, headers));
+       Application.AfterAction(after_action);
+       return output;
+   }
+
+   private static AfterAction(after_action: Function | undefined) {
+       if (after_action) {
+           queueMicrotask(() => {
+               try {
+                   after_action();
+               } catch (error) {
+                   console.error('[Application] After-action error:', error);
+               }
+           });
+       }
+   }
+   ```
+
+4. **Updated matchmaking server's main handler** (`server_rune_matchmaking/src/app.ts`):
+   ```typescript
+   const response = await Router.Call<ControllerResponse<any>>(request);
+   return App.Response(response, response.after_action);
+   ```
+
+**Action Items**:
+- [x] Design after-action hook API in topsyde-utils (Option 1: extend interface)
+- [x] Implement hook in `Application.Response()` method with queueMicrotask
+- [x] Update `Controller.success()` and `Controller.failure()` signatures
+- [x] Add TypeScript types via `I_ApplicationResponse.after_action` field
+- [x] Update `app.ts` to extract and pass `after_action` to `App.Response()`
+- [ ] Publish new topsyde-utils version (USER ACTION REQUIRED)
+- [ ] Update server_rune_matchmaking package.json to use new version (USER ACTION REQUIRED)
+- [ ] Run `bun install` to update dependencies (USER ACTION REQUIRED)
+
+**Files Modified**:
+- `topsyde_utils/src/types.ts` (added after_action field to interface) ✅
+- `topsyde_utils/src/application.ts` (implemented AfterAction with queueMicrotask) ✅
+- `topsyde_utils/src/server/controller.ts` (updated success/failure signatures) ✅
+- `server_rune_matchmaking/src/app.ts` (extract after_action from response) ✅
+
+**Next Step**: User needs to publish topsyde-utils and update matchmaking server dependency
+
+**Time Spent**: ~1 hour
+
+---
+
+#### ✅ Task 2: Refactor Backend `/match/pve` Endpoint (COMPLETED)
 
 **Objective**: Update backend endpoint to return full initial state in HTTP response instead of minimal data
 
-**Why This Blocks Frontend**: Frontend implementation depends on receiving complete structured initial state (player, npc, turn, atb, timer) from the backend. Current endpoint returns minimal data, causing race conditions and requiring additional WebSocket events.
+**Why This Was Blocking Frontend**: Frontend implementation depends on receiving complete structured initial state (player, npc, turn, atb, timer) from the backend. Old endpoint returned minimal data, causing race conditions and requiring additional WebSocket events.
 
 **Current Behavior** (`server_rune_matchmaking/src/components/match/match.controller.ts:61-68`):
 ```typescript
@@ -831,18 +910,68 @@ return this.success({
 ```
 
 **Action Items**:
-- [ ] Extract player participant data from `match.getParticipants()`
-- [ ] Extract NPC participant data from `match.getParticipants()`
-- [ ] Get turn state from `gameState.turnManager`
-- [ ] Get ATB readiness from `gameState.atbManager`
-- [ ] Structure response with `state` object containing player/npc/turn/atb/timer
-- [ ] Update response format to use `success: true` and `data` wrapper
-- [ ] Test endpoint returns complete state
+- [x] Create service method `getInitialMatchState()` in `match.service.ts`
+- [x] Extract player participant data from `match.getParticipants()`
+- [x] Extract NPC participant data from `match.getParticipants()`
+- [x] Get turn state from `gameState.turnManager`
+- [x] Get ATB readiness from `gameState.atbManager.getProgressionPercentages()`
+- [x] Structure response with `state` object containing player/npc/turn/atb/timer`
+- [x] Update response format to use `success: true` and `data` wrapper
+- [x] Move `client.send()` WebSocket call to after-action hook
+- [ ] Test endpoint returns complete state and WebSocket fires after HTTP response (USER ACTION REQUIRED)
 
-**Files to Modify**:
-- `server_rune_matchmaking/src/components/match/match.controller.ts` (pve method, lines 41-72)
+**Implementation**:
 
-**Estimated Time**: 30-60 minutes
+Service layer (`match.service.ts:44-114`):
+```typescript
+public getInitialMatchState(matchId: string) {
+    const match = this.getMatchById(matchId);
+    const gameState = GameStateStore.GetGameState(matchId);
+
+    // Extract participants, turn state, ATB readiness, timer config
+    // Return structured state object
+    return { player, npc, turn, atb, timer };
+}
+```
+
+Controller layer (`match.controller.ts:40-85`):
+```typescript
+private async pve(req: Request): Promise<I_ApplicationResponse> {
+    const match = this.service.createPVE(...);
+    const channel = ChannelManager.CreateChannel(...);
+    channel.addMember(client);
+
+    const initialState = this.service.getInitialMatchState(match.id);
+
+    return this.success(
+        {
+            success: true,
+            data: {
+                matchId: match.id,
+                channelId: channel.id,
+                channelName: channel.name,
+                state: initialState
+            }
+        },
+        () => {
+            // WebSocket notification sent AFTER HTTP response
+            client.send({
+                type: 'match.created',
+                content: { matchId: match.id, channelName: channel.name },
+                channel: match.id
+            });
+        }
+    );
+}
+```
+
+**Files Modified**:
+- `server_rune_matchmaking/src/components/match/match.service.ts` (added getInitialMatchState method) ✅
+- `server_rune_matchmaking/src/components/match/match.controller.ts` (MVC separation + after-action hook) ✅
+
+**Next Step**: User needs to publish topsyde-utils, update dependencies, and test endpoint
+
+**Time Spent**: ~30 minutes
 
 ---
 
@@ -854,7 +983,7 @@ return this.success({
 
 ---
 
-##### Iteration 1: Create Match Store ⏳
+##### Iteration 1: Create Match Store 🚧
 
 **Goal**: Implement Pinia store with persistence for match state
 
@@ -866,6 +995,26 @@ return this.success({
 - [ ] Export store composable
 
 **Verification**: Store can be imported and state persists across page refreshes
+
+---
+
+### **Implementation - Iteration 1: Create Match Store**
+
+**Status**: 🚧 IN PROGRESS
+
+**Action Items**: See action items above
+
+**Implementation Notes**:
+
+[Document discoveries and decisions during implementation]
+
+**Files Modified**:
+
+[Track files as work progresses]
+
+**Verification**:
+
+[How work will be verified - per Testing Strategy: manual import test + persistence check]
 
 ---
 
@@ -938,6 +1087,49 @@ return this.success({
 - [ ] Add "Reconnect" option for WebSocket timeout
 
 **Verification**: Errors are displayed clearly and user can retry
+
+---
+
+## 🎯 What's Next
+
+**Brainstorming session complete!** Phase 2 marked 🎨 READY FOR IMPLEMENTATION.
+
+### Summary of Completed Work
+
+✅ **All 4 subjects resolved**:
+1. Match Request Flow (REST API → WebSocket confirmation pattern)
+2. Match Creation Data (minimal payload, server-generated stats)
+3. Initial Match State (HTTP response with full state structure)
+4. Match Creation Confirmation (dual-signal: HTTP primary, WebSocket secondary)
+
+✅ **Pre-implementation tasks completed**:
+1. After-action hook in topsyde-utils (queueMicrotask timing)
+2. Backend `/match/pve` endpoint refactored (MVC separation, full state in HTTP response)
+
+✅ **Implementation tasks structured**:
+- Task 1: Match State Management (2 iterations)
+- Task 2: Match UI Components (3 iterations)
+
+### REQUIRED NEXT STEP
+
+**Use `/flow-implement-start` to begin implementation.**
+
+### Before Implementing
+
+1. **Review action items**: Ensure you understand the scope of each iteration
+2. **Check dependencies**:
+   - ⚠️ USER ACTION REQUIRED: Publish topsyde-utils and update server dependencies
+   - ⚠️ USER ACTION REQUIRED: Test backend endpoint returns complete state
+3. **Scope boundary**: If you discover new issues during implementation, STOP and discuss with user before proceeding
+
+### Implementation Order
+
+Start with **Task 1, Iteration 1** (Create Match Store):
+- Foundation for all other work
+- Simple, no external dependencies
+- Can be verified independently
+
+Then proceed to **Task 1, Iteration 2** (Match Creation Composable), then **Task 2** iterations.
 
 ---
 
