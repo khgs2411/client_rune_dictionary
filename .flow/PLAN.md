@@ -64,14 +64,14 @@ Reimplement the combat/match system from the deprecated 2D PrimeVue application 
 **Current Work**:
 - **Phase**: [Phase 2 - Match Instantiation & Initialization](#phase-2-match-instantiation--initialization-) 🚧 IMPLEMENTING
 - **Task**: [Task 1 - Match State Management](#task-1-match-state-management-) 🚧 IN PROGRESS
-- **Iteration**: [Iteration 5 - Leave Match API & HUD Display](#iteration-5-leave-match-api--hud-display-) ⏳ PENDING
+- **Iteration**: [Iteration 4 - Game Mode Controls & Visibility Management](#iteration-4-game-mode-controls--visibility-management-) ⏳ NEXT
 
 **Completion Status**:
-- Phase 1: ✅ 100% | Phase 2: 🚧 16% (1/6 iterations) | Phases 3-18: ⏳ 0%
+- Phase 1: ✅ 100% | Phase 2: 🚧 60% (3/5 iterations) | Phases 3-18: ⏳ 0%
 
 **Progress Overview**:
 - ✅ **Phase 1**: Analysis & Planning (verified & frozen)
-- 🚧 **Phase 2**: Match Instantiation & Initialization ← **YOU ARE HERE** (Task 1 - Iteration 1 ✅, Iteration 2 🚧, Iteration 3 ✅, Iteration 4 ⏳, Iteration 5 ⏳)
+- 🚧 **Phase 2**: Match Instantiation & Initialization ← **YOU ARE HERE** (Task 1 - Iteration 1 ✅, Iteration 2 ✅, Iteration 3 ✅, Iteration 4 ⏳, Iteration 5 ✅)
 - ⏳ **Phase 3**: PvE Match Flow
 - ⏳ **Phase 4**: Match Lifecycle Management
 - ⏳ **Phase 5**: Aborting/Leaving a Match
@@ -1309,49 +1309,102 @@ Handler object3D: undefined
 
 ---
 
-##### Iteration 5: Leave Match API & HUD Display ⏳
+##### Iteration 5: Leave Match API & HUD Display ✅
 
 **Goal**: Implement match leave functionality and basic in-match HUD display
 
-**Status**: ⏳ PENDING
+**Status**: ✅ COMPLETE
+**Completed**: 2025-10-24
 
 **Action Items**:
 
 **Part 1: Leave Match API**
-- [ ] Create `/match/leave` endpoint in MatchAPI
-  - Method: `leaveMatch(matchId: string)`
-  - POST request to `/match/{matchId}/leave`
+- [x] Create `/match/leave` endpoint in MatchAPI
+  - Method: `leaveMatch(payload: I_LeaveMatchRequest)`
+  - POST request to `/match/leave`
+  - Payload: `{ whoami: I_ClientData, matchId: string }`
   - Returns success/failure response
-- [ ] Add LeaveMatchComponent (or extend MatchComponent)
-  - Listen to keyboard event (e.g., 'Escape' key)
+- [x] Create MatchHUD.vue component (Vue, not GameObject component)
+  - Leave button triggers API call (user decision: button instead of keyboard)
   - Call MatchAPI.leaveMatch()
-  - Update match store (clear matchId, reset state)
-  - Transition scene state: PVE_MATCH → OVERWORLD
-- [ ] Test leave flow: In match → Press Escape → Return to overworld
+  - Update match store (clear matchId, reset state via $reset())
+  - Emit RxJS event: `onStateChange` with `E_SceneState.OVERWORLD`
+- [x] Test leave flow: In match → Click Leave button → Return to overworld
 
 **Part 2: Match HUD Display**
-- [ ] Create basic Match HUD component (Vue)
-  - Display match state (LOBBY, IN_PROGRESS, FINISHED)
-  - Show match ID and channel name
-  - Show "Press ESC to leave" hint
-- [ ] Style HUD with Tailwind CSS
-  - Top-right corner positioning
-  - Semi-transparent background
-  - Readable text (white with shadow)
-- [ ] Show/hide HUD based on scene state
-  - Hidden in OVERWORLD
-  - Visible in MATCH_INSTANTIATING and PVE_MATCH
-- [ ] Connect HUD to match store (reactive)
-  - Watch `DataStore.match` for state changes
-  - Auto-update when match state changes
+- [x] Create MatchHUD.vue component
+  - Display match ID (truncated) and channel name
+  - Leave button with loading state
+  - Reactive visibility based on `matchStore.currentMatchId`
+- [x] Style HUD with Tailwind CSS
+  - Top-right corner positioning (`fixed top-4 right-4`)
+  - Semi-transparent background (`bg-black/70 backdrop-blur-sm`)
+  - Readable text (white with semantic colors)
+  - Smooth transitions and disabled states
+- [x] Show/hide HUD based on match state
+  - Hidden when `currentMatchId === null` (OVERWORLD)
+  - Visible when `currentMatchId !== null` (in match)
+- [x] Connect HUD to match store (reactive)
+  - Uses `DataStore.match` for reactive state
+  - Auto-updates when match state changes
+- [x] RxJS integration
+  - Emits `onStateChange` event on `scene:state` channel
+  - SceneStateService listens and transitions to OVERWORLD
+
+**Implementation Summary**:
+
+Created complete leave match flow with Vue-based HUD:
+
+1. **MatchAPI Integration** (`src/api/match.api.ts`):
+   - Added `leaveMatch()` method matching existing backend endpoint
+   - Request: `{ whoami: I_ClientData, matchId: string }`
+   - Response: `{ message: string }`
+   - Proper error handling with `BaseAPI.Status()`
+
+2. **MatchHUD Component** (`src/components/match/MatchHUD.vue`):
+   - Reactive visibility using computed property on `matchStore.currentMatchId`
+   - Displays match info (ID truncated to 8 chars, channel name)
+   - Leave button with loading state (`isLeaving` ref)
+   - API call on button click
+   - Store reset via `matchStore.$reset()`
+   - RxJS event emission: `rxjs.$next('onStateChange', E_SceneState.OVERWORLD)`
+   - Error handling with alert (TODO: replace with toast)
+   - Tailwind styling: top-right, semi-transparent, backdrop blur
+
+3. **Game.vue Integration**:
+   - Added `<MatchHUD v-if="websocketManager.isConnected" />`
+   - HUD visible when connected and in match
+
+**Files Modified**:
+- `src/api/match.api.ts` (added leaveMatch method and interfaces)
+- `src/components/match/MatchHUD.vue` (created - 87 lines)
+- `src/views/Game.vue` (added MatchHUD component)
 
 **Verification**:
-- Pressing Escape in match calls leave API
-- Match store is cleared
-- Scene state returns to OVERWORLD
-- HUD displays correctly in match states
-- HUD hidden in overworld
-- Leave flow is smooth (no errors)
+- ✅ Clicking Leave button in match calls leave API
+- ✅ Match store is cleared via $reset()
+- ✅ RxJS event emitted to SceneStateService
+- ✅ Scene state returns to OVERWORLD (via RxJS listener - user implemented)
+- ✅ HUD displays correctly when in match
+- ✅ HUD hidden in overworld
+- ✅ Leave flow is smooth (no errors)
+- ✅ User feedback: "we nocked it out of the park with this one"
+
+**Verification Method**: Manual integration testing
+- Started matchmaking server + frontend dev server
+- Created match via TrainingDummy double-click
+- MatchHUD appeared with match info
+- Clicked Leave button
+- API call succeeded, store reset, returned to overworld
+- HUD hidden after leaving match
+
+**Design Decisions**:
+- Vue HUD component instead of GameObject component (user decision - cleaner separation of UI and game logic)
+- Button click instead of keyboard event (user decision - more accessible)
+- RxJS event emission pattern for Vue ↔ Three.js communication
+- Alert for errors (TODO: replace with toast notifications in Iteration 4)
+- Semi-transparent backdrop blur for professional appearance
+- Truncated match ID display (first 8 chars) for readability
 
 ---
 
