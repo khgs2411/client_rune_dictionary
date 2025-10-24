@@ -60,6 +60,23 @@ export class MatchComponent extends GameComponent {
     // Listen to doubleclick event
     interaction.on('doubleclick', async (_intersection) => {
       console.log('⚔️ [MatchComponent] Double-click detected, initiating match creation...');
+      // intersection.distance = distance from camera to hit point
+      console.log('Distance from camera:', _intersection.distance);
+
+      // _intersection.point = 3D world position where ray hit the object
+      console.log('Hit point:', _intersection.point); // Vector3
+
+      // _intersection.object = the Three.js mesh that was clicked
+      console.log('Clicked mesh:', _intersection.object);
+
+      // _intersection.face = the face of the mesh that was hit
+      console.log('Face hit:', _intersection.face);
+
+      // _intersection.faceIndex = index of the face
+      console.log('Face index:', _intersection.faceIndex);
+
+      // _intersection.uv = UV coordinates at hit point (for textures)
+      console.log('UV coords:', _intersection.uv);
       await this.handleMatchCreation(context);
     });
   }
