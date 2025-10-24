@@ -4,7 +4,7 @@ import { useRxjs } from 'topsyde-utils';
 
 export default abstract class SceneModule {
   public name: string = this.constructor.name;
-  protected rxjs = useRxjs('module:loading', {}, { static_instance: true });
+  protected rxjs = useRxjs('module:loading', undefined, { static_instance: true });
 
   protected id: string; // Will be set to module name for persistence
   protected context!: I_SceneContext;

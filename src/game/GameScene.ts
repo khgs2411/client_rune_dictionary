@@ -46,8 +46,8 @@ export abstract class GameScene<
   public modulesLoaded = false;
 
   protected cleanupRegistry: CleanupRegistry = new CleanupRegistry();
-  protected sceneEvents = useRxjs('scene:loading');
-  protected moduleEvents = useRxjs('module:loading');
+  protected sceneEvents = useRxjs('scene:loading', undefined, { static_instance: true });
+  protected moduleEvents = useRxjs('module:loading', undefined, { static_instance: true });
 
   // Module registry (handles all module tracking)
   private registry = new ModuleRegistry<TModuleRegistry>();

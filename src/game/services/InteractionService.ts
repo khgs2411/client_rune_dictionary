@@ -391,7 +391,6 @@ export class InteractionService extends SceneService implements I_SceneService {
 
   private handleClick(): void {
     const buttonMap = { left: 0, middle: 1, right: 2 };
-    console.clear();
     this.mouseClickHandlers.forEach((handler) => {
 
       // Get current mouse button from last event

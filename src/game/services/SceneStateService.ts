@@ -1,3 +1,4 @@
+import { useRxjs } from 'topsyde-utils';
 import { I_SceneContext, I_SceneService } from '../common/scenes.types';
 import SceneService from './SceneService';
 
@@ -46,13 +47,22 @@ export enum E_SceneState {
  */
 export default class SceneStateService extends SceneService implements I_SceneService {
   private currentState: E_SceneState = E_SceneState.OVERWORLD;
+  private rxjs = useRxjs('scene:state', undefined, { static_instance: true });
 
   /**
    * Initialize the service with default OVERWORLD state
    */
   protected async init(context: I_SceneContext): Promise<void> {
     this.currentState = E_SceneState.OVERWORLD;
+    this.rxjs.$subscribe({
+      'onStateChange': this.onStateChange.bind(this),
+    })
     console.log('🎮 [SceneStateService] Initialized with state:', this.currentState);
+  }
+
+  private onStateChange(newState: E_SceneState) { 
+    console.log('🎮 [SceneStateService] onStateChange triggered:', newState);
+    this.setState(newState);
   }
 
   /**
@@ -108,6 +118,7 @@ export default class SceneStateService extends SceneService implements I_SceneSe
    */
   public async destroy(): Promise<void> {
     this.reset();
+    this.rxjs.$unsubscribe();
     console.log('🎮 [SceneStateService] Destroyed');
   }
 }
