@@ -4,11 +4,14 @@ import type { Intersection, Vector3 } from 'three';
 
 
 
+export type GameObjectType = 'npc' | 'player' | 'environment' | 'item' | 'null';
+
 /**
  * Configuration for creating a GameObject
  */
 export interface I_GameObjectConfig {
   id: string;
+  type?: GameObjectType;
 }
 
 // ============================================

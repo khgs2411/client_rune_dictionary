@@ -56,7 +56,96 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     const gom = this.getService('gameObjectsManager');
     gom.register(ground);
 
-    // Interactive box using new component architecture
+    // Add environment objects
+    this.addEnvironmentObjects();
+
+    // Training Dummy NPC (for match creation testing)
+    const trainingDummy = new TrainingDummy({
+      id: 'training-dummy-1',
+      type: "npc",
+      position: [-5, 0.9, 5], // Positioned away from other objects
+      color: 0xff0000, // Red (indicates enemy/NPC)
+    });
+    gom.register(trainingDummy);
+
+    // ========================================
+    // SPAWN SYSTEM DEMO
+    // ========================================
+
+    // Get spawner service
+    const spawner = this.getService('spawner');
+
+    // 1. PREFAB APPROACH - Register Fireball factory
+    spawner.registerFactory(
+      'fireball',
+      (id, config) => {
+        return new Fireball({ id, ...config });
+      },
+      {
+        poolSize: 10, // Max 10 fireballs globally
+        maxActivePerOwner: 5, // Max 5 per player
+      },
+    );
+
+    // 2. MANUAL APPROACH - Register custom spawnable (non-prefab)
+    spawner.registerFactory(
+      'ice-shard',
+      (id, config) => {
+        const iceShard = new GameObject({ id })
+          .addComponent(
+            new TransformComponent({
+              position: config.position || [0, 1, 0],
+            }),
+          )
+          .addComponent(
+            new GeometryComponent({
+              type: 'cone',
+              params: [0.2, 0.8, 8], // Sharp cone for ice shard
+            }),
+          )
+          .addComponent(
+            new MaterialComponent({
+              color: 0x00bfff, // Deep sky blue
+              emissive: 0x00bfff,
+              emissiveIntensity: 0.3,
+              roughness: 0.2,
+              metalness: 0.8,
+            }),
+          )
+          .addComponent(new MeshComponent());
+
+        // TODO: Add TrajectoryComponent and CollisionComponent once implemented
+
+        return iceShard;
+      },
+      {
+        poolSize: 20, // Max 20 ice shards globally
+        maxActivePerOwner: 10, // Max 10 per player
+      },
+    );
+
+    // Create LocalPlayer GameObject (replaces CharacterModule)
+    // Don't pass position config - let LocalPlayer read directly from controller
+    const localPlayer = new LocalPlayer({
+      playerId: 'local-player',
+      characterController: this.character.controller,
+    });
+
+
+
+    // Register player AFTER all components are added
+    gom.register(localPlayer);
+
+    console.log(`
+🎯 [PlaygroundScene] Spawn system initialized:
+- Press '1' to spawn Fireball (prefab)
+- Right-click to spawn Ice Shard (manual) at cursor
+    `);
+  }
+
+  private addEnvironmentObjects() {
+    const gom = this.getService('gameObjectsManager');
+
     const interactiveBox = new GameObject({ id: 'interactive-box' })
       .addComponent(new TransformComponent({ position: [5, 1, 5] }))
       .addComponent(new GeometryComponent({ type: 'box', params: [1.5, 1.5, 1.5] }))
@@ -102,95 +191,13 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
             { position: [15, 0.3, 0] },
             { position: [9, 0.3, -4] },
           ],
-        }),
+        })
       );
 
     gom.register(interactiveBox);
     gom.register(treeTrunks);
     gom.register(treeLeaves);
     gom.register(bushes);
-
-    // Training Dummy NPC (for match creation testing)
-    const trainingDummy = new TrainingDummy({
-      id: 'training-dummy-1',
-      position: [-5, 0.9, 5], // Positioned away from other objects
-      color: 0xff0000, // Red (indicates enemy/NPC)
-    });
-    gom.register(trainingDummy);
-
-    // ========================================
-    // SPAWN SYSTEM DEMO
-    // ========================================
-
-    // Get spawner service
-    const spawner = this.getService('spawner');
-
-    // 1. PREFAB APPROACH - Register Fireball factory
-    spawner.registerFactory(
-      'fireball',
-      (id, config) => {
-        return new Fireball({ id, ...config });
-      },
-      {
-        poolSize: 10, // Max 10 fireballs globally
-        maxActivePerOwner: 5, // Max 5 per player
-      },
-    );
-
-    // 2. MANUAL APPROACH - Register custom spawnable (non-prefab)
-    spawner.registerFactory(
-      'ice-shard',
-      (id, config) => {
-      const iceShard = new GameObject({ id })
-        .addComponent(
-          new TransformComponent({
-            position: config.position || [0, 1, 0],
-          }),
-        )
-        .addComponent(
-          new GeometryComponent({
-            type: 'cone',
-            params: [0.2, 0.8, 8], // Sharp cone for ice shard
-          }),
-        )
-        .addComponent(
-          new MaterialComponent({
-            color: 0x00bfff, // Deep sky blue
-            emissive: 0x00bfff,
-            emissiveIntensity: 0.3,
-            roughness: 0.2,
-            metalness: 0.8,
-          }),
-        )
-        .addComponent(new MeshComponent());
-
-      // TODO: Add TrajectoryComponent and CollisionComponent once implemented
-
-      return iceShard;
-      },
-      {
-        poolSize: 20, // Max 20 ice shards globally
-        maxActivePerOwner: 10, // Max 10 per player
-      },
-    );
-
-    // Create LocalPlayer GameObject (replaces CharacterModule)
-    // Don't pass position config - let LocalPlayer read directly from controller
-    const localPlayer = new LocalPlayer({
-      playerId: 'local-player',
-      characterController: this.character.controller,
-    });
-
-  
-
-    // Register player AFTER all components are added
-    gom.register(localPlayer);
-
-    console.log(`
-🎯 [PlaygroundScene] Spawn system initialized:
-- Press '1' to spawn Fireball (prefab)
-- Right-click to spawn Ice Shard (manual) at cursor
-    `);
   }
 
   /**

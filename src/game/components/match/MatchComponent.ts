@@ -96,7 +96,7 @@ export class MatchComponent extends GameComponent {
     stateService.setState(E_SceneState.MATCH_INSTANTIATING);
 
     try {
-      await this.createPveMatch(context);
+      if (this.gameObject.isType('npc')) await this.createPveMatch(context);
     } catch (error) {
       this.handleMatchCreationError(error, context);
     }

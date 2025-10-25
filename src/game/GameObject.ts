@@ -1,7 +1,6 @@
 import type { GameComponent } from './GameComponent';
-import type { I_GameObjectConfig, I_Interactable } from './common/gameobject.types';
+import type { GameObjectType, I_GameObjectConfig } from './common/gameobject.types';
 import { I_SceneContext } from './common/scenes.types';
-import { MeshComponent } from './components/rendering/MeshComponent';
 
 /**
  * GameObject - Entity container for components
@@ -21,12 +20,14 @@ import { MeshComponent } from './components/rendering/MeshComponent';
  */
 export class GameObject {
   public readonly id: string;
+  protected readonly type?: GameObjectType;
   private components = new Map<Function, GameComponent>();
   private isInitialized = false;
   private context: I_SceneContext | null = null;
 
   constructor(config: I_GameObjectConfig) {
     this.id = config.id;
+    this.type = config.type || 'null';
   }
 
   /**
@@ -52,6 +53,33 @@ export class GameObject {
     this.components.set(component.constructor, component);
     return this;
   }
+
+  
+  /**
+   * Gets the type of this game object.
+   *
+   * Returns the GameObjectType assigned to this instance, or undefined if no type has been set.
+   *
+   * @returns The GameObjectType for this object, or undefined when not available.
+   */
+  public getType(): GameObjectType | undefined {
+    return this.type;
+  }
+
+  /**
+   * Determines whether this game object is of the given type.
+   *
+   * @param type - The GameObjectType to check against this object's type.
+   * @returns True if this object's type strictly equals the provided type; otherwise false.
+   *
+   * @example
+   * // returns true if the object's type is GameObjectType.Player
+   * obj.isType(GameObjectType.Player);
+   */
+  public isType(type: GameObjectType): boolean {
+    return this.type === type;
+  }
+
 
   /**
    * Get a component by its class constructor

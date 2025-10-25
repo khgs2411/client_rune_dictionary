@@ -1,4 +1,5 @@
 import { GameObject } from '@/game/GameObject';
+import { I_GameObjectConfig } from '@/game/common/gameobject.types';
 import { InteractionComponent } from '@/game/components/interactions/InteractionComponent';
 import { MatchComponent } from '@/game/components/match/MatchComponent';
 import { GeometryComponent } from '@/game/components/rendering/GeometryComponent';
@@ -6,8 +7,8 @@ import { MaterialComponent } from '@/game/components/rendering/MaterialComponent
 import { MeshComponent } from '@/game/components/rendering/MeshComponent';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 
-export interface I_TrainingDummyConfig {
-  id?: string;
+export interface I_TrainingDummyConfig extends I_GameObjectConfig {
+  id: string;
   position?: [number, number, number];
   color?: number; // Hex color for material
 }
@@ -46,8 +47,8 @@ export interface I_TrainingDummyConfig {
  * - NPCLabelComponent for name tag display
  */
 export class TrainingDummy extends GameObject {
-  constructor(config: I_TrainingDummyConfig = {}) {
-    super({ id: config.id || 'training-dummy' });
+  constructor(config: I_TrainingDummyConfig) {
+    super({ id: config.id || 'training-dummy', type: config.type });
 
     const position = config.position || [10, 0.9, 5]; // Default position (0.9 = half capsule height)
     const color = config.color !== undefined ? config.color : 0xff0000; // Default red

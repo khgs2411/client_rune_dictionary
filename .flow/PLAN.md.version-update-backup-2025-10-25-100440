@@ -71,20 +71,9 @@ Reimplement the combat/match system from the deprecated 2D PrimeVue application 
 
 **Progress Overview**:
 - ✅ **Phase 1**: Analysis & Planning (verified & frozen)
-  - ✅ Task 1: Analyze Deprecated System
-  - ✅ Task 2: Design New Architecture
 - 🚧 **Phase 2**: Match Instantiation & Initialization ← **YOU ARE HERE**
-  - 🚧 Task 1: Match State Management (5/6 iterations complete)
-    - ✅ Iteration 1: Create Match Store
-    - ✅ Iteration 2: Match Creation from Game World
-    - ✅ Iteration 3: Fix Interaction System for Match Creation
-    - ⏳ Iteration 4: Game Mode Controls & Visibility Management ← **NEXT**
-    - ✅ Iteration 5: Leave Match API & HUD Display
-    - ✅ Iteration 6: GameObject Type Filtering for Interactions
-  - ⏳ Task 2: Match UI Components (0/3 iterations)
-    - ⏳ Iteration 1: Match.vue State Machine
-    - ⏳ Iteration 2: WebSocket Event Handler
-    - ⏳ Iteration 3: Error Handling UI
+  - **Task 1 - Match State Management**: Iteration 1 ✅, Iteration 2 ✅, Iteration 3 ✅, Iteration 4 ⏳ NEXT, Iteration 5 ✅, Iteration 6 ✅
+  - **Task 2 - Match UI Components**: ⏳ Not started
 - ⏳ **Phase 3**: PvE Match Flow
 - ⏳ **Phase 4**: Match Lifecycle Management
 - ⏳ **Phase 5**: Aborting/Leaving a Match
@@ -989,9 +978,8 @@ private async pve(req: Request): Promise<I_ApplicationResponse> {
 
 ### **Implementation Tasks:**
 
-#### Task 1: Match State Management 🚧
+#### Task 1: Match State Management ⏳
 
-**Status**: IN PROGRESS (5/6 iterations complete)
 **Purpose**: Create Pinia store and state management for match lifecycle
 
 ---
