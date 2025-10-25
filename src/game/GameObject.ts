@@ -129,51 +129,48 @@ export class GameObject {
    * @private
    */
   private async registerWithServices(context: I_SceneContext): Promise<void> {
-    // Handle interaction lifecycle coordination 
-    await this.registerInteractions(context);
+    // DISABLED: Old I_Interactable pattern replaced by InteractionComponent
+    // InteractionComponent now handles all interaction registration internally
+    // await this.registerInteractions(context);
+
+    // No service registration needed - components handle their own service integration
   }
 
   /**
-   * Register all interaction components with InteractionService
-   * This method coordinates multiple I_Interactable components into a single
-   * registration, preventing overwrites.
+   * DEPRECATED: Old I_Interactable pattern
    *
-   * Lifecycle hook called at end of init() - GameObject acts as lifecycle
-   * coordinator for interaction system.
+   * This method is disabled. Use InteractionComponent instead.
+   *
+   * Migration path:
+   * - Old: Components implemented I_Interactable + GameObject coordinated via InteractableBuilder
+   * - New: Add InteractionComponent to GameObject + listen to events via .on('click', callback)
+   *
+   * Example:
+   * ```typescript
+   * // Old way (deprecated):
+   * class MyComponent extends GameComponent implements I_Interactable {
+   *   registerInteractions(builder: I_InteractionBuilder) {
+   *     builder.withClickVFX('POW!');
+   *   }
+   * }
+   *
+   * // New way (recommended):
+   * class MyComponent extends GameComponent {
+   *   async init(context: I_SceneContext) {
+   *     const interaction = this.getComponent(InteractionComponent);
+   *     interaction.on('click', (intersection) => {
+   *       console.log('Clicked!');
+   *     });
+   *   }
+   * }
+   * ```
+   *
+   * @deprecated Use InteractionComponent instead
    * @private
    */
   private async registerInteractions(context: I_SceneContext): Promise<void> {
-    // Check if MeshComponent exists (required for interactions)
-    const meshComp = this.getComponent(MeshComponent);
-    if (!meshComp) {
-      // No mesh = no visual interactions possible
-      return;
-    }
-
-    // Collect all components implementing I_Interactable
-    const interactables: I_Interactable[] = [];
-    for (const component of this.components.values()) {
-      // Type guard: Check if component implements I_Interactable interface
-      if ('registerInteractions' in component && typeof (component as any).registerInteractions === 'function') {
-        interactables.push(component as I_Interactable);
-      }
-    }
-
-    // If no interactable components, skip registration
-    if (interactables.length === 0) {
-      return;
-    }
-
-    // Create single builder for all interactions
-    const interaction = context.getService('interaction')
-    const builder = interaction.register(this.id, meshComp.mesh);
-
-    // Let each interactable component add its behaviors to the builder
-    for (const interactable of interactables) {
-      interactable.registerInteractions(builder, context);
-    }
-
-    // Builder auto-registers via promise callback when done
+    // Method disabled - see deprecation notice above
+    return;
   }
 
   /**
