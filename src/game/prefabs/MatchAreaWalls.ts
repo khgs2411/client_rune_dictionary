@@ -2,6 +2,7 @@ import { CollisionComponent } from '@/game/components/interactions/CollisionComp
 import { GameObject } from '../GameObject';
 import { TransformComponent } from '../components/rendering/TransformComponent';
 import { I_SceneContext } from '../common/scenes.types';
+import { BufferGeometry, Line, LineBasicMaterial, Vector3 } from 'three';
 
 export interface I_MatchAreaWallsConfig {
   id: string;
@@ -19,17 +20,19 @@ export interface I_MatchAreaWallsConfig {
  * - Creates physical boundary around match area using 4 walls (rectangle)
  * - Prevents escape from match area during PVE_MATCH state
  * - Simple, reliable collision boundary
- * - Completely invisible (collision-only, no visual mesh)
+ * - Faint glowing border lines at ground level for visual indication
  *
  * **Implementation**:
  * - Creates 4 wall segments (North, South, East, West)
- * - Each segment is a tall cuboid with collision only
+ * - Each segment is a tall cuboid with collision only (invisible)
  * - Forms a rectangular arena around the center point
  * - Height is sufficient to prevent jumping over (default: 20 units)
+ * - Adds faint orange glowing lines at ground level to mark borders
  *
  * **Components (per wall)**:
  * - TransformComponent: Position + rotation
  * - CollisionComponent: Static collision body (invisible, debug wireframes only)
+ * - Visual border lines: Faint glowing lines at ground level (40% opacity, orange)
  *
  * **Lifecycle**:
  * - Created: When match starts (MATCH_INSTANTIATING state)
@@ -50,6 +53,7 @@ export interface I_MatchAreaWallsConfig {
 export class MatchAreaWalls extends GameObject {
   private config: I_MatchAreaWallsConfig;
   private wallSegments: GameObject[] = [];
+  private borderLines: Line[] = []; // Visual border indicators
 
   constructor(config: I_MatchAreaWallsConfig) {
     super({ id: config.id });
@@ -140,9 +144,67 @@ export class MatchAreaWalls extends GameObject {
       gameObjects.register(segment);
     }
 
+    // Create visual border lines at ground level
+    this.createBorderLines(context);
+
     console.log(
       `🛡️ [MatchAreaWalls] Initialized ${this.wallSegments.length} wall segments (invisible, collision wireframes: ${this.config.showDebug})`,
     );
+  }
+
+  /**
+   * Create faint glowing lines at ground level to mark arena borders
+   */
+  private createBorderLines(context: I_SceneContext): void {
+    const { center, width, depth } = this.config;
+    const halfWidth = width / 2;
+    const halfDepth = depth / 2;
+    const groundY = center.y + 0.05; // Slightly above ground to prevent z-fighting
+
+    // Define the 4 border lines (rectangle at ground level)
+    const borders = [
+      // North border (top edge)
+      {
+        start: new Vector3(center.x - halfWidth, groundY, center.z + halfDepth),
+        end: new Vector3(center.x + halfWidth, groundY, center.z + halfDepth),
+      },
+      // South border (bottom edge)
+      {
+        start: new Vector3(center.x - halfWidth, groundY, center.z - halfDepth),
+        end: new Vector3(center.x + halfWidth, groundY, center.z - halfDepth),
+      },
+      // East border (right edge)
+      {
+        start: new Vector3(center.x + halfWidth, groundY, center.z - halfDepth),
+        end: new Vector3(center.x + halfWidth, groundY, center.z + halfDepth),
+      },
+      // West border (left edge)
+      {
+        start: new Vector3(center.x - halfWidth, groundY, center.z - halfDepth),
+        end: new Vector3(center.x - halfWidth, groundY, center.z + halfDepth),
+      },
+    ];
+
+    // Create glowing line for each border
+    for (const border of borders) {
+      const points = [border.start, border.end];
+      const geometry = new BufferGeometry().setFromPoints(points);
+
+      // Faint glowing material
+      const material = new LineBasicMaterial({
+        color: 0xff6b35, // Warm orange glow
+        opacity: 0.4,
+        transparent: true,
+        linewidth: 2, // Note: linewidth > 1 only works with WebGLRenderer on Windows
+      });
+
+      const line = new Line(geometry, material);
+      context.scene.add(line);
+      // Lines are cleaned up manually in destroy() method, not via cleanupRegistry
+      this.borderLines.push(line);
+    }
+
+    console.log(`🛡️ [MatchAreaWalls] Created ${this.borderLines.length} border lines`);
   }
 
   destroy(): void {
@@ -154,9 +216,22 @@ export class MatchAreaWalls extends GameObject {
       for (const segment of this.wallSegments) {
         gameObjects.unregister(segment.id);
       }
+
+      // Manually remove and dispose border lines from scene
+      console.log(`🛡️ [MatchAreaWalls] Removing ${this.borderLines.length} border lines from scene`);
+      for (const line of this.borderLines) {
+        this.context.scene.remove(line);
+        line.geometry.dispose();
+        if (Array.isArray(line.material)) {
+          line.material.forEach((mat) => mat.dispose());
+        } else {
+          line.material.dispose();
+        }
+      }
     }
 
     this.wallSegments = [];
+    this.borderLines = [];
     super.destroy();
   }
 }
