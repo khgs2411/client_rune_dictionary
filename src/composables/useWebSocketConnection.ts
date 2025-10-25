@@ -5,7 +5,6 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useGameConfigStore } from '@/stores/config.store';
 import { useSceneStore } from '@/stores/scene.store';
 import { useWebSocketStore } from '@/stores/websocket.store';
-import { useWebSocket } from '@vueuse/core';
 import { useRxjs, WebsocketStructuredMessage } from 'topsyde-utils';
 import { computed } from 'vue';
 
@@ -152,16 +151,8 @@ export const useWebSocketConnection = () => {
     if (!config.debug.showWebSocketDebugger) return;
 
     emitDebugEvents(event);
-
-    // emitSceneEvents(event);
   }
 
-
-  function emitSceneEvents(event: Omit<I_DebugConsoleEvent, "timestamp">) {
-    if (event.type == 'scene') {
-      rx.$next('scene', { cta: event.type, data: event });
-    }
-  }
 
   function emitDebugEvents(event: Omit<I_DebugConsoleEvent, "timestamp">) {
     if (event.type.includes('scene')) return;
