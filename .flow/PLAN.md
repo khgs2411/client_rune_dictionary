@@ -61,27 +61,30 @@ Reimplement the combat/match system from the deprecated 2D PrimeVue application 
 
 **Last Updated**: 2025-10-25
 
+**Recent Changes**:
+- 🚧 Started implementation of Iteration 0 - Game Mode Controls & Visibility Management (2025-10-25)
+- 🎨 Completed brainstorming for Iteration 0 - 6 subjects resolved (2025-10-25)
+- 📦 Archived Phase 2 Task 1 (5 iterations) to `.flow/ARCHIVE.md` (2025-10-25)
+- 📦 Archived Phase 1 (2 tasks) to `.flow/ARCHIVE.md` (2025-10-25)
+- 🚧 Started Task 2: Match UI Components (2025-10-25)
+- 📝 Moved Iteration 4 from Task 1 to Task 2 as Iteration 0 (Game Mode Controls & Camera) (2025-10-25)
+
 **Current Work**:
 - **Phase**: [Phase 2 - Match Instantiation & Initialization](#phase-2-match-instantiation--initialization-) 🚧 IMPLEMENTING
-- **Task**: [Task 1 - Match State Management](#task-1-match-state-management-) 🚧 IN PROGRESS (5/6 complete)
-- **Iteration**: Next up - [Iteration 4 - Game Mode Controls & Visibility](#iteration-4-game-mode-controls--visibility-management-)
+- **Task**: [Task 2 - Match UI Components](#task-2-match-ui-components-) 🚧 IN PROGRESS
+- **Iteration**: [Iteration 0 - Game Mode Controls & Visibility Management](#iteration-0-game-mode-controls--visibility-management-)
 
 **Completion Status**:
-- Phase 1: ✅ 100% | Phase 2 Task 1: 🚧 83% (5/6 iterations) | Phase 2 Task 2: ⏳ 0% | Phases 3-18: ⏳ 0%
+- Phase 1: ✅ 100% | Phase 2 Task 1: ✅ 100% (5/5 iterations) | Phase 2 Task 2: 🚧 0% (0/4 iterations) | Phases 3-18: ⏳ 0%
+
+**Archived Content**:
+- Phase 1 (2 tasks) → See `.flow/ARCHIVE.md`
+- Phase 2 Task 1 (5 iterations) → See `.flow/ARCHIVE.md`
 
 **Progress Overview**:
-- ✅ **Phase 1**: Analysis & Planning (verified & frozen)
-  - ✅ Task 1: Analyze Deprecated System
-  - ✅ Task 2: Design New Architecture
 - 🚧 **Phase 2**: Match Instantiation & Initialization ← **YOU ARE HERE**
-  - 🚧 Task 1: Match State Management (5/6 iterations complete)
-    - ✅ Iteration 1: Create Match Store
-    - ✅ Iteration 2: Match Creation from Game World
-    - ✅ Iteration 3: Fix Interaction System for Match Creation
-    - ⏳ Iteration 4: Game Mode Controls & Visibility Management ← **NEXT**
-    - ✅ Iteration 5: Leave Match API & HUD Display
-    - ✅ Iteration 6: GameObject Type Filtering for Interactions
-  - ⏳ Task 2: Match UI Components (0/3 iterations)
+  - 🚧 Task 2: Match UI Components (0/4 iterations) ← **YOU ARE HERE**
+    - 🚧 Iteration 0: Game Mode Controls & Visibility Management ← **IMPLEMENTING NOW**
     - ⏳ Iteration 1: Match.vue State Machine
     - ⏳ Iteration 2: WebSocket Event Handler
     - ⏳ Iteration 3: Error Handling UI
@@ -390,56 +393,6 @@ Combat event log:
 ---
 
 ## Development Plan
-
-### Phase 1: Analysis & Planning ✅
-
-**Status**: COMPLETE
-**Completed**: 2025-10-19
-
-**Purpose**: Understand old system, design new architecture, create development plan
-
-**Completion Criteria**:
-- Comprehensive analysis of deprecated match system completed ✅ (done via Task agent)
-- Architecture design documented in PLAN.md ✅ (completed above)
-- All phases, tasks, and iterations defined ✅ (below)
-- Ready to begin Phase 2 implementation
-
----
-
-#### Task 1: Analyze Deprecated System ✅
-
-**Status**: COMPLETE
-**Completed**: 2025-10-19
-
-**Summary**: Used Task agent to explore `src_deprecated/` and generated comprehensive analysis documents:
-- `deprecated_match_system_analysis.md` (8000+ words)
-- `deprecated_match_files_summary.md` (file paths, dependencies)
-- `deprecated_event_flow_detailed.md` (2500+ lines, step-by-step flow)
-
-**Key Findings**:
-- Server-authoritative turn-based/ATB hybrid
-- 8 WebSocket event types
-- Pinia + RxJS for state coordination
-- Timer interpolation for smooth countdown
-- Thin client architecture (no combat logic frontend)
-
----
-
-#### Task 2: Design New Architecture ✅
-
-**Status**: COMPLETE
-**Completed**: 2025-10-19
-
-**Summary**: Created architecture design above in this PLAN.md file.
-
-**Deliverables**:
-- High-level component diagram
-- Data flow diagrams
-- Module/Component breakdown for Three.js integration
-- Event routing specification
-- UI component hierarchy
-
----
 
 ### Phase 2: Match Instantiation & Initialization 🎨
 
@@ -989,636 +942,924 @@ private async pve(req: Request): Promise<I_ApplicationResponse> {
 
 ### **Implementation Tasks:**
 
-#### Task 1: Match State Management 🚧
+#### Task 2: Match UI Components 🚧
 
-**Status**: IN PROGRESS (5/6 iterations complete)
-**Purpose**: Create Pinia store and state management for match lifecycle
-
----
-
-##### Iteration 1: Create Match Store ✅
-
-**Goal**: Implement Pinia store with persistence for match state
-
-**Action Items**:
-- [x] Create `src/stores/match.store.ts`
-- [x] Define store structure: `{ currentMatchId, currentChannelId, channelName, matchState, isConnectedToMatch, gameState, matchResult }`
-- [x] ~~Add `pinia-plugin-persistedstate` configuration~~ (REMOVED - matches will not persist)
-- [x] Define TypeScript interfaces for state types (PlayerParticipant, NPCParticipant, TurnState, ATBState, TimerConfig, MatchResult)
-- [x] Export store composable
-
-**Verification**: Store can be imported and state is managed correctly
+**Purpose**: Create UI components for match flow
 
 ---
 
-### **Implementation - Iteration 1: Create Match Store**
+##### Iteration 0: Game Mode Controls & Visibility Management 🚧
 
-**Status**: ✅ COMPLETE
+**Goal**: Control player movement and camera perspective during match - limit movement while in match + change camera perspective
 
-**Action Items**: See action items above (all completed)
+**Status**: 🚧 IN PROGRESS (Implementing)
 
-**Implementation Notes**:
+**Note**: Exception to normal numbering - moved from Task 1 to Task 2 as it relates to match mode UX
 
-Created comprehensive match store following Pinia composition API pattern:
-
-1. **TypeScript Interfaces** (7 total):
-   - `I_ParticipantStats` - Shared stats structure (attack, defense, speed)
-   - `I_PlayerParticipant` - Player combatant data
-   - `I_NPCParticipant` - NPC combatant data
-   - `I_TurnState` - Turn number, current entity, isPlayerTurn flag
-   - `I_ATBState` - ATB readiness percentages (0-100)
-   - `I_TimerConfig` - Turn duration config (duration, warningThreshold, fallbackAction)
-   - `I_GameState` - Complete game state container
-   - `I_MatchResult` - Post-match statistics
-   - `MatchState` - UI state machine type ('LOBBY' | 'IN_PROGRESS' | 'FINISHED')
-
-2. **Store State**:
-   - All required fields from brainstorming session
-   - Proper null handling for optional/inactive match state
-   - Boolean flags for connection status
-
-3. **Computed Properties**:
-   - `hasActiveMatch` - Quick check for match existence
-   - `isMatchInProgress` - UI state check
-   - `isInLobby` - UI state check
-   - `isMatchFinished` - UI state check
-
-4. **Actions** (11 total):
-   - `initializeMatch()` - Populate from HTTP response
-   - `confirmMatchConnection()` - Set WebSocket connected flag
-   - `updateGameState()` - Generic partial updates
-   - `updatePlayerHealth()` - Specific player health update
-   - `updateNPCHealth()` - Specific NPC health update
-   - `updateTurnState()` - Turn state updates
-   - `updateATBState()` - ATB readiness updates
-   - `endMatch()` - Transition to FINISHED with result
-   - `leaveMatch()` - Return to LOBBY and clear state
-   - `$reset()` - Reset to initial state
-
-5. **Persistence**: ~~Initially planned~~ **REMOVED** - Matches will not persist across page refreshes (simpler V1, avoids stale state issues)
-
-**Design Decisions**:
-- Used composition API (consistent with other stores: settings, websocket)
-- Separate update methods for health (common operation, cleaner than generic update)
-- Computed properties for UI state checks (avoid repeated conditionals in components)
-- `initializeMatch()` expects full state from HTTP response (per Subject 3 resolution)
-- Dual-signal pattern: HTTP populates state, WebSocket confirms connection
-- **No persistence**: User decision - matches reset on page refresh (cleaner for V1, avoids edge cases)
-
-**Files Modified**:
-- `src/stores/match.store.ts` - Created (285 lines, comprehensive type definitions and state management)
-
-**Verification**:
-
-Verified via code review:
-- ✅ All TypeScript interfaces defined correctly
-- ✅ Store structure matches brainstorming requirements
-- ✅ Composition API pattern consistent with existing stores
-- ✅ All required actions implemented (initialize, update, end, leave, reset)
-- ✅ Computed properties for state checks
-- ✅ Persistence removed per user decision
-
-Will be fully tested during Iteration 2 integration with Match.vue.
-
-**Completion Notes**:
-- Iteration completed successfully
-- Store ready for use in next iteration (Match Creation Composable)
-- No persistence added (user decision - simpler V1, avoids stale state edge cases)
+**Brainstorming Complete**: All 6 subjects resolved, architecture decisions documented, action items identified. No pre-implementation tasks needed - ready to implement.
 
 ---
 
-##### Iteration 2: Match Creation from Game World ✅
+### **Brainstorming Session - Match Mode Controls & Environment**
 
-**Goal**: Implement match creation from Three.js game world (MatchModule + SceneStateService)
-
-**Status**: ✅ COMPLETE (SceneStateService created, MatchModule approach replaced by Iteration 3's component-based design)
-
-**Brainstorming Session**:
-
-**Context**: The original iteration design assumed match creation would be triggered from a Vue component using a composable. However, the actual architecture requires:
-1. Matches start from the Three.js game overworld (not Vue component)
-2. Player interacts with NPC/player via double left-click
-3. Game shifts into PVE mode (hide non-participants)
-4. Vue composable couples gameplay logic with Vue app layer (anti-pattern)
-5. Need scene module that integrates with InteractionService for mouse clicks
-6. Need scene state logic to control allowed actions during different states
-
-**Subjects for Discussion**:
-
-**Subject 1: Scene Module Architecture** ✅ RESOLVED (Type D)
-- **Question**: How to create a scene module that handles match instantiation and integrates with InteractionService?
-- **Context**: Need to follow existing scene module patterns, but as a MODULE (not service) that consumes InteractionService
-- **Resolution**: Type D - Create MatchModule as iteration action item
-- **Decision**: MatchModule will define integration with InteractionService and overworld game objects
-- **Dependencies**: None
-
-**Subject 2: NPC/Player Interaction Detection** ✅ RESOLVED (Type C)
-- **Question**: How to detect double left-click on NPC/player objects using InteractionService?
-- **Context**: InteractionService.registerMouseClick() exists, need to determine how to filter for NPCs/players and detect double-click
-- **Resolution**: Type C - Auto-resolved as implementation detail of MatchModule
-- **Decision**: This will be handled within MatchModule's init() method when defining InteractionService integration
-- **Dependencies**: Subject 1
-
-**Subject 3: Scene State Management** ✅ RESOLVED (Type D)
-- **Question**: How to implement scene state logic to control allowed actions during different states (e.g., disable movement during match instantiation)?
-- **Context**: Need to prevent movement/other interactions while match is instantiating
-- **Resolution**: Type D - Create SceneStateService as iteration action item
-- **Decision**: Cross-cutting service that MatchModule can modify and components like KinematicMovementComponent can query to prevent movement
-- **Dependencies**: Subject 1
-
-**Subject 4: Game Mode Shift** ✅ RESOLVED (Type C)
-- **Question**: How to transition game into PVE mode (hide non-participants, manage visible objects)?
-- **Context**: Only match participants and non-player game objects should be visible during match
-- **Resolution**: Type C - Auto-resolved as implementation detail of MatchModule
-- **Decision**: MatchModule orchestrates visibility changes during match creation flow (part of match instantiation logic)
-- **Dependencies**: Subject 3
-
-**Subject 5: Integration with Match Store** ✅ RESOLVED (Type C)
-- **Question**: How does scene module communicate with Pinia match store for state management?
-- **Context**: Store is acceptable as "glorified singleton" for state storage
-- **Resolution**: Type C - Auto-resolved as trivial import and usage pattern
-- **Decision**: MatchModule directly imports and uses `useMatchStore()` (pattern already exists in KinematicMovementComponent with useGameConfigStore)
-- **Dependencies**: Subject 1
-
-**Subject 6: HTTP Request from Scene Module** ✅ RESOLVED (Type A)
-- **Question**: How does scene module make POST request to `/match/pve` endpoint?
-- **Context**: Original design had composable making request, now scene module owns this responsibility
-- **Resolution**: Type A - Create MatchAPI class as pre-implementation task (< 30 min, blocking)
-- **Decision**: Create `src/api/match.api.ts` extending BaseAPI with `createPveMatch()` method following MultiplayerAPI pattern
-- **Dependencies**: Subject 1
-
----
-
-**Pre-Implementation Tasks** (Complete before main implementation):
-
-**Pre-Task 1: Create MatchAPI Class** ✅ COMPLETE
-- **Why it blocks**: MatchModule needs this API to make HTTP requests to `/match/pve` endpoint
-- **Estimated time**: < 30 minutes
-- **Action Items**:
-  - [x] Create `src/api/match.api.ts` extending BaseAPI from topsyde-utils
-  - [x] Implement `createPveMatch(payload)` method using `this.post('/pve', payload)`
-  - [x] Add proper TypeScript interfaces for request/response (`I_CreatePveMatchRequest`, `CreatePveMatchResponseData`, `I_CreatePveMatchResponse`)
-  - [x] Add error handling with `BaseAPI.Status(response)`
-  - [x] Follow pattern from `src/api/multiplayer.api.ts`
-
-**Verification**: ✅ MatchAPI reviewed and confirmed working
-
----
-
-**Updated Action Items** (Main implementation work):
-
-- [ ] Create `src/game/services/SceneStateService.ts` extending SceneService
-- [ ] Define scene states enum: `OVERWORLD`, `MATCH_INSTANTIATING`, `PVE_MATCH`
-- [ ] Implement state getter and setter methods in SceneStateService
-- [ ] Create `src/game/modules/scene/MatchModule.ts` extending SceneModule
-- [ ] Implement MatchModule.init() - register double-click handler with InteractionService
-- [ ] Implement double-click detection logic for NPC/player objects
-- [ ] Implement match creation flow: detect interaction → call MatchAPI → update match store
-- [ ] Integrate MatchModule with SceneStateService for state transitions
-- [ ] Implement game mode shift: hide non-participants when entering PVE mode
-- [ ] Update KinematicMovementComponent to query SceneStateService before allowing movement
-- [ ] Add MatchModule and SceneStateService to PlaygroundScene module registry
-- [ ] Handle error cases: show error message on API failure, stay in OVERWORLD state
-
-**Verification**:
-- Double-clicking NPC/player triggers match creation
-- Match store populated with response data
-- Game shifts to PVE mode (non-participants hidden)
-- Movement disabled during MATCH_INSTANTIATING state
-- Error handling works (show message on failure)
-
----
-
----
-
-### **Implementation - Iteration 2: Match Creation from Game World**
-
-**Status**: ✅ COMPLETE
-
-**Implementation Results**:
-- Created SceneStateService with state management (OVERWORLD/MATCH_INSTANTIATING/PVE_MATCH)
-- Prototyped MatchModule approach (later replaced by component-based design in Iteration 3)
-- Established scene state architecture that persists through redesign
-
-**Key Accomplishments**:
-- SceneStateService created and integrated into GameScene (src/game/services/SceneStateService.ts)
-- State transitions working: OVERWORLD ↔ MATCH_INSTANTIATING ↔ PVE_MATCH
-- MatchAPI class created for /match/pve endpoint calls
-- Architecture exploration led to better component-based solution (Iteration 3)
-
-**Files Modified**:
-- `src/api/match.api.ts` - MatchAPI class for HTTP requests ✅
-- `src/game/services/SceneStateService.ts` - State management service ✅
-- `src/game/modules/scene/MatchModule.ts` - Prototype (replaced in Iteration 3) ❌ Removed
-- `src/scenes/PlaygroundScene.ts` - Service registration ✅
-
-**Verification**: SceneStateService integrated and state transitions working
-
-**Note**: MatchModule was prototyped in this iteration but replaced by InteractionComponent + MatchComponent architecture in Iteration 3 (component-based design proved superior to module-based approach)
-
-**Completed**: 2025-10-24
-
----
-
-##### Iteration 3: Fix Interaction System for Match Creation ✅
-
-**Goal**: Redesign match creation interaction to work with InteractionService's object-based registration pattern
-
-**Status**: ✅ COMPLETE
-
-**Problem Statement**:
-
-The current MatchModule implementation doesn't work because:
-- InteractionService expects objects to register their own "clickability"
-- MatchModule tries to register a global click handler without an object3D
-- Result: `intersection` is undefined, can't detect which object was clicked
-
-**Console Output**:
-```
-Processing click handler: {id: 'match-module-click', button: 'left', requireHover: undefined, object3D: undefined, callback: ƒ}
-Handler object3D: undefined
-🖱️ [MatchModule] Object clicked: undefined
-```
-
-**Proposed Solutions Explored**:
-
-✅ **Analysis Complete** - Three options analyzed (NPC GameObject, Modify InteractionService, Hybrid approach)
-
-**Chosen Solution: Option A Extended** - NPC GameObject + InteractionComponent + MatchComponent
-
-**Architecture Decision**:
-- **InteractionComponent**: Generic proxy layer between InteractionService and functionality
-  - Provides event emitter API: `on('click', callback)`, `on('doubleclick', callback)`
-  - Abstracts InteractionService complexity away from other components
-  - Reusable for any GameObject that needs interaction events (doors, chests, NPCs, etc.)
-
-- **MatchComponent**: Match creation logic only
-  - Requires InteractionComponent
-  - Listens to `doubleclick` event
-  - Handles match instantiation and state transition
-  - Single responsibility: match creation
-
-- **NPC Prefab**: Composition of components
-  - Transform + Geometry + Material + Mesh (visual)
-  - InteractionComponent (interaction events)
-  - MatchComponent (match creation behavior)
-
-**Why This Is Better**:
-- ✅ Clean separation of concerns
-- ✅ Reusable InteractionComponent for other GameObjects
-- ✅ MatchComponent only handles match logic (single responsibility)
-- ✅ Composition over inheritance (mix and match behaviors)
-- ✅ Follows GameObject/Component architecture patterns
-
-**Action Items**:
-- [x] Read InteractionService.ts to understand object registration pattern
-- [x] Review ClickVFXComponent and HoverGlowComponent for component-based interaction pattern
-- [x] Analyze MultiplayerModule to see if similar pattern exists for player spawning
-- [x] Propose architectural solution with pros/cons
-- [x] User approved Option A Extended
-- [x] Create InteractionComponent (generic event proxy)
-- [x] Create MatchComponent (match creation logic)
-- [x] Create NPC prefab (TrainingDummy or similar)
-- [x] Add NPC to PlaygroundScene
-- [x] Remove MatchModule (no longer needed)
-- [x] Fix hover registration bug (requireHover now works!)
-- [x] Test double-click → match creation flow (✅ WORKING!)
-- [x] Verify state transitions work correctly (✅ WORKING!)
-
----
-
-##### Iteration 4: Game Mode Controls & Visibility Management ⏳
-
-**Goal**: Complete remaining action items from Iteration 2 - movement control, visibility management, and user-facing error handling
-
-**Status**: ⏳ PENDING
-
-**Action Items**:
-- [ ] Update KinematicMovementComponent to query SceneStateService before allowing movement
-  - Query `context.getService('state').isOverworld()` in update() method
-  - Skip movement processing if not in OVERWORLD state
-  - Add console log for debugging: "Movement disabled during [state]"
-- [ ] Implement game mode shift: hide non-participants when entering PVE mode
-  - In MatchModule.enterPVEMode(), get all player GameObjects from scene
-  - Hide all players except local player (match participant)
-  - Keep environment objects visible (trees, ground, bushes, etc.)
-  - Store hidden objects list for restoration on match end
-- [ ] Implement exitPVEMode visibility restoration
-  - Show all previously hidden player objects
-  - Reset visibility state
-- [ ] Handle error cases: show error message on API failure
-  - Replace console.error() in MatchModule.handleMatchCreationError() with user-facing notification
-  - Create toast/notification component (or use existing Reka UI toast)
-  - Display error message with "Retry" option
-  - Keep game in OVERWORLD state on error
-
-**Verification**:
-- Movement disabled during MATCH_INSTANTIATING state (character cannot move)
-- Non-participant players hidden when entering PVE mode
-- Players reappear when exiting PVE mode
-- Error toast shows when match creation fails
-- "Retry" button works and attempts match creation again
-
----
-
-##### Iteration 5: Leave Match API & HUD Display ✅
-
-**Goal**: Implement match leave functionality and basic in-match HUD display
-
-**Status**: ✅ COMPLETE
-**Completed**: 2025-10-24
-
-**Action Items**:
-
-**Part 1: Leave Match API**
-- [x] Create `/match/leave` endpoint in MatchAPI
-  - Method: `leaveMatch(payload: I_LeaveMatchRequest)`
-  - POST request to `/match/leave`
-  - Payload: `{ whoami: I_ClientData, matchId: string }`
-  - Returns success/failure response
-- [x] Create MatchHUD.vue component (Vue, not GameObject component)
-  - Leave button triggers API call (user decision: button instead of keyboard)
-  - Call MatchAPI.leaveMatch()
-  - Update match store (clear matchId, reset state via $reset())
-  - Emit RxJS event: `onStateChange` with `E_SceneState.OVERWORLD`
-- [x] Test leave flow: In match → Click Leave button → Return to overworld
-
-**Part 2: Match HUD Display**
-- [x] Create MatchHUD.vue component
-  - Display match ID (truncated) and channel name
-  - Leave button with loading state
-  - Reactive visibility based on `matchStore.currentMatchId`
-- [x] Style HUD with Tailwind CSS
-  - Top-right corner positioning (`fixed top-4 right-4`)
-  - Semi-transparent background (`bg-black/70 backdrop-blur-sm`)
-  - Readable text (white with semantic colors)
-  - Smooth transitions and disabled states
-- [x] Show/hide HUD based on match state
-  - Hidden when `currentMatchId === null` (OVERWORLD)
-  - Visible when `currentMatchId !== null` (in match)
-- [x] Connect HUD to match store (reactive)
-  - Uses `DataStore.match` for reactive state
-  - Auto-updates when match state changes
-- [x] RxJS integration
-  - Emits `onStateChange` event on `scene:state` channel
-  - SceneStateService listens and transitions to OVERWORLD
-
-**Implementation Summary**:
-
-Created complete leave match flow with Vue-based HUD:
-
-1. **MatchAPI Integration** (`src/api/match.api.ts`):
-   - Added `leaveMatch()` method matching existing backend endpoint
-   - Request: `{ whoami: I_ClientData, matchId: string }`
-   - Response: `{ message: string }`
-   - Proper error handling with `BaseAPI.Status()`
-
-2. **MatchHUD Component** (`src/components/match/MatchHUD.vue`):
-   - Reactive visibility using computed property on `matchStore.currentMatchId`
-   - Displays match info (ID truncated to 8 chars, channel name)
-   - Leave button with loading state (`isLeaving` ref)
-   - API call on button click
-   - Store reset via `matchStore.$reset()`
-   - RxJS event emission: `rxjs.$next('onStateChange', E_SceneState.OVERWORLD)`
-   - Error handling with alert (TODO: replace with toast)
-   - Tailwind styling: top-right, semi-transparent, backdrop blur
-
-3. **Game.vue Integration**:
-   - Added `<MatchHUD v-if="websocketManager.isConnected" />`
-   - HUD visible when connected and in match
-
-**Files Modified**:
-- `src/api/match.api.ts` (added leaveMatch method and interfaces)
-- `src/components/match/MatchHUD.vue` (created - 87 lines)
-- `src/views/Game.vue` (added MatchHUD component)
-
-**Verification**:
-- ✅ Clicking Leave button in match calls leave API
-- ✅ Match store is cleared via $reset()
-- ✅ RxJS event emitted to SceneStateService
-- ✅ Scene state returns to OVERWORLD (via RxJS listener - user implemented)
-- ✅ HUD displays correctly when in match
-- ✅ HUD hidden in overworld
-- ✅ Leave flow is smooth (no errors)
-- ✅ User feedback: "we nocked it out of the park with this one"
-
-**Verification Method**: Manual integration testing
-- Started matchmaking server + frontend dev server
-- Created match via TrainingDummy double-click
-- MatchHUD appeared with match info
-- Clicked Leave button
-- API call succeeded, store reset, returned to overworld
-- HUD hidden after leaving match
-
-**Design Decisions**:
-- Vue HUD component instead of GameObject component (user decision - cleaner separation of UI and game logic)
-- Button click instead of keyboard event (user decision - more accessible)
-- RxJS event emission pattern for Vue ↔ Three.js communication
-- Alert for errors (TODO: replace with toast notifications in Iteration 4)
-- Semi-transparent backdrop blur for professional appearance
-- Truncated match ID display (first 8 chars) for readability
-
----
-
-##### Iteration 6: GameObject Type Filtering for Interactions ✅
-
-**Goal**: Implement type-based filtering for GameObject interactions to ensure match creation only works on NPCs (not players, environment objects, etc.)
-
-**Status**: ✅ COMPLETE
-
-**Problem Statement**:
-Currently, InteractionComponent and MatchComponent don't distinguish between different types of GameObjects. A player could theoretically double-click:
-- Another player's character
-- Environment objects (trees, ground, boxes)
-- NPCs
-
-We need to ensure match creation ONLY triggers when double-clicking NPCs.
-
----
-
-### **Brainstorming Session - GameObject Type Filtering & Architecture Review**
-
-**Focus**: Design the filtering mechanism for GameObject interactions and clean up deprecated code
+**Focus**: Design the architecture for match mode gameplay area, movement restrictions, camera control, and scene state management
 
 **Subjects to Discuss** (tackle one at a time):
 
-1. ✅ **Filtering Approach Selection** - Choose between Type Property, GameObject Tags, or Component-based Detection for identifying object types
-2. ✅ **Filtering Implementation Location** - Determine WHERE the filtering logic should live (InteractionService, GameObjectsManager, MatchComponent, or InteractionComponent)
-3. ✅ **InteractableBuilder Deprecation** - Assess if `src/game/services/InteractableBuilder.ts` is still required after migration to InteractionComponent pattern (equates to pre-implementation task)
+1. ✅ **Movement Limitation** - How and where in the code do we limit player movement during matches?
+2. ✅ **Match Area Definition** - How do we create a 'match area' around the player?
+3. ✅ **Grid System** - How do we apply a grid only to the match area (with size controls)?
+4. ✅ **Scene State/Mode Management** - How do we shift scene state/mode between overworld and match?
+5. ✅ **Camera Control** - How do we control the camera during matches?
+6. ✅ **Match Module Architecture** - Do we need a match module to handle all match logic?
 
 **Resolved Subjects**:
 
 ---
 
-### ✅ Subject 1: Filtering Approach Selection
+### ✅ Subject 1: Movement Limitation
 
-**Decision**: Hybrid approach - Component-based (Option 3) + Type Property (Option 1)
+**Decision**: Event-driven pattern using SceneStateService registry + KinematicMovementComponent state reaction
 
-**Rationale**:
-- Component-based detection works **immediately** (0 code changes to GameObject)
-- `hasComponent(NPCMarker)` already exists and is TypeScript-safe
-- Type Property can be added later if needed for simpler queries
-- User implementing this approach
+**Architecture**:
 
-**Implementation**:
-- Create marker component: `src/game/components/markers/NPCMarker.ts`
-- Add `NPCMarker` to TrainingDummy
-- MatchComponent checks `hasComponent(NPCMarker)` before registering interactions
-- Optionally add `type` property to GameObject later for convenience
+1. **SceneStateService Extension**:
+   - Implement `register(id: string, callback: Function)` from `I_SceneService`
+   - Implement `unregister(id: string)` from `I_SceneService`
+   - Store registered listeners in a Map
+   - Emit state changes to all registered listeners when `setState()` is called
+
+2. **KinematicMovementComponent Integration**:
+   - Register for state changes in `init()` method
+   - Unregister in `destroy()` method
+   - React to state changes by updating internal flags:
+     - `enableJumping` (existing) - Disabled when NOT in OVERWORLD
+     - `enableMovement` (new) - Disabled in MENU states
+   - Movement logic already checks these flags before processing input
+
+3. **State-based Movement Rules**:
+   ```
+   OVERWORLD → enableMovement: true, enableJumping: true ✅✅
+   MATCH_INSTANTIATING → enableMovement: true, enableJumping: false ✅🚫
+   PVE_MATCH → enableMovement: true, enableJumping: false ✅🚫
+   MENU (future) → enableMovement: false, enableJumping: false 🚫🚫
+   ```
+
+**Why This Works**:
+- ✅ Event-driven (no polling overhead)
+- ✅ Decoupled (component reacts to service events)
+- ✅ Scalable (other components can register too)
+- ✅ Follows existing service pattern in GameScene
+- ✅ Single source of truth (SceneStateService owns state)
+
+**Implementation Details**:
+- Callback signature: `(newState: E_SceneState) => void`
+- Registration in KinematicMovementComponent.init()
+- Unregistration in KinematicMovementComponent.destroy()
+- State change logic updates both flags based on new state
 
 **Resolution Type**: D (Iteration Action Items)
 
-**Action Items**:
-- [x] User implementing: Create NPCMarker component
-- [x] User implementing: Add NPCMarker to TrainingDummy
-- [x] User implementing: Add filtering check to MatchComponent
-- [ ] (Optional) Add `type` property to GameObject for convenience queries
+**Action Items Added**:
+- Implement `register()` and `unregister()` in SceneStateService
+- Add state change emission in `setState()` method
+- Add `enableMovement` flag to KinematicMovementComponent
+- Register KinematicMovementComponent for state changes in `init()`
+- Add state-based movement control logic (OVERWORLD vs MATCH vs MENU)
+
+**No Testing Required**: Behavior guaranteed by implementation logic
 
 ---
 
-### ✅ Subject 2: Filtering Implementation Location
+### ✅ Subject 2: Match Area Definition
 
-**Decision**: Component-level (in MatchComponent itself)
+**Decision**: Distance-gated interaction + invisible collision dome (360°) around both participants
 
-**Rationale**:
-- GameObject checks its own components - simple and self-contained
-- No changes needed to InteractionService or GameObjectsManager
-- Components know their own requirements (MatchComponent knows it needs NPCs)
-- Follows single responsibility principle
-- Easy to understand and maintain
+**Architecture**:
 
-**Implementation**:
+1. **Distance-Based Interaction Gate**:
+   - MatchComponent checks distance between player and target (NPC)
+   - Match instantiation only allowed within threshold distance (e.g., 5 units)
+   - Before distance check: No match creation possible
+   - Within distance: Double-click triggers match
+
+2. **Proximity Indication System** (NEW REQUIREMENT):
+   - Visual feedback when player is close enough to interact
+   - Options: Glow effect, outline shader, UI prompt, etc.
+   - Indicates "you can start match now"
+   - Applies to NPCs within interaction distance
+
+3. **Match Area Dome Creation**:
+   - **When**: After match instantiation confirmed (state → MATCH_INSTANTIATING)
+   - **What**: Invisible 360° collision dome (hemisphere or full sphere)
+   - **Where**: Centered between player and NPC positions
+   - **Size**: Calculated based on distance between participants (e.g., diameter = distance * 2)
+   - **Collision**: Static physics body prevents exit
+   - **Visual**: Debug wireframes (toggleable via gameConfig)
+
+4. **Dome Prefab**:
+   - GameObject with:
+     - TransformComponent (position, scale)
+     - GeometryComponent (sphere geometry)
+     - MaterialComponent (invisible or wireframe-only)
+     - PhysicsComponent (static body, sphere collider)
+   - Created dynamically on match start
+   - Destroyed on match end
+
+5. **Smooth Overworld Transition**:
+   - Players remain in overworld scene (no scene switch)
+   - Dome constrains movement area
+   - State changes from OVERWORLD → MATCH_INSTANTIATING → PVE_MATCH
+   - Camera shifts, grid appears, but same 3D space
+   - Non-participants hidden (from Subject 1 original requirements)
+
+**Why This Works**:
+- ✅ No jarring scene transitions (stay in overworld)
+- ✅ Physical boundaries prevent escaping match area
+- ✅ Clear visual feedback (proximity + dome wireframes)
+- ✅ Mathematically simple (distance checks, sphere positioning)
+- ✅ Reusable prefab pattern
+- ✅ Debug-friendly (wireframes toggleable)
+
+**Implementation Details**:
+
+**Distance Calculation**:
 ```typescript
-// MatchComponent.ts
-async init(context: I_SceneContext) {
-  // Self-check: is this GameObject an NPC?
-  if (!this.gameObject.hasComponent(NPCMarker)) {
-    console.warn(`[MatchComponent] Should only be added to NPCs`);
-    return; // Skip interaction registration
-  }
+// In MatchComponent
+const distance = player.position.distanceTo(npc.position);
+const MIN_INTERACTION_DISTANCE = 5; // units
 
-  // Continue with normal init...
+if (distance > MIN_INTERACTION_DISTANCE) {
+  console.warn('Too far to start match');
+  return;
 }
 ```
 
+**Dome Positioning**:
+```typescript
+// Center point between player and NPC
+const centerX = (player.position.x + npc.position.x) / 2;
+const centerZ = (player.position.z + npc.position.z) / 2;
+const centerY = 0; // Ground level
+
+// Diameter based on distance + buffer
+const diameter = distance * 2 + 5; // Extra space for movement
+```
+
+**Dome Prefab Structure**:
+- `MatchAreaDome` extends GameObject
+- Sphere geometry (radius = diameter / 2)
+- Invisible material (or wireframe for debug)
+- Static physics collider (prevents exit)
+- Created in MatchComponent after successful match creation
+- Destroyed in match leave flow
+
 **Resolution Type**: D (Iteration Action Items)
 
-**Action Items**:
-- [x] User implementing: Add NPCMarker check to MatchComponent.init()
-- [x] User implementing: Log warning if used incorrectly
-- [x] User implementing: Skip interaction registration for non-NPCs
+**New Requirements Discovered**:
+1. **Proximity Indication System** - Visual feedback for interaction distance
+   - Could be: HoverGlow enhancement, UI distance indicator, outline shader
+   - Should be generic (reusable for other interactions)
+
+**Action Items Added**:
+- Add distance check to MatchComponent before allowing match creation
+- Implement proximity indication system (visual feedback when in range)
+- Create MatchAreaDome prefab (invisible collision sphere)
+- Calculate dome position (midpoint between player and NPC)
+- Calculate dome size (based on participant distance + buffer)
+- Spawn dome on match start (MATCH_INSTANTIATING state)
+- Destroy dome on match end (return to OVERWORLD state)
+- Add debug wireframe toggle for dome visualization
 
 ---
 
-### ✅ Subject 3: InteractableBuilder Assessment
+### ✅ Subject 3: Grid System
 
-**Decision**: No cleanup needed - keep existing components as-is (Resolution Type: B - Documentation)
+**Decision**: Tactical grid overlay for match area with position-to-grid coordinate mapping and ability range calculations
 
-**Analysis**:
-Reviewed interaction system files to assess if cleanup is needed:
+**Combat System Context** (Critical Design Driver):
+- **Tactical ATB Hybrid**: Players move during ATB charge phase, freeze when turn activates
+- **Grid-based ability ranges**: Melee hits adjacent cells, ranged hits distant cells
+- **Positioning matters**: Players must strategically position during charge to be in range when turn activates
+- **Real-time + Turn-based fusion**: Movement is real-time (during charge), targeting is grid-based (during turn)
 
-**Files Reviewed**:
-1. `src/game/services/InteractableBuilder.ts` - Builder pattern, may still be useful
-2. `src/game/components/interactions/HoverComponent.ts` - Uses I_Interactable interface
-3. `src/game/components/interactions/ClickComponent.ts` - Uses I_Interactable interface
+**Architecture**:
 
-**Current State**:
-- GameObject.registerInteractions() is disabled (line 171 in GameObject.ts)
-- HoverComponent and ClickComponent rely on builder pattern (currently non-functional)
-- HoverGlowComponent, ClickVFXComponent work independently (direct InteractionService calls)
-- InteractionComponent is the new generic pattern
+1. **Grid Prefab - MatchGrid**:
+   - GameObject with grid visualization
+   - Only visible during PVE_MATCH state
+   - Spawned with MatchAreaDome (same lifecycle)
+   - Configurable cell size (e.g., 1x1 units per cell)
+   - Covers entire dome area (circular grid)
 
-**Decision Rationale**:
-- HoverComponent and ClickComponent are NOT deprecated - they're just inactive
-- Deleting them would remove potential pattern flexibility
-- No cleanup needed for Iteration 6 (filtering focus)
-- Pattern consolidation can be addressed in future iteration if needed
+2. **Grid Geometry**:
+   - **Visual**: Three.js GridHelper or custom line geometry
+   - **Size**: Matches dome diameter (e.g., if dome is 20 units diameter, grid is 20x20)
+   - **Cell size**: Configurable (default 1 unit = 1 cell)
+   - **Material**: Semi-transparent lines (white/gray, alpha 0.3)
+   - **Position**: Ground level (Y = 0), centered with dome
 
-**Resolution Type**: B (Immediate Documentation)
+3. **Grid Coordinate System**:
+   - **World-to-Grid mapping**: Convert 3D position to grid coordinates
+   - **Grid origin**: Center of dome = (0, 0) in grid space
+   - **Cell coordinates**: Integer-based (e.g., player at grid position [3, -2])
+   - **Conversion formula**:
+     ```typescript
+     gridX = Math.floor((worldX - gridOriginX) / cellSize)
+     gridZ = Math.floor((worldZ - gridOriginZ) / cellSize)
+     ```
 
-**Documentation**: This analysis is now captured. No code changes required for Iteration 6.
+4. **Grid Manager Service** (NEW):
+   - Manages grid lifecycle (spawn/destroy with dome)
+   - Provides position-to-grid conversion API
+   - Provides grid-to-position conversion API (for ability targeting)
+   - Calculates grid distance between positions
+   - Validates ability ranges (is target in range?)
 
-**Future Consideration** (not blocking):
-- Consider pattern consolidation in future iteration
-- Decision: Keep both patterns or standardize on one
-- Not urgent for current filtering implementation
+5. **Participant Grid Tracking**:
+   - Each match participant tracks their current grid position
+   - Updated every frame during movement (during charge phase)
+   - Frozen when ATB turn activates (no movement = fixed grid position)
+   - Server needs to know grid positions for ability validation
+
+6. **Ability Range System** (Future - Combat Phase):
+   - Abilities define range in grid cells (e.g., melee = 1 cell, fireball = 5 cells)
+   - Range calculated using grid distance formula:
+     ```typescript
+     const gridDistance = Math.abs(targetGridX - casterGridX) + Math.abs(targetGridZ - casterGridZ)
+     // Manhattan distance for tactical grid
+     ```
+   - UI highlights valid target cells when ability selected
+   - Server validates range before executing ability
+
+**Why This Works**:
+- ✅ Grid tied to match area (dome boundary)
+- ✅ Clear tactical positioning (visual grid overlay)
+- ✅ Simple coordinate math (world ↔ grid conversion)
+- ✅ Grid scales with dome size (flexible)
+- ✅ Supports range-based abilities (melee vs ranged)
+- ✅ Real-time movement + grid-based targeting fusion
+
+**Implementation Details**:
+
+**Grid Prefab Structure**:
+```typescript
+class MatchGrid extends GameObject {
+  constructor(config: { centerX: number, centerZ: number, diameter: number, cellSize: number }) {
+    // GridHelper or custom line geometry
+    // Semi-transparent material
+    // Position at ground level
+  }
+
+  worldToGrid(worldX: number, worldZ: number): { gridX: number, gridZ: number }
+  gridToWorld(gridX: number, gridZ: number): { worldX: number, worldZ: number }
+  getGridDistance(pos1, pos2): number
+}
+```
+
+**Grid Manager Service**:
+```typescript
+class GridManagerService extends SceneService {
+  private grid: MatchGrid | null = null;
+
+  spawnGrid(centerX, centerZ, diameter, cellSize): MatchGrid
+  destroyGrid(): void
+  getParticipantGridPosition(participantId): { gridX, gridZ }
+  isInRange(casterId, targetId, abilityRange): boolean
+}
+```
+
+**Integration with Movement**:
+- During ATB charge phase: `enableMovement = true`, grid position updates each frame
+- When turn activates: `enableMovement = false`, grid position frozen
+- Abilities use frozen grid position for range validation
+
+**Resolution Type**: D (Iteration Action Items)
+
+**Dependencies**:
+- Subject 2 (MatchAreaDome) - Grid spawns with dome, uses same center/size
+- Future: ATB system integration (charge/turn phases)
+- Future: Ability system (range definitions, targeting UI)
+
+**Action Items Added**:
+- Create MatchGrid prefab (GridHelper or custom line geometry)
+- Add configurable cell size parameter (default 1 unit)
+- Implement worldToGrid() coordinate conversion
+- Implement gridToWorld() coordinate conversion
+- Implement getGridDistance() using Manhattan distance
+- Create GridManagerService for lifecycle and API
+- Spawn grid with dome on match start
+- Destroy grid with dome on match end
+- Track participant grid positions (update during movement)
+- Add grid visibility toggle to gameConfig
+
+**Future Work** (not this iteration):
+- Ability range definitions in ability data
+- Target cell highlighting during ability selection
+- Server-side range validation
+- Grid-based pathfinding for AI
 
 ---
 
-### **Implementation - Iteration 6: GameObject Type Filtering**
+#### Subject 4: Scene State/Mode Management ✅
 
-**Status**: ✅ COMPLETE
+**Question**: How do we manage state transitions during match flow? Do we need to enhance SceneStateService?
 
-**Implementation Results**:
-- Added `type` property to GameObject with `GameObjectType` enum (`'npc' | 'player' | 'environment' | 'item' | 'null'`)
-- Implemented `isType()` method on GameObject for type checking
-- Updated MatchComponent to check `isType('npc')` before creating matches
-- TrainingDummy configured with `type: 'npc'` property
+**Current Implementation Analysis**:
 
-**Key Accomplishments**:
-- Type system integrated into GameObject architecture (src/game/GameObject.ts:23, 79-81)
-- MatchComponent filtering implemented (src/game/components/match/MatchComponent.ts:99)
-- Type-safe filtering prevents match creation on non-NPC objects
-- Chose type property approach over component-based (simpler, clearer)
+SceneStateService (src/game/services/SceneStateService.ts) already provides:
+- ✅ State enum with all needed states (OVERWORLD, MATCH_INSTANTIATING, PVE_MATCH, MENU)
+- ✅ `setState()` / `getState()` API for state transitions
+- ✅ Convenience methods: `isOverworld()`, `isMatchInstantiating()`, `isPVEMatch()`
+- ✅ RxJS integration via `useRxjs('scene:state')` for event-driven pattern
+- ✅ `onStateChange` subscription mechanism (lines 57-66)
+- ✅ Console logging for state transitions
+- ✅ `reset()` method for cleanup
 
-**Files Modified**:
-- `src/game/GameObject.ts` - Added type property and isType() method
-- `src/game/common/gameobject.types.ts` - Type definition already existed
-- `src/game/components/match/MatchComponent.ts` - Added type check in handleMatchCreation()
-- `src/game/prefabs/npc/TrainingDummy.ts` - Configured with type: 'npc'
+**Current Usage**:
+- MatchComponent already uses setState() correctly (lines 96, 136, 149 in MatchComponent.ts)
+- State transitions working: OVERWORLD → MATCH_INSTANTIATING → PVE_MATCH
+- Error handling reverts to OVERWORLD
 
-**Verification**: Type-based filtering implemented and tested
+**Architectural Decision**: **MINIMAL ENHANCEMENT NEEDED**
 
-**Completed**: 2025-10-25
+**Rationale**:
+
+1. **Current API is Sufficient for State Management**:
+   - `setState()` provides clear, explicit state transitions
+   - Helper methods (`isOverworld()`, etc.) improve readability
+   - RxJS event system allows reactive subscriptions (Subject 1 pattern)
+
+2. **Need to Add Service Registry Pattern**:
+   - SceneStateService extends SceneService (implements I_SceneService)
+   - I_SceneService interface defines `register()` / `unregister()` methods (optional)
+   - Need to implement these methods for Subject 1 event-driven pattern
+   - Components will register callbacks to react to state changes
+
+3. **Who Triggers Transitions** (Clear Ownership):
+   - **MatchComponent** triggers: OVERWORLD → MATCH_INSTANTIATING → PVE_MATCH
+   - **MatchHUD leave button** (via RxJS) triggers: PVE_MATCH → OVERWORLD
+   - **Error handlers** trigger: any state → OVERWORLD (rollback)
+   - **No centralized orchestrator needed** - components own their transitions
+
+4. **State Validation Already Working**:
+   - MatchComponent checks `isOverworld()` before match creation (line 90)
+   - Prevents invalid state transitions (e.g., starting match during match)
+
+5. **Extension Path Clear** (if needed later):
+   - Can add state transition guards (validate before setState)
+   - Can add state history/stack (undo functionality)
+   - Can add transition callbacks (onEnterMatch, onLeaveMatch)
+   - **But YAGNI principle applies** - don't add until needed
+
+**State Transition Flow** (Current Implementation):
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                        State Lifecycle                          │
+└────────────────────────────────────────────────────────────────┘
+
+1. **Match Creation Initiated**:
+   User double-clicks NPC → MatchComponent.handleMatchCreation()
+   └─> stateService.setState(E_SceneState.MATCH_INSTANTIATING)
+
+2. **Match Created Successfully**:
+   API returns match data → MatchComponent.createPveMatch()
+   └─> stateService.setState(E_SceneState.PVE_MATCH)
+
+3. **Match Ended**:
+   User clicks Leave → MatchHUD emits RxJS event
+   └─> rxjs.$next('onStateChange', E_SceneState.OVERWORLD)
+   └─> SceneStateService.onStateChange() receives event
+   └─> stateService.setState(E_SceneState.OVERWORLD)
+
+4. **Error Rollback**:
+   API fails → MatchComponent.handleMatchCreationError()
+   └─> stateService.setState(E_SceneState.OVERWORLD)
+
+┌────────────────────────────────────────────────────────────────┐
+│                    Reactive Subscribers                         │
+└────────────────────────────────────────────────────────────────┘
+
+Subject 1 Resolution (Event-Driven Pattern):
+- KinematicMovementComponent subscribes to state changes
+- Registers with SceneStateService.register()
+- Receives callback on every setState() call
+- Updates enableMovement/enableJumping based on new state
+```
+
+**Integration with Subject 1** (Movement Limitation):
+
+SceneStateService already has the `register()` / `unregister()` methods defined in I_SceneService interface. KinematicMovementComponent will:
+1. Call `context.getService('state').register(callback)` in init()
+2. Callback receives new state and updates flags
+3. Call `context.getService('state').unregister(callback)` in destroy()
+
+**Why This Decision Is Correct**:
+- ✅ **Simple**: Uses existing setState() API, no new methods
+- ✅ **Clear Ownership**: Components trigger transitions they control
+- ✅ **Event-Driven**: RxJS enables Vue ↔ Game coordination (MatchHUD → SceneStateService)
+- ✅ **Testable**: State transitions explicit and traceable
+- ✅ **Extensible**: Can add guards/callbacks later if needed
+- ✅ **Follows YAGNI**: Don't add complexity until required
+
+**Resolution Type**: D (Iteration Action Items)
+
+**Action Items Added**:
+- Implement `register(callback)` method in SceneStateService
+  - Store callbacks in array
+  - Callback signature: `(newState: E_SceneState, oldState: E_SceneState) => void`
+- Implement `unregister(callback)` method in SceneStateService
+  - Remove callback from array
+- Update `setState()` to notify all registered callbacks
+  - Call each callback with newState and oldState
+- Components use this API for reactive state changes (Subject 1 integration)
+
+**Conclusion**: SceneStateService core API is solid. Just needs registry pattern implementation to support event-driven components (Subject 1).
 
 ---
 
-**Action Items**:
-- [x] Design GameObject type system
-  - Add optional `type` field to GameObject constructor config (`I_GameObjectConfig`)
-  - Define type enum or union type: `'npc' | 'player' | 'environment' | 'item' | 'ui'`
-  - Store type as readonly property on GameObject
-- [x] Update TrainingDummy to specify type
-  - Pass `type: 'npc'` in GameObject constructor
-  - Verify type is accessible from components
-- [x] Add interaction filtering to MatchComponent
-  - In `handleMatchCreation()`, check if GameObject type is 'npc'
-  - Only create match if type matches
-  - Log warning if MatchComponent added to non-NPC GameObject
-- [x] Create type guard utility (optional)
-  - Helper method: `isType(type: GameObjectType): boolean` on GameObject
-  - Can be used by components that need type checking
-- [x] Test filtering works
-  - Double-click NPC → Match created ✅
-  - Double-click player → No action ✅
-  - Double-click environment object → No action ✅
-  - Console warnings for misuse ✅
+#### Subject 5: Camera Control ✅
 
-**Alternative Approaches Considered**:
-1. **GameObject Tags** - More flexible than types (objects can have multiple tags)
-   - Pros: Supports multiple classifications (e.g., 'npc', 'hostile', 'tradeable')
-   - Cons: More complex, might be overkill for simple type filtering
-2. **Component-based Detection** - Check if GameObject has specific marker component
-   - Pros: Very flexible, follows ECS pattern
-   - Cons: More verbose, requires creating marker components
-3. **Type Property** (CHOSEN) - Simple type field on GameObject
-   - Pros: Simple, clear, easy to check
-   - Cons: Single type only (can't be both 'npc' and 'hostile')
+**Question**: How do we control the camera during matches?
 
-**Design Decision**:
-Use simple `type` property for V1. Can migrate to tag system later if needed.
+**Decision**: Fixed asymmetrical spectator camera using invisible GameObject anchor + animated transitions via enhanced useCamera API
+
+**Architecture Overview**:
+
+1. **Match Camera Anchor GameObject**:
+   - Invisible GameObject positioned at desired camera viewpoint
+   - Positioned to capture full match area (dome + grid from Subject 2/3)
+   - Static position (no movement) = camera stays fixed
+   - Created when match starts, destroyed when match ends
+
+2. **Camera Target Switching**:
+   - Enhance `useCamera.ts` with `changeTarget()` method
+   - Method signature: `changeTarget(newTarget: Vector3, perspective: CameraPerspective, duration: number)`
+   - Animates camera position smoothly from current to new target
+   - Uses lerp/tween for smooth transition (duration controls speed)
+
+3. **Camera Perspective Presets**:
+   - Define camera configuration constants for different states:
+     - `CAMERA_PRESET_OVERWORLD`: Follow player character (existing behavior)
+     - `CAMERA_PRESET_MATCH_SPECTATE`: Fixed overhead/angled view of match area
+   - Each preset defines: target position, angle, distance, FOV
+   - Easy to switch between presets via `changeTarget()` method
+
+4. **Mouse Input Control**:
+   - Disable right-click camera rotation during match states
+   - Mouse utility (`useCameraMouseInput.ts`) subscribes to SceneStateService (Subject 1/4 pattern)
+   - When state !== OVERWORLD: prevent right-click down event from triggering rotation
+   - Alternatively: Add `enabled` flag to `useCameraMouseInput` composable
+
+5. **State Integration**:
+   - Subscribe to SceneStateService state changes
+   - OVERWORLD → PVE_MATCH: Call `changeTarget(matchAnchor, CAMERA_PRESET_MATCH_SPECTATE, 1000ms)`
+   - PVE_MATCH → OVERWORLD: Call `changeTarget(playerCharacter, CAMERA_PRESET_OVERWORLD, 1000ms)`
+   - Lock mouse controls during match states
+
+**Implementation Details**:
+
+**Camera Anchor GameObject**:
+```typescript
+// Created in MatchComponent or MatchModule when match starts
+const matchCameraAnchor = new GameObject({
+  id: 'match-camera-anchor',
+  position: calculateCameraPosition(domeCenter, domeRadius)
+});
+// No mesh, no components - just a position reference
+// Destroyed when match ends
+```
+
+**Enhanced useCamera API**:
+```typescript
+// Add to useCamera.ts
+export interface I_CameraPerspective {
+  angle: { horizontal: number, vertical: number };
+  distance: number;
+  fov?: number;
+}
+
+// New method
+function changeTarget(
+  newTarget: Vector3,
+  perspective: I_CameraPerspective,
+  duration: number
+): Promise<void> {
+  // Animate from current to new target over duration
+  // Use lerp for position, slerp for rotation
+  // Update controller.target, controller.angle, controller.distance
+  // Return promise that resolves when animation complete
+}
+
+// Camera preset constants
+export const CAMERA_PRESET_OVERWORLD: I_CameraPerspective = {
+  angle: { horizontal: 0, vertical: Math.PI / 4 },
+  distance: 10,
+  fov: 75
+};
+
+export const CAMERA_PRESET_MATCH_SPECTATE: I_CameraPerspective = {
+  angle: { horizontal: Math.PI / 4, vertical: Math.PI / 3 },
+  distance: 15,
+  fov: 60
+};
+```
+
+**Mouse Input State Control**:
+```typescript
+// Option 1: Add enabled flag to useCameraMouseInput
+export function useCameraMouseInput(
+  rotation: CameraRotation,
+  zoom: CameraZoom,
+  enabled: Ref<boolean> // New parameter
+): CameraMouseInput {
+  // In handleMouseDown:
+  mouse.on('down', (event: I_MouseEvent) => {
+    if (!enabled.value) return; // Skip if disabled
+    if (event.button === 2) {
+      // ... pointer lock logic
+    }
+  });
+}
+
+// Option 2: Subscribe to SceneStateService in useCameraMouseInput
+// Register callback that sets internal _enabled flag based on state
+// Only allow rotation when state === OVERWORLD
+```
+
+**State Transition Flow**:
+```
+1. User double-clicks NPC → Match creation starts
+2. MatchComponent.createPveMatch() succeeds
+3. Create match camera anchor GameObject at calculated position
+4. Call camera.changeTarget(anchorPosition, CAMERA_PRESET_MATCH_SPECTATE, 1000)
+5. Camera smoothly animates to fixed spectator view (1 second duration)
+6. Mouse rotation disabled (right-click does nothing)
+7. Match proceeds with fixed camera
+
+8. User clicks Leave Match → Match ends
+9. Destroy match camera anchor GameObject
+10. Call camera.changeTarget(playerPosition, CAMERA_PRESET_OVERWORLD, 1000)
+11. Camera smoothly returns to follow player (1 second duration)
+12. Mouse rotation re-enabled
+```
+
+**Why This Design Works**:
+- ✅ **Leverages Existing Architecture**: useCamera already follows targets, just change the target
+- ✅ **Smooth Transitions**: Animated camera movement feels professional
+- ✅ **Simple GameObject Pattern**: Invisible anchor is clean and easy to manage
+- ✅ **Preset System**: Easy to define and switch between camera configurations
+- ✅ **State-Driven**: Integrates with SceneStateService (Subject 1/4 pattern)
+- ✅ **Mouse Control Separation**: useCameraMouseInput can be enabled/disabled independently
+- ✅ **No Complex Camera Manager**: No need for centralized camera orchestrator
+
+**Resolution Type**: D (Iteration Action Items)
+
+**Dependencies**:
+- Subject 2 (Match Area Dome) - Camera position calculated from dome center/radius
+- Subject 4 (SceneStateService) - State changes trigger camera transitions
+
+**Action Items Added**:
+- Create MatchCameraAnchor GameObject (invisible, position-only)
+- Calculate camera anchor position based on dome geometry (Subject 2)
+- Add `changeTarget()` method to useCamera.ts
+  - Parameters: newTarget (Vector3), perspective (angle/distance/fov), duration (ms)
+  - Implement lerp animation for smooth transition
+  - Return Promise that resolves when complete
+- Define camera perspective preset constants
+  - CAMERA_PRESET_OVERWORLD (follow player)
+  - CAMERA_PRESET_MATCH_SPECTATE (fixed overhead)
+- Add enabled flag or state subscription to useCameraMouseInput
+  - Disable right-click rotation when state !== OVERWORLD
+  - Option A: enabled ref parameter
+  - Option B: Subscribe to SceneStateService
+- Integrate camera transitions into match flow
+  - Match start: changeTarget(anchor, MATCH_SPECTATE, 1000)
+  - Match end: changeTarget(player, OVERWORLD, 1000)
+- Spawn/destroy camera anchor GameObject with match lifecycle
+
+---
+
+#### Subject 6: Match Module Architecture ✅
+
+**Question**: Do we need a match module to handle all match logic?
+
+**Decision**: **YES** - Lightweight MatchModule as match environment orchestrator, reacting to SceneStateService state changes
+
+**Architecture Overview**:
+
+**MatchModule Responsibilities** (Scene Infrastructure):
+1. **Register with SceneStateService** (Subject 1/4 pattern)
+   - Subscribe to state changes via `register(callback)`
+   - React to OVERWORLD → PVE_MATCH transition (spawn environment)
+   - React to PVE_MATCH → OVERWORLD transition (destroy environment)
+
+2. **Match Environment Lifecycle**:
+   - Spawn collision dome (Subject 2) when entering PVE_MATCH
+   - Spawn grid overlay (Subject 3) inside dome
+   - Create camera anchor GameObject (Subject 5) at calculated position
+   - Trigger camera transition via `camera.changeTarget()`
+   - Store references to spawned objects (dome, grid, anchor)
+   - Destroy all match objects when returning to OVERWORLD
+
+3. **Does NOT Handle**:
+   - ❌ Match creation API calls (MatchComponent owns this)
+   - ❌ Movement/jumping limitation (KinematicMovementComponent via Subject 1)
+   - ❌ Mouse rotation control (useCameraMouseInput via Subject 4)
+   - ❌ State transitions (MatchComponent/MatchHUD trigger these)
+   - ❌ Combat logic (future - separate system)
+
+**Why SceneStateService Over DataStore.match?**
+- ✅ **Single Source of Truth**: SceneStateService = game state authority
+- ✅ **Clear Separation**: Match store = data, Scene state = mode
+- ✅ **Consistent Pattern**: All systems react to state (Subject 1: movement, Subject 5: camera, now Subject 6: environment)
+- ✅ **Decoupling**: MatchModule doesn't care about match data, only mode transitions
+- ✅ **Event-Driven**: State change → MatchModule reacts (no polling, no watchers)
+
+**Match Environment Orchestration Flow**:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Match Start Sequence                          │
+└─────────────────────────────────────────────────────────────────┘
+
+1. User double-clicks NPC
+   └─> MatchComponent.handleMatchCreation() fires
+
+2. MatchComponent creates match via API
+   └─> Updates DataStore.match with match data
+   └─> SceneStateService.setState(E_SceneState.PVE_MATCH)
+
+3. SceneStateService notifies all registered callbacks
+   └─> MatchModule.onStateChange(PVE_MATCH, OVERWORLD) fires
+
+4. MatchModule.enterMatch() executes:
+   └─> Get player + NPC positions from scene
+   └─> Calculate dome center (midpoint between participants)
+   └─> Calculate dome radius (distance / 2 + buffer)
+   └─> Spawn MatchAreaDome prefab at center with radius
+   └─> Spawn MatchGrid prefab at dome center with radius
+   └─> Create MatchCameraAnchor GameObject at calculated viewpoint
+   └─> Call camera.changeTarget(anchor, MATCH_SPECTATE, 1000)
+   └─> Store references: this.dome, this.grid, this.cameraAnchor
+
+┌─────────────────────────────────────────────────────────────────┐
+│                    Match End Sequence                            │
+└─────────────────────────────────────────────────────────────────┘
+
+5. User clicks Leave Match (MatchHUD)
+   └─> Calls leave API
+   └─> Clears DataStore.match via $reset()
+   └─> Emits RxJS event: rxjs.$next('onStateChange', OVERWORLD)
+
+6. SceneStateService receives RxJS event
+   └─> SceneStateService.setState(E_SceneState.OVERWORLD)
+
+7. SceneStateService notifies all registered callbacks
+   └─> MatchModule.onStateChange(OVERWORLD, PVE_MATCH) fires
+
+8. MatchModule.exitMatch() executes:
+   └─> Destroy dome prefab (removes collision + mesh)
+   └─> Destroy grid prefab
+   └─> Destroy camera anchor GameObject
+   └─> Call camera.changeTarget(playerPosition, OVERWORLD, 1000)
+   └─> Clear references: this.dome = null, this.grid = null, etc.
+```
+
+**Implementation Details**:
+
+**MatchModule Structure**:
+```typescript
+export class MatchModule extends SceneModule {
+  private dome: MatchAreaDome | null = null;
+  private grid: MatchGrid | null = null;
+  private cameraAnchor: GameObject | null = null;
+
+  async init(context: I_SceneContext): Promise<void> {
+    await super.init(context);
+
+    // Register with SceneStateService (Subject 1/4 pattern)
+    const stateService = context.getService('state');
+    stateService.register(this.onStateChange.bind(this));
+  }
+
+  private onStateChange(newState: E_SceneState, oldState: E_SceneState): void {
+    if (newState === E_SceneState.PVE_MATCH && oldState === E_SceneState.OVERWORLD) {
+      this.enterMatch();
+    } else if (newState === E_SceneState.OVERWORLD && oldState === E_SceneState.PVE_MATCH) {
+      this.exitMatch();
+    }
+  }
+
+  private enterMatch(): void {
+    // Get match data from store (for participant positions)
+    const matchData = DataStore.match;
+
+    // Calculate dome geometry
+    const { center, radius } = this.calculateDomeGeometry(matchData);
+
+    // Spawn match environment
+    this.dome = new MatchAreaDome({ center, radius });
+    this.grid = new MatchGrid({ center, radius, cellSize: 1 });
+    this.cameraAnchor = new GameObject({
+      id: 'match-camera-anchor',
+      position: this.calculateCameraPosition(center, radius)
+    });
+
+    // Trigger camera transition
+    const camera = this.context.camera;
+    camera.changeTarget(
+      this.cameraAnchor.position,
+      CAMERA_PRESET_MATCH_SPECTATE,
+      1000
+    );
+
+    // Add to scene
+    const gameObjectsManager = this.context.getService('gameObjectsManager');
+    gameObjectsManager.add(this.dome);
+    gameObjectsManager.add(this.grid);
+    gameObjectsManager.add(this.cameraAnchor);
+  }
+
+  private exitMatch(): void {
+    // Destroy match environment
+    const gameObjectsManager = this.context.getService('gameObjectsManager');
+    if (this.dome) gameObjectsManager.remove(this.dome.id);
+    if (this.grid) gameObjectsManager.remove(this.grid.id);
+    if (this.cameraAnchor) gameObjectsManager.remove(this.cameraAnchor.id);
+
+    // Trigger camera return
+    const camera = this.context.camera;
+    const character = this.context.character;
+    camera.changeTarget(
+      character.instance.position,
+      CAMERA_PRESET_OVERWORLD,
+      1000
+    );
+
+    // Clear references
+    this.dome = null;
+    this.grid = null;
+    this.cameraAnchor = null;
+  }
+
+  async destroy(): Promise<void> {
+    // Unregister from SceneStateService
+    const stateService = this.context.getService('state');
+    stateService.unregister(this.onStateChange.bind(this));
+
+    // Clean up any remaining objects
+    this.exitMatch();
+  }
+}
+```
+
+**Clear Separation of Concerns**:
+
+| Responsibility | Owner | Trigger |
+|----------------|-------|---------|
+| Match creation API | MatchComponent | User double-click NPC |
+| State transition (enter) | MatchComponent | API success |
+| State transition (exit) | MatchHUD | User click Leave |
+| Environment spawn | MatchModule | State → PVE_MATCH |
+| Environment cleanup | MatchModule | State → OVERWORLD |
+| Movement limitation | KinematicMovementComponent | State change |
+| Mouse control lock | useCameraMouseInput | State change |
+| Camera transition | MatchModule | State change (calls camera.changeTarget) |
+
+**Why This Design Works**:
+- ✅ **Event-Driven**: MatchModule reacts to state, doesn't poll or watch stores
+- ✅ **Single Source of Truth**: SceneStateService drives all match mode behaviors
+- ✅ **Decoupled**: MatchModule doesn't care about match data, only state transitions
+- ✅ **Consistent Pattern**: Same register/callback pattern as Subject 1 (movement)
+- ✅ **Clear Ownership**: MatchModule = environment lifecycle orchestrator
+- ✅ **No Duplication**: Camera transition logic centralized in MatchModule
+- ✅ **Easy Testing**: State change → expected environment changes
+
+**Resolution Type**: D (Iteration Action Items)
+
+**Dependencies**:
+- Subject 1 (Movement Limitation) - Same SceneStateService.register() pattern
+- Subject 2 (Match Area Dome) - MatchModule spawns dome prefab
+- Subject 3 (Grid System) - MatchModule spawns grid prefab
+- Subject 4 (Scene State Management) - MatchModule subscribes to state changes
+- Subject 5 (Camera Control) - MatchModule triggers camera transitions
+
+**Action Items Added**:
+- Create MatchModule (extends SceneModule)
+- Implement init() - register with SceneStateService
+- Implement onStateChange(newState, oldState) callback
+- Implement enterMatch() method:
+  - Get match data from DataStore.match (for participant positions)
+  - Calculate dome geometry (center = midpoint, radius = distance/2 + buffer)
+  - Spawn MatchAreaDome prefab (Subject 2)
+  - Spawn MatchGrid prefab (Subject 3)
+  - Create MatchCameraAnchor GameObject (Subject 5)
+  - Trigger camera.changeTarget(anchor, MATCH_SPECTATE, 1000)
+  - Store references to spawned objects
+- Implement exitMatch() method:
+  - Destroy dome, grid, camera anchor GameObjects
+  - Trigger camera.changeTarget(player, OVERWORLD, 1000)
+  - Clear object references
+- Implement destroy() - unregister from SceneStateService
+- Add MatchModule to PlaygroundScene module registry
+- Register MatchModule in PlaygroundScene.registerModules()
+
+---
+
+**Action Items**: See brainstorming session above - all action items are documented in resolved subjects (Subjects 1-6).
+
+**Implementation Summary** (from brainstorming):
+
+**Core Systems**:
+- [ ] SceneStateService: Implement register/unregister methods (Subject 4)
+- [ ] KinematicMovementComponent: Add state-based movement control (Subject 1)
+- [ ] MatchModule: Create environment orchestrator (Subject 6)
+
+**Match Environment**:
+- [ ] MatchAreaDome prefab: Collision sphere with distance gating (Subject 2)
+- [ ] MatchGrid prefab: Tactical grid with coordinate conversion (Subject 3)
+- [ ] Proximity indication system: Visual feedback for interaction range (Subject 2)
+
+**Camera System**:
+- [ ] useCamera: Add changeTarget() method with animation (Subject 5)
+- [ ] Camera presets: OVERWORLD and MATCH_SPECTATE configurations (Subject 5)
+- [ ] useCameraMouseInput: Disable rotation during match states (Subject 5)
+- [ ] MatchCameraAnchor: Invisible GameObject for fixed camera position (Subject 5)
+
+**Integration**:
+- [ ] MatchModule integration: Spawn/destroy dome, grid, camera anchor on state changes (Subject 6)
+- [ ] PlaygroundScene: Register MatchModule in module registry (Subject 6)
+
+**📋 Detailed Action Items**: All specific implementation steps are documented in the resolved subjects above (lines 976-1765). Refer to each subject's "Action Items Added" section for granular tasks.
 
 **Verification**:
-- TrainingDummy has `type: 'npc'` property
-- MatchComponent only registers doubleclick on NPCs
-- Console warnings shown if MatchComponent used incorrectly
-- Manual testing: double-click filtering works as expected
+- SceneStateService notifies registered listeners on state change
+- Movement disabled during MATCH states (no jumping)
+- Match area dome prevents exit from match area
+- Grid overlay visible during match, hidden in overworld
+- Camera smoothly transitions between overworld and match perspectives
+- Mouse rotation disabled during match
+- All match environment objects cleaned up on match end
 
 ---
 
-#### Task 2: Match UI Components ⏳
+## 🎯 What's Next
 
-**Purpose**: Create UI components for match flow
+**Brainstorming session complete!** Iteration 0 marked 🎨 READY FOR IMPLEMENTATION.
+
+**Architecture Decisions Summary**:
+- ✅ Event-driven pattern using SceneStateService registry
+- ✅ Distance-gated interaction + collision dome for match area
+- ✅ Tactical grid system with coordinate mapping
+- ✅ Minimal SceneStateService enhancement (register/unregister)
+- ✅ Fixed camera with animated transitions
+- ✅ Lightweight MatchModule as environment orchestrator
+
+**REQUIRED NEXT STEP**: Use `/flow-implement-start` to begin implementation.
+
+**Before implementing**: Review your action items (see brainstorming subjects above, lines 976-1765) and ensure you understand the scope. If you discover new issues during implementation (scope violations), STOP and discuss with the user before proceeding.
+
+**Implementation Order Suggestion**:
+1. Start with SceneStateService register/unregister (foundation for everything else)
+2. Update KinematicMovementComponent to use state-based control
+3. Implement camera enhancements (changeTarget, presets, mouse control)
+4. Create MatchModule with state subscription
+5. Build prefabs (MatchAreaDome, MatchGrid, MatchCameraAnchor)
+6. Integrate everything in MatchModule enter/exit methods
+
+---
+
+### **Implementation - Iteration 0: Game Mode Controls & Visibility Management**
+
+**Status**: 🚧 IN PROGRESS
+
+**Action Items**: See resolved brainstorming subjects above (lines 976-1765):
+- Subject 1: Movement Limitation (SceneStateService + KinematicMovementComponent)
+- Subject 2: Match Area Definition (MatchAreaDome prefab + distance gating)
+- Subject 3: Grid System (MatchGrid prefab + GridManagerService)
+- Subject 4: Scene State/Mode Management (register/unregister implementation)
+- Subject 5: Camera Control (changeTarget, presets, mouse control)
+- Subject 6: Match Module Architecture (MatchModule orchestrator)
+
+**Implementation Notes**:
+
+[Work in progress - document changes here as you implement]
+
+**Files Modified**:
+
+[Will be filled as work progresses]
+
+**Verification**:
+
+Per Testing Strategy (lines 356-376): Manual integration testing
+- Start dev server: `bun run dev`
+- Test match creation flow
+- Verify movement limitation during match states
+- Verify camera transitions (overworld ↔ match)
+- Verify dome/grid spawn and cleanup
+- Verify mouse rotation disabled during match
 
 ---
 
