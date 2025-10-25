@@ -1,6 +1,7 @@
 import { GridHelper } from 'three';
 import { GameComponent, ComponentPriority } from '../../GameComponent';
 import { I_SceneContext } from '@/game/common/scenes.types';
+import { TransformComponent } from './TransformComponent';
 
 export interface I_GridHelperConfig {
   size?: number;
@@ -47,8 +48,18 @@ export class GridHelperComponent extends GameComponent {
     // Create grid helper
     this.gridHelper = new GridHelper(size, divisions, centerColor, gridColor);
 
-    // Position slightly above ground to prevent z-fighting
-    this.gridHelper.position.y = yOffset;
+    // Get position from TransformComponent if available
+    const transform = this.getComponent(TransformComponent);
+    if (transform && transform.position) {
+      this.gridHelper.position.set(
+        transform.position.x,
+        yOffset, // Use yOffset for Y, not transform.position.y
+        transform.position.z
+      );
+    } else {
+      // Fallback: just use yOffset
+      this.gridHelper.position.y = yOffset;
+    }
 
     // Add to scene
     context.scene.add(this.gridHelper);
@@ -58,6 +69,19 @@ export class GridHelperComponent extends GameComponent {
   }
 
   destroy(): void {
-    // Cleanup handled by lifecycle.register()
+    // Remove grid helper from scene when GameObject is destroyed
+    if (this.gridHelper && this.gridHelper.parent) {
+      this.gridHelper.parent.remove(this.gridHelper);
+    }
+    // Dispose geometry manually (not handled by scene cleanup)
+    if (this.gridHelper) {
+      this.gridHelper.geometry?.dispose();
+      const material = this.gridHelper.material;
+      if (Array.isArray(material)) {
+        material.forEach((m) => m.dispose());
+      } else {
+        material?.dispose();
+      }
+    }
   }
 }

@@ -18,14 +18,24 @@ export enum E_SceneState {
 }
 
 /**
+ * Callback function signature for state change listeners
+ * @param newState - The new state being transitioned to
+ * @param oldState - The previous state before transition
+ */
+export type StateChangeCallback = (newState: E_SceneState, oldState: E_SceneState) => void;
+
+/**
  * SceneStateService - Manages scene state for cross-cutting behavior control
  *
  * This service provides a centralized state machine that other systems can query
  * to determine what actions are allowed in different game states.
  *
+ * **Event-Driven Pattern**:
+ * Components can register callbacks to react to state changes instead of polling.
+ *
  * **Usage**:
  * - MatchModule modifies state during match creation flow
- * - KinematicMovementComponent queries state to prevent movement during transitions
+ * - KinematicMovementComponent registers for state changes to control movement
  * - InteractionService can check state to disable interactions
  *
  * **State Transitions**:
@@ -35,19 +45,23 @@ export enum E_SceneState {
  *
  * **Example**:
  * ```typescript
- * // In MatchModule
- * const stateService = context.services.sceneState;
+ * // Register for state changes
+ * const callback = (newState, oldState) => {
+ *   console.log(`State changed: ${oldState} → ${newState}`);
+ * };
+ * stateService.register(callback);
+ *
+ * // Trigger state change (notifies all registered callbacks)
  * stateService.setState(E_SceneState.MATCH_INSTANTIATING);
  *
- * // In KinematicMovementComponent
- * if (stateService.getState() !== E_SceneState.OVERWORLD) {
- *   return; // Disable movement
- * }
+ * // Cleanup
+ * stateService.unregister(callback);
  * ```
  */
 export default class SceneStateService extends SceneService implements I_SceneService {
   private currentState: E_SceneState = E_SceneState.OVERWORLD;
   private rxjs = useRxjs('scene:state', undefined, { static_instance: true });
+  private listeners: Set<StateChangeCallback> = new Set();
 
   /**
    * Initialize the service with default OVERWORLD state
@@ -75,7 +89,7 @@ export default class SceneStateService extends SceneService implements I_SceneSe
   }
 
   /**
-   * Set the scene state
+   * Set the scene state and notify all registered listeners
    *
    * @param newState - New scene state to transition to
    */
@@ -83,6 +97,58 @@ export default class SceneStateService extends SceneService implements I_SceneSe
     const oldState = this.currentState;
     this.currentState = newState;
     console.log(`🎮 [SceneStateService] State transition: ${oldState} → ${newState}`);
+
+    // Notify all registered listeners
+    this.notifyListeners(newState, oldState);
+  }
+
+  /**
+   * Register a callback to be notified of state changes
+   *
+   * @param callback - Function to call when state changes
+   * @example
+   * ```typescript
+   * stateService.register((newState, oldState) => {
+   *   if (newState === E_SceneState.PVE_MATCH) {
+   *     // Match started - disable movement
+   *   }
+   * });
+   * ```
+   */
+  public register(callback: StateChangeCallback): void {
+    this.listeners.add(callback);
+    console.log(`🎮 [SceneStateService] Registered listener (total: ${this.listeners.size})`);
+  }
+
+  /**
+   * Unregister a callback from state change notifications
+   *
+   * @param callback - The same function reference that was registered
+   */
+  public unregister(callback: StateChangeCallback): void {
+    const wasRemoved = this.listeners.delete(callback);
+    if (wasRemoved) {
+      console.log(`🎮 [SceneStateService] Unregistered listener (total: ${this.listeners.size})`);
+    }
+  }
+
+  /**
+   * Notify all registered listeners of a state change
+   *
+   * @param newState - The new state
+   * @param oldState - The previous state
+   */
+  private notifyListeners(newState: E_SceneState, oldState: E_SceneState): void {
+    if (this.listeners.size === 0) return;
+
+    console.log(`🎮 [SceneStateService] Notifying ${this.listeners.size} listener(s)...`);
+    this.listeners.forEach(callback => {
+      try {
+        callback(newState, oldState);
+      } catch (error) {
+        console.error('🎮 [SceneStateService] Error in listener callback:', error);
+      }
+    });
   }
 
   /**
@@ -118,6 +184,7 @@ export default class SceneStateService extends SceneService implements I_SceneSe
    */
   public async destroy(): Promise<void> {
     this.reset();
+    this.listeners.clear();
     this.rxjs.$unsubscribe();
     console.log('🎮 [SceneStateService] Destroyed');
   }

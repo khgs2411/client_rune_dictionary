@@ -1773,24 +1773,24 @@ export class MatchModule extends SceneModule {
 **Implementation Summary** (from brainstorming):
 
 **Core Systems**:
-- [ ] SceneStateService: Implement register/unregister methods (Subject 4)
-- [ ] KinematicMovementComponent: Add state-based movement control (Subject 1)
-- [ ] MatchModule: Create environment orchestrator (Subject 6)
+- [x] SceneStateService: Implement register/unregister methods (Subject 4)
+- [x] KinematicMovementComponent: Add state-based movement control (Subject 1)
+- [x] MatchModule: Create environment orchestrator (Subject 6)
 
 **Match Environment**:
-- [ ] MatchAreaDome prefab: Collision sphere with distance gating (Subject 2)
-- [ ] MatchGrid prefab: Tactical grid with coordinate conversion (Subject 3)
-- [ ] Proximity indication system: Visual feedback for interaction range (Subject 2)
+- [x] MatchAreaDome prefab: Collision sphere with distance gating (Subject 2)
+- [x] MatchGrid prefab: Tactical grid with coordinate conversion (Subject 3)
+- [ ] Proximity indication system: Visual feedback for interaction range (Subject 2) **(Deferred to future iteration)**
 
 **Camera System**:
-- [ ] useCamera: Add changeTarget() method with animation (Subject 5)
-- [ ] Camera presets: OVERWORLD and MATCH_SPECTATE configurations (Subject 5)
-- [ ] useCameraMouseInput: Disable rotation during match states (Subject 5)
-- [ ] MatchCameraAnchor: Invisible GameObject for fixed camera position (Subject 5)
+- [x] useCamera: Add changeTarget() method with animation (Subject 5)
+- [x] Camera presets: OVERWORLD and MATCH_SPECTATE configurations (Subject 5)
+- [x] useCameraMouseInput: Disable rotation during match states (Subject 5)
+- [x] MatchCameraAnchor: Invisible GameObject for fixed camera position (Subject 5)
 
 **Integration**:
-- [ ] MatchModule integration: Spawn/destroy dome, grid, camera anchor on state changes (Subject 6)
-- [ ] PlaygroundScene: Register MatchModule in module registry (Subject 6)
+- [x] MatchModule integration: Spawn/destroy dome, grid, camera anchor on state changes (Subject 6)
+- [x] PlaygroundScene: Register MatchModule in module registry (Subject 6)
 
 **📋 Detailed Action Items**: All specific implementation steps are documented in the resolved subjects above (lines 976-1765). Refer to each subject's "Action Items Added" section for granular tasks.
 

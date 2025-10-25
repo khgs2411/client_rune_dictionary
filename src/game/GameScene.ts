@@ -116,7 +116,13 @@ export abstract class GameScene<
 
     // Update character and camera
     this.character.update(delta);
-    this.camera.update(this.character.controller.getPosition());
+
+    // Only update camera if not frozen (frozen camera = fixed match camera)
+    if (!this.camera.controller.freezeReactiveUpdates.value) {
+      // Use followTarget if set, otherwise follow character
+      const cameraTarget = this.camera.controller.followTarget || this.character.controller.getPosition();
+      this.camera.update(cameraTarget);
+    }
 
     // Update services
     this.updateAllServices(delta);

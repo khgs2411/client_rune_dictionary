@@ -1,14 +1,16 @@
-import { GameComponent, ComponentPriority } from '@/game/GameComponent';
 import type { I_CharacterControls } from '@/composables/composables.types';
+import { I_SceneContext } from '@/game/common/scenes.types';
+import { ComponentPriority, GameComponent } from '@/game/GameComponent';
+import { E_SceneState, type StateChangeCallback } from '@/game/services/SceneStateService';
+import { useGameConfigStore } from '@/stores/config.store';
 import { TransformComponent } from '../rendering/TransformComponent';
 import { KinematicCollisionComponent } from './KinematicCollisionComponent';
-import { useGameConfigStore } from '@/stores/config.store';
-import { I_SceneContext } from '@/game/common/scenes.types';
 
 export interface I_KinematicMovementConfig {
   characterController: I_CharacterControls; // Scene-owned controller (handles input)
   enableJumping?: boolean; // Default: true
   enableGravity?: boolean; // Default: true
+  enableMovement?: boolean; // Default: true (controlled by scene state)
 }
 
 /**
@@ -20,10 +22,12 @@ export interface I_KinematicMovementConfig {
  * - Uses KinematicPhysicsComponent for collision-aware movement
  * - Updates TransformComponent with final position
  * - Syncs position back to controller (bidirectional)
+ * - Reacts to scene state changes to disable movement/jumping during matches
  *
  * Dependencies:
  * - Requires TransformComponent
  * - Requires KinematicPhysicsComponent
+ * - Subscribes to SceneStateService for state changes
  *
  * Usage:
  * ```typescript
@@ -42,29 +46,85 @@ export class KinematicMovementComponent extends GameComponent {
   private characterController: I_CharacterControls;
   private enableJumping: boolean;
   private enableGravity: boolean;
+  private enableMovement: boolean;
   private verticalVelocity = 5;
   private config = useGameConfigStore();
   private kinematicPhysics: KinematicCollisionComponent | null = null;
+  private stateChangeCallback: StateChangeCallback | null = null;
+  private context: I_SceneContext | null = null;
 
   constructor(config: I_KinematicMovementConfig) {
     super();
     this.characterController = config.characterController;
     this.enableJumping = config.enableJumping ?? true;
     this.enableGravity = config.enableGravity ?? true;
+    this.enableMovement = config.enableMovement ?? true;
   }
 
   async init(context: I_SceneContext): Promise<void> {
+    // Store context for cleanup
+    this.context = context;
+
     // Verify required components
     this.requireComponent(TransformComponent);
     this.kinematicPhysics = this.requireComponent(KinematicCollisionComponent);
 
+    // Register for scene state changes
+    const stateService = context.getService('state');
+    this.stateChangeCallback = this.onStateChange.bind(this);
+    stateService.register(this.stateChangeCallback);
+
     console.log(
-      `🏃 [KinematicMovementComponent] Initialized for "${this.gameObject.id}"`,
+      `🏃 [KinematicMovementComponent] Initialized for "${this.gameObject.id}" - subscribed to state changes`,
     );
+  }
+
+  /**
+   * React to scene state changes - control movement and jumping based on state
+   *
+   * State-based movement rules (from Subject 1):
+   * - OVERWORLD: enableMovement=true, enableJumping=true
+   * - MATCH_INSTANTIATING: enableMovement=true, enableJumping=false
+   * - PVE_MATCH: enableMovement=true, enableJumping=false
+   * - MENU: enableMovement=false, enableJumping=false
+   */
+  private onStateChange(newState: E_SceneState, oldState: E_SceneState): void {
+    console.log(
+      `🏃 [KinematicMovementComponent] State change: ${oldState} → ${newState}`,
+    );
+
+    switch (newState) {
+      case E_SceneState.OVERWORLD:
+        this.enableMovement = true;
+        this.enableJumping = true;
+        console.log('🏃 [KinematicMovementComponent] Movement: ✅ | Jumping: ✅');
+        break;
+
+      case E_SceneState.MATCH_INSTANTIATING:
+        this.enableMovement = false;
+        this.enableJumping = false;
+        console.log('🏃 [KinematicMovementComponent] Movement: 🚫 | Jumping: 🚫');
+        break;
+      case E_SceneState.PVE_MATCH:
+      case E_SceneState.PVP_MATCH:
+        this.enableMovement = true;
+        this.enableJumping = false;
+        console.log('🏃 [KinematicMovementComponent] Movement: ✅ | Jumping: 🚫');
+        break;
+
+      case E_SceneState.MENU:
+        this.enableMovement = false;
+        this.enableJumping = false;
+        console.log('🏃 [KinematicMovementComponent] Movement: 🚫 | Jumping: 🚫');
+        break;
+    }
   }
 
   update(delta: number): void {
     if (!this.kinematicPhysics) return;
+
+    // Skip movement processing if movement is disabled (e.g., MENU state)
+    if (!this.enableMovement) return;
 
     const currentPos = this.kinematicPhysics.getPosition();
     if (!currentPos) return;
@@ -150,6 +210,17 @@ export class KinematicMovementComponent extends GameComponent {
   }
 
   destroy(): void {
+    // Unregister from state change notifications
+    if (this.stateChangeCallback && this.context) {
+      const stateService = this.context.getService('state');
+      stateService.unregister(this.stateChangeCallback);
+      console.log(
+        `🏃 [KinematicMovementComponent] Unregistered from state changes for "${this.gameObject.id}"`,
+      );
+      this.stateChangeCallback = null;
+    }
+
+    this.context = null;
     this.kinematicPhysics = null;
   }
 }

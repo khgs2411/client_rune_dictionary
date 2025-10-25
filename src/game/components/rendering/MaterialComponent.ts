@@ -12,6 +12,8 @@ export interface I_MaterialConfig {
   useTheme?: boolean; // Use primary theme color
   emissive?: number; // Emissive color (glow)
   emissiveIntensity?: number; // Emissive intensity (default: 1)
+  transparent?: boolean; // Enable transparency
+  opacity?: number; // Opacity (0-1, default: 1)
 }
 
 /**
@@ -59,6 +61,8 @@ export class MaterialComponent extends GameComponent {
       metalness: this.config.metalness ?? 0.0,
       emissive: this.config.emissive ?? 0x000000,
       emissiveIntensity: this.config.emissiveIntensity ?? 1.0,
+      transparent: this.config.transparent ?? false,
+      opacity: this.config.opacity ?? 1.0,
     });
 
     // Register material for disposal (materials are disposable, not Object3D)

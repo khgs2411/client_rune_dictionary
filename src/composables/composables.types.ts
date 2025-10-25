@@ -34,6 +34,33 @@ export interface I_CharacterControls extends I_GameComposable {
   update: (delta: number) => void;
 }
 
+export interface I_CameraPerspective {
+  angle: {
+    horizontal: number;
+    vertical: number;
+  };
+  distance: number;
+  fov: number;
+}
+
+export const CAMERA_PRESET_OVERWORLD: I_CameraPerspective = {
+  angle: {
+    horizontal: 0,
+    vertical: Math.PI / 6, // 30 degrees
+  },
+  distance: 10,
+  fov: 75,
+};
+
+export const CAMERA_PRESET_MATCH_SPECTATE: I_CameraPerspective = {
+  angle: {
+    horizontal: 0,
+    vertical: Math.PI / 3, // 60 degrees (steeper overhead view)
+  },
+  distance: 15,
+  fov: 75,
+};
+
 export interface I_CameraControls extends I_GameComposable {
   angle: {
     horizontal: Ref<number>;
@@ -41,9 +68,13 @@ export interface I_CameraControls extends I_GameComposable {
   };
   distance: Ref<number>;
   isDragging: Ref<boolean>;
+  mouseRotationEnabled: Ref<boolean>;
+  freezeReactiveUpdates: Ref<boolean>; // Freeze camera position updates (for fixed camera)
   target: TargetPosition;
+  followTarget: Vector3 | null; // Optional override for camera follow target
 
   update: (target: Vector3) => void;
+  getPosition: () => Vector3;
 }
 
 export interface I_GameCamera extends I_GameComposable {
@@ -55,6 +86,11 @@ export interface I_GameCamera extends I_GameComposable {
 
   // Methods
   start: () => void;
+  changeTarget: (
+    newTarget: Vector3,
+    perspective: I_CameraPerspective,
+    duration: number,
+  ) => Promise<void>;
 }
 
 export interface I_GameCharacter extends I_GameComposable {

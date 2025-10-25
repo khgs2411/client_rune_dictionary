@@ -12,8 +12,16 @@ export interface CameraMouseInput {
 /**
  * Camera mouse input composable
  * Handles mouse-based camera controls (rotation, zoom, pointer lock)
+ *
+ * @param rotation - Camera rotation controller
+ * @param zoom - Camera zoom controller
+ * @param enabled - Ref controlling whether mouse input is enabled (default: always enabled)
  */
-export function useCameraMouseInput(rotation: CameraRotation, zoom: CameraZoom): CameraMouseInput {
+export function useCameraMouseInput(
+  rotation: CameraRotation,
+  zoom: CameraZoom,
+  enabled?: Ref<boolean>,
+): CameraMouseInput {
   const config = useGameConfigStore();
   const isDragging = ref(false);
 
@@ -30,6 +38,14 @@ export function useCameraMouseInput(rotation: CameraRotation, zoom: CameraZoom):
   // Handle right-click down - request pointer lock and start dragging
   mouse.on('down', (event: I_MouseEvent) => {
     if (event.button === 2) {
+      // Check if mouse input is enabled
+      if (enabled && !enabled.value) {
+        if (config.debug.enableConsoleLog) {
+          console.log('🔒 [CameraMouseInput] Mouse rotation disabled by state');
+        }
+        return;
+      }
+
       isDragging.value = true;
 
       // Request pointer lock for MMO-style camera (hides cursor)
@@ -63,6 +79,13 @@ export function useCameraMouseInput(rotation: CameraRotation, zoom: CameraZoom):
 
   // Handle scroll - zoom camera (use rawDelta for smooth incremental zoom)
   mouse.on('scroll', (event: I_MouseScrollEvent) => {
+    // Check if mouse input is enabled (zoom disabled when rotation disabled)
+    if (enabled && !enabled.value) {
+      if (config.debug.enableConsoleLog) {
+        console.log('🔒 [CameraMouseInput] Zoom disabled by state');
+      }
+      return;
+    }
     zoom.update(event.rawDelta);
   });
 

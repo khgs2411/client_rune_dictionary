@@ -15,8 +15,12 @@ export function useCameraController(): I_CameraControls {
   const config = useGameConfigStore();
 
   const target = reactive({ x: 0, z: 0, y: 0 });
+  const mouseRotationEnabled = ref(true); // Controlled by scene state
+  const freezeReactiveUpdates = ref(false); // Freeze camera position updates (for fixed camera in matches)
 
- 
+  // Optional follow target override (for match camera)
+  let followTarget: Vector3 | null = null;
+
   // Camera state from config
   const cameraDistance = ref(config.camera.initialDistance);
   const cameraAngleH = ref(config.camera.initialAngleH);
@@ -31,7 +35,7 @@ export function useCameraController(): I_CameraControls {
     min: config.camera.zoomMin,
     max: config.camera.zoomMax,
   });
-  const mouse = useCameraMouseInput(rotation, zoom);
+  const mouse = useCameraMouseInput(rotation, zoom, mouseRotationEnabled);
   useCameraTouchInput(rotation, zoom); // Side effects only
 
   // Auto-update camera position when angles/distance/target change
@@ -65,6 +69,16 @@ export function useCameraController(): I_CameraControls {
     target.z = lookAtVector.z;
   }
 
+  function getPosition(): Vector3 {
+    const offsetX =
+      Math.sin(cameraAngleH.value) * cameraDistance.value * Math.cos(cameraAngleV.value);
+    const offsetZ =
+      Math.cos(cameraAngleH.value) * cameraDistance.value * Math.cos(cameraAngleV.value);
+    const offsetY = Math.sin(cameraAngleV.value) * cameraDistance.value;
+
+    return new Vector3(target.x + offsetX, target.y + offsetY, target.z + offsetZ);
+  }
+
   // Setup resize listener (VueUse auto-destroy)
 
   return {
@@ -74,8 +88,12 @@ export function useCameraController(): I_CameraControls {
     },
     distance: cameraDistance,
     isDragging: mouse.isDragging,
+    mouseRotationEnabled,
+    freezeReactiveUpdates,
     target,
+    followTarget,
     update,
+    getPosition,
     reset,
     destroy,
   };

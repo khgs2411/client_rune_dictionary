@@ -28,20 +28,32 @@ export interface I_CollisionConfig {
  *
  * Usage:
  * ```typescript
- * // Static wall
+ * // Static wall with explicit shape (no mesh required)
+ * new CollisionComponent({
+ *   type: 'static',
+ *   shape: 'cuboid',
+ *   shapeParams: [20, 10, 0.25], // Half-extents: [halfWidth, halfHeight, halfDepth]
+ *   showDebug: true
+ * });
+ *
+ * // Static wall deriving collision from mesh geometry
  * new CollisionComponent({ type: 'static' });
  *
  * // Trigger projectile (detects hits, doesn't block)
  * new CollisionComponent({
  *   type: 'trigger',
  *   shape: 'sphere',
+ *   shapeParams: [0.5], // Half-extents: [radius]
  *   onCollisionEnter: (otherId) => console.log('Hit:', otherId),
  *   onCollisionExit: (otherId) => console.log('Stopped touching:', otherId)
  * });
  * ```
  *
  * Dependencies:
- * - Requires MeshComponent OR InstancedMeshComponent
+ * - Option 1: Provide shape + shapeParams (no mesh required, must NOT have MeshComponent)
+ * - Option 2: Requires MeshComponent OR InstancedMeshComponent (derives shape from geometry)
+ *
+ * IMPORTANT: shapeParams use HALF-EXTENTS convention (divide full dimensions by 2)
  */
 export class CollisionComponent extends GameComponent {
   public readonly priority = ComponentPriority.PHYSICS; // 200 - depends on mesh
@@ -68,19 +80,34 @@ export class CollisionComponent extends GameComponent {
       return;
     }
 
-    // Get mesh components
+    // Get mesh components (optional - can use explicit shape params instead)
     const meshComp = this.getComponent(MeshComponent);
     const instancedMeshComp = this.getComponent(InstancedMeshComponent);
-
-    if (!meshComp && !instancedMeshComp) {
-      throw new Error(
-        `[CollisionComponent] GameObject "${this.gameObject.id}" requires MeshComponent or InstancedMeshComponent`,
-      );
-    }
+    const TransformComponentClass = (await import('../rendering/TransformComponent')).TransformComponent;
+    const transformComp = this.getComponent(TransformComponentClass);
 
     // Register collider with physics service
-    if (meshComp) {
-      // Single mesh registration
+    if (this.config.shape && this.config.shapeParams && !meshComp && !instancedMeshComp) {
+      // Explicit shape registration (no mesh required)
+      // shapeParams are half-extents: [halfWidth, halfHeight, halfDepth]
+      // Convert to full dimensions for registerStatic
+      const position = transformComp?.getPositionArray() || [0, 0, 0];
+      const rotation = transformComp?.getRotationArray() || [0, 0, 0];
+
+      const fullSize = this.config.shapeParams.map((halfExtent) => halfExtent * 2) as [number, number, number];
+
+      physics.registerStatic(
+        this.gameObject.id,
+        {
+          shape: this.config.shape,
+          size: fullSize, // Full dimensions
+          position,
+          rotation,
+        },
+        { showDebug: this.config.showDebug },
+      );
+    } else if (meshComp) {
+      // Single mesh registration (derive collision from mesh geometry)
       physics.registerStaticFromMesh(
         this.gameObject.id,
         meshComp.mesh,
@@ -91,6 +118,10 @@ export class CollisionComponent extends GameComponent {
       this.instanceIds = physics.registerInstancedStatic(
         this.gameObject.id,
         instancedMeshComp.instancedMesh,
+      );
+    } else {
+      throw new Error(
+        `[CollisionComponent] GameObject "${this.gameObject.id}" requires either: (1) shape + shapeParams config, or (2) MeshComponent/InstancedMeshComponent`,
       );
     }
 
@@ -146,13 +177,12 @@ export class CollisionComponent extends GameComponent {
         this.instanceIds = [];
       }
 
-      // Unregister collision callbacks
+      // Remove physics body from world
       const physics = this.context?.getService('physics')
       if (physics) {
-        physics.unregisterCollisionCallbacks(this.gameObject.id);
+        physics.remove(this.gameObject.id);
       }
 
-      // Physics cleanup happens automatically in PhysicsService.destroy()
       this.isRegistered = false;
       this.context = null;
     }
