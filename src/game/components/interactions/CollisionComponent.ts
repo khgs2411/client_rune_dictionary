@@ -1,4 +1,5 @@
 import { I_SceneContext } from '@/game/common/scenes.types';
+import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 import { ComponentPriority, GameComponent } from '../../GameComponent';
 import { InstancedMeshComponent } from '../rendering/InstancedMeshComponent';
 import { MeshComponent } from '../rendering/MeshComponent';
@@ -83,7 +84,7 @@ export class CollisionComponent extends GameComponent {
     // Get mesh components (optional - can use explicit shape params instead)
     const meshComp = this.getComponent(MeshComponent);
     const instancedMeshComp = this.getComponent(InstancedMeshComponent);
-    const TransformComponentClass = (await import('../rendering/TransformComponent')).TransformComponent;
+    const TransformComponentClass = TransformComponent;
     const transformComp = this.getComponent(TransformComponentClass);
 
     // Register collider with physics service

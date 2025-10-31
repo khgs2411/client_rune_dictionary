@@ -1,3 +1,4 @@
+import { I_SceneContext } from '@/game/common/scenes.types';
 import {
   BoxGeometry,
   BufferGeometry,
@@ -7,14 +8,14 @@ import {
   PlaneGeometry,
   SphereGeometry,
 } from 'three';
+import { Guards } from 'topsyde-utils';
 import { GameComponent } from '../../GameComponent';
-import { I_SceneContext } from '@/game/common/scenes.types';
 
 export type GeometryType = 'plane' | 'box' | 'sphere' | 'cylinder' | 'cone' | 'capsule';
 
 export interface I_GeometryConfig {
   type: GeometryType;
-  params: number[];
+  params: number[] | { x: number; y: number; z: number };
 }
 
 /**
@@ -62,32 +63,34 @@ export class GeometryComponent extends GameComponent {
 
   private createGeometry(): BufferGeometry {
     const { type, params } = this.config;
-
+    const width = Guards.IsArray(params) ? params[0] : params.x;
+    const height = Guards.IsArray(params) ? params[1] : params.y;
+    const depth = Guards.IsArray(params) ? params[2] : params.z;
     switch (type) {
       case 'plane':
         // params: [width, height]
-        return new PlaneGeometry(params[0], params[1]);
+        return new PlaneGeometry(width, height);
 
       case 'box':
         // params: [width, height, depth]
-        return new BoxGeometry(params[0], params[1], params[2]);
+        return new BoxGeometry(width, height, depth);
 
       case 'sphere':
         // params: [radius, widthSegments?, heightSegments?]
-        return new SphereGeometry(params[0], params[1] || 32, params[2] || 16);
+        return new SphereGeometry(width, height, depth || 12);
 
       case 'cylinder':
         // params: [radiusTop, radiusBottom, height, radialSegments?]
-        return new CylinderGeometry(params[0], params[1], params[2], params[3] || 16);
+        return new CylinderGeometry(width, height, depth || 16);
 
       case 'cone':
         // params: [radius, height, radialSegments?]
-        return new ConeGeometry(params[0], params[1], params[2] || 16);
+        return new ConeGeometry(width, height, depth || 16);
 
       case 'capsule':
         // params: [radius, height, radialSegments?, heightSegments?]
         // return new CylinderGeometry(params[0], params[0], params[1], params[2] || 8, params[3] || 16);
-        return new CapsuleGeometry(params[0], params[1], params[2] || 8, params[3] || 16)
+        return new CapsuleGeometry(width, height, depth || 8, depth || 16)
 
       default:
         console.warn(

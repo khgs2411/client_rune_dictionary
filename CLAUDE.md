@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Important rules and guidelines
+- **This project leverages 'flow framework'**: This project uses the flow framework for project management. Follow flow conventions for tasks, iterations, and brainstorming. Try to use the skills agents where possible for the best results. Alternatively, use the slash commands to interact with the flow system.
+
+
 ## Development Commands
 
 ```bash
@@ -39,6 +43,7 @@ This application underwent a complete architectural rebuild from a 2D PrimeVue a
 - **Vue Router** for navigation
 - **Three.js 0.180.0** - Direct imperative Three.js (no TresJS)
 - **VueUse 13.9.0** - Battle-tested composition utilities (always prefer VueUse over custom implementations)
+- **Bun.JS** as runtime and package manager (replaces Node.js + npm/yarn)
 
 ### 3D Game Engine Architecture
 
@@ -885,4 +890,3 @@ This codebase uses **two complementary patterns**:
   - Drag: `.withDrag({ lockAxis, snapToGrid, onEnd })` (editor mode only)
 - Components implement `I_Interactable` interface to register with builder
 - GameObject coordinates registration via `registerInteractions()` lifecycle hook
-- Never run bun run build unless excplicitly told to do so

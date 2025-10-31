@@ -9,6 +9,7 @@ import { I_SceneConfig } from '../game/common/scenes.types';
 
 import { GameObject } from '@/game/GameObject';
 import { ClickVFXComponent } from '@/game/components/interactions/ClickVFXComponent';
+import { CollisionComponent } from '@/game/components/interactions/CollisionComponent';
 import { DragComponent } from '@/game/components/interactions/DragComponent';
 import { HoverGlowComponent } from '@/game/components/interactions/HoverGlowComponent';
 import { GeometryComponent } from '@/game/components/rendering/GeometryComponent';
@@ -151,9 +152,14 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
     const interactiveBox = new GameObject({ id: 'interactive-box' })
       .addComponent(new TransformComponent({ position: [5, 1, 5] }))
-      .addComponent(new GeometryComponent({ type: 'box', params: [1.5, 1.5, 1.5] }))
+      .addComponent(new GeometryComponent({ type: 'box', params: { x: 3, y: 2, z: 1.5 } /* [3, 1.5, 1.5] */ }))
       .addComponent(new MaterialComponent({ color: 0xff1493, roughness: 0.8, metalness: 0.2 }))
       .addComponent(new MeshComponent())
+      .addComponent(new CollisionComponent({
+        type: 'static',
+        shape: 'cuboid',
+        showDebug: true,
+      }))
       .addComponent(new HoverGlowComponent({
         glowColor: 0xff8c00,
         glowIntensity: 0.5,

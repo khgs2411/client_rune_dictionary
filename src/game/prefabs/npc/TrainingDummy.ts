@@ -52,7 +52,6 @@ export class TrainingDummy extends GameObject {
 
     const position = config.position || [10, 0.9, 5]; // Default position (0.9 = half capsule height)
     const color = config.color !== undefined ? config.color : 0xff0000; // Default red
-
     // Visual components
     this.addComponent(new TransformComponent({ position }))
       .addComponent(
@@ -72,6 +71,7 @@ export class TrainingDummy extends GameObject {
 
       // Interaction components (order matters for dependencies)
       .addComponent(new InteractionComponent()) // Provides click/doubleclick events
-      .addComponent(new MatchComponent()); // Listens to doubleclick, creates match
+      .addComponent(new MatchComponent()) // Listens to doubleclick, creates match
+      
   }
 }
