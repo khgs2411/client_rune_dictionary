@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-  import { useDraggable, watchDebounced } from '@vueuse/core';
+  import { useDraggable, useLocalStorage, watchDebounced } from '@vueuse/core';
 import { onMounted, onUnmounted, ref } from 'vue';
 
   // Props
@@ -77,12 +77,12 @@ import { onMounted, onUnmounted, ref } from 'vue';
   const defaultX = Math.max(16, initialX); // ~600px for 8-slot horizontal bar
   const defaultY = Math.max(16, initialY); // ~160px total height with drag handle
 
-  /*  const savedPosition = useLocalStorage('match-action-bar-position', {
-     x: defaultX,
-     y: defaultY,
-   });
-  */
-  const savedPosition = ref({ x: defaultX, y: defaultY });
+
+  const savedPosition = useLocalStorage('match-action-bar-position', {
+    x: defaultX,
+    y: defaultY,
+  });
+  
   // Draggable composable - x and y manage position
   const { x, y } = useDraggable(container, {
     initialValue: { x: savedPosition.value.x, y: savedPosition.value.y },

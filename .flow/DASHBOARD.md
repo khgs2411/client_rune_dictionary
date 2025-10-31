@@ -1,6 +1,6 @@
 # Combat System Reimplementation - Dashboard
 
-**Last Updated**: 2025-10-31 04:15
+**Last Updated**: 2025-10-31 04:20
 
 **Project**: Vue 3 + Three.js combat system with match mode, camera controls, and arena boundaries
 **Status**: Phase 2 in progress (this plan is migrated from original plan.md file and is starting from phase 2 given phase 1 is complete)
@@ -12,8 +12,8 @@
 
 - **Phase**: [Phase 2 - Combat System Reimplementation](phase-2/)
 - **Task**: [Task 2 - WebSocket Match Events & Match Loop System](phase-2/task-2.md)
-- **Iteration**: None yet - use `/flow-brainstorm-start` or `/flow-implement-start` for Iteration 1
-- **Focus**: Connect Match HUD to real-time WebSocket events and implement match loop (ATB, turn, action systems)
+- **Iteration**: [Iteration 1 - WebSocket Event Integration](phase-2/task-2.md#iteration-1-websocket-event-integration) 🚧 BRAINSTORMING
+- **Focus**: Resolving pre-implementation blocker (WebSocket event reception bug), then designing event handling and state management strategy
 
 ---
 
@@ -31,7 +31,7 @@
   - ❌ Iteration 2: Character Status Display (CANCELLED - consolidated into Iteration 1)
   - ❌ Iteration 3: Combat Actions UI (CANCELLED - consolidated into Iteration 1)
 - 🚧 **Task 2**: WebSocket Match Events & Match Loop System (0/4 iterations) ← **CURRENT**
-  - ⏳ Iteration 1: WebSocket Event Integration
+  - 🚧 Iteration 1: WebSocket Event Integration (BRAINSTORMING) ← **ACTIVE**
   - ⏳ Iteration 2: Turn System Implementation
   - ⏳ Iteration 3: ATB System Implementation
   - ⏳ Iteration 4: Action System Implementation

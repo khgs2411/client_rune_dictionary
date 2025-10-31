@@ -2,7 +2,7 @@ import { useLocalStorage, useNow } from '@vueuse/core';
 import { defineStore } from 'pinia';
 import { computed, Ref } from 'vue';
 
-const TTL_MINUTES = 30;
+const TTL_MINUTES = 10;
 const TTL_MS = TTL_MINUTES * 60 * 1000;
 
 export const useAuthStore = defineStore('auth', () => {

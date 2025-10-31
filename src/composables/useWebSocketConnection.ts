@@ -2,8 +2,8 @@ import AuthAPI from '@/api/auth.api';
 import { I_DebugConsoleEvent } from '@/common/events.types';
 import { I_ClientData, I_ConnectedClientData } from '@/common/types';
 import { useAuthStore } from '@/stores/auth.store';
-import { useSettingsStore } from '@/stores/settings.store';
 import { useSceneStore } from '@/stores/scene.store';
+import { useSettingsStore } from '@/stores/settings.store';
 import { useWebSocketStore } from '@/stores/websocket.store';
 import { useRxjs, WebsocketStructuredMessage } from 'topsyde-utils';
 import { computed } from 'vue';
@@ -129,7 +129,7 @@ export const useWebSocketConnection = () => {
 
   function handleMessage(_ws: WebSocket, message: WebsocketStructuredMessage) {
     try {
-
+      console.log
       if (message.type == 'message') {
         // this will be in the chat soon
         console.log('[WS] Chat message received:', message);

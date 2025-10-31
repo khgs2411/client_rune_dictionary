@@ -22,17 +22,63 @@ Build the complete match loop infrastructure by connecting the HUD components fr
 
 ## Iterations
 
-### ⏳ Iteration 1: WebSocket Event Integration
+### 🚧 Iteration 1: WebSocket Event Integration
 
 **Goal**: Connect HUD to WebSocket match events and sync basic match state
 
-**Status**: ⏳ PENDING
+**Status**: 🚧 IN PROGRESS
+
+**Brainstorming Status**: 🚧 IN PROGRESS
+**Pre-Implementation Tasks**: ✅ COMPLETE (cancelled - cannot replicate)
+**Implementation Started**: Not yet (awaiting brainstorming completion)
+
+---
+
+#### Pre-Implementation Tasks
+
+**Blocking Issues** (must be resolved before main implementation):
+
+- [ ] **Debug WebSocket Event Reception** - **INVESTIGATING**
+  - **Status**: 🚧 IN PROGRESS - Debugging server-side channel/broadcast logic
+  - **Issue**: After a certain period of time (or after leaving and rejoining a match), match-related events are NOT being SENT from backend to client
+  - **Symptom**: [TBD - awaiting server log analysis]
+  - **Evidence**: [TBD - awaiting server log analysis]
+  - **Root Cause**: [TBD - investigating channel membership and broadcast logic]
+  - **Why it happens**: [TBD - investigating]
+  - **Important Notes**:
+    - WebSocket connection IS alive (ping/pong works, `client.leave.channel` events work)
+    - Non-match events ARE being sent successfully
+    - Only match-specific events (`match.atb.readiness.update`, `match.turn.start`, etc.) stop being sent
+    - Chrome DevTools shows events ARE NOT arriving at client (backend not sending)
+  - **Files Involved**:
+    - Server: `src/components/match/match.service.ts:133-138` (client channel membership - added logging)
+    - Server: `src/domains/match/match.broadcaster.ts:28` (broadcast with member count - added logging)
+    - Server: `src/facades/channel.manager.ts` (channel management)
+  - **Next Steps**: Restart backend, reproduce bug, analyze server logs for channel membership and broadcast behavior
+  - **Estimated Time**: 30-60 minutes
+
+---
+
+#### Brainstorming Session - WebSocket Event Integration Strategy
+
+**Focus**: Design WebSocket event handling, state management, and HUD integration for match loop
+
+**Subjects to Discuss** (tackle one at a time):
+
+1. ⏳ **WebSocket Event Registration** - Who registers and how are events transmitted to UI components?
+2. ⏳ **WebSocket Event Structure** - What events does the matchmaking server send? Event naming conventions? Payload format?
+3. ⏳ **Match Store Schema** - What data needs to be stored in matchStore?
+4. ⏳ **HUD Data Binding** - How to connect reactive matchStore data to TurnTimer, StatusPanel, ActionBar components?
+5. ⏳ **Error Handling & Reconnection** - What happens if WebSocket disconnects during match? How to handle reconnection?
+6. ⏳ **State Synchronization** - How to ensure client state matches server state? What if events arrive out of order?
+
+**Resolved Subjects**:
 
 ---
 
 #### Action Items
 
-- [ ] [TBD] - Define during brainstorming
+- [ ] [TBD] - Will be populated from brainstorming subject resolutions
 - [ ] Subscribe to WebSocket match events (match.start, match.update, match.end)
 - [ ] Update matchStore with incoming event data
 - [ ] Connect TurnTimer to match.turnTimer events
