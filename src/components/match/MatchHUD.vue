@@ -1,48 +1,97 @@
 <template>
-  <div v-if="isVisible" class="fixed top-20 right-4 bg-black/70 backdrop-blur-sm rounded-lg p-4 text-white shadow-2xl">
-    <!-- Match Info -->
-    <div class="space-y-2 mb-4">
-      <div class="text-sm font-semibold text-primary">IN MATCH</div>
-      <div class="text-xs text-muted-foreground">
-        Match ID: <span class="font-mono">{{ matchStore.currentMatchId?.slice(0, 8) }}...</span>
-      </div>
-      <div v-if="matchStore.channelName" class="text-xs text-muted-foreground">
-        Channel: {{ matchStore.channelName }}
-      </div>
+  <!-- Pokemon-inspired Match HUD - Three-corner layout -->
+  <div v-if="isVisible" class="fixed inset-0 pointer-events-none">
+    <!-- Top-center: Turn Timer (shared element for active turn) -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 mt-16 pointer-events-auto">
+      <TurnTimer />
     </div>
 
-    <!-- Leave Button -->
-    <button @click="handleLeaveMatch" :disabled="isLeaving"
-      class="w-full px-4 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-md font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-      {{ isLeaving ? 'Leaving...' : 'Leave Match' }}
-    </button>
+    <!-- Top-right: Enemy status panel -->
+    <div class="absolute top-0 right-4 mt-16 pointer-events-auto">
+      <StatusPanel
+        entity-type="enemy"
+        :name="enemyName"
+        :level="enemyLevel"
+        :hp="enemyHp"
+        :max-hp="enemyMaxHp"
+        :mp="enemyMp"
+        :max-mp="enemyMaxMp"
+        :atb-progress="enemyAtbProgress"
+      />
+    </div>
+
+    <!-- Bottom-left: Player status panel -->
+    <div class="absolute bottom-0 left-4 mb-16 pointer-events-auto">
+      <StatusPanel
+        entity-type="player"
+        :name="playerName"
+        :level="playerLevel"
+        :hp="playerHp"
+        :max-hp="playerMaxHp"
+        :mp="playerMp"
+        :max-mp="playerMaxMp"
+        :atb-progress="playerAtbProgress"
+      />
+    </div>
+
+    <!-- Bottom-right: Action bar (8 slots + Run/Pass) -->
+    <div class="absolute bottom-4 right-4 pointer-events-auto">
+      <ActionBar @leave-match="handleLeaveMatch" :is-leaving="isLeaving" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
   import MatchAPI from '@/api/match.api';
-import { E_SceneState } from '@/game/services/SceneStateService';
-import { DataStore } from '@/stores/DataStore';
-import { useRxjs } from 'topsyde-utils';
-import { computed, ref } from 'vue';
+  import { E_SceneState } from '@/game/services/SceneStateService';
+  import { DataStore } from '@/stores/DataStore';
+  import { useRxjs } from 'topsyde-utils';
+  import { computed, ref } from 'vue';
+  import TurnTimer from './TurnTimer.vue';
+  import StatusPanel from './StatusPanel.vue';
+  import ActionBar from './ActionBar.vue';
 
   const matchAPI = new MatchAPI();
-  const rxjs = useRxjs('scene:state'); // RxJS channel for scene state events
+  const rxjs = useRxjs('scene:state');
 
-  // Reactive match state
+  // Reactive stores
   const matchStore = DataStore.match;
   const websocketStore = DataStore.websocket;
 
-  // Computed visibility (show when in match states)
+  // Computed visibility (show when in match)
   const isVisible = computed(() => {
     return matchStore.currentMatchId !== null;
   });
 
-  // Loading state for button
+  // Loading state for leave match
   const isLeaving = ref(false);
+
+  // ========================================
+  // PLACEHOLDER DATA
+  // ========================================
+  // TODO: Replace with real match data from matchStore
+
+  // Player data (hardcoded placeholder)
+  const playerName = ref('Player');
+  const playerLevel = ref(1);
+  const playerHp = ref(23);
+  const playerMaxHp = ref(23);
+  const playerMp = ref(10);
+  const playerMaxMp = ref(10);
+  const playerAtbProgress = ref(0); // 0-100%
+
+  // Enemy data (hardcoded placeholder)
+  const enemyName = ref('Training Dummy');
+  const enemyLevel = ref(1);
+  const enemyHp = ref(15);
+  const enemyMaxHp = ref(15);
+  const enemyMp = ref(0);
+  const enemyMaxMp = ref(0);
+  const enemyAtbProgress = ref(0); // 0-100%
 
   /**
    * Handle Leave Match button click
+   * Called from ActionBar component
    */
   async function handleLeaveMatch() {
     if (!matchStore.currentMatchId) {
@@ -69,16 +118,15 @@ import { computed, ref } from 'vue';
       // Clear match store
       matchStore.$reset();
 
-      // Emit RxJS event to SceneStateService (you'll handle listener)
-      rxjs.$next('onStateChange', E_SceneState.OVERWORLD)
+      // Emit RxJS event to SceneStateService
+      rxjs.$next('onStateChange', E_SceneState.OVERWORLD);
 
-      console.log('[MatchHUD] Emitted match.left event via RxJS');
+      console.log('[MatchHUD] Emitted state change to OVERWORLD via RxJS');
     } catch (error) {
       console.error('[MatchHUD] Failed to leave match:', error);
 
-      // TODO: Show error toast notification
       const errorMessage = error instanceof Error ? error.message : 'Failed to leave match';
-      alert(`Error: ${errorMessage}`); // Temporary - replace with toast
+      alert(`Error: ${errorMessage}`); // TODO: Replace with toast notification
     } finally {
       isLeaving.value = false;
     }
