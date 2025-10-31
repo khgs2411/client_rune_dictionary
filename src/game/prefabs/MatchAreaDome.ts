@@ -1,10 +1,10 @@
 import { CollisionComponent } from '@/game/components/interactions/CollisionComponent';
 import { GameObject } from '../GameObject';
+import { I_SceneContext } from '../common/scenes.types';
 import { GeometryComponent } from '../components/rendering/GeometryComponent';
 import { MaterialComponent } from '../components/rendering/MaterialComponent';
 import { MeshComponent } from '../components/rendering/MeshComponent';
 import { TransformComponent } from '../components/rendering/TransformComponent';
-import { I_SceneContext } from '../common/scenes.types';
 
 export interface I_MatchAreaDomeConfig {
   id: string;
@@ -39,7 +39,7 @@ export interface I_MatchAreaDomeConfig {
  *   id: 'match-dome',
  *   center: { x: centerX, y: 0, z: centerZ },
  *   radius: (distance * 2 + 5) / 2,
- *   showDebug: gameConfig.debug.showPhysicsDebug
+ *   showDebug: DataStore.settings.debug.showPhysicsDebug
  * });
  * ```
  */

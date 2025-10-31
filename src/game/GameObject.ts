@@ -23,7 +23,7 @@ export class GameObject {
   protected readonly type?: GameObjectType;
   private components = new Map<Function, GameComponent>();
   private isInitialized = false;
-  private context: I_SceneContext | null = null;
+  protected context: I_SceneContext | null = null;
 
   constructor(config: I_GameObjectConfig) {
     this.id = config.id;

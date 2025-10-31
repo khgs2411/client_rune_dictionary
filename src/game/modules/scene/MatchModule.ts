@@ -6,7 +6,7 @@ import { MatchAreaWalls } from '@/game/prefabs/MatchAreaWalls';
 import { MatchCameraAnchor } from '@/game/prefabs/MatchCameraAnchor';
 import { MatchGrid } from '@/game/prefabs/MatchGrid';
 import { E_SceneState, type StateChangeCallback } from '@/game/services/SceneStateService';
-import { useGameConfigStore } from '@/stores/config.store';
+import { DataStore } from '@/stores/DataStore';
 import { Vector3 } from 'three';
 
 /**
@@ -39,7 +39,7 @@ export class MatchModule extends SceneModule implements I_SceneModule {
   private grid: MatchGrid | null = null;
   private cameraAnchor: MatchCameraAnchor | null = null;
   private stateChangeCallback: StateChangeCallback | null = null;
-  private config = useGameConfigStore();
+  private settings = DataStore.settings;
 
   async init(context: I_SceneContext): Promise<void> {
 
@@ -128,7 +128,7 @@ export class MatchModule extends SceneModule implements I_SceneModule {
       width: arenaWidth,
       depth: arenaDepth,
       height: 20, // Tall enough to prevent jumping over
-      showDebug: this.config.debug.showPhysicsDebug,
+      showDebug: this.settings.debug.showPhysicsDebug,
     });
 
     this.grid = new MatchGrid({

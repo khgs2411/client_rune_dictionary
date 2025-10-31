@@ -1,6 +1,6 @@
 import { PositionVector3 } from '@/common/types';
 import { I_SceneContext } from '@/game/common/scenes.types';
-import { useGameConfigStore } from '@/stores/config.store';
+import { DataStore } from '@/stores/DataStore';
 import type * as RAPIER_TYPE from '@dimforge/rapier3d';
 import { ShapeType } from '@dimforge/rapier3d';
 import {
@@ -133,9 +133,9 @@ export class PhysicsService extends SceneService {
   }
 
   private addEventListeners(context: I_SceneContext) {
-    const gameConfig = useGameConfigStore();
+    const settings = DataStore.settings;
     const stopWatch = watch(
-      () => gameConfig.debug.showPhysicsDebug,
+      () => settings.debug.showPhysicsDebug,
       (newValue) => {
         this.setDebugWireframesVisible(newValue);
         console.log(`[PhysicsService] Debug wireframes ${newValue ? 'shown' : 'hidden'}`);
@@ -899,8 +899,7 @@ export class PhysicsService extends SceneService {
     wireframe.position.set(pos.x, pos.y, pos.z);
     wireframe.quaternion.set(rot.x, rot.y, rot.z, rot.w);
     // Set initial visibility based on global setting
-    const gameConfig = useGameConfigStore();
-    wireframe.visible = gameConfig.debug.showPhysicsDebug;
+    wireframe.visible = DataStore.settings.debug.showPhysicsDebug;
 
     // Register disposables with lifecycle
     this.context.cleanupRegistry.registerDisposable(geometry); // Original geometry

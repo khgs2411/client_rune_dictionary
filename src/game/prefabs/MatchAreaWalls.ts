@@ -46,7 +46,7 @@ export interface I_MatchAreaWallsConfig {
  *   width: 40,  // X axis
  *   depth: 25,  // Z axis
  *   height: 20,
- *   showDebug: gameConfig.debug.showPhysicsDebug
+ *   showDebug: useSettingsStore().debug.showPhysicsDebug
  * });
  * ```
  */

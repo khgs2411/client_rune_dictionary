@@ -120,7 +120,7 @@
   // Extract all fields from config with their metadata
   const allFields = computed<ConfigField[]>(() => {
     const fields: ConfigField[] = [];
-    const categories = ['character', 'camera', 'debug', 'interaction', 'editor'] as const;
+    const categories = ['character', 'camera', 'interaction', 'editor'] as const;
 
     categories.forEach((category) => {
       const categoryObj = config[category];

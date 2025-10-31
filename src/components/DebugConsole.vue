@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <div v-if="config.debug.showWebSocketDebugger" ref="draggableContainer" :style="{
+    <div v-if="settings.debug.showWebSocketDebugger" ref="draggableContainer" :style="{
       left: `${x}px`,
       top: `${y}px`,
       width: `${size.width}px`,
@@ -44,7 +44,7 @@
           <TooltipProvider :delay-duration="0">
             <Tooltip>
               <TooltipTrigger as-child>
-                <Button variant="ghost" size="icon" class="h-6 w-6" @click="config.debug.showWebSocketDebugger = false">
+                <Button variant="ghost" size="icon" class="h-6 w-6" @click="settings.debug.showWebSocketDebugger = false">
                   <Icon icon="radix-icons:cross-2" class="h-3 w-3" />
                 </Button>
               </TooltipTrigger>
@@ -104,14 +104,12 @@
   import Button from '@/components/ui/button/Button.vue';
   import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
   import { Icon } from '@iconify/vue';
-  import { useGameConfigStore } from '@/stores/config.store';
   import { useSettingsStore } from '@/stores/settings.store';
   import { computed, nextTick, ref, watch } from 'vue';
   import { useRxjs } from 'topsyde-utils';
   import { useDraggable, usePointerSwipe, watchDebounced } from '@vueuse/core';
   import { I_DebugConsoleEvent } from '@/common/events.types';
 
-  const config = useGameConfigStore();
   const settings = useSettingsStore();
 
   // Refs

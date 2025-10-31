@@ -2,7 +2,7 @@ import AuthAPI from '@/api/auth.api';
 import { I_DebugConsoleEvent } from '@/common/events.types';
 import { I_ClientData, I_ConnectedClientData } from '@/common/types';
 import { useAuthStore } from '@/stores/auth.store';
-import { useGameConfigStore } from '@/stores/config.store';
+import { useSettingsStore } from '@/stores/settings.store';
 import { useSceneStore } from '@/stores/scene.store';
 import { useWebSocketStore } from '@/stores/websocket.store';
 import { useRxjs, WebsocketStructuredMessage } from 'topsyde-utils';
@@ -16,7 +16,7 @@ export interface I_HandshakeCredentials {
 
 export const useWebSocketConnection = () => {
   const websocketManager = useWebSocketStore();
-  const config = useGameConfigStore();
+  const settings = useSettingsStore();
   const scenes = useSceneStore();
   const auth = useAuthStore();
   const rx = useRxjs(['debug', 'ws']);
@@ -148,7 +148,7 @@ export const useWebSocketConnection = () => {
   * Only emits if debug console is enabled in config
   */
   function emit(event: Omit<I_DebugConsoleEvent, 'timestamp'>) {
-    if (!config.debug.showWebSocketDebugger) return;
+    if (!settings.debug.showWebSocketDebugger) return;
 
     emitDebugEvents(event);
   }

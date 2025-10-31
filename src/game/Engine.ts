@@ -1,3 +1,4 @@
+import { DataStore } from '@/stores/DataStore';
 import {
   Camera,
   Clock,
@@ -10,7 +11,6 @@ import {
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { useRxjs } from 'topsyde-utils';
 import { watch } from 'vue';
-import { useGameConfigStore } from '@/stores/config.store';
 
 /**
  * Core game engine that encapsulates js scene, renderer, and clock.
@@ -29,7 +29,7 @@ export class Engine {
 
   constructor(canvas: HTMLCanvasElement) {
 
-    const config = useGameConfigStore();
+    const settings = DataStore.settings;
 
     // Create clock for delta time
     this.clock = new Clock();
@@ -38,7 +38,7 @@ export class Engine {
 
     // Watch stats visibility setting
     watch(
-      () => config.debug.showStats,
+      () => settings.debug.showStats,
       (showStats) => {
         this.stats.dom.style.display = showStats ? 'block' : 'none';
       },

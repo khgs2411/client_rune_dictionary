@@ -1,6 +1,6 @@
 import { ref, onUnmounted, type Ref } from 'vue';
 import { Mouse, type I_MouseEvent, type I_MouseScrollEvent } from '@/game/utils/Mouse';
-import { useGameConfigStore } from '@/stores/config.store';
+import { useSettingsStore } from '@/stores/settings.store';
 import type { CameraRotation } from './useCameraRotation';
 import type { CameraZoom } from './useCameraZoom';
 
@@ -22,7 +22,7 @@ export function useCameraMouseInput(
   zoom: CameraZoom,
   enabled?: Ref<boolean>,
 ): CameraMouseInput {
-  const config = useGameConfigStore();
+  const settings = useSettingsStore();
   const isDragging = ref(false);
 
   // Create mouse utility with pointer lock support
@@ -40,7 +40,7 @@ export function useCameraMouseInput(
     if (event.button === 2) {
       // Check if mouse input is enabled
       if (enabled && !enabled.value) {
-        if (config.debug.enableConsoleLog) {
+        if (settings.debug.enableConsoleLog) {
           console.log('🔒 [CameraMouseInput] Mouse rotation disabled by state');
         }
         return;
@@ -49,7 +49,7 @@ export function useCameraMouseInput(
       isDragging.value = true;
 
       // Request pointer lock for MMO-style camera (hides cursor)
-      if (config.debug.enableConsoleLog) {
+      if (settings.debug.enableConsoleLog) {
         console.log('🔒 [CameraMouseInput] Requesting pointer lock...');
       }
       mouse.requestPointerLock();
@@ -70,7 +70,7 @@ export function useCameraMouseInput(
       isDragging.value = false;
 
       // Exit pointer lock (show cursor)
-      if (config.debug.enableConsoleLog) {
+      if (settings.debug.enableConsoleLog) {
         console.log('🔓 [CameraMouseInput] Releasing pointer lock...');
       }
       mouse.exitPointerLock();
@@ -81,7 +81,7 @@ export function useCameraMouseInput(
   mouse.on('scroll', (event: I_MouseScrollEvent) => {
     // Check if mouse input is enabled (zoom disabled when rotation disabled)
     if (enabled && !enabled.value) {
-      if (config.debug.enableConsoleLog) {
+      if (settings.debug.enableConsoleLog) {
         console.log('🔒 [CameraMouseInput] Zoom disabled by state');
       }
       return;
@@ -94,7 +94,7 @@ export function useCameraMouseInput(
     if (!mouse.isPointerLocked && isDragging.value) {
       // Pointer lock was exited externally (e.g., user pressed ESC)
       isDragging.value = false;
-      if (config.debug.enableConsoleLog) {
+      if (settings.debug.enableConsoleLog) {
         console.log('🔓 [CameraMouseInput] Pointer lock released externally');
       }
     }

@@ -181,23 +181,18 @@ const metadata: ConfigMetadata = {
       group: 'Camera Limits',
     },
   },
-  debug: {
-    enableConsoleLog: {
-      label: 'Enable Console Logs',
-      group: 'Debug',
+  editor: {
+    enabled: {
+      hidden: true,
     },
-    showStats: {
-      label: 'Show Stats Panel',
-      group: 'Debug',
+    showGrid: {
+      hidden: true,
     },
-    showWebSocketDebugger: {
-      label: 'Show WebSocket Debugger',
-      group: 'Debug',
+    snapToGrid: {
+      hidden: true,
     },
-    showPhysicsDebug: {
-      label: 'Physics Debug Wireframes',
-      description: 'Show green wireframes around all physics colliders',
-      group: 'Debug',
+    dragOpacity: {
+      hidden: true,
     },
   },
   interaction: {
@@ -223,20 +218,7 @@ const metadata: ConfigMetadata = {
       group: 'Interaction Settings',
     },
   },
-  editor: {
-    enabled: {
-      hidden: true,
-    },
-    showGrid: {
-      hidden: true,
-    },
-    snapToGrid: {
-      hidden: true,
-    },
-    dragOpacity: {
-      hidden: true,
-    },
-  },
+  
 };
 
 export const useGameConfigStore = defineStore(
@@ -283,13 +265,6 @@ export const useGameConfigStore = defineStore(
       // Camera angle limits
       angleVMin: 0.1, // Minimum vertical angle (prevent looking straight down)
       angleVMax: Math.PI / 2 - 0.1, // Maximum vertical angle (prevent looking straight up)
-    });
-
-    const debug = reactive({
-      enableConsoleLog: true, // Enable/disable console logs
-      showStats: true, // Show/hide Three.js stats panel
-      showWebSocketDebugger: true, // Show/hide WebSocket event debugger
-      showPhysicsDebug: false, // Show/hide physics collider wireframes
     });
 
     const interaction = reactive({
@@ -368,7 +343,6 @@ export const useGameConfigStore = defineStore(
     return {
       character,
       camera,
-      debug,
       interaction,
       editor,
       getFieldMetadata,

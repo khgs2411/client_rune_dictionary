@@ -62,10 +62,27 @@
               <TooltipTrigger as-child>
                 <div class="flex items-center justify-between py-1">
                   <div class="flex flex-col">
+                    <span class="text-sm font-medium">Console Logs</span>
+                    <span class="text-xs text-muted-foreground">Enable/disable console output</span>
+                  </div>
+                  <Switch v-model="settings.debug.enableConsoleLog" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>Enable or disable console logging</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider :delay-duration="0">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <div class="flex items-center justify-between py-1">
+                  <div class="flex flex-col">
                     <span class="text-sm font-medium">Performance Stats</span>
                     <span class="text-xs text-muted-foreground">FPS, frame time, memory</span>
                   </div>
-                  <Switch v-model="config.debug.showStats" />
+                  <Switch v-model="settings.debug.showStats" />
                 </div>
               </TooltipTrigger>
               <TooltipContent side="left">
@@ -82,11 +99,45 @@
                     <span class="text-sm font-medium">WebSocket Debugger</span>
                     <span class="text-xs text-muted-foreground">Real-time event monitor</span>
                   </div>
-                  <Switch v-model="config.debug.showWebSocketDebugger" />
+                  <Switch v-model="settings.debug.showWebSocketDebugger" />
                 </div>
               </TooltipTrigger>
               <TooltipContent side="left">
                 <p>Show live WebSocket event stream</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider :delay-duration="0">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <div class="flex items-center justify-between py-1">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium">Physics Debug</span>
+                    <span class="text-xs text-muted-foreground">Show collider wireframes</span>
+                  </div>
+                  <Switch v-model="settings.debug.showPhysicsDebug" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>Show green wireframes around all physics colliders</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider :delay-duration="0">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <div class="flex items-center justify-between py-1">
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium">Auto Match</span>
+                    <span class="text-xs text-muted-foreground">Start PvE match on reload</span>
+                  </div>
+                  <Switch v-model="settings.debug.autoMatch" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                <p>Automatically start match with Training Dummy on HMR reload</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -120,13 +171,11 @@
   import Switch from '@/components/ui/switch/Switch.vue';
   import { useSettingsStore } from '@/stores/settings.store';
   import { useAuthStore } from '@/stores/auth.store';
-  import { useGameConfigStore } from '@/stores/config.store';
   import { THEME_OPTIONS } from '@/composables/useTheme';
   import { computed, ref } from 'vue';
 
   const settings = useSettingsStore();
   const auth = useAuthStore();
-  const config = useGameConfigStore();
   const router = useRouter();
 
   const isOpen = ref(false);

@@ -10,6 +10,14 @@ export interface I_DebugConsoleSettings {
   height: number;
 }
 
+export interface I_DebugSettings {
+  autoMatch: boolean; // Auto-start PvE match on reload (simulates double-click on TrainingDummy)
+  enableConsoleLog: boolean; // Enable/disable console logs
+  showStats: boolean; // Show/hide Three.js stats panel
+  showWebSocketDebugger: boolean; // Show/hide WebSocket event debugger
+  showPhysicsDebug: boolean; // Show/hide physics collider wireframes
+}
+
 export const useSettingsStore = defineStore(
   'settings',
   () => {
@@ -24,6 +32,15 @@ export const useSettingsStore = defineStore(
       y: 64,
       width: 400,
       height: Math.min(window.innerHeight * 0.6, 600),
+    });
+
+    // Debug settings
+    const debug = ref<I_DebugSettings>({
+      autoMatch: false, // Default: disabled
+      enableConsoleLog: true, // Default: enabled
+      showStats: true, // Default: enabled
+      showWebSocketDebugger: true, // Default: enabled
+      showPhysicsDebug: false, // Default: disabled
     });
 
     // Toggle dark/light mode
@@ -43,6 +60,7 @@ export const useSettingsStore = defineStore(
       // State
       theme,
       debugConsole,
+      debug,
 
       // Actions
       toggleColorMode,

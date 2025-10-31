@@ -12,6 +12,7 @@ import { ClickVFXComponent } from '@/game/components/interactions/ClickVFXCompon
 import { CollisionComponent } from '@/game/components/interactions/CollisionComponent';
 import { DragComponent } from '@/game/components/interactions/DragComponent';
 import { HoverGlowComponent } from '@/game/components/interactions/HoverGlowComponent';
+import { MatchComponent } from '@/game/components/match/MatchComponent';
 import { GeometryComponent } from '@/game/components/rendering/GeometryComponent';
 import { InstancedMeshComponent } from '@/game/components/rendering/InstancedMeshComponent';
 import { MaterialComponent } from '@/game/components/rendering/MaterialComponent';
@@ -147,6 +148,14 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     `);
   }
 
+  protected onSceneLoaded(): void {
+
+    // Auto-match debug feature (simulates double-click on TrainingDummy)
+    const trainingDummy = this.getService('gameObjectsManager').get<TrainingDummy>('training-dummy-1')
+    if (!trainingDummy) return;
+    this.handleAutoMatch(trainingDummy);
+  }
+
   private addEnvironmentObjects() {
     const gom = this.getService('gameObjectsManager');
 
@@ -255,5 +264,38 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     };
 
     this.getService('gameObjectsManager').onThemeChange(theme);
+  }
+
+  /**
+   * Auto-match debug feature
+   * Automatically starts a PvE match on reload if autoMatch debug flag is enabled
+   * Simulates double-click on TrainingDummy by triggering MatchComponent directly
+   */
+  private handleAutoMatch(trainingDummy: TrainingDummy): void {
+    // Check if auto-match is enabled
+    if (!this.settings.debug.autoMatch) {
+      return; // Auto-match disabled, do nothing
+    }
+
+    console.log('🎮 [PlaygroundScene] Auto-match enabled, starting PvE match in 1 second...');
+
+    // Wait 1 second for scene to fully initialize, then trigger match
+    setTimeout(async () => {
+      // Get MatchComponent from TrainingDummy
+      const matchComponent = trainingDummy.getComponent(MatchComponent);
+
+      if (!matchComponent) {
+        console.error('🎮 [PlaygroundScene] Auto-match failed: MatchComponent not found on TrainingDummy');
+        return;
+      }
+
+      console.log('🎮 [PlaygroundScene] Triggering match creation via MatchComponent...');
+
+      // Call the private method using type assertion (hacky but works for debug feature)
+      // @ts-ignore - Accessing private method for debug purposes
+      await matchComponent.handleMatchCreation(this.getSceneContext());
+
+      console.log('🎮 [PlaygroundScene] Auto-match triggered successfully');
+    }, 1000);
   }
 }

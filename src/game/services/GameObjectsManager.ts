@@ -13,7 +13,7 @@ import { GameObject } from '../GameObject';
  * - Collection management
  * - Context passing to components
  */
-export class GameObjectsManager extends SceneService implements I_SceneService{
+export class GameObjectsManager extends SceneService implements I_SceneService {
   private gameObjects = new Map<string, GameObject>();
 
   /**
@@ -81,8 +81,8 @@ export class GameObjectsManager extends SceneService implements I_SceneService{
   /**
    * Get a GameObject by ID
    */
-  get(id: string): GameObject | null {
-    return this.gameObjects.get(id) || null;
+  get<T extends GameObject>(id: string): T | null {
+    return this.gameObjects.get(id) as T || null;
   }
 
   /**
@@ -131,7 +131,7 @@ export class GameObjectsManager extends SceneService implements I_SceneService{
     console.log(`🎨 [GameObjectManager] Notified ${this.gameObjects.size} GameObjects of theme change to "${theme}"`);
   }
 
-  
+
 
   /**
    * Update all GameObjects

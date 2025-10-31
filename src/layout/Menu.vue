@@ -5,7 +5,7 @@
         <Tooltip>
           <TooltipTrigger as-child>
             <Button variant="ghost" size="icon" class="h-8 w-8" @click="toggleDebugger">
-              <Icon :icon="config.debug.showWebSocketDebugger
+              <Icon :icon="settings.debug.showWebSocketDebugger
                 ? 'radix-icons:globe'
                 : 'radix-icons:component-none'
                 " class="h-4 w-4" />
@@ -14,7 +14,7 @@
           <TooltipContent>
             <p>
               {{
-                config.debug.showWebSocketDebugger
+                settings.debug.showWebSocketDebugger
                   ? 'Hide WebSocket Debugger'
                   : 'Show WebSocket Debugger'
               }}
@@ -52,12 +52,14 @@
   import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
   import { Icon } from '@iconify/vue';
   import { useGameConfigStore } from '@/stores/config.store';
+  import { useSettingsStore } from '@/stores/settings.store';
   import { useAuthStore } from '@/stores/auth.store';
 
   const config = useGameConfigStore();
+  const settings = useSettingsStore();
   const auth = useAuthStore();
   function toggleDebugger() {
-    config.debug.showWebSocketDebugger = !config.debug.showWebSocketDebugger;
+    settings.debug.showWebSocketDebugger = !settings.debug.showWebSocketDebugger;
   }
 
   function toggleEditor() {

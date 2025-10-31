@@ -19,11 +19,11 @@ import { PhysicsService } from '@/game/services/PhysicsService';
 import SceneStateService from '@/game/services/SceneStateService';
 import { Spawner } from '@/game/services/Spawner';
 import { VFXService } from '@/game/services/VFXService';
-import { GameConfig, useGameConfigStore } from '@/stores/config.store';
-import { SceneStore as ScenesManager, useSceneStore } from '@/stores/scene.store';
+import { GameConfig } from '@/stores/config.store';
+import { DataStore } from '@/stores/DataStore';
+import { SceneStore as ScenesManager } from '@/stores/scene.store';
 import type { ApplicationSettings } from '@/stores/settings.store';
-import { useSettingsStore } from '@/stores/settings.store';
-import { useWebSocketStore, WebsocketManager } from '@/stores/websocket.store';
+import { WebsocketManager } from '@/stores/websocket.store';
 import { useRxjs } from 'topsyde-utils';
 import NetworkingService from './services/NetworkingService';
 
@@ -79,10 +79,10 @@ export abstract class GameScene<
 
   constructor() {
     // Subscribe to module loading events
-    this.settings = useSettingsStore();
-    this.config = useGameConfigStore();
-    this.scenes = useSceneStore();
-    this.websocketManager = useWebSocketStore();
+    this.settings = DataStore.settings;
+    this.config = DataStore.config;
+    this.scenes = DataStore.scene;
+    this.websocketManager = DataStore.websocket;
     this.camera = useCamera();
     this.character = useCharacter({
       cameraAngleH: this.camera.controller.angle.horizontal,
@@ -211,6 +211,14 @@ export abstract class GameScene<
    */
   protected abstract addSceneObjects(): void;
 
+  /**
+   * Optional lifecycle hook called when the scene has finished loading.
+   * Subclasses may override this to run post-load logic; default is a no-op.
+   */
+  protected onSceneLoaded(): void {
+    // no-op by default
+  }
+
 
   /**
    * Update all initialized modules
@@ -271,6 +279,7 @@ export abstract class GameScene<
    */
   protected finalizeSetup(): void {
     this.camera.start();
+    this.onSceneLoaded();
   }
 
 

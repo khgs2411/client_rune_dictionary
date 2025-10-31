@@ -30,7 +30,8 @@ export interface I_HotkeyConfig {
  * gameObject.addComponent(new HotkeyComponent({
  *   key: 'F3',
  *   onPress: () => {
- *     gameConfig.debug.showPhysicsDebug = !gameConfig.debug.showPhysicsDebug;
+ *     const settings = useSettingsStore();
+ *     settings.debug.showPhysicsDebug = !settings.debug.showPhysicsDebug;
  *   }
  * }));
  * ```
