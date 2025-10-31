@@ -1,6 +1,6 @@
 # Combat System Reimplementation - Dashboard
 
-**Last Updated**: 2025-10-31 03:30
+**Last Updated**: 2025-10-31 04:15
 
 **Project**: Vue 3 + Three.js combat system with match mode, camera controls, and arena boundaries
 **Status**: Phase 2 in progress (this plan is migrated from original plan.md file and is starting from phase 2 given phase 1 is complete)
@@ -11,9 +11,9 @@
 ## 📍 Current Work
 
 - **Phase**: [Phase 2 - Combat System Reimplementation](phase-2/)
-- **Task**: [Task 1 - Match UI Components](phase-2/task-1.md)
-- **Iteration**: [Iteration 1 - Match HUD Elements](phase-2/task-1.md#iteration-1-match-hud-elements) 🚧 IMPLEMENTING
-- **Focus**: Building Pokemon-inspired Match HUD with ATB integration, action bar, and status panels
+- **Task**: [Task 2 - WebSocket Match Events & Match Loop System](phase-2/task-2.md)
+- **Iteration**: None yet - use `/flow-brainstorm-start` or `/flow-implement-start` for Iteration 1
+- **Focus**: Connect Match HUD to real-time WebSocket events and implement match loop (ATB, turn, action systems)
 
 ---
 
@@ -22,19 +22,21 @@
 ### Phase 2: Combat System Reimplementation 🚧 IN PROGRESS
 
 **Goal**: Build match environment with camera controls, arena boundaries, and visual feedback
-**Status**: 25% complete (1/2 tasks, 1/6 total iterations)
+**Status**: 33% complete (1/3 tasks, 2/6 total iterations)
 
 **Tasks**:
-- 🚧 **Task 1**: Match UI Components (1/2 iterations) ← **CURRENT**
+- ✅ **Task 1**: Match UI Components (2/2 iterations) - COMPLETE
   - ✅ Iteration 0: Game Mode Controls & Visibility Management
-  - 🚧 Iteration 1: Match HUD Elements (IMPLEMENTING) ← **ACTIVE**
+  - ✅ Iteration 1: Match HUD Elements
   - ❌ Iteration 2: Character Status Display (CANCELLED - consolidated into Iteration 1)
   - ❌ Iteration 3: Combat Actions UI (CANCELLED - consolidated into Iteration 1)
-- ⏳ **Task 2**: WebSocket Match Events & Match Loop System (0/4 iterations)
+- 🚧 **Task 2**: WebSocket Match Events & Match Loop System (0/4 iterations) ← **CURRENT**
   - ⏳ Iteration 1: WebSocket Event Integration
-  - ⏳ Iteration 2: ATB System Implementation
-  - ⏳ Iteration 3: Turn System Implementation
+  - ⏳ Iteration 2: Turn System Implementation
+  - ⏳ Iteration 3: ATB System Implementation
   - ⏳ Iteration 4: Action System Implementation
+- ⏳ **Task 3**: Grid System for Distance-Based Skills (0/1 iterations)
+  - ⏳ Iteration 1: [TBD]
 
 ---
 
@@ -48,7 +50,9 @@
 - **2025-10-30**: Collision System - Updated CollisionComponent to support mesh-less collision via explicit shape + shapeParams with half-extents convention
 
 **Recent Completions**:
-- **2025-10-30**: ✅ Iteration 0 Complete - Game Mode Controls & Visibility Management (all verification passed, zero known issues)
+- **2025-10-31**: ✅ Task 1 Complete - Match UI Components (2/2 iterations complete)
+  - ✅ Iteration 0: Game Mode Controls & Visibility Management
+  - ✅ Iteration 1: Match HUD Elements (Pokemon-inspired three-corner layout with TurnTimer, StatusPanel, ActionBar)
 
 **Pending Decisions**:
 None currently

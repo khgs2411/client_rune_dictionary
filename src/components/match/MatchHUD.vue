@@ -8,50 +8,32 @@
 
     <!-- Top-right: Enemy status panel -->
     <div class="absolute top-0 right-4 mt-16 pointer-events-auto">
-      <StatusPanel
-        entity-type="enemy"
-        :name="enemyName"
-        :level="enemyLevel"
-        :hp="enemyHp"
-        :max-hp="enemyMaxHp"
-        :mp="enemyMp"
-        :max-mp="enemyMaxMp"
-        :atb-progress="enemyAtbProgress"
-      />
+      <StatusPanel entity-type="enemy" :name="enemyName" :level="enemyLevel" :hp="enemyHp" :max-hp="enemyMaxHp"
+        :mp="enemyMp" :max-mp="enemyMaxMp" :atb-progress="enemyAtbProgress" />
     </div>
 
     <!-- Bottom-left: Player status panel -->
     <div class="absolute bottom-0 left-4 mb-16 pointer-events-auto">
-      <StatusPanel
-        entity-type="player"
-        :name="playerName"
-        :level="playerLevel"
-        :hp="playerHp"
-        :max-hp="playerMaxHp"
-        :mp="playerMp"
-        :max-mp="playerMaxMp"
-        :atb-progress="playerAtbProgress"
-      />
+      <StatusPanel entity-type="player" :name="playerName" :level="playerLevel" :hp="playerHp" :max-hp="playerMaxHp"
+        :mp="playerMp" :max-mp="playerMaxMp" :atb-progress="playerAtbProgress" />
     </div>
 
-    <!-- Bottom-right: Action bar (8 slots + Run/Pass) -->
-    <div class="absolute bottom-4 right-4 pointer-events-auto">
-      <ActionBar @leave-match="handleLeaveMatch" :is-leaving="isLeaving" />
-    </div>
+    <!-- Action bar (8 slots + Run/Pass) - Draggable, positioned by component -->
+    <ActionBar @leave-match="handleLeaveMatch" :is-leaving="isLeaving" />
   </div>
 </template>
 
 <script setup lang="ts">
   import MatchAPI from '@/api/match.api';
-  import { E_SceneState } from '@/game/services/SceneStateService';
-  import { DataStore } from '@/stores/DataStore';
-  import { useRxjs } from 'topsyde-utils';
-  import { computed, ref } from 'vue';
-  import TurnTimer from './TurnTimer.vue';
-  import StatusPanel from './StatusPanel.vue';
-  import ActionBar from './ActionBar.vue';
+import { E_SceneState } from '@/game/services/SceneStateService';
+import { DataStore } from '@/stores/DataStore';
+import { useRxjs } from 'topsyde-utils';
+import { computed, ref } from 'vue';
+import ActionBar from './ActionBar.vue';
+import StatusPanel from './StatusPanel.vue';
+import TurnTimer from './TurnTimer.vue';
 
-  const matchAPI = new MatchAPI();
+  const api = new MatchAPI();
   const rxjs = useRxjs('scene:state');
 
   // Reactive stores
@@ -108,7 +90,7 @@
 
     try {
       // Call API to leave match
-      const response = await matchAPI.leaveMatch({
+      const response = await api.leaveMatch({
         whoami: websocketStore.clientData,
         matchId: matchStore.currentMatchId,
       });
