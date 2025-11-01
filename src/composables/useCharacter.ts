@@ -1,8 +1,6 @@
 import { I_CharacterControlsOptions } from '@/common/types';
-import { useGameConfigStore } from '@/stores/config.store';
+import { useCharacterController } from './character/useCharacterController';
 import { I_GameCharacter } from './composables.types';
-import { useCharacterController } from './useCharacterController';
-import { Vector3 } from 'three';
 
 /**
  * High-level character entity composable

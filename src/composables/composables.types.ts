@@ -1,8 +1,8 @@
 import { TargetPosition } from '@/common/types';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { Ref } from 'vue';
-import { useCameraController } from './useCameraController';
-import { useCharacterController } from './useCharacterController';
+import { useCameraController } from './camera/useCameraController';
+import { useCharacterController } from './character/useCharacterController';
 
 export interface I_GameComposable {
   start?: () => void;

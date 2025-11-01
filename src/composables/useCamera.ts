@@ -2,8 +2,8 @@ import { useGameConfigStore } from '@/stores/config.store';
 import { useEventListener, useRafFn } from '@vueuse/core';
 import { MathUtils, PerspectiveCamera, Vector3 } from 'three';
 import { ref, watchEffect } from 'vue';
+import { useCameraController } from './camera/useCameraController';
 import { I_CameraPerspective, I_GameCamera } from './composables.types';
-import { useCameraController } from './useCameraController';
 
 /**
  * High-level camera entity composable

@@ -26,7 +26,7 @@ Build the complete match loop infrastructure by connecting the HUD components fr
 
 **Goal**: Connect HUD to WebSocket match events and sync basic match state
 
-**Status**: 🚧 IN PROGRESS
+**Status**: 🚧 IMPLEMENTING
 
 **Brainstorming Status**: ✅ COMPLETE
 
@@ -36,9 +36,9 @@ Build the complete match loop infrastructure by connecting the HUD components fr
 
 #### Implementation - Iteration 1: WebSocket Event Integration
 
-**Status**: 🚧 IN PROGRESS (2025-11-01)
+**Status**: 🚧 IMPLEMENTING (Started 2025-11-01)
 
-**Action Items**: See Action Items section below (derived from brainstorming subjects)
+**Action Items**: See consolidated Action Items section below
 
 **Implementation Notes**:
 [To be filled during work]
@@ -47,28 +47,192 @@ Build the complete match loop infrastructure by connecting the HUD components fr
 [To be filled as work progresses]
 
 **Verification**:
-[To be filled - how work was verified]
+[To be filled - manual testing with live WebSocket connection]
 
 ---
 
-#### Brainstorming Session - WebSocket Event Integration Strategy
+#### Brainstorming Session - WebSocket Event Integration Strategy (Extended)
 
 **Focus**: Design WebSocket event handling, state management, and HUD integration for match loop
 
 **Subjects to Discuss** (tackle one at a time):
 
-1. ✅ **WebSocket Event Registration** - Who registers and how are events transmitted to UI components?
-2. ✅ **WebSocket Event Structure** - What events does the matchmaking server send? Event naming conventions? Payload format?
-3. ✅ **Match Store Schema** - What data needs to be stored in matchStore?
-4. ✅ **HUD Data Binding** - How to connect reactive matchStore data to TurnTimer, StatusPanel, ActionBar components?
-5. ✅ **Error Handling & Reconnection** - What happens if WebSocket disconnects during match? How to handle reconnection?
-6. ✅ **State Synchronization** - How to ensure client state matches server state? What if events arrive out of order?
+1. ✅ **Message Handling Approach** - Class vs Composable vs Casting for WebSocketStructuredMessage processing
+2. ✅ **Store Composable Pattern** - Should we create a composable for game state logic to keep Pinia store as simple blackboard?
+3. ✅ **Interface Refactoring** - Now that we understand server events, do we refactor current interfaces?
+4. ✅ **Store Architecture Alignment** - Do we change existing architecture to fit incoming events better?
+5. ✅ **Server Event Structure Review** - Do server events need more data or are they structured well?
+
+**Previous Initial Subjects** (first brainstorming round - all resolved):
+- ✅ WebSocket Event Registration
+- ✅ WebSocket Event Structure
+- ✅ Match Store Schema
+- ✅ HUD Data Binding
+- ✅ Error Handling & Reconnection
+- ✅ State Synchronization
 
 **Resolved Subjects**:
 
 ---
 
-##### ✅ Subject 1: WebSocket Event Registration
+##### ✅ Subject 1: Message Handling Approach
+
+**Decision**: Use TypeScript interface casting (Option 3)
+
+**Rationale**:
+- Zero runtime overhead - casting is compile-time only, completely erased in JavaScript
+- No object instantiation overhead (class would create objects per message)
+- No Vue reactivity overhead (composable would set up refs/computed unnecessarily)
+- Messages are processed once, extracted, and routed to store - no need for behavior or reactivity
+- Type-safe with proper interfaces for each event payload
+
+**Pattern**:
+```ts
+if (message.type === 'match.turn.start') {
+  const payload = message as MatchTurnStartEvent;
+  updateTurnState(payload.content);
+}
+```
+
+**Resolution Items**: (Type D - Action Items)
+- Create TypeScript interfaces for all 11 event types
+- Use type guards for message routing (if/switch on message.type)
+- Cast to specific event interface when handling each message type
+
+---
+
+##### ✅ Subject 2: Store Composable Pattern
+
+**Decision**: Create `useMatchState()` composable for granular combat state (MVC Service pattern)
+
+**Rationale**:
+- **Separation of concerns**: Store handles high-level lifecycle (matchId, isMatchActive, matchState), composable handles granular combat data (health, ATB, turn, timer, logs)
+- **Scale**: Handles tens of events/second without bloating store
+- **Reactivity preserved**: Store exposes composable, components access via `computed(() => matchStore.gameState.atb)` - no overhead
+- **Testability**: Composable logic testable without Pinia dependencies
+- **MVC analogy**: Store = Controller, Composable = Service, Component = View
+- **Single instance**: Composable only instantiated inside store, never called directly by components
+
+**Pattern**:
+```ts
+// useMatchState.ts - composable with event handlers
+export function useMatchState() {
+  const player = ref<I_PlayerParticipant>();
+  const npc = ref<I_NPCParticipant>();
+
+  function handleHealthUpdate(content) { ... }
+  function handleATBUpdate(content) { ... }
+
+  return { player, npc, handleHealthUpdate, handleATBUpdate, ... };
+}
+
+// match.store.ts - store instantiates and exposes
+const gameState = useMatchState();
+return { matchId, matchState, gameState }; // gameState is composable
+```
+
+**Resolution Items**: (Type D - Action Items)
+- Create `useMatchState()` composable with refs for player, npc, turn, atb, timer
+- Create specific event handler methods in composable (handleHealthUpdate, handleATBUpdate, etc.)
+- Update match store to instantiate composable once and expose as `gameState` property
+- Route incoming WebSocket events from store to composable handlers
+
+---
+
+##### ✅ Subject 3: Interface Refactoring
+
+**Decision**: Keep UI-friendly client interfaces, transform server payloads in composable handlers
+
+**Rationale**:
+- **Composable is the transformation layer** - absorbs server structure complexity
+- **Single transformation point** - composable handlers transform once (e.g., ATB entityId map → player.readiness/npc.readiness)
+- **Semantic store structure** - components read clean objects: `player.readiness`, not `atbData['27'].readiness`
+- **Server structure irrelevant to UI** - event interfaces match server for type safety, but composable normalizes to UI-friendly refs
+- **Components stay simple** - just `computed(() => matchStore.gameState.player.readiness)`
+
+**Pattern**:
+```ts
+// Event interface matches server (type safety)
+interface MatchATBUpdateEvent {
+  content: {
+    atbData: { [entityId: string]: { readiness: number } }
+  }
+}
+
+// Composable transforms to UI-friendly structure
+function handleATBUpdate(content) {
+  player.value.readiness = content.atbData[player.value.entityId].readiness;
+  npc.value.readiness = content.atbData[npc.value.entityId].readiness;
+}
+
+// Component consumes clean structure
+const playerReadiness = computed(() => matchStore.gameState.player.readiness);
+```
+
+**Resolution Items**: (Type D - Action Items)
+- Add missing timer fields to `I_TimerConfig`: `active`, `remaining`, `elapsed`, `percentage`
+- Add `readiness` field to `I_PlayerParticipant` and `I_NPCParticipant` interfaces
+- Rename turn fields if needed: `currentTurnEntityId`, `turnCounter` (or keep existing names)
+- Transform ATB entityId map to player/npc readiness in composable handler
+
+---
+
+##### ✅ Subject 4: Store Architecture Alignment
+
+**Decision**: Remove store mutation methods, route WebSocket events directly to composable handlers
+
+**Rationale**:
+- **Single responsibility**: Store = lifecycle (matchId, isMatchActive, matchState), Composable = combat state (player, npc, turn, atb, timer)
+- **WebSocket is only data source**: All game state updates come from server events, no manual updates needed
+- **Simpler mental model**: Thin routing layer `message.type → gameState.handleEvent(message.content)` without redundant wrapper methods
+- **Unidirectional data flow**: Server → WebSocket → Composable → Components (components never mutate)
+- **Dead code elimination**: Methods like `updatePlayerHealth()` would just call `gameState.handleHealthUpdate()` - no added value
+
+**Pattern**:
+```ts
+// match.store.ts - thin routing only
+websocket.register('match.store', {
+  data: async (_ws, message) => {
+    switch(message.type) {
+      case 'match.health.update':
+        gameState.handleHealthUpdate(message.content);
+        break;
+      case 'match.atb.readiness.update':
+        gameState.handleATBUpdate(message.content);
+        break;
+    }
+  }
+});
+```
+
+**Exception**: Keep `setInitialMatchState()` for HTTP match creation response (lifecycle, not combat state)
+
+**Resolution Items**: (Type D - Action Items)
+- Remove redundant store methods: `updateGameState()`, `updatePlayerHealth()`, `updateNPCHealth()`, `updateTurnState()`, `updateATBState()`
+- Keep lifecycle methods: `setInitialMatchState()`, `confirmMatchConnection()`, `endMatch()`, `leaveMatch()`, `$reset()`
+- Implement WebSocket routing switch/case that maps event types to composable handlers
+- Components read via computed properties, never call mutation methods
+
+---
+
+##### ✅ Subject 5: Server Event Structure Review
+
+**Decision**: Accept server events as-is, no changes requested
+
+**Rationale**:
+- **Battle-tested structure**: Events come from working implementation that already existed
+- **Full match loop coverage**: Events cover match lifecycle, turn flow, ATB updates, health/damage, and match results
+- **Client-server control**: We control both sides - can add fields quickly if gaps discovered during implementation
+- **YAGNI principle**: Don't request changes before discovering actual need
+- **Faster iteration**: Start implementing immediately, discover needs organically
+
+**Resolution Items**: (Type D - Action Items)
+- Use current server event structure without modifications
+- Document any missing data discovered during implementation for future server updates
+
+---
+
+##### ✅ Subject 1 (Initial): WebSocket Event Registration
 
 **Decision**: Store-Level Registration (Option 2)
 
@@ -174,7 +338,39 @@ Build the complete match loop infrastructure by connecting the HUD components fr
 
 #### Action Items
 
-(Consolidated from brainstorming resolutions by `/flow-brainstorm-review`)
+(Consolidated from Resolution Items by `/flow-brainstorm-review` - 2025-11-01)
+
+- [ ] Create TypeScript interfaces for all 11 event types in `src/common/match-events.types.ts`
+- [ ] Define discriminated union type for type-safe WebSocket message routing
+- [ ] Add timer fields to `I_TimerConfig` in `src/common/match.types.ts`: `active`, `remaining`, `elapsed`, `percentage`
+- [ ] Add `readiness: number` field to `I_PlayerParticipant` interface
+- [ ] Add `readiness: number` field to `I_NPCParticipant` interface
+- [ ] Update turn field names to match server: `currentTurnEntityId`, `turnCounter` (or keep existing names)
+- [ ] Create `src/composables/useMatchState.ts` with refs for: `player`, `npc`, `turn`, `atb`, `timer`
+- [ ] Implement `handleMatchCreated(content)` in useMatchState - initialize match with player/npc data
+- [ ] Implement `handleMatchStateChange(content)` - update match lifecycle state
+- [ ] Implement `handleHealthUpdate(content)` - update player or npc health
+- [ ] Implement `handleATBUpdate(content)` - transform entityId map to player/npc readiness
+- [ ] Implement `handleTurnStart(content)` - update current turn entity and turn number
+- [ ] Implement `handleTurnEnd(content)` - clear turn state or reset
+- [ ] Implement `handleStateUpdate(content)` - sync timer, turn counter, current entity
+- [ ] Implement `handleDamageDealt(content)` - process damage event (may update health)
+- [ ] Implement `handleMatchVictory(content)` - process victory/defeat result
+- [ ] Implement `handleMatchEnd(content)` - finalize match state
+- [ ] Instantiate `useMatchState()` composable once in match.store.ts
+- [ ] Expose composable as `gameState` property in store return object
+- [ ] Remove redundant store methods: `updateGameState()`, `updatePlayerHealth()`, `updateNPCHealth()`, `updateTurnState()`, `updateATBState()`
+- [ ] Keep lifecycle methods: `setInitialMatchState()`, `confirmMatchConnection()`, `endMatch()`, `leaveMatch()`, `$reset()`
+- [ ] Implement WebSocket routing switch/case for: `match.created`, `match.state.change`, `match.health.update`, `match.atb.readiness.update`, `match.turn.start`, `match.turn.end`, `match.state.update`, `match.damage.dealt`, `match.victory`, `match.end`, `client.leave.channel`
+- [ ] Update `TurnTimer.vue` to read timer from `matchStore.gameState.timer` via computed
+- [ ] Update `StatusPanel.vue` to read player/npc health and readiness via computed
+- [ ] Update `ActionBar.vue` to read turn state and disable/enable based on player turn
+- [ ] Use optional chaining in all computed properties: `computed(() => matchStore.gameState?.player.health)`
+- [ ] Document any missing event data discovered during implementation
+
+---
+
+#### Event Documentation Reference
 
 Provided manually by the user:
 ```ts
@@ -337,36 +533,7 @@ Provided manually by the user:
 }
 ```
 
-**Event Registration & Routing**:
-- [x] Register WebSocket match event handlers in match store (or dedicated service)
-- [ ] Route incoming events to appropriate store mutation methods
-
-**Event Documentation & Interfaces**:
-- [x] Document core events as implemented: `match.turn.start`, `match.turn.end`, `match.atb.readiness.update`, `match.state.update`
-- [ ] Create TypeScript interfaces for events as encountered
-- [ ] Review server payloads during implementation and refine to remove unnecessary data
-
-**Store Schema**:
-- [x] Use existing `I_GameState` interface as baseline
-- [ ] Add computed getters if components need derived data (e.g., time remaining from timestamp)
-- [ ] Adjust schema if server events reveal mismatches during implementation
-
-**Component Data Binding**:
-- [ ] Each HUD component calls `useMatchStore()` and creates computed properties for needed data
-- [ ] Use optional chaining for safety: `computed(() => matchStore.gameState?.timer.duration)`
-
-**Happy Path Implementation**:
-- [x] Implement happy path only (assume connection stays alive)
-- [ ] Apply server events to store immediately without validation
-- [x] Add basic console logging if connection drops (for debugging)
-- [x] Add console logging during development to detect any ordering issues
-
-**Future Work** (defer to separate iterations/tasks):
-- [ ] Create future task for reconnection/error handling after core match loop is complete
-- [ ] If desync bugs appear, revisit with sequence numbers or periodic full state sync
-
 ---
-
 
 ### ⏳ Iteration 2: Turn System Implementation
 

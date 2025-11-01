@@ -120,7 +120,7 @@
 
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
-import { useConnectionDiagnostics } from '@/composables/useConnectionDiagnostics';
+import { useConnectionDiagnostics } from '@/composables/character/useConnectionDiagnostics';
 import { onMounted, ref } from 'vue';
 
 interface Props {

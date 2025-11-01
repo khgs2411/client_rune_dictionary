@@ -1,10 +1,10 @@
+import { I_CharacterControlsOptions } from '@/common/types';
 import { useGameConfigStore } from '@/stores/config.store';
+import { Vector3 } from 'three';
+import { I_CharacterControls } from '../composables.types';
+import { useJoystick } from '../useJoystick';
 import { useCharacterJump } from './useCharacterJump';
 import { useCharacterMovement } from './useCharacterMovement';
-import { useJoystick } from './useJoystick';
-import { I_CharacterControls } from './composables.types';
-import { I_CharacterControlsOptions } from '@/common/types';
-import { Vector3 } from 'three';
 
 /**
  * Main character controls composable

@@ -50,6 +50,7 @@ export interface I_PlayerParticipant {
     health: number;
     maxHealth: number;
     stats: I_ParticipantStats;
+    readiness: number; // ATB readiness (0-100)
 }
 
 /**
@@ -61,6 +62,7 @@ export interface I_NPCParticipant {
     health: number;
     maxHealth: number;
     stats: I_ParticipantStats;
+    readiness: number; // ATB readiness (0-100)
 }
 
 /**
@@ -87,6 +89,10 @@ export interface I_TimerConfig {
     duration: number; // milliseconds per turn
     warningThreshold: number; // percentage threshold for warning (e.g., 80)
     fallbackAction: 'pass' | 'skip'; // action on timeout
+    active: boolean; // whether timer is currently running
+    remaining: number; // milliseconds remaining in current turn
+    elapsed: number; // milliseconds elapsed in current turn
+    percentage: number; // percentage of turn elapsed (0-100)
 }
 
 /**
