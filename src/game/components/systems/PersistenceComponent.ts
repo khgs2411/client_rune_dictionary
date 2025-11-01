@@ -57,14 +57,10 @@ export class PersistenceComponent extends GameComponent {
    * Load saved position from store
    */
   private loadPosition(): void {
-    const savedPos = this.sceneStore.getObjectPosition(
-      this.context.sceneName,
-      this.gameObject.id,
-    );
+    const savedPos = this.sceneStore.getObjectPosition(this.context.sceneName, this.gameObject.id);
 
     if (savedPos) {
       this.transformComp.setPosition(savedPos.x, savedPos.y, savedPos.z);
-
     }
   }
 
@@ -79,8 +75,6 @@ export class PersistenceComponent extends GameComponent {
       y: pos.y,
       z: pos.z,
     });
-
-
   }
 
   /**

@@ -39,7 +39,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
   readonly name = 'PlaygroundScene';
   readonly engine: Engine;
 
-
   constructor(config: I_SceneConfig) {
     super();
     this.engine = config.engine;
@@ -67,7 +66,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     // Training Dummy NPC (for match creation testing)
     const trainingDummy = new TrainingDummy({
       id: 'training-dummy-1',
-      type: "npc",
+      type: 'npc',
       position: [-5, 0.9, 5], // Positioned away from other objects
       color: 0xff0000, // Red (indicates enemy/NPC)
     });
@@ -136,16 +135,14 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       characterController: this.character.controller,
     });
 
-
-
     // Register player AFTER all components are added
     gom.register(localPlayer);
   }
 
   protected onSceneLoaded(): void {
-
     // Auto-match debug feature (simulates double-click on TrainingDummy)
-    const trainingDummy = this.getService('gameObjectsManager').get<TrainingDummy>('training-dummy-1')
+    const trainingDummy =
+      this.getService('gameObjectsManager').get<TrainingDummy>('training-dummy-1');
     if (!trainingDummy) return;
     this.handleAutoMatch(trainingDummy);
   }
@@ -155,30 +152,40 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
     const interactiveBox = new GameObject({ id: 'interactive-box' })
       .addComponent(new TransformComponent({ position: [5, 1, 5] }))
-      .addComponent(new GeometryComponent({ type: 'box', params: { x: 3, y: 2, z: 1.5 } /* [3, 1.5, 1.5] */ }))
+      .addComponent(
+        new GeometryComponent({ type: 'box', params: { x: 3, y: 2, z: 1.5 } /* [3, 1.5, 1.5] */ }),
+      )
       .addComponent(new MaterialComponent({ color: 0xff1493, roughness: 0.8, metalness: 0.2 }))
       .addComponent(new MeshComponent())
-      .addComponent(new CollisionComponent({
-        type: 'static',
-        shape: 'cuboid',
-        showDebug: true,
-      }))
-      .addComponent(new HoverGlowComponent({
-        glowColor: 0xff8c00,
-        glowIntensity: 0.5,
-        tooltip: { title: 'Interactive Box', description: 'Click for VFX, drag in editor mode' }
-      }))
-      .addComponent(new ClickVFXComponent({
-        text: 'BOOM!',
-        textColor: '#FF69B4',
-        cameraShake: { intensity: 0.2, duration: 0.5 },
-        particles: { count: 30, color: 0xff1493, speed: 4 }
-      }))
-      .addComponent(new DragComponent({
-        lockAxis: ['y'],
-        // snapToGrid omitted - will use live gameConfig.editor.snapToGrid value
-        onDragEnd: (pos) => console.log('✅ Interactive box dragged to:', pos)
-      }));
+      .addComponent(
+        new CollisionComponent({
+          type: 'static',
+          shape: 'cuboid',
+          showDebug: true,
+        }),
+      )
+      .addComponent(
+        new HoverGlowComponent({
+          glowColor: 0xff8c00,
+          glowIntensity: 0.5,
+          tooltip: { title: 'Interactive Box', description: 'Click for VFX, drag in editor mode' },
+        }),
+      )
+      .addComponent(
+        new ClickVFXComponent({
+          text: 'BOOM!',
+          textColor: '#FF69B4',
+          cameraShake: { intensity: 0.2, duration: 0.5 },
+          particles: { count: 30, color: 0xff1493, speed: 4 },
+        }),
+      )
+      .addComponent(
+        new DragComponent({
+          lockAxis: ['y'],
+          // snapToGrid omitted - will use live gameConfig.editor.snapToGrid value
+          onDragEnd: (pos) => console.log('✅ Interactive box dragged to:', pos),
+        }),
+      );
 
     // Trees (using prefab)
     const [treeTrunks, treeLeaves] = Trees.create({
@@ -203,7 +210,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
             { position: [15, 0.3, 0] },
             { position: [9, 0.3, -4] },
           ],
-        })
+        }),
       );
 
     gom.register(interactiveBox);
@@ -279,7 +286,9 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       const matchComponent = trainingDummy.getComponent(MatchComponent);
 
       if (!matchComponent) {
-        console.error('🎮 [PlaygroundScene] Auto-match failed: MatchComponent not found on TrainingDummy');
+        console.error(
+          '🎮 [PlaygroundScene] Auto-match failed: MatchComponent not found on TrainingDummy',
+        );
         return;
       }
 

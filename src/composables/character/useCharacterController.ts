@@ -14,12 +14,10 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
   const config = useGameConfigStore();
   const { cameraAngleH } = options;
 
-
   // Compose smaller, focused composables
   const joystick = useJoystick();
   const jump = useCharacterJump();
   const movement = useCharacterMovement();
-
 
   /**
    * Update character state (call every frame)
@@ -65,7 +63,6 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
    */
   function destroy() {
     reset();
-    
   }
 
   return {

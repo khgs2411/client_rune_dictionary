@@ -13,6 +13,7 @@ After a certain period of time (or after leaving and rejoining a match), match-r
 **Why This Task**: This is a blocking bug that prevents the match system from functioning. Without match events (`match.atb.readiness.update`, `match.turn.start`, `match.state.update`, etc.), the client cannot update the HUD or respond to game state changes.
 
 **Dependencies**:
+
 - **Blocks**: Task 2 - WebSocket Match Events & Match Loop System (Phase 2) - cannot implement event handling until events are being sent
 
 **Estimated Complexity**: Medium (1-2 iterations expected)
@@ -50,6 +51,7 @@ After a certain period of time (or after leaving and rejoining a match), match-r
 **Decisions**: (To be filled during work)
 
 **References**:
+
 - Server logging added:
   - `server_rune_matchmaking/src/components/match/match.service.ts:133-138` (channel membership logging)
   - `server_rune_matchmaking/src/domains/match/match.broadcaster.ts:28` (broadcast with member count)
@@ -63,6 +65,7 @@ After a certain period of time (or after leaving and rejoining a match), match-r
 ## Technical Considerations
 
 **Issue Details** (from Phase 2 Task 2 pre-implementation investigation):
+
 - **Symptom**: After a certain period of time (or after leaving and rejoining a match), match-related events are NOT being SENT from backend to client
 - **Evidence**: Chrome DevTools shows events ARE NOT arriving at client (backend not sending)
 - **Important Notes**:
@@ -71,17 +74,20 @@ After a certain period of time (or after leaving and rejoining a match), match-r
   - Only match-specific events (`match.atb.readiness.update`, `match.turn.start`, etc.) stop being sent
 
 **Server-Side Components**:
+
 - `MatchBroadcaster.broadcastToMatch()` - Gets channel and calls `channel.broadcast()`
 - `Relay.GetChannel(matchId)` - Retrieves channel by match ID
 - `Channel.addMember(client)` - Adds client to channel membership
 - `Channel.broadcast(message, options)` - Sends to all members (excluding optional clients)
 
 **Hypotheses to Test**:
+
 1. Client not being added to new channel after leaving previous match
 2. Channel being deleted but not recreated properly
 3. Channel exists but has 0 members when broadcasting
 4. Client WebSocket subscription state mismatched with server channel membership
 
 **Debugging Code Added**:
+
 - Server: `src/components/match/match.service.ts:133-138` - Logs client addition to channel with success/failure and member count
 - Server: `src/domains/match/match.broadcaster.ts:28` - Logs broadcast attempts with channel member count

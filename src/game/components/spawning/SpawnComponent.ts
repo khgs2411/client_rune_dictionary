@@ -91,7 +91,9 @@ export abstract class SpawnComponent extends GameComponent {
     // Start cooldown
     this.startCooldown();
 
-    console.log(`✨ [SpawnComponent] Owner "${this.gameObject.id}" spawned "${this.config.objectName}" (id: ${spawned.id})`);
+    console.log(
+      `✨ [SpawnComponent] Owner "${this.gameObject.id}" spawned "${this.config.objectName}" (id: ${spawned.id})`,
+    );
 
     return spawned;
   }

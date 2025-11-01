@@ -98,12 +98,12 @@ export class DragComponent extends GameComponent {
         lockAxis: this.config.lockAxis,
         // Use getter function to read live value from gameConfig
         // Falls back to static config value if specified
-        snapToGrid: this.config.snapToGrid !== undefined
-          ? this.config.snapToGrid
-          : () => gameConfig.editor.snapToGrid,
+        snapToGrid:
+          this.config.snapToGrid !== undefined
+            ? this.config.snapToGrid
+            : () => gameConfig.editor.snapToGrid,
       },
     );
-
   }
 
   destroy(): void {
@@ -111,6 +111,5 @@ export class DragComponent extends GameComponent {
     if (this.unregister) {
       this.unregister();
     }
-
   }
 }

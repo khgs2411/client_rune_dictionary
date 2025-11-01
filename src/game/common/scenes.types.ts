@@ -42,8 +42,6 @@ export interface I_SceneService {
   unregister?(...args: any[]): void;
 }
 
-
-
 /**
  * Base module interface - all modules implement this
  * Optional lifecycle hooks via duck typing (no need for separate interfaces)
@@ -96,7 +94,7 @@ export interface I_ModuleServices {
   physics: PhysicsService;
   networking: NetworkingService;
   gameObjectsManager: GameObjectsManager;
-  spawner: Spawner; 
+  spawner: Spawner;
   state: SceneStateService;
 }
 
@@ -117,7 +115,6 @@ export interface I_SceneContext {
   clientData: Partial<I_ConnectedClientData>;
   camera?: ReturnType<typeof useCamera>; // Optional: for modules that need camera
   character?: ReturnType<typeof useCharacter>; // Optional: for modules that need character
-
 }
 /**
  * Scene Object Configuration DTO

@@ -218,7 +218,6 @@ const metadata: ConfigMetadata = {
       group: 'Interaction Settings',
     },
   },
-  
 };
 
 export const useGameConfigStore = defineStore(

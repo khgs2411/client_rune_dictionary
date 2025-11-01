@@ -12,8 +12,6 @@ import { I_CameraPerspective, I_GameCamera } from './composables.types';
 export function useCamera(): I_GameCamera {
   const config = useGameConfigStore();
 
-
-
   // Initialize pure controller (state/input logic)
   const controller = useCameraController();
 
@@ -39,7 +37,6 @@ export function useCamera(): I_GameCamera {
   function start() {
     instance.lookAt(new Vector3(0, 1, 0));
     instance.updateMatrixWorld(true);
-
   }
 
   /**
@@ -96,9 +93,7 @@ export function useCamera(): I_GameCamera {
         const progress = Math.min(elapsed.value / duration, 1.0);
 
         // Smooth easing (ease-in-out)
-        const t = progress < 0.5
-          ? 2 * progress * progress
-          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        const t = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
 
         // Lerp target position
         controller.target.x = MathUtils.lerp(startTarget.x, newTarget.x, t);

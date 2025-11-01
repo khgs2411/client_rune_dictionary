@@ -13,6 +13,7 @@ Implement a grid system within the match arena to track character positions and 
 **Why This Task**: Distance calculations are fundamental to tactical combat. Without a grid system, skills would have no concept of range, positioning, or targeting validity. This system provides the foundation for all distance-based game mechanics.
 
 **Dependencies**:
+
 - **Requires**: Task 1 (Match UI Components) - needs arena boundaries and camera system
 - **Blocks**: Future skill/ability system - distance calculations needed for targeting
 
@@ -43,6 +44,7 @@ Implement a grid system within the match arena to track character positions and 
 **Decisions**: (To be filled during work)
 
 **References**:
+
 - Arena dimensions: 40 width (X axis) x 25 depth (Z axis)
 - Arena boundaries: `src/game/prefabs/MatchAreaWalls.ts`
 - Character positioning: `src/composables/useCharacter.ts`
@@ -52,16 +54,19 @@ Implement a grid system within the match arena to track character positions and 
 ## Technical Considerations
 
 **Grid System Options**:
+
 - **Option 1**: Discrete grid (tiles) - classic turn-based RPG approach
 - **Option 2**: Continuous coordinates with distance calculation - smooth movement
 - **Option 3**: Hybrid - continuous movement with snap-to-grid for targeting
 
 **Distance Calculation Methods**:
+
 - Euclidean distance (straight line)
 - Manhattan distance (grid-based, no diagonals)
 - Chebyshev distance (allows diagonal movement)
 
 **Integration Points**:
+
 - Character position tracking
 - Skill range validation
 - Targeting indicator visualization

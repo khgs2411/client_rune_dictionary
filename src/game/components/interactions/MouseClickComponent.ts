@@ -73,7 +73,6 @@ export class MouseClickComponent extends GameComponent {
         object3D,
       },
     );
-
   }
 
   destroy(): void {

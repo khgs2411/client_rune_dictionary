@@ -1,4 +1,15 @@
-import { Mesh, Object3D, Scene, BufferGeometry, Material, Texture, Group, Sprite, Points, Line } from 'three';
+import {
+  Mesh,
+  Object3D,
+  Scene,
+  BufferGeometry,
+  Material,
+  Texture,
+  Group,
+  Sprite,
+  Points,
+  Line,
+} from 'three';
 import type { WatchStopHandle } from 'vue';
 
 /**

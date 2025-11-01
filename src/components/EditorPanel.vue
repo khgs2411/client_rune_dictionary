@@ -37,7 +37,9 @@
       <div class="space-y-2">
         <div class="flex justify-between items-center">
           <label class="text-xs font-medium">Grid Snap</label>
-          <span class="text-xs text-muted-foreground font-mono">{{ config.editor.snapToGrid }}</span>
+          <span class="text-xs text-muted-foreground font-mono">{{
+            config.editor.snapToGrid
+          }}</span>
         </div>
         <Slider
           :model-value="[config.editor.snapToGrid]"

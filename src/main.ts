@@ -11,8 +11,8 @@ pinia.use(piniaPluginPersistedstate);
 
 createApp(App).use(router).use(pinia).mount('#app');
 window.addEventListener('unhandledrejection', (event) => {
-    if (event.reason?.message?.includes('message channel closed')) {
-        event.preventDefault(); // Silence it
-        console.warn('Ignored extension error:', event.reason);
-    }
+  if (event.reason?.message?.includes('message channel closed')) {
+    event.preventDefault(); // Silence it
+    console.warn('Ignored extension error:', event.reason);
+  }
 });

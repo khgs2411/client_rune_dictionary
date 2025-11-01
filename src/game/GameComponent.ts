@@ -51,7 +51,6 @@ export enum ComponentPriority {
  * ```
  */
 
-
 export interface I_GameComponent {
   init(context: I_SceneContext): Promise<void>;
   onAttach(gameObject: GameObject): void;

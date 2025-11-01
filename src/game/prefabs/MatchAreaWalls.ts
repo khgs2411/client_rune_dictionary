@@ -66,8 +66,6 @@ export class MatchAreaWalls extends GameObject {
     const halfWidth = width / 2;
     const halfDepth = depth / 2;
 
-   
-
     // Create 4 walls forming a rectangle
     const walls = [
       // North wall (top, along X axis)
@@ -116,18 +114,13 @@ export class MatchAreaWalls extends GameObject {
           new CollisionComponent({
             type: 'static',
             shape: 'cuboid',
-            shapeParams: [
-              wall.dimensions[0] / 2,
-              wall.dimensions[1] / 2,
-              wall.dimensions[2] / 2,
-            ], // Half-extents: [halfWidth, halfHeight, halfDepth]
+            shapeParams: [wall.dimensions[0] / 2, wall.dimensions[1] / 2, wall.dimensions[2] / 2], // Half-extents: [halfWidth, halfHeight, halfDepth]
             showDebug: config.showDebug,
           }),
         );
 
       this.wallSegments.push(wallSegment);
     }
-
   }
 
   async init(context: I_SceneContext): Promise<void> {
@@ -141,8 +134,6 @@ export class MatchAreaWalls extends GameObject {
 
     // Create visual border lines at ground level
     this.createBorderLines(context);
-
-   
   }
 
   /**
@@ -196,11 +187,9 @@ export class MatchAreaWalls extends GameObject {
       // Lines are cleaned up manually in destroy() method, not via cleanupRegistry
       this.borderLines.push(line);
     }
-
   }
 
   destroy(): void {
-
     // Destroy all wall segments
     if (this.context) {
       const gameObjects = this.context.getService('gameObjectsManager');

@@ -52,7 +52,8 @@ export const testWebSocketConnection = async (
           ws.close();
           resolve({
             success: false,
-            message: 'WebSocket connection timed out. This might be caused by a browser extension or firewall blocking the connection.',
+            message:
+              'WebSocket connection timed out. This might be caused by a browser extension or firewall blocking the connection.',
           });
         }
       }, timeoutMs);
@@ -71,7 +72,8 @@ export const testWebSocketConnection = async (
         ws.close();
         resolve({
           success: false,
-          message: 'WebSocket connection failed. This might be caused by a browser extension or firewall blocking the connection.',
+          message:
+            'WebSocket connection failed. This might be caused by a browser extension or firewall blocking the connection.',
         });
       };
     } catch (error) {
@@ -103,7 +105,8 @@ export function useConnectionDiagnostics() {
     loading.value = true;
 
     // const websocketUrl = options?.wsUrl || import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:443';
-    const websocketUrl = options?.wsUrl || import.meta.env.VITE_WS_HOST || 'wss://game.rcl-team.com:443';
+    const websocketUrl =
+      options?.wsUrl || import.meta.env.VITE_WS_HOST || 'wss://game.rcl-team.com:443';
     const shouldTestPopups = options?.testPopups ?? false;
 
     // Only run popup test if explicitly requested

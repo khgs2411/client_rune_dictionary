@@ -13,6 +13,7 @@ Build a robust Stripe API client with error handling, retry logic for transient 
 **Why This Task**: Payment processing requires reliable communication with Stripe API. Without proper error handling and retry logic, transient network issues or API hiccups would cause payment failures and poor user experience.
 
 **Dependencies**:
+
 - **Requires**: Task 1 (Database Layer) - need PaymentRepository for state persistence
 - **Requires**: Task 2 (Business Logic) - need PaymentService interface definitions
 - **Blocks**: Task 4 (Webhook Handler) - webhook processing depends on API client
@@ -52,12 +53,14 @@ Build a robust Stripe API client with error handling, retry logic for transient 
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Stripe SDK maintains connection pool internally
 - Multiple client instances would create redundant connections and waste resources
 - Lazy initialization delays credential validation until first use (fast app startup)
 - Singleton ensures consistent configuration across the application
 
 **Resolution Items**:
+
 - Create `StripeClient` singleton class in src/integrations/stripe/
 - Implement lazy initialization in constructor (init on first API call)
 - Add credential validation on first API call (fail fast if misconfigured)
@@ -72,16 +75,18 @@ Build a robust Stripe API client with error handling, retry logic for transient 
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Stripe best practices recommend environment-based configuration
 - Supports different keys per environment (dev/staging/prod)
 - Validation at startup prevents runtime errors from missing/invalid keys
 - Fails fast with clear error message if key is missing or malformed
 
 **Resolution Items**:
+
 - Load `STRIPE_API_KEY` from environment variables
 - Validate key format at startup (must start with `sk_test_` or `sk_live_`)
 - Throw descriptive error if key is missing or invalid
-- Log masked key on startup for debugging (sk_***...last4chars)
+- Log masked key on startup for debugging (sk\_\*\*\*...last4chars)
 
 ---
 
@@ -92,12 +97,14 @@ Build a robust Stripe API client with error handling, retry logic for transient 
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Stripe recommends 30s timeout for payment operations
 - Prevents indefinite hanging on network issues
 - Configurable via environment for different deployment scenarios
 - Balance between reliability (long enough for legit slow requests) and responsiveness (not too long)
 
 **Resolution Items**:
+
 - Configure default timeout of 30 seconds
 - Make timeout configurable via `STRIPE_API_TIMEOUT_MS` env var
 - Add timeout handling in API call wrapper
@@ -131,7 +138,7 @@ Build a robust Stripe API client with error handling, retry logic for transient 
 - [x] Load `STRIPE_API_KEY` from environment variables
 - [x] Validate key format at startup (must start with `sk_test_` or `sk_live_`)
 - [x] Throw descriptive error if key is missing or invalid
-- [x] Log masked key on startup for debugging (sk_***...last4chars)
+- [x] Log masked key on startup for debugging (sk\_\*\*\*...last4chars)
 - [x] Configure default timeout of 30 seconds
 - [x] Make timeout configurable via `STRIPE_API_TIMEOUT_MS` env var
 - [x] Add timeout handling in API call wrapper
@@ -144,6 +151,7 @@ Build a robust Stripe API client with error handling, retry logic for transient 
 **Status**: ✅ COMPLETE (2025-01-12)
 
 **Implementation Notes**:
+
 - Created `src/integrations/stripe/StripeClient.ts` with singleton pattern
 - Implemented lazy initialization - Stripe SDK initialized on first `getInstance()` call
 - Added comprehensive key validation (format check + test API call)
@@ -152,12 +160,14 @@ Build a robust Stripe API client with error handling, retry logic for transient 
 - Performance: Singleton initialization takes ~50ms (acceptable for lazy init)
 
 **Files Modified**:
+
 - `src/integrations/stripe/StripeClient.ts` - Created new file (187 lines)
 - `src/config/env.ts` - Added STRIPE_API_KEY and STRIPE_API_TIMEOUT_MS validation
 - `src/integrations/stripe/index.ts` - Barrel export for clean imports
 - `scripts/stripe-client.scripts.ts` - Created test file with connection verification
 
 **Verification**:
+
 - ✅ All tests passing in stripe-client.scripts.ts
 - ✅ API key validation working correctly (rejects invalid keys)
 - ✅ Singleton pattern verified (same instance returned on multiple calls)
@@ -191,11 +201,13 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 **Why Blocking**: Current ErrorHandler class doesn't support async retry logic needed for Stripe API calls
 
 **Scope** (< 30 min):
+
 - Update ErrorHandler.ts to support async error handlers
 - Add `retryAsync()` method
 - Update 3 existing call sites to use new async pattern
 
 **Files**:
+
 - `src/utils/ErrorHandler.ts` - Add async support
 - `src/services/BillingService.ts` - Update to use retryAsync()
 - `src/services/PaymentService.ts` - Update to use retryAsync()
@@ -204,6 +216,7 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 **Test**: Run existing test suite to ensure no regressions
 
 **Changes Made**:
+
 - Added `retryAsync<T>(fn: () => Promise<T>, options)` method to ErrorHandler
 - Updated ErrorHandler to handle Promise-based operations
 - Migrated BillingService and PaymentService to use retryAsync()
@@ -230,12 +243,14 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Decouples domain logic from Stripe SDK (enables future provider switching)
 - Provides consistent error handling across application
 - Enables easier testing with mocked errors
 - Business logic doesn't need to know about Stripe-specific error codes
 
 **Error Categories**:
+
 - `PaymentDeclinedError` - Card declined (insufficient funds, incorrect details, etc.)
 - `PaymentAuthenticationError` - 3D Secure or authentication required
 - `PaymentProcessingError` - Stripe API or network error (retryable)
@@ -243,6 +258,7 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 - `PaymentValidationError` - Invalid request parameters (not retryable)
 
 **Resolution Items**:
+
 - Create `ErrorMapper` class in src/integrations/stripe/
 - Define domain error types in src/errors/
 - Map all Stripe error codes to domain errors
@@ -257,16 +273,19 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Exponential backoff prevents overwhelming Stripe API during issues
 - 3 retries balances reliability (handle transient failures) with user experience (don't wait too long)
 - Retry delays: 1s, 2s, 4s (total 7s max additional wait)
 - Only retry transient errors (network issues, 5xx responses), not permanent errors (4xx client errors)
 
 **Retry Decision Logic**:
+
 - Retry: Network timeout, Stripe 500/502/503/504, rate limit (429)
 - Don't retry: Card declined (402), invalid request (400), authentication errors (401)
 
 **Resolution Items**:
+
 - Create `RetryPolicy` class with exponential backoff algorithm
 - Implement retry logic in StripeClient wrapper
 - Add configuration for max retries (default 3, configurable via env)
@@ -283,12 +302,14 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Structured logs enable better monitoring and debugging
 - Request context (payment ID, user ID, amount) helps trace issues
 - Retry attempt numbers help understand system behavior under failures
 - Sensitive data (API keys, card numbers) must be redacted
 
 **Log Format**:
+
 ```typescript
 {
   level: 'error',
@@ -302,6 +323,7 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 ```
 
 **Resolution Items**:
+
 - Add structured logging to StripeClient
 - Log all API errors with full context
 - Redact sensitive data before logging
@@ -317,6 +339,7 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 **Resolution Type**: B (Documentation)
 
 **Rationale**:
+
 - Circuit breaker adds complexity (state management, monitoring, configuration)
 - Stripe API has robust rate limiting and rarely has prolonged outages
 - Our expected V1 volume (<100 requests/min) is low risk for cascade failures
@@ -357,6 +380,7 @@ Added circuit breaker to PLAN.md V2 scope with reasoning and implementation note
 **Status**: 🚧 IN PROGRESS (2025-01-15)
 
 **Implementation Notes**:
+
 - Created `src/integrations/stripe/ErrorMapper.ts` (98 lines)
   - Comprehensive mapping of all Stripe error codes
   - Includes error code reference documentation
@@ -378,6 +402,7 @@ Added circuit breaker to PLAN.md V2 scope with reasoning and implementation note
 - Discovered: Stripe SDK throws different error types for network vs API errors, needed special handling
 
 **Files Modified**:
+
 - `src/integrations/stripe/StripeClient.ts` - Added error handling and retry (220 lines now, +33)
 - `src/integrations/stripe/ErrorMapper.ts` - Created (98 lines)
 - `src/integrations/stripe/RetryPolicy.ts` - Created (76 lines)
@@ -393,6 +418,7 @@ Added circuit breaker to PLAN.md V2 scope with reasoning and implementation note
   - Tests exhausted retry scenarios
 
 **Verification** (In Progress):
+
 - ✅ Error mapping tests passing (all Stripe error codes covered)
 - ✅ Retry logic tests passing (success after retries, exhausted retries)
 - ✅ Exponential backoff working correctly (measured actual delays)
@@ -402,6 +428,7 @@ Added circuit breaker to PLAN.md V2 scope with reasoning and implementation note
 - [ ] Team code review (scheduled for 2025-01-16)
 
 **Next Steps**:
+
 1. Complete integration test with Stripe test API
 2. Get code review approval
 3. Mark iteration complete
@@ -416,6 +443,7 @@ Added circuit breaker to PLAN.md V2 scope with reasoning and implementation note
 **Status**: ⏳ PENDING
 
 **Note**: This iteration will be planned after Iteration 2 is complete. Initial thoughts:
+
 - Add jitter to prevent thundering herd problem
 - Implement retry budget to prevent excessive retries across all requests
 - May defer some advanced features to V2 based on Iteration 2 outcomes
@@ -429,6 +457,7 @@ Added circuit breaker to PLAN.md V2 scope with reasoning and implementation note
 **Status**: ⏳ PENDING
 
 **Note**: This iteration focuses on end-to-end integration testing:
+
 - Simulate all Stripe API responses (success, errors, timeouts)
 - Test retry logic with controlled network conditions
 - Verify error mapping for all error codes
@@ -439,6 +468,7 @@ Added circuit breaker to PLAN.md V2 scope with reasoning and implementation note
 ## Task Notes
 
 **Discoveries**:
+
 - Stripe SDK already implements connection pooling internally (no need for custom pool)
 - Stripe SDK v12 uses `paymentIntents` API instead of deprecated `charges` API
 - Error codes changed in Stripe API v2023-10-16 (updated error taxonomy accordingly)
@@ -446,6 +476,7 @@ Added circuit breaker to PLAN.md V2 scope with reasoning and implementation note
 - Network timeouts throw different error type than API errors (needed special handling)
 
 **Decisions**:
+
 - Using Stripe Node SDK v12.18.0 (latest stable)
 - NOT implementing custom connection pool (Stripe SDK handles it better)
 - NOT implementing circuit breaker for V1 (defer to V2)
@@ -453,12 +484,14 @@ Added circuit breaker to PLAN.md V2 scope with reasoning and implementation note
 - Retry 3 times max (balance between reliability and user experience)
 
 **Performance**:
+
 - Stripe API calls average 200-300ms response time
 - With 3 retries and exponential backoff, worst case is ~7s additional wait
 - Total max time for payment call: 30s timeout + 7s retry delay = 37s (acceptable)
 - Singleton initialization overhead: ~50ms (one-time cost)
 
 **References**:
+
 - Stripe API Docs: https://stripe.com/docs/api
 - Stripe Error Codes: https://stripe.com/docs/error-codes
 - Stripe Best Practices: https://stripe.com/docs/api/errors/handling
@@ -466,6 +499,7 @@ Added circuit breaker to PLAN.md V2 scope with reasoning and implementation note
 - Similar retry logic: `src/utils/HttpClient.ts` (reused exponential backoff algorithm)
 
 **Team Feedback**:
+
 - Code review from @alice (2025-01-12): Suggested adding timeout configuration - added ✅
 - Code review from @bob (2025-01-14): Requested more comprehensive error tests - added ✅
 - Architecture review (2025-01-13): Approved singleton pattern and retry strategy ✅

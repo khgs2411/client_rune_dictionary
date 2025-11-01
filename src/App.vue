@@ -20,14 +20,14 @@ console.log(`[App] Running version ${version}`);
 </script>
 
 <style scoped>
-  .app-layout {
-    display: grid;
-    grid-template-rows: auto 1fr;
-    height: 100vh;
-    overflow: hidden;
-  }
+.app-layout {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
 
-  .app-content {
-    overflow: hidden;
-  }
+.app-content {
+  overflow: hidden;
+}
 </style>

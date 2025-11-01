@@ -1,8 +1,5 @@
 import { ComponentPriority, GameComponent } from '@/game/GameComponent';
-import type {
-  I_PlayerPositionUpdate,
-  I_SyncMovementConfig,
-} from '@/game/common/multiplayer.types';
+import type { I_PlayerPositionUpdate, I_SyncMovementConfig } from '@/game/common/multiplayer.types';
 import { I_SceneContext } from '@/game/common/scenes.types';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 import { E_NetworkEventCategory } from '@/game/services/NetworkingService';
@@ -76,7 +73,6 @@ export class SyncMovementComponent extends GameComponent {
     }
   }
 
-
   /**
    * Send position update to server if player moved significantly
    * @private
@@ -100,7 +96,6 @@ export class SyncMovementComponent extends GameComponent {
       (Math.abs(currentRot.x - this.lastSyncedRotation.x) >= this.rotationThreshold ||
         Math.abs(currentRot.y - this.lastSyncedRotation.y) >= this.rotationThreshold ||
         Math.abs(currentRot.z - this.lastSyncedRotation.z) >= this.rotationThreshold);
-
 
     // Skip if no significant change
     if (positionChanged || rotationChanged) {

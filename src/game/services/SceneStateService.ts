@@ -68,11 +68,11 @@ export default class SceneStateService extends SceneService implements I_SceneSe
   protected async init(context: I_SceneContext): Promise<void> {
     this.currentState = E_SceneState.OVERWORLD;
     this.rxjs.$subscribe({
-      'onStateChange': this.onStateChange.bind(this),
-    })
+      onStateChange: this.onStateChange.bind(this),
+    });
   }
 
-  private onStateChange(newState: E_SceneState) { 
+  private onStateChange(newState: E_SceneState) {
     this.setState(newState);
   }
 
@@ -135,7 +135,7 @@ export default class SceneStateService extends SceneService implements I_SceneSe
   private notifyListeners(newState: E_SceneState, oldState: E_SceneState): void {
     if (this.listeners.size === 0) return;
 
-    this.listeners.forEach(callback => {
+    this.listeners.forEach((callback) => {
       try {
         callback(newState, oldState);
       } catch (error) {

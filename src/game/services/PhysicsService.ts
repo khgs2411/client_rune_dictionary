@@ -26,7 +26,6 @@ import SceneService from './SceneService';
 // Dynamic WASM import (loaded at runtime)
 const RAPIER = import('@dimforge/rapier3d') as any;
 
-
 const PHYSICS_CONSTANTS = {
   CONTROLLER_OFFSET: 0.01,
   DEFAULT_STEP_HEIGHT: 0.5,
@@ -34,7 +33,6 @@ const PHYSICS_CONSTANTS = {
   DEFAULT_SNAP_DISTANCE: 0.5,
   PLANE_THICKNESS: 0.1,
 } as const;
-
 
 type Vector3Like = PositionVector3 | [number, number, number];
 
@@ -75,7 +73,6 @@ interface MovementResult {
   z: number;
   isGrounded: boolean;
 }
-
 
 /**
  * PhysicsService
@@ -128,7 +125,6 @@ export class PhysicsService extends SceneService {
 
     // Watch global debug setting and toggle wireframe visibility
     this.addEventListeners(context);
-
   }
 
   private addEventListeners(context: I_SceneContext) {
@@ -138,7 +134,7 @@ export class PhysicsService extends SceneService {
       (newValue) => {
         this.setDebugWireframesVisible(newValue);
       },
-      { immediate: true } // Run immediately with current value
+      { immediate: true }, // Run immediately with current value
     );
 
     // Register watcher for cleanup
@@ -160,7 +156,9 @@ export class PhysicsService extends SceneService {
 
   public async destroy(): Promise<void> {
     // Clean up all tracked objects
-    this.kinematicControllers.forEach(controller => this.world.removeCharacterController(controller));
+    this.kinematicControllers.forEach((controller) =>
+      this.world.removeCharacterController(controller),
+    );
     this.colliders.clear();
     this.bodies.clear();
     this.kinematicControllers.clear();
@@ -257,7 +255,11 @@ export class PhysicsService extends SceneService {
    * Register a static physics body (ground, walls, obstacles)
    * Static bodies never move and are optimized for collision detection
    */
-  public registerStatic(id: string, config: StaticBodyConfig, options?: { showDebug?: boolean }): void {
+  public registerStatic(
+    id: string,
+    config: StaticBodyConfig,
+    options?: { showDebug?: boolean },
+  ): void {
     this.assertReady();
 
     const position = this.toVector3(config.position ?? [0, 0, 0]);
@@ -274,7 +276,6 @@ export class PhysicsService extends SceneService {
     // Use unified body creation (supports debug wireframes)
     const showDebug = this.shouldShowDebug(options?.showDebug);
     this.createAndRegisterBody(id, bodyDesc, colliderDesc, null, showDebug);
-
   }
 
   /**
@@ -300,10 +301,14 @@ export class PhysicsService extends SceneService {
 
     // Create character controller
     if (config.controller) this.createKinematicController(config, id, body, collider);
-
   }
 
-  private createKinematicController(config: KinematicConfig, id: string, body: RAPIER_TYPE.RigidBody, collider: RAPIER_TYPE.Collider) {
+  private createKinematicController(
+    config: KinematicConfig,
+    id: string,
+    body: RAPIER_TYPE.RigidBody,
+    collider: RAPIER_TYPE.Collider,
+  ) {
     const controller = this.createController(config);
 
     this.bodies.set(id, body);
@@ -315,7 +320,11 @@ export class PhysicsService extends SceneService {
    * Register a static body from a Three.js mesh or instanced mesh
    * Automatically extracts geometry type, size, position, rotation, and scale
    */
-  public registerStaticFromMesh(id: string, mesh: Mesh | InstancedMesh | Object3D, options?: { showDebug?: boolean }): void {
+  public registerStaticFromMesh(
+    id: string,
+    mesh: Mesh | InstancedMesh | Object3D,
+    options?: { showDebug?: boolean },
+  ): void {
     this.assertReady();
 
     const { position, rotation, geometry, scale } = this.extractMeshProperties(mesh);
@@ -341,7 +350,7 @@ export class PhysicsService extends SceneService {
       minStepWidth?: number;
       snapToGroundDistance?: number;
       showDebug?: boolean;
-    }
+    },
   ): void {
     this.assertReady();
 
@@ -351,7 +360,7 @@ export class PhysicsService extends SceneService {
     const bodyDesc = this.RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(
       pos.x,
       pos.y,
-      pos.z
+      pos.z,
     );
 
     const controller = this.createController(options);
@@ -367,7 +376,7 @@ export class PhysicsService extends SceneService {
   public registerInstancedStatic(
     idPrefix: string,
     instancedMesh: InstancedMesh,
-    options?: { showDebug?: boolean }
+    options?: { showDebug?: boolean },
   ): string[] {
     this.assertReady();
 
@@ -452,7 +461,6 @@ export class PhysicsService extends SceneService {
       this.context?.scene.remove(wireframe);
       this.debugWireframes.delete(id);
     }
-
   }
 
   // ============================================================================
@@ -502,7 +510,6 @@ export class PhysicsService extends SceneService {
     const pos = body.translation();
     return { x: pos.x, y: pos.y, z: pos.z };
   }
-
 
   /**
    * Set position directly (teleport)
@@ -606,7 +613,7 @@ export class PhysicsService extends SceneService {
    */
   private createColliderFromGeometry(
     geometry: any,
-    scale: { x: number; y: number; z: number }
+    scale: { x: number; y: number; z: number },
   ): RAPIER_TYPE.ColliderDesc {
     if (!geometry) {
       console.warn(`[PhysicsService] No geometry found, using default box`);
@@ -624,7 +631,7 @@ export class PhysicsService extends SceneService {
       return this.RAPIER.ColliderDesc.cuboid(
         (params.width * scale.x) / 2,
         (params.height * scale.y) / 2,
-        (params.depth * scale.z) / 2
+        (params.depth * scale.z) / 2,
       );
     }
 
@@ -678,7 +685,7 @@ export class PhysicsService extends SceneService {
         console.error(`[PhysicsService] Invalid cylinder dimensions after computation:`, {
           avgRadius,
           halfHeight,
-          scale
+          scale,
         });
         return this.RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
       }
@@ -695,7 +702,7 @@ export class PhysicsService extends SceneService {
           params,
           hasParams: !!params,
           radius: params?.radius,
-          height: params?.height
+          height: params?.height,
         });
         return this.RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
       }
@@ -709,7 +716,7 @@ export class PhysicsService extends SceneService {
         console.error(`[PhysicsService] Invalid cone dimensions after computation:`, {
           radius,
           halfHeight,
-          scale
+          scale,
         });
         return this.RAPIER.ColliderDesc.cuboid(0.5, 0.5, 0.5);
       }
@@ -723,7 +730,7 @@ export class PhysicsService extends SceneService {
       return this.RAPIER.ColliderDesc.cuboid(
         (params.width * scale.x) / 2,
         PHYSICS_CONSTANTS.PLANE_THICKNESS * scale.y,
-        (params.height * scale.z) / 2
+        (params.height * scale.z) / 2,
       );
     }
 
@@ -774,9 +781,13 @@ export class PhysicsService extends SceneService {
   private createStaticBodyDesc(
     position: { x: number; y: number; z: number },
     rotation: { x: number; y: number; z: number },
-    geometry: any
+    geometry: any,
   ): RAPIER_TYPE.RigidBodyDesc {
-    const bodyDesc = this.RAPIER.RigidBodyDesc.fixed().setTranslation(position.x, position.y, position.z);
+    const bodyDesc = this.RAPIER.RigidBodyDesc.fixed().setTranslation(
+      position.x,
+      position.y,
+      position.z,
+    );
 
     // For PlaneGeometry, don't apply rotation (planes are already horizontal cuboids in physics)
     const shouldApplyRotation = !(geometry instanceof PlaneGeometry);
@@ -798,7 +809,9 @@ export class PhysicsService extends SceneService {
     snapToGroundDistance?: number;
     controllerOffset?: number;
   }): RAPIER_TYPE.KinematicCharacterController {
-    const controller = this.world.createCharacterController(options?.controllerOffset ?? PHYSICS_CONSTANTS.CONTROLLER_OFFSET);
+    const controller = this.world.createCharacterController(
+      options?.controllerOffset ?? PHYSICS_CONSTANTS.CONTROLLER_OFFSET,
+    );
 
     if (options?.enableAutostep) {
       const maxStepHeight = options.maxStepHeight ?? PHYSICS_CONSTANTS.DEFAULT_STEP_HEIGHT;
@@ -824,7 +837,7 @@ export class PhysicsService extends SceneService {
     bodyDesc: RAPIER_TYPE.RigidBodyDesc,
     colliderDesc: RAPIER_TYPE.ColliderDesc,
     controller: RAPIER_TYPE.KinematicCharacterController | null,
-    showDebug?: boolean
+    showDebug?: boolean,
   ): void {
     const body = this.world.createRigidBody(bodyDesc);
     const collider = this.world.createCollider(colliderDesc, body);
@@ -851,7 +864,7 @@ export class PhysicsService extends SceneService {
   private createDebugWireframe(
     id: string,
     collider: RAPIER_TYPE.Collider,
-    body: RAPIER_TYPE.RigidBody
+    body: RAPIER_TYPE.RigidBody,
   ): void {
     // Get collider shape from the actual collider (not descriptor)
     const shapeType = collider.shapeType();
@@ -860,21 +873,25 @@ export class PhysicsService extends SceneService {
 
     // Create geometry based on collider type (Rapier ShapeType enum)
     // ShapeType: 0=Ball, 1=Cuboid, 2=Capsule, 3=Segment, 4=Triangle, 5=TriMesh, etc.
-    if (shapeType === ShapeType.Cuboid) { // Cuboid
+    if (shapeType === ShapeType.Cuboid) {
+      // Cuboid
       const shape = collider.shape as RAPIER_TYPE.Cuboid;
       const halfExtents = shape.halfExtents;
       geometry = new BoxGeometry(halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2);
-    } else if (shapeType === ShapeType.Ball) { // Ball
+    } else if (shapeType === ShapeType.Ball) {
+      // Ball
       const shape = collider.shape as RAPIER_TYPE.Ball;
       const radius = shape.radius;
       geometry = new SphereGeometry(radius, 16, 12);
-    } else if (shapeType === ShapeType.Capsule) { // Capsule
+    } else if (shapeType === ShapeType.Capsule) {
+      // Capsule
       const shape = collider.shape as RAPIER_TYPE.Capsule;
       const radius = shape.radius;
       const halfHeight = shape.halfHeight;
       // CapsuleGeometry height is just the cylinder part
       geometry = new CapsuleGeometry(radius, halfHeight * 2, 8, 16);
-    } else if (shapeType === ShapeType.Cylinder) { // Cylinder
+    } else if (shapeType === ShapeType.Cylinder) {
+      // Cylinder
       const shape = collider.shape as RAPIER_TYPE.Cylinder;
       const radius = shape.radius;
       const halfHeight = shape.halfHeight;
@@ -911,7 +928,7 @@ export class PhysicsService extends SceneService {
    * Toggle debug wireframes on/off globally
    */
   public setDebugWireframesVisible(visible: boolean): void {
-    this.debugWireframes.forEach(wireframe => {
+    this.debugWireframes.forEach((wireframe) => {
       wireframe.visible = visible;
     });
   }
@@ -931,9 +948,12 @@ export class PhysicsService extends SceneService {
     });
   }
 
-  private eulerToQuaternion(
-    euler: { x: number; y: number; z: number }
-  ): { x: number; y: number; z: number; w: number } {
+  private eulerToQuaternion(euler: { x: number; y: number; z: number }): {
+    x: number;
+    y: number;
+    z: number;
+    w: number;
+  } {
     const { x, y, z } = euler;
 
     const c1 = Math.cos(x / 2);

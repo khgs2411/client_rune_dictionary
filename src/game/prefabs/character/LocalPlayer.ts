@@ -64,12 +64,11 @@ export class LocalPlayer extends GameObject {
     this.addCharacterControllerComponents(startPos, config);
 
     // Add components that I am testing
-    this.addTestingComponents()
+    this.addTestingComponents();
   }
 
   private addTestingComponents() {
     // Add spawn trigger components to player BEFORE registration
-    
   }
 
   private addCharacterControllerComponents(startPos: Vec3, config: I_LocalPlayerConfig) {
@@ -85,7 +84,7 @@ export class LocalPlayer extends GameObject {
           minStepWidth: 0.2,
           snapToGroundDistance: 0.5,
         },
-      })
+      }),
     );
 
     // Add MovementComponent (movement logic, jumping, gravity)
@@ -94,7 +93,7 @@ export class LocalPlayer extends GameObject {
         characterController: config.characterController,
         enableJumping: true,
         enableGravity: true,
-      })
+      }),
     );
 
     // SyncMovementComponent will be added later when networking is ready
@@ -115,11 +114,7 @@ export class LocalPlayer extends GameObject {
 
   private getSpawnPosition(config: I_LocalPlayerConfig) {
     const controllerPos = config.characterController.getPosition();
-    const startPos: [number, number, number] = [
-      controllerPos.x,
-      controllerPos.y,
-      controllerPos.z,
-    ];
+    const startPos: [number, number, number] = [controllerPos.x, controllerPos.y, controllerPos.z];
 
     // Override with config position if provided (for API spawn positions)
     if (config.position) {

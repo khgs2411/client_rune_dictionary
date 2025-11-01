@@ -57,7 +57,6 @@ export const useWebSocketConnection = () => {
 
       // Step 3: Establish WebSocket connection
       connection(clientData);
-
     } catch (error) {
       websocketManager.status = 'disconnected';
       websocketManager.lastError = error;
@@ -67,9 +66,9 @@ export const useWebSocketConnection = () => {
   }
 
   /**
-  * Establishes WebSocket connection with VueUse useWebSocket
-  * Configures auto-reconnect and heartbeat
-  */
+   * Establishes WebSocket connection with VueUse useWebSocket
+   * Configures auto-reconnect and heartbeat
+   */
   function connection(clientData: I_ClientData) {
     // Build WebSocket subprotocol: "{id}-{username}"
     const protocol = `${clientData.id}-${clientData.name}`;
@@ -82,7 +81,7 @@ export const useWebSocketConnection = () => {
     // Step 4: Register event handlers
     websocketManager.register('useWebsocketConnection', {
       data: handleMessage,
-    })
+    });
   }
 
   /**
@@ -112,7 +111,9 @@ export const useWebSocketConnection = () => {
    * Performs handshake with server using AuthAPI
    * Returns client data (id, name) for WebSocket protocol
    */
-  async function performHandshake(credentials: I_HandshakeCredentials): Promise<I_ConnectedClientData> {
+  async function performHandshake(
+    credentials: I_HandshakeCredentials,
+  ): Promise<I_ConnectedClientData> {
     const api = new AuthAPI('api', import.meta.env.VITE_HOST);
     const handshakeRes = await api.handshake(
       credentials.username,
@@ -129,40 +130,36 @@ export const useWebSocketConnection = () => {
 
   function handleMessage(_ws: WebSocket, message: WebsocketStructuredMessage) {
     try {
-      console.log
+      console.log;
       if (message.type == 'message') {
         // this will be in the chat soon
         console.log('[WS] Chat message received:', message);
-        return
+        return;
       }
 
       emit({ ...message, data: message.content });
-
     } catch (error) {
       console.error('[WS] Failed to parse message:', error);
     }
   }
 
   /**
-  * Emits debug events to debug namespace for DebugConsole
-  * Only emits if debug console is enabled in config
-  */
+   * Emits debug events to debug namespace for DebugConsole
+   * Only emits if debug console is enabled in config
+   */
   function emit(event: Omit<I_DebugConsoleEvent, 'timestamp'>) {
     if (!settings.debug.showWebSocketDebugger) return;
 
     emitDebugEvents(event);
   }
 
-
-  function emitDebugEvents(event: Omit<I_DebugConsoleEvent, "timestamp">) {
+  function emitDebugEvents(event: Omit<I_DebugConsoleEvent, 'timestamp'>) {
     if (event.type.includes('scene')) return;
     rx.$next('debug', {
       cta: 'log',
       data: { ...event, timestamp: new Date().toLocaleTimeString() },
     });
   }
-
-
 
   return {
     connect,
@@ -176,6 +173,4 @@ export const useWebSocketConnection = () => {
     isConnecting: computed(() => websocketManager.isConnecting),
     clientData: computed(() => websocketManager.clientData),
   };
-
 };
-

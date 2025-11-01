@@ -1,7 +1,7 @@
-import { useWebSocketStore, WebsocketManager } from "@/stores/websocket.store";
-import { WebsocketStructuredMessage } from "topsyde-utils";
-import { I_SceneContext, I_SceneService } from "../common/scenes.types";
-import SceneService from "./SceneService";
+import { useWebSocketStore, WebsocketManager } from '@/stores/websocket.store';
+import { WebsocketStructuredMessage } from 'topsyde-utils';
+import { I_SceneContext, I_SceneService } from '../common/scenes.types';
+import SceneService from './SceneService';
 
 /**
  * Network event categories that can be subscribed to
@@ -59,12 +59,15 @@ export default class NetworkingService extends SceneService implements I_SceneSe
     if (!this.websocketManager.clientData) {
       throw new Error('Cannot send message: clientData is missing');
     }
-    const ws = this.websocketManager.getWebSocketInstance()
+    const ws = this.websocketManager.getWebSocketInstance();
     const wsm: WebsocketStructuredMessage = {
       type: 'multiplayer',
       content: { category, ...content },
-      client: { id: this.websocketManager.clientData?.id, name: this.websocketManager.clientData?.name },
-    }
+      client: {
+        id: this.websocketManager.clientData?.id,
+        name: this.websocketManager.clientData?.name,
+      },
+    };
     ws?.send(JSON.stringify(wsm));
   }
 
@@ -77,7 +80,6 @@ export default class NetworkingService extends SceneService implements I_SceneSe
         await this.routeMessage(message);
       },
     });
-
   }
 
   /**
@@ -98,13 +100,12 @@ export default class NetworkingService extends SceneService implements I_SceneSe
       const handler = handlers[category];
       if (handler) {
         promises.push(
-          Promise.resolve(handler(message))
-            .catch((error) => {
-              console.error(
-                `[NetworkingService] Handler error in "${source}" for category "${category}":`,
-                error
-              );
-            })
+          Promise.resolve(handler(message)).catch((error) => {
+            console.error(
+              `[NetworkingService] Handler error in "${source}" for category "${category}":`,
+              error,
+            );
+          }),
         );
       }
     });
@@ -169,7 +170,7 @@ export default class NetworkingService extends SceneService implements I_SceneSe
     Object.entries(handlers).forEach(([category, handler]) => {
       if (handler && typeof handler !== 'function') {
         throw new Error(
-          `[NetworkingService] Handler for category "${category}" in "${source}" must be a function`
+          `[NetworkingService] Handler for category "${category}" in "${source}" must be a function`,
         );
       }
     });

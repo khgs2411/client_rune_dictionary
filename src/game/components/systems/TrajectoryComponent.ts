@@ -79,15 +79,11 @@ export class TrajectoryComponent extends GameComponent {
 
     // Validate config
     if (!config.duration && !config.speed) {
-      throw new Error(
-        '[TrajectoryComponent] Must provide either duration OR speed in config',
-      );
+      throw new Error('[TrajectoryComponent] Must provide either duration OR speed in config');
     }
 
     if (config.duration && config.speed) {
-      console.warn(
-        '[TrajectoryComponent] Both duration and speed provided. Using duration.',
-      );
+      console.warn('[TrajectoryComponent] Both duration and speed provided. Using duration.');
     }
   }
 
@@ -102,7 +98,6 @@ export class TrajectoryComponent extends GameComponent {
     if (this.config.autoStart !== false) {
       this.start();
     }
-
   }
 
   /**
@@ -177,11 +172,7 @@ export class TrajectoryComponent extends GameComponent {
    */
   public setTarget(x: number, y: number, z: number): void {
     this.config.endPosition = [x, y, z];
-    this.config.startPosition = [
-      this.currentPos.x,
-      this.currentPos.y,
-      this.currentPos.z,
-    ];
+    this.config.startPosition = [this.currentPos.x, this.currentPos.y, this.currentPos.z];
     this.elapsed = 0;
     this.progress = 0;
     this.isComplete = false;
@@ -277,9 +268,7 @@ export class TrajectoryComponent extends GameComponent {
    * Get remaining distance
    */
   public getRemainingDistance(): number {
-    return this.currentPos.distanceTo(
-      this.isPingPongReverse ? this.startPos : this.endPos,
-    );
+    return this.currentPos.distanceTo(this.isPingPongReverse ? this.startPos : this.endPos);
   }
 
   /**

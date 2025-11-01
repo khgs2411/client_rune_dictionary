@@ -42,12 +42,10 @@ export class MatchModule extends SceneModule implements I_SceneModule {
   private settings = DataStore.settings;
 
   async init(context: I_SceneContext): Promise<void> {
-
     // Register with SceneStateService
     const stateService = context.getService('state');
     this.stateChangeCallback = this.onStateChange.bind(this);
     stateService.register(this.stateChangeCallback);
-
   }
 
   /**
@@ -56,7 +54,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
    * - PVE_MATCH → OVERWORLD: Destroy match environment
    */
   private onStateChange(newState: E_SceneState, oldState: E_SceneState): void {
-
     if (newState === E_SceneState.PVE_MATCH && oldState !== E_SceneState.PVE_MATCH) {
       this.enterMatch();
     } else if (newState === E_SceneState.OVERWORLD && oldState === E_SceneState.PVE_MATCH) {
@@ -112,7 +109,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
     // FIXED RECTANGULAR ARENA - wider than it is deep
     const arenaWidth = 40; // X axis (left-right)
     const arenaDepth = 25; // Z axis (near-far, shorter to fit in camera view)
-
 
     // Spawn match environment (4 walls forming a rectangle)
     this.walls = new MatchAreaWalls({
@@ -178,7 +174,9 @@ export class MatchModule extends SceneModule implements I_SceneModule {
             horizontal: 0,
             vertical: Math.PI / 3, // 60 degrees overhead
           },
-          distance: new Vector3(cameraAnchorPos.x, cameraAnchorPos.y, cameraAnchorPos.z).distanceTo(arenaLookAt),
+          distance: new Vector3(cameraAnchorPos.x, cameraAnchorPos.y, cameraAnchorPos.z).distanceTo(
+            arenaLookAt,
+          ),
           fov: 75,
         },
         1000, // 1 second smooth transition
@@ -203,7 +201,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
       console.error('⚔️ [MatchModule] Cannot exit match - no context');
       return;
     }
-
 
     // Remove from scene via GameObjectManager
     const gameObjects = this.context.getService('gameObjectsManager');
@@ -235,8 +232,7 @@ export class MatchModule extends SceneModule implements I_SceneModule {
 
     camera
       .changeTarget(character.controller.getPosition(), CAMERA_PRESET_OVERWORLD, 1000)
-      .then(() => {
-      });
+      .then(() => {});
 
     // Re-enable mouse rotation and zoom
     camera.controller.mouseRotationEnabled.value = true;

@@ -131,7 +131,6 @@ export class CharacterMeshComponent extends GameComponent implements I_MeshProvi
     this.group.add(cone);
   }
 
-
   /**
    * Theme change lifecycle hook
    * Updates body and cone materials to match new theme

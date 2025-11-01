@@ -62,8 +62,6 @@ export class HotkeyComponent extends GameComponent {
       },
       this.config.modifiers,
     );
-
-   
   }
 
   destroy(): void {
@@ -71,6 +69,5 @@ export class HotkeyComponent extends GameComponent {
     if (this.unregister) {
       this.unregister();
     }
-
   }
 }

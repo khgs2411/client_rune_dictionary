@@ -73,5 +73,4 @@ export interface I_MultiplayerHandler {
    * Unregister remote player
    */
   unregisterRemotePlayer(playerId: string): void;
-
 }

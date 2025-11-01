@@ -21,6 +21,7 @@ This reimplementation focuses on establishing the foundational infrastructure fo
 ### Goals
 
 **Primary Goals**:
+
 - Implement state management system for OVERWORLD ↔ PVE_MATCH transitions
 - Create fixed camera system with frozen position during matches (no following, no zoom/rotation)
 - Build invisible collision walls with visual border indicators (faint glowing lines)
@@ -28,6 +29,7 @@ This reimplementation focuses on establishing the foundational infrastructure fo
 - Provide smooth scene transitions and cleanup when entering/exiting matches
 
 **Success Criteria**:
+
 - Players can seamlessly enter and exit match mode
 - Camera behavior is predictable and consistent (no unexpected movement)
 - Arena boundaries are clearly visible through border lines
@@ -38,6 +40,7 @@ This reimplementation focuses on establishing the foundational infrastructure fo
 ### Scope
 
 **V1 Scope** (Current Session):
+
 - SceneStateService for managing OVERWORLD/PVE_MATCH states with callbacks
 - MatchModule to orchestrate match environment spawning/cleanup
 - Fixed rectangular arena (40 width x 25 depth) with invisible collision walls
@@ -56,6 +59,7 @@ This reimplementation focuses on establishing the foundational infrastructure fo
 The combat system follows an event-driven architecture with clear separation between state management (SceneStateService), scene coordination (GameScene), and domain modules (MatchModule). The system uses Vue's reactivity for state changes and Three.js for 3D rendering.
 
 **Components**:
+
 - **SceneStateService**: Manages game state transitions (OVERWORLD ↔ PVE_MATCH) with callback registration system
 - **MatchModule**: Orchestrates match environment spawning (walls, camera anchor, grid) and cleanup on state changes
 - **MatchAreaWalls**: GameObject prefab that creates 4 invisible collision walls with visual border lines at ground level
@@ -64,12 +68,14 @@ The combat system follows an event-driven architecture with clear separation bet
 - **CleanupRegistry**: Manages Three.js object disposal and prevents memory leaks
 
 **Key Dependencies**:
+
 - **Three.js 0.180.0**: 3D rendering engine (imperative, not TresJS)
 - **Rapier3D WASM**: Physics engine for collision detection
 - **Vue 3 Composition API**: Reactivity system for state management
 - **Pinia**: State management with persistence
 
 **Reference Implementations**:
+
 - **Existing Ground prefab** (`src/game/prefabs/Ground.ts`): Collision-only GameObject pattern, explicit shape parameters
 - **Existing PhysicsService** (`src/game/services/PhysicsService.ts`): registerStatic() API for collision bodies
 
@@ -78,6 +84,7 @@ The combat system follows an event-driven architecture with clear separation bet
 ## DO / DON'T Guidelines
 
 **✅ DO**:
+
 - Always freeze camera reactive updates when entering match mode (freezeReactiveUpdates = true)
 - Manually clean up border lines in MatchAreaWalls.destroy() to prevent persistence after match
 - Use half-extents convention for CollisionComponent shapeParams (divide full dimensions by 2)
@@ -86,6 +93,7 @@ The combat system follows an event-driven architecture with clear separation bet
 - Position camera at anchor point but make it look at arena center (separate position vs lookAt)
 
 **❌ DO NOT**:
+
 - Skip cleanup of border lines (they won't be removed automatically by scene-level CleanupRegistry)
 - Use reactive camera updates during matches (causes unwanted camera following)
 - Make arena size dynamic (must be consistent every time)
@@ -98,6 +106,7 @@ The combat system follows an event-driven architecture with clear separation bet
 ## Notes & Learnings
 
 **Design Decisions**:
+
 - **2025-10-30**: Fixed arena size (40x25) instead of dynamic sizing - ensures consistent gameplay and camera framing
 - **2025-10-30**: Rectangular arena instead of circular - simpler collision math (4 walls instead of 16 segments)
 - **2025-10-30**: Manual border line cleanup - scene-level CleanupRegistry only runs on full scene destroy, not GameObject destroy
@@ -106,6 +115,7 @@ The combat system follows an event-driven architecture with clear separation bet
 - **2025-10-30**: Arena center at NPC position - provides consistent anchor point for camera and walls
 
 **Technical Discoveries**:
+
 - TransformComponent.position/rotation are Vector3/Euler objects, not arrays - must use getPositionArray() / getRotationArray()
 - GameObject.destroy() only calls component destroy methods, doesn't trigger scene-level CleanupRegistry
 - Camera watchEffect must check freezeReactiveUpdates flag to prevent reactive updates during matches
@@ -113,11 +123,13 @@ The combat system follows an event-driven architecture with clear separation bet
 - Border lines registered with scene CleanupRegistry persist after GameObject destroy (need manual cleanup)
 
 **Performance**:
+
 - Border line creation: ~5ms for 4 lines (minimal overhead)
 - Arena collision registration: ~10ms for 4 static bodies
 - Camera freeze/unfreeze: <1ms (instant state change)
 
 **References**:
+
 - Flow Framework: `.flow/framework/DEVELOPMENT_FRAMEWORK.md`
 - Example Dashboard: `.flow/framework/examples/DASHBOARD.md`
 - Example Task Files: `.flow/framework/examples/phase-2/task-3.md`

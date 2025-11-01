@@ -1,7 +1,6 @@
 import { I_SceneContext } from '@/game/common/scenes.types';
 import { useRxjs } from 'topsyde-utils';
 
-
 export default abstract class SceneModule {
   public name: string = this.constructor.name;
   protected rxjs = useRxjs('module:loading', undefined, { static_instance: true });
@@ -9,7 +8,10 @@ export default abstract class SceneModule {
   protected id: string; // Will be set to module name for persistence
   protected context!: I_SceneContext;
 
-  constructor(moduleName?: string, private autoInitialize: boolean = true) {
+  constructor(
+    moduleName?: string,
+    private autoInitialize: boolean = true,
+  ) {
     if (moduleName) {
       this.name = moduleName;
     }
@@ -18,13 +20,13 @@ export default abstract class SceneModule {
   }
 
   /**
- * Initializes the module with the provided context.
- * This method must be implemented by subclasses to perform any setup or initialization logic required for the module.
- * It can be asynchronous if needed.
- *
- * @param context - The context object containing information and dependencies required by the module.
- * @returns A void or a Promise that resolves when initialization is complete.
- */
+   * Initializes the module with the provided context.
+   * This method must be implemented by subclasses to perform any setup or initialization logic required for the module.
+   * It can be asynchronous if needed.
+   *
+   * @param context - The context object containing information and dependencies required by the module.
+   * @returns A void or a Promise that resolves when initialization is complete.
+   */
   protected abstract init(context: I_SceneContext): void | Promise<void>;
 
   /**
@@ -45,7 +47,6 @@ export default abstract class SceneModule {
     this.name = name;
     this.id = name; // Keep ID in sync with name for persistence
   }
-
 
   protected initialized(sceneName: string) {
     setTimeout(() => {

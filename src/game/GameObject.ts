@@ -54,7 +54,6 @@ export class GameObject {
     return this;
   }
 
-  
   /**
    * Gets the type of this game object.
    *
@@ -79,7 +78,6 @@ export class GameObject {
   public isType(type: GameObjectType): boolean {
     return this.type === type;
   }
-
 
   /**
    * Get a component by its class constructor
@@ -136,7 +134,7 @@ export class GameObject {
 
     // Sort components by priority (lower number = initialize first)
     const sortedComponents = Array.from(this.components.values()).sort(
-      (a, b) => a.priority - b.priority
+      (a, b) => a.priority - b.priority,
     );
 
     // Initialize components in priority order
@@ -160,7 +158,6 @@ export class GameObject {
     // DISABLED: Old I_Interactable pattern replaced by InteractionComponent
     // InteractionComponent now handles all interaction registration internally
     // await this.registerInteractions(context);
-
     // No service registration needed - components handle their own service integration
   }
 

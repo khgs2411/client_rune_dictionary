@@ -31,7 +31,6 @@ export function useCharacter(options: I_CharacterControlsOptions): I_GameCharact
     controller.destroy();
   }
 
-
   return {
     // Delegated controller state
     controller,

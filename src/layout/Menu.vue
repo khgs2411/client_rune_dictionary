@@ -1,14 +1,18 @@
 <template>
-  <header class="flex justify-end items-center gap-1 px-3 py-1 border-b border-border bg-background">
+  <header
+    class="flex justify-end items-center gap-1 px-3 py-1 border-b border-border bg-background">
     <template v-if="auth.isAuthenticated">
       <TooltipProvider :delay-duration="0">
         <Tooltip>
           <TooltipTrigger as-child>
             <Button variant="ghost" size="icon" class="h-8 w-8" @click="toggleDebugger">
-              <Icon :icon="settings.debug.showWebSocketDebugger
-                ? 'radix-icons:globe'
-                : 'radix-icons:component-none'
-                " class="h-4 w-4" />
+              <Icon
+                :icon="
+                  settings.debug.showWebSocketDebugger
+                    ? 'radix-icons:globe'
+                    : 'radix-icons:component-none'
+                "
+                class="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -24,17 +28,14 @@
         <Tooltip>
           <TooltipTrigger as-child>
             <Button variant="ghost" size="icon" class="h-8 w-8" @click="toggleEditor">
-              <Icon :icon="config.editor.enabled ? 'mingcute:settings-2-fill' : 'rivet-icons:settings'"
+              <Icon
+                :icon="config.editor.enabled ? 'mingcute:settings-2-fill' : 'rivet-icons:settings'"
                 class="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
             <p>
-              {{
-                config.editor.enabled
-                  ? 'Hide Level Editor'
-                  : 'Show Level Editor'
-              }}
+              {{ config.editor.enabled ? 'Hide Level Editor' : 'Show Level Editor' }}
             </p>
           </TooltipContent>
         </Tooltip>
@@ -46,23 +47,23 @@
 </template>
 
 <script setup lang="ts">
-  import ApplicationSettings from '@/components/ApplicationSettings.vue';
-  import GameSettings from '@/components/GameSettings.vue';
-  import Button from '@/components/ui/button/Button.vue';
-  import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-  import { Icon } from '@iconify/vue';
-  import { useGameConfigStore } from '@/stores/config.store';
-  import { useSettingsStore } from '@/stores/settings.store';
-  import { useAuthStore } from '@/stores/auth.store';
+import ApplicationSettings from '@/components/ApplicationSettings.vue';
+import GameSettings from '@/components/GameSettings.vue';
+import Button from '@/components/ui/button/Button.vue';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Icon } from '@iconify/vue';
+import { useGameConfigStore } from '@/stores/config.store';
+import { useSettingsStore } from '@/stores/settings.store';
+import { useAuthStore } from '@/stores/auth.store';
 
-  const config = useGameConfigStore();
-  const settings = useSettingsStore();
-  const auth = useAuthStore();
-  function toggleDebugger() {
-    settings.debug.showWebSocketDebugger = !settings.debug.showWebSocketDebugger;
-  }
+const config = useGameConfigStore();
+const settings = useSettingsStore();
+const auth = useAuthStore();
+function toggleDebugger() {
+  settings.debug.showWebSocketDebugger = !settings.debug.showWebSocketDebugger;
+}
 
-  function toggleEditor() {
-    config.editor.enabled = !config.editor.enabled;
-  }
+function toggleEditor() {
+  config.editor.enabled = !config.editor.enabled;
+}
 </script>

@@ -2,8 +2,6 @@ import type { ReactiveValue } from '@/game/common/interaction.types';
 import type { I_SceneContext } from '@/game/common/scenes.types';
 import type { Intersection, Vector3 } from 'three';
 
-
-
 export type GameObjectType = 'npc' | 'player' | 'environment' | 'item' | 'null';
 
 /**

@@ -54,35 +54,30 @@ export class HoverGlowComponent extends GameComponent {
     const glowIntensity = this.config.glowIntensity ?? 0.3;
 
     // Register hover callbacks with InteractionService
-    this.unregister = interaction.registerHover(
-      `${this.gameObject.id}-hover`,
-      meshComp.mesh,
-      {
-        onStart: (intersection: Intersection) => {
-          // Apply glow via VFXService
-          vfx.applyEmissive(meshComp.mesh, glowColor, glowIntensity);
+    this.unregister = interaction.registerHover(`${this.gameObject.id}-hover`, meshComp.mesh, {
+      onStart: (intersection: Intersection) => {
+        // Apply glow via VFXService
+        vfx.applyEmissive(meshComp.mesh, glowColor, glowIntensity);
 
-          // Show tooltip if configured
-          if (this.config.tooltip) {
-            vfx.showTooltip(
-              intersection.point,
-              this.config.tooltip.title,
-              this.config.tooltip.description,
-            );
-          }
-        },
-        onEnd: () => {
-          // Restore original emissive
-          vfx.restoreEmissive(meshComp.mesh);
-
-          // Hide tooltip
-          if (this.config.tooltip) {
-            vfx.hideTooltip();
-          }
-        },
+        // Show tooltip if configured
+        if (this.config.tooltip) {
+          vfx.showTooltip(
+            intersection.point,
+            this.config.tooltip.title,
+            this.config.tooltip.description,
+          );
+        }
       },
-    );
+      onEnd: () => {
+        // Restore original emissive
+        vfx.restoreEmissive(meshComp.mesh);
 
+        // Hide tooltip
+        if (this.config.tooltip) {
+          vfx.hideTooltip();
+        }
+      },
+    });
   }
 
   destroy(): void {
@@ -90,6 +85,5 @@ export class HoverGlowComponent extends GameComponent {
     if (this.unregister) {
       this.unregister();
     }
-
   }
 }

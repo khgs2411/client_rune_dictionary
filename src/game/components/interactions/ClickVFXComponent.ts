@@ -101,7 +101,6 @@ export class ClickVFXComponent extends GameComponent {
         object3D: meshComp.mesh,
       },
     );
-
   }
 
   destroy(): void {
@@ -109,6 +108,5 @@ export class ClickVFXComponent extends GameComponent {
     if (this.unregister) {
       this.unregister();
     }
-
   }
 }

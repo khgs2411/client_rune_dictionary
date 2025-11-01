@@ -350,7 +350,6 @@ export class VFXService extends SceneService {
     PARTICLES: 5, // Particle burst systems
   } as const;
 
-
   // Object pools
   private textSpritePool: TextSprite[] = [];
   private tooltipPool: TooltipBillboard[] = [];

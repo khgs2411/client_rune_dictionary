@@ -54,8 +54,7 @@ export class Spawner extends SceneService implements I_SceneService {
   /**
    * Initialize spawn module
    */
-  async init(context: I_SceneContext): Promise<void> {
-  }
+  async init(context: I_SceneContext): Promise<void> {}
 
   /**
    * Spawn a GameObject from a type or factory function
@@ -184,7 +183,6 @@ export class Spawner extends SceneService implements I_SceneService {
     this.typeMap.delete(id);
     this.ownerMap.delete(id);
 
-
     return true;
   }
 
@@ -217,7 +215,6 @@ export class Spawner extends SceneService implements I_SceneService {
       }
     }
 
-
     return count;
   }
 
@@ -235,7 +232,6 @@ export class Spawner extends SceneService implements I_SceneService {
 
     this.factories.set(type, factory);
     this.factoryConfigs.set(type, config);
-
   }
 
   /**
@@ -247,9 +243,7 @@ export class Spawner extends SceneService implements I_SceneService {
   preWarmPool(type: string, count: number): void {
     const factory = this.factories.get(type);
     if (!factory) {
-      throw new Error(
-        `[SpawnModule] Cannot pre-warm - no factory registered for type "${type}"`,
-      );
+      throw new Error(`[SpawnModule] Cannot pre-warm - no factory registered for type "${type}"`);
     }
 
     let pool = this.pools.get(type);
@@ -375,6 +369,5 @@ export class Spawner extends SceneService implements I_SceneService {
     this.active.clear();
     this.typeMap.clear();
     this.ownerMap.clear();
-
   }
 }

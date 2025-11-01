@@ -1,7 +1,10 @@
-import { CreatePveMatchResponseData, I_CreatePveMatchRequest, I_CreatePveMatchResponse, I_LeaveMatchRequest } from '@/common/match.types';
+import {
+  CreatePveMatchResponseData,
+  I_CreatePveMatchRequest,
+  I_CreatePveMatchResponse,
+  I_LeaveMatchRequest,
+} from '@/common/match.types';
 import { BaseAPI } from 'topsyde-utils';
-
-
 
 // ============================================================================
 // MatchAPI Class
@@ -29,8 +32,13 @@ export default class MatchAPI extends BaseAPI {
    * @returns Match initialization data (matchId, channelId, channelName, initial game state)
    * @throws Error if request fails or server returns error
    */
-  public async createPveMatch(payload: I_CreatePveMatchRequest): Promise<CreatePveMatchResponseData> {
-    const response = await this.post<{ status: boolean, data: I_CreatePveMatchResponse }>('pve', payload);
+  public async createPveMatch(
+    payload: I_CreatePveMatchRequest,
+  ): Promise<CreatePveMatchResponseData> {
+    const response = await this.post<{ status: boolean; data: I_CreatePveMatchResponse }>(
+      'pve',
+      payload,
+    );
 
     // BaseAPI.Status() throws on error responses (4xx/5xx)
     BaseAPI.Status(response);
@@ -46,7 +54,10 @@ export default class MatchAPI extends BaseAPI {
    * @throws Error if request fails or server returns error
    */
   public async leaveMatch(payload: I_LeaveMatchRequest): Promise<{ message: string }> {
-    const response = await this.post<{ status: boolean; data: { message: string } }>('leave', payload);
+    const response = await this.post<{ status: boolean; data: { message: string } }>(
+      'leave',
+      payload,
+    );
 
     // BaseAPI.Status() throws on error responses (4xx/5xx)
     BaseAPI.Status(response);

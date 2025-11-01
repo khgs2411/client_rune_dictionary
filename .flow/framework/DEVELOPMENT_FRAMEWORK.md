@@ -1,4 +1,5 @@
 <!-- AI_SCAN:QUICK_REFERENCE:1-600 -->
+
 # Quick Reference for AI (Read This First!!)
 
 > **Purpose**: This section provides essential Flow framework knowledge in ~600 lines instead of reading the entire file. Read this first, then use the Section Index to jump to specific sections only when needed.
@@ -8,6 +9,7 @@
 ---
 
 <!-- AI_SCAN:MULTI_FILE_STRUCTURE:12-85 -->
+
 ## Multi-File Structure Overview
 
 Flow uses a **multi-file architecture** where work is split across focused files:
@@ -41,6 +43,7 @@ Flow uses a **multi-file architecture** where work is split across focused files
 **👤 USER'S FILES** (What you work in):
 
 **DASHBOARD.md** (⭐ Most Important - Single Source of Truth):
+
 - User spends most time here
 - Shows current work pointer (Phase/Task/Iteration)
 - Displays progress overview with ALL phases/tasks/iterations
@@ -48,6 +51,7 @@ Flow uses a **multi-file architecture** where work is split across focused files
 - **This is the ONLY place progress is tracked** - no duplication
 
 **PLAN.md** (Static Context - Rarely Changes):
+
 - Like CLAUDE.md but for this specific feature/project
 - Purpose, Goals (text only, no checklists), Scope (V1 only)
 - Architecture overview
@@ -55,6 +59,7 @@ Flow uses a **multi-file architecture** where work is split across focused files
 - Minimal and focused - no assumptions about future work
 
 **phase-N/task-N.md** (Work Files - All Tasks Have Iterations):
+
 - Contains task overview and dependencies
 - **All tasks have iterations** (no standalone tasks)
 - Each iteration has: Pre-tasks (optional) → Brainstorming (optional) → Action Items
@@ -62,11 +67,13 @@ Flow uses a **multi-file architecture** where work is split across focused files
 - Brainstorming subjects produce "Resolution Items" → consolidated into Action Items
 
 **BACKLOG.md** (Future Work):
+
 - Tasks moved out of active plan
 - Deferred features
 - V2/V3 items (if user explicitly wants to track them)
 
 **ARCHIVE.md** (Completed Work):
+
 - Created by `/flow-plan-split`
 - Archives all completed tasks
 - Task files become references: "See ARCHIVE.md"
@@ -74,11 +81,13 @@ Flow uses a **multi-file architecture** where work is split across focused files
 **🤖 AI REFERENCE FILES** (Read-only, for AI agents):
 
 **framework/DEVELOPMENT_FRAMEWORK.md** (This File):
+
 - Complete Flow methodology
 - Templates, patterns, best practices
 - AI reads this to understand how Flow works
 
 **framework/examples/** (Example Project):
+
 - Real example of Flow in use (payment gateway project)
 - AI learns patterns from these examples
 - Shows DASHBOARD.md, PLAN.md, and task file formats
@@ -86,6 +95,7 @@ Flow uses a **multi-file architecture** where work is split across focused files
 ---
 
 <!-- AI_SCAN:CORE_HIERARCHY:88-110 -->
+
 ## Core Hierarchy
 
 ```
@@ -93,6 +103,7 @@ PHASE → TASK → ITERATION → BRAINSTORM → IMPLEMENTATION → COMPLETE
 ```
 
 **Structure**:
+
 - **PHASE**: High-level milestone (e.g., "Core Implementation", "Testing")
   - Lives in: DASHBOARD.md (overview) + `phase-N/` directory
 - **TASK**: Feature/component to build (e.g., "Database Schema", "API Endpoints")
@@ -109,6 +120,7 @@ PHASE → TASK → ITERATION → BRAINSTORM → IMPLEMENTATION → COMPLETE
 ---
 
 <!-- AI_SCAN:DASHBOARD_FIRST_PATTERN:113-165 -->
+
 ## Dashboard-First Navigation Pattern
 
 **ALL commands follow this pattern**:
@@ -125,6 +137,7 @@ PHASE → TASK → ITERATION → BRAINSTORM → IMPLEMENTATION → COMPLETE
 ```
 
 **Example: `/flow-implement-start`**:
+
 ```
 1. Read DASHBOARD.md
    → Current: Phase 2, Task 3, Iteration 2
@@ -138,6 +151,7 @@ PHASE → TASK → ITERATION → BRAINSTORM → IMPLEMENTATION → COMPLETE
 ```
 
 **Why Dashboard-First?**
+
 - Single source of truth for project state
 - User always knows where they are
 - Commands don't need to search multiple files
@@ -148,19 +162,21 @@ PHASE → TASK → ITERATION → BRAINSTORM → IMPLEMENTATION → COMPLETE
 ---
 
 <!-- AI_SCAN:STATUS_MARKERS:168-195 -->
+
 ## Status Markers
 
-| Marker | Meaning | When to Use |
-|--------|---------|-------------|
-| ✅ | COMPLETE | Finished and verified (frozen, skip re-verification) |
-| ⏳ | PENDING | Not started yet |
-| 🚧 | IN PROGRESS | Currently working on this |
-| 🎨 | READY | Brainstorming done, ready to implement |
-| ❌ | CANCELLED | Decided against (must document WHY) |
-| 🔮 | DEFERRED | Moved to V2/V3/later (must document WHY + WHERE - usually moved to BACKLOG.md) |
-| 🎯 | ACTIVE | Current focus (optional, used in DASHBOARD.md) |
+| Marker | Meaning     | When to Use                                                                    |
+| ------ | ----------- | ------------------------------------------------------------------------------ |
+| ✅     | COMPLETE    | Finished and verified (frozen, skip re-verification)                           |
+| ⏳     | PENDING     | Not started yet                                                                |
+| 🚧     | IN PROGRESS | Currently working on this                                                      |
+| 🎨     | READY       | Brainstorming done, ready to implement                                         |
+| ❌     | CANCELLED   | Decided against (must document WHY)                                            |
+| 🔮     | DEFERRED    | Moved to V2/V3/later (must document WHY + WHERE - usually moved to BACKLOG.md) |
+| 🎯     | ACTIVE      | Current focus (optional, used in DASHBOARD.md)                                 |
 
 **Rules**:
+
 - Every Phase/Task/Iteration/Subject MUST have a status marker
 - ✅ COMPLETE items are verified & frozen (skip re-verification)
 - ❌ CANCELLED and 🔮 DEFERRED must document reason
@@ -169,6 +185,7 @@ PHASE → TASK → ITERATION → BRAINSTORM → IMPLEMENTATION → COMPLETE
   - Task file header (phase-N/task-M.md)
 
 **Status Lifecycle**:
+
 ```
 ⏳ PENDING → 🚧 IN PROGRESS → ✅ COMPLETE
                 ↓
@@ -178,6 +195,7 @@ PHASE → TASK → ITERATION → BRAINSTORM → IMPLEMENTATION → COMPLETE
 ---
 
 <!-- AI_SCAN:TASK_STRUCTURE_QUICK:198-270 -->
+
 ## Task Structure Rules
 
 **The Golden Rule**: **ALL tasks have iterations** - this provides consistent structure and enables iterative development.
@@ -185,6 +203,7 @@ PHASE → TASK → ITERATION → BRAINSTORM → IMPLEMENTATION → COMPLETE
 ### Task with Iterations (The Only Pattern)
 
 **File**: `phase-N/task-N.md`
+
 ```markdown
 # Task 3: Implement Payment Gateway
 
@@ -201,6 +220,7 @@ Build production-ready payment gateway integration.
 **Why This Task**: Current system has no payment processing capability.
 
 **Dependencies**:
+
 - Requires: Task 1 (Database Layer)
 - Blocks: Task 4 (Subscription System)
 
@@ -226,6 +246,7 @@ Build production-ready payment gateway integration.
 ```
 
 **Why iterations-only**:
+
 - Consistent structure across all tasks
 - Enables human-in-loop iteration (plan → brainstorm → implement → complete)
 - Clear progress tracking (iteration status)
@@ -233,6 +254,7 @@ Build production-ready payment gateway integration.
 - Complex tasks have multiple iterations with brainstorming
 
 **Structure per iteration**:
+
 1. **Pre-Implementation Tasks** (optional) - Quick fixes before starting
 2. **Brainstorming Session** (optional) - Design decisions → Resolution Items
 3. **Action Items** (required) - ONE list per iteration, consolidated from brainstorming or direct
@@ -241,18 +263,20 @@ Build production-ready payment gateway integration.
 ---
 
 <!-- AI_SCAN:SUBJECT_RESOLUTION:273-300 -->
+
 ## Subject Resolution Types
 
 When brainstorming (inside task file), every resolved subject falls into ONE of these types:
 
-| Type | Name | When | Action | Example |
-|------|------|------|--------|---------|
-| **A** | Pre-Implementation Task | Small code changes needed BEFORE iteration | Create pre-task (< 30 min work) | Fix interface, rename file, update enum |
-| **B** | Immediate Documentation | Architectural decision, no code yet | Update PLAN.md Architecture section NOW | Design pattern choice, API contract |
-| **C** | Auto-Resolved | Answered by another subject's decision | Mark as resolved by Subject N | Cascade decisions |
-| **D** | Iteration Action Items | Substantial feature work that IS the iteration | Create "Resolution Items" list in subject | Build API endpoint, implement validator |
+| Type  | Name                    | When                                           | Action                                    | Example                                 |
+| ----- | ----------------------- | ---------------------------------------------- | ----------------------------------------- | --------------------------------------- |
+| **A** | Pre-Implementation Task | Small code changes needed BEFORE iteration     | Create pre-task (< 30 min work)           | Fix interface, rename file, update enum |
+| **B** | Immediate Documentation | Architectural decision, no code yet            | Update PLAN.md Architecture section NOW   | Design pattern choice, API contract     |
+| **C** | Auto-Resolved           | Answered by another subject's decision         | Mark as resolved by Subject N             | Cascade decisions                       |
+| **D** | Iteration Action Items  | Substantial feature work that IS the iteration | Create "Resolution Items" list in subject | Build API endpoint, implement validator |
 
 **Decision Flow**:
+
 1. Does subject require code changes?
    - **NO** → Type B (Documentation) or Type C (Auto-resolved)
    - **YES** → Continue to #2
@@ -261,6 +285,7 @@ When brainstorming (inside task file), every resolved subject falls into ONE of 
    - **NO** → Type D (Resolution Items → Action Items)
 
 **Where They Live**:
+
 - Type B decisions → Update `PLAN.md` Architecture section immediately
 - Type A pre-tasks → Pre-Implementation Tasks section (before brainstorming complete)
 - Type D Resolution Items → Listed in subject, then `/flow-brainstorm-review` consolidates them into iteration's Action Items section
@@ -270,6 +295,7 @@ When brainstorming (inside task file), every resolved subject falls into ONE of 
 ---
 
 <!-- AI_SCAN:COMMON_PATTERNS:303-410 -->
+
 ## Common Patterns Quick Reference
 
 ### Creating a New Project
@@ -297,6 +323,7 @@ When brainstorming (inside task file), every resolved subject falls into ONE of 
 ```
 
 **Files Created/Updated**:
+
 - `phase-2/` directory created
 - DASHBOARD.md updated with new phase section
 
@@ -309,6 +336,7 @@ When brainstorming (inside task file), every resolved subject falls into ONE of 
 ```
 
 **Files Created/Updated**:
+
 - `phase-N/task-M.md` created (N = current phase, M = next task number)
 - DASHBOARD.md updated with new task entry
 
@@ -344,6 +372,7 @@ When brainstorming (inside task file), every resolved subject falls into ONE of 
 ```
 
 **Files Updated**:
+
 - Current `phase-N/task-M.md` (brainstorming, implementation sections added)
 - DASHBOARD.md (status updates throughout)
 - Possibly PLAN.md (if Type B decisions made)
@@ -357,6 +386,7 @@ When brainstorming (inside task file), every resolved subject falls into ONE of 
 ```
 
 **Result**: Reads DASHBOARD.md, shows formatted current state
+
 - Current work pointer
 - Progress overview
 
@@ -371,6 +401,7 @@ When brainstorming (inside task file), every resolved subject falls into ONE of 
 ```
 
 **Logic**:
+
 1. Read DASHBOARD.md
 2. Check current iteration status
 3. Suggest appropriate next command based on state
@@ -378,6 +409,7 @@ When brainstorming (inside task file), every resolved subject falls into ONE of 
 ---
 
 <!-- AI_SCAN:BRAINSTORMING_WORKFLOW:413-480 -->
+
 ## Brainstorming Workflow Pattern
 
 **Context**: Happens inside `phase-N/task-M.md` file, within an iteration section.
@@ -398,6 +430,7 @@ When brainstorming (inside task file), every resolved subject falls into ONE of 
 **Focus**: Design retry logic, error recovery patterns
 
 **Subjects to Discuss**:
+
 1. ⏳ Retry Strategy
 2. ⏳ Circuit Breaker Pattern
 3. ⏳ Error Logging
@@ -415,6 +448,7 @@ When brainstorming (inside task file), every resolved subject falls into ONE of 
 **Rationale**: Balances reliability with user experience
 
 **Action Items**:
+
 - [ ] Implement RetryPolicy class
 - [ ] Add exponential backoff logic
 - [ ] Configure max retry count
@@ -435,16 +469,19 @@ When brainstorming (inside task file), every resolved subject falls into ONE of 
 ### Workflow Commands
 
 1. **Start**: `/flow-brainstorm-start`
+
    - Adds brainstorming section to current iteration
    - Creates "Subjects to Discuss" list
 
 2. **Resolve**: `/flow-next-subject`
+
    - Picks next ⏳ subject
    - Discuss with user
    - Document decision + choose Type A/B/C/D
    - Add action items if needed
 
 3. **Review**: `/flow-brainstorm-review` (CRITICAL STEP!)
+
    - After all subjects resolved
    - AI analyzes all decisions
    - Suggests if more iterations needed
@@ -459,6 +496,7 @@ When brainstorming (inside task file), every resolved subject falls into ONE of 
 ---
 
 <!-- AI_SCAN:PRE_IMPLEMENTATION_PATTERN:483-540 -->
+
 ## Pre-Implementation Tasks Pattern
 
 **Context**: Discovered during brainstorming (Type A subjects). Must be completed BEFORE starting iteration implementation.
@@ -481,11 +519,13 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 **Why Blocking**: Current ErrorHandler doesn't support async retry logic
 
 **Scope** (< 30 min):
+
 - Update ErrorHandler.ts to support async
 - Add retryAsync() method
 - Update 3 existing call sites
 
 **Files**:
+
 - src/utils/ErrorHandler.ts
 - src/services/BillingService.ts
 - tests/utils/ErrorHandler.test.ts
@@ -499,6 +539,7 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 **Completed**: 2025-01-15
 
 **Changes Made**:
+
 - Added ErrorType enum
 - Updated function signatures
 - All tests passing
@@ -517,26 +558,32 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 ---
 
 <!-- AI_SCAN:SECTION_INDEX:543-600 -->
+
 ## Section Index (Use Read Tool with Offset/Limit)
 
 **How to Use**: When you need deep details, use `Read(file_path, offset=X, limit=Y)` to read ONLY the specific section.
 
 ### Quick Reference Sections (You Just Read These!)
+
 - Lines 1-600: This Quick Reference (current section)
 
 ### Core Framework Sections
+
 - Lines 601-850: **Framework Philosophy & Principles**
+
   - Domain-Driven Design approach
   - Agile iterative philosophy
   - When to use Flow
 
 - Lines 851-1100: **Multi-File Architecture Deep Dive**
+
   - File responsibilities in detail
   - Cross-file references
   - Directory structure rules
   - File naming conventions
 
 - Lines 1101-1550: **Task Structure Rules (Complete Guide)**
+
   - Iterations-only architecture
   - When to split tasks
   - Task size guidelines
@@ -544,41 +591,48 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
   - **Markdown heading structure rules** (5-level hierarchy for perfect folding)
 
 - Lines 1401-1700: **Brainstorming Pattern (Complete Guide)**
+
   - Full brainstorming workflow
   - Subject resolution types deep dive
   - Pre-implementation task patterns
   - Bugs discovered pattern
 
 - Lines 1701-1900: **Implementation Pattern (Complete Guide)**
+
   - Implementation structure
   - Notes and discoveries
   - Verification checklist
   - When to mark complete
 
 - Lines 1901-2100: **Status Management**
+
   - Status marker lifecycle
   - State transitions
   - Common pitfalls
   - Recovery from incorrect states
 
 - Lines 2101-2600: **File Templates**
+
   - DASHBOARD.md template (complete)
   - PLAN.md template (complete)
   - task-N.md template (complete)
   - Copy-paste ready templates
 
 - Lines 2601-2900: **Command Patterns**
+
   - Dashboard-first navigation (detailed)
   - Structure creation pattern
   - Full traversal pattern
   - Cross-file search pattern
 
 - Lines 2901-3200: **Complete Workflow Examples**
+
   - Full feature implementation walkthrough
   - File updates at each step
   - Real-world example with payment gateway
 
 - Lines 3201-3500: **Backlog Management**
+
   - BACKLOG.md structure
   - Moving tasks to backlog
   - Pulling tasks back
@@ -594,13 +648,14 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 
 **End of Quick Reference** - Continue reading below for complete framework documentation →
 
-
 <!-- AI_SCAN:FRAMEWORK_PHILOSOPHY:620-850 -->
+
 # Framework Philosophy & Principles
 
 ## What is Flow?
 
 Flow is a **specification-driven iterative development methodology** that combines:
+
 - **Domain-Driven Design** principles (understand before building)
 - **Agile philosophy** (iterative shipping, adapt to feedback)
 - **Progressive disclosure** (V1 → V2 → V3, defer complexity)
@@ -610,16 +665,19 @@ Flow is a **specification-driven iterative development methodology** that combin
 **Skeleton** (Phase 1) → **Veins** (Phase 2) → **Flesh** (Phase 3) → **Fibers** (Phase 4)
 
 - **Skeleton**: Basic structure and foundation
+
   - Minimal working version
   - Core data models
   - Basic happy path
 
 - **Veins**: Core data flow and connections
+
   - Main feature workflows
   - Critical integration points
   - Error handling basics
 
 - **Flesh**: Incremental complexity
+
   - Additional features
   - Edge cases
   - Performance optimization
@@ -632,18 +690,21 @@ Flow is a **specification-driven iterative development methodology** that combin
 ### Multi-File Architecture Philosophy
 
 **Problem**: Monolithic `PLAN.md` files grow to 500-5000+ lines, becoming:
+
 - Hard to navigate
 - Slow to load/edit
 - Git merge nightmares
 - Context overload for AI
 
 **Solution**: Split into focused files:
+
 - **DASHBOARD.md**: User's active workspace (what's happening NOW)
 - **PLAN.md**: Static context (WHY we're building this, HOW it fits together)
 - **phase-N/task-N.md**: Detailed work files (what's IN each task)
 - **BACKLOG.md**: Future work (what's DEFERRED)
 
 **Benefits**:
+
 - Smaller files = faster to read/edit
 - Each file has single responsibility
 - Git conflicts are localized
@@ -653,6 +714,7 @@ Flow is a **specification-driven iterative development methodology** that combin
 ### When to Use Flow
 
 **✅ Use Flow For**:
+
 - Complex features requiring design decisions
 - Multi-phase projects (> 2 weeks)
 - Features with unclear requirements (need exploration)
@@ -660,6 +722,7 @@ Flow is a **specification-driven iterative development methodology** that combin
 - Features requiring iterative refinement
 
 **❌ Don't Use Flow For**:
+
 - Simple bug fixes (< 1 hour)
 - Trivial features (< 5 steps)
 - Well-defined copy-paste implementations
@@ -726,6 +789,7 @@ Flow is a **specification-driven iterative development methodology** that combin
 ---
 
 <!-- AI_SCAN:MULTI_FILE_ARCHITECTURE:852-1100 -->
+
 # Multi-File Architecture Deep Dive
 
 ## File Responsibilities
@@ -735,6 +799,7 @@ Flow is a **specification-driven iterative development methodology** that combin
 **Purpose**: User's main workspace - shows current work and overall progress
 
 **Sections**:
+
 1. **Current Work** - Pointer to active Phase/Task/Iteration
 2. **Progress Overview** - All phases with task completion status
 3. **Key Decisions** - Outstanding decisions needing user input
@@ -746,12 +811,14 @@ Flow is a **specification-driven iterative development methodology** that combin
 **User Interaction**: User reads this constantly to understand where they are
 
 **Example Structure**:
+
 ```markdown
 # Project Dashboard
 
 **Last Updated**: 2025-01-15 14:30
 
 ## 📍 Current Work
+
 - **Phase**: [Phase 2 - Core Implementation](phase-2/)
 - **Task**: [Task 3 - API Integration](phase-2/task-3.md)
 - **Iteration**: [Iteration 2 - Error Handling](phase-2/task-3.md#iteration-2-error-handling) 🚧
@@ -759,50 +826,57 @@ Flow is a **specification-driven iterative development methodology** that combin
 ## 📊 Progress Overview
 
 ### Phase 1: Foundation ✅ COMPLETE
+
 - ✅ Task 1: Project Setup (3/3 iterations)
 - ✅ Task 2: Core Models (2/2 iterations)
 
 ### Phase 2: Core Implementation 🚧 IN PROGRESS (2/5 tasks)
+
 - ✅ Task 1: Database Layer (2/2 iterations)
 - ✅ Task 2: Business Logic (3/3 iterations)
 - 🚧 Task 3: API Integration (1/4 iterations) ← CURRENT
 - ⏳ Task 4: Authentication
 - ⏳ Task 5: Caching Layer
 
-
 ## 💡 Key Decisions
 
 **Decision Needed**: Should Skills be included in flow.sh or distributed separately?
+
 - Option A: Include in flow.sh (150KB → 180KB) - Users get Skills automatically, easier onboarding
 - Option B: Separate distribution (skills.zip) - Keeps flow.sh lean, users opt-in to Skills
 - **Recommendation**: Option A - Skills are lightweight (~30KB total), automatic deployment enhances AI experience
 
 **Decision Needed**: Which Skills to create first?
+
 - Option A: Start with 3 core Skills (navigator, planner, implementer) - MVP approach, faster testing
 - Option B: Create all 6 Skills upfront - Complete experience from day 1, but longer Phase 2
 - **Recommendation**: Option A - Iterate on core 3, add remaining 3 based on real usage feedback
 
 **Resolved**:
+
 - **2025-10-30**: Skills Complement Commands - Skills = model-invoked (AI decides when), Commands = user-invoked (human triggers explicitly). This maintains human-in-loop philosophy.
-- **2025-10-30**: Human Still Drives - Skills give AI *awareness* of Flow patterns, not *authority* to make architectural decisions. Descriptions emphasize "when user wants..." patterns.
+- **2025-10-30**: Human Still Drives - Skills give AI _awareness_ of Flow patterns, not _authority_ to make architectural decisions. Descriptions emphasize "when user wants..." patterns.
 
 ---
 
 ## 🎯 Success Criteria
 
 **Phase 1 Complete When**:
+
 - `.claude/skills/` directory structure exists
 - Skill templates documented in framework/
 - build-standalone.sh embeds Skills in flow.sh
 - Skills deploy correctly to test project
 
 **Phase 2 Complete When**:
+
 - 6 Core Skills created with SKILL.md files
 - Each Skill has clear description triggering appropriate context
 - Skills reference framework patterns correctly
 - Skills tested individually
 
 **Phase 3 Complete When**:
+
 - Skills activate based on user requests (not manual invocation)
 - Real-world workflow test completed (plan → implement → complete)
 - Documentation updated (README, new SKILLS.md guide)
@@ -816,7 +890,6 @@ Flow is a **specification-driven iterative development methodology** that combin
 - **Flow Framework**: framework/DEVELOPMENT_FRAMEWORK.md
 - **Slash Commands**: framework/SLASH_COMMANDS.md
 - **Build System**: build-standalone.sh (deployment logic)
-
 ```
 
 ### PLAN.md (Static Context)
@@ -824,6 +897,7 @@ Flow is a **specification-driven iterative development methodology** that combin
 **Purpose**: Like CLAUDE.md but for this specific feature/project
 
 **Sections**:
+
 1. **Overview** - Purpose, Goals, Scope (V1/V2/V3)
 2. **Architecture** - System design, components, data flow
 3. **Testing Strategy** - How to test this feature
@@ -836,11 +910,11 @@ Flow is a **specification-driven iterative development methodology** that combin
 **Key Insight**: This is the "WHY" and "HOW" documentation - it explains the big picture
 
 **Example Structure**:
+
 ```markdown
 # Payment Gateway Integration - Development Plan
 
-> **📍 Current Progress**: See [DASHBOARD.md](DASHBOARD.md)
-> **🎯 Purpose**: Integrate Stripe payment processing
+> **📍 Current Progress**: See [DASHBOARD.md](DASHBOARD.md) > **🎯 Purpose**: Integrate Stripe payment processing
 
 **Created**: 2025-01-10
 **Version**: V1
@@ -848,9 +922,11 @@ Flow is a **specification-driven iterative development methodology** that combin
 ## Overview
 
 ### Purpose
+
 Build production-ready payment gateway integration supporting credit cards and subscriptions.
 
 ### Goals
+
 - [ ] Process credit card payments via Stripe API
 - [ ] Handle webhook events for async notifications
 - [ ] Implement retry logic for failed payments
@@ -858,12 +934,14 @@ Build production-ready payment gateway integration supporting credit cards and s
 ### Scope
 
 **V1 (Included)**:
+
 - Credit card payment processing
 - Basic subscription support
 - Webhook handler
 - Retry logic (3 attempts)
 
 **V2 (Future)**:
+
 - ACH/bank transfer support
 - Multi-currency
 - Saved payment methods
@@ -873,12 +951,14 @@ Build production-ready payment gateway integration supporting credit cards and s
 ### System Design
 
 **Components**:
+
 - `PaymentService` - Core payment orchestration
 - `StripeClient` - API wrapper with retry logic
 - `WebhookHandler` - Event processing
 - `PaymentRepository` - Database persistence
 
 ### Data Flow
+
 [Diagram or description]
 
 ## Testing Strategy
@@ -890,12 +970,15 @@ Build production-ready payment gateway integration supporting credit cards and s
 ## Development Phases
 
 ### Phase 1: Foundation
+
 Setup project structure and dependencies
 
 ### Phase 2: Core Implementation
+
 Build payment processing functionality
 
 ### Phase 3: Testing & Hardening
+
 Comprehensive testing and edge cases
 ```
 
@@ -904,6 +987,7 @@ Comprehensive testing and edge cases
 **Purpose**: Container for all work related to a specific task
 
 **Sections**:
+
 1. **Task Header** - Status, Phase link, Purpose
 2. **Task Overview** - Description, dependencies, why this task
 3. **Iterations** - All tasks have iterations (1+ iterations per task)
@@ -916,6 +1000,7 @@ Comprehensive testing and edge cases
 **Key Insight**: This is the "WHAT" and "HOW SPECIFICALLY" - all the detailed work
 
 **Example Structure** (Task with Iterations):
+
 ```markdown
 # Task 3: API Integration
 
@@ -932,6 +1017,7 @@ Build robust Stripe API client with error handling and retry logic.
 **Why This Task**: Need payment processing capability
 
 **Dependencies**:
+
 - Requires: Task 1 (Database Layer)
 - Blocks: Task 4 (Authentication)
 
@@ -962,12 +1048,15 @@ Build robust Stripe API client with error handling and retry logic.
 ## Task Notes
 
 **Discoveries**:
+
 - Stripe SDK handles connection pooling automatically
 
 **Decisions**:
+
 - Using Stripe Node SDK v12.x
 
 **References**:
+
 - Stripe API Docs: https://stripe.com/docs/api
 ```
 
@@ -976,12 +1065,14 @@ Build robust Stripe API client with error handling and retry logic.
 **Purpose**: Storage for deferred tasks and V2/V3 features
 
 **Sections**:
+
 1. **Backlog Dashboard** - Summary of backlog items
 2. **Backlog Items** - Deferred tasks with reasoning
 
 **Update Frequency**: When moving tasks out of active plan or adding future work
 
 **Example Structure**:
+
 ```markdown
 # Project Backlog
 
@@ -1008,19 +1099,25 @@ Build robust Stripe API client with error handling and retry logic.
 **Purpose**: Historical record of completed work
 
 **Example**:
+
 ```markdown
 # Changelog
 
 ## [V1.2.0] - 2025-01-15
+
 ### Added
+
 - Retry logic for failed payments
 - Webhook signature validation
 
 ### Fixed
+
 - Race condition in payment processing
 
 ## [V1.1.0] - 2025-01-10
+
 ### Added
+
 - Basic payment processing
 - Stripe API integration
 ```
@@ -1032,6 +1129,7 @@ Build robust Stripe API client with error handling and retry logic.
 **Structure**: Flat list of completed tasks with all iterations
 
 **Effect**: Original task files become references:
+
 ```markdown
 # Task 1: Project Setup
 
@@ -1045,21 +1143,25 @@ See [ARCHIVE.md](../ARCHIVE.md#task-1-project-setup) for complete details.
 ### Linking Between Files
 
 **Dashboard → Task File**:
+
 ```markdown
 - **Task**: [Task 3 - API Integration](phase-2/task-3.md)
 ```
 
 **Task File → Dashboard**:
+
 ```markdown
 **Phase**: [Phase 2 - Core Implementation](../DASHBOARD.md#phase-2-core-implementation)
 ```
 
 **Task File → PLAN.md**:
+
 ```markdown
 See [PLAN.md Architecture section](../PLAN.md#architecture) for system design
 ```
 
 **PLAN.md → Backlog**:
+
 ```markdown
 Multi-currency support deferred to V2 (see [BACKLOG.md](BACKLOG.md))
 ```
@@ -1067,8 +1169,10 @@ Multi-currency support deferred to V2 (see [BACKLOG.md](BACKLOG.md))
 ### Reference Patterns
 
 **Current Work Pointer** (in DASHBOARD.md):
+
 ```markdown
 ## 📍 Current Work
+
 - **Phase**: Phase 2 - Core Implementation
 - **Task**: Task 3 - API Integration
 - **Iteration**: Iteration 2 - Error Handling
@@ -1099,24 +1203,27 @@ phase-1/
 **Name in Content**: Task file contains descriptive name in header
 
 **Example**:
+
 - File: `phase-2/task-3.md`
 - Header: `# Task 3: API Integration`
 
 ### File Naming Conventions
 
 **DO**:
+
 - ✅ Use `phase-N/` for phase directories
 - ✅ Use `task-N.md` for task files
 - ✅ Keep all Flow files in `.flow/` directory
 - ✅ Use lowercase for filenames
 
 **DON'T**:
+
 - ❌ Don't put task name in filename (`task-3-api-integration.md`)
 - ❌ Don't nest deeper than `phase-N/task-N.md`
 - ❌ Don't create subdirectories under phase directories
 
-
 <!-- AI_SCAN:TASK_STRUCTURE_COMPLETE:1101-1400 -->
+
 # Task Structure Rules (Complete Guide)
 
 ## The Golden Rule
@@ -1155,6 +1262,7 @@ Build robust Stripe API client with error handling, retry logic, and webhooks.
 **Why This Task**: Core payment functionality depends on reliable API integration.
 
 **Dependencies**:
+
 - **Requires**: Task 1 (Database Layer) - need PaymentRepository
 - **Requires**: Task 2 (Business Logic) - need PaymentService interface
 - **Blocks**: Task 4 (Authentication) - auth tokens stored via this API
@@ -1191,11 +1299,13 @@ Build robust Stripe API client with error handling, retry logic, and webhooks.
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Stripe SDK maintains connection pool internally
 - Multiple instances would create redundant connections
 - Lazy init delays credential validation until first use
 
 **Resolution Items**:
+
 - Create `StripeClient` singleton class
 - Implement lazy initialization in constructor
 - Add credential validation on first API call
@@ -1209,11 +1319,13 @@ Build robust Stripe API client with error handling, retry logic, and webhooks.
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Follows Stripe best practices
 - Supports different keys per environment
 - Fails fast if key missing or invalid
 
 **Resolution Items**:
+
 - Load `STRIPE_API_KEY` from env
 - Validate key format at startup
 - Throw clear error if key missing
@@ -1238,17 +1350,20 @@ Build robust Stripe API client with error handling, retry logic, and webhooks.
 **Status**: ✅ COMPLETE (2025-01-12)
 
 **Implementation Notes**:
+
 - Created `src/payment/StripeClient.ts` with singleton pattern
 - Implemented environment-based key loading
 - Added validation for API key format (starts with `sk_`)
 - Discovered bug in existing error handling (see Pre-Implementation Tasks in Iteration 2)
 
 **Files Modified**:
+
 - `src/payment/StripeClient.ts` - Created (142 lines)
 - `src/config/env.ts` - Added STRIPE_API_KEY validation
 - `scripts/payment.scripts.ts` - Created test file
 
 **Verification**:
+
 - ✅ All tests passing in payment.scripts.ts
 - ✅ API key validation working correctly
 - ✅ Singleton pattern verified
@@ -1270,11 +1385,13 @@ Build robust Stripe API client with error handling, retry logic, and webhooks.
 **Why Blocking**: Current ErrorHandler doesn't support async retry logic
 
 **Scope** (< 30 min):
+
 - Update ErrorHandler.ts to support async
 - Add retryAsync() method
 - Update 3 existing call sites
 
 **Files**:
+
 - src/utils/ErrorHandler.ts
 - src/services/BillingService.ts
 - tests/utils/ErrorHandler.test.ts
@@ -1286,6 +1403,7 @@ Build robust Stripe API client with error handling, retry logic, and webhooks.
 **Focus**: Design retry logic, error recovery patterns
 
 **Subjects to Discuss**:
+
 1. ⏳ Retry Strategy
 2. ⏳ Circuit Breaker Pattern
 3. ⏳ Error Logging
@@ -1314,14 +1432,17 @@ Build robust Stripe API client with error handling, retry logic, and webhooks.
 ## Task Notes
 
 **Discoveries**:
+
 - Stripe SDK already implements connection pooling (no need for custom)
 - Error codes changed in Stripe API v2023-10-16 (updated error taxonomy)
 
 **Decisions**:
+
 - Using Stripe Node SDK v12.x (latest stable)
 - Not implementing custom connection pool (SDK handles it)
 
 **References**:
+
 - Stripe API Docs: https://stripe.com/docs/api
 - Existing billing: `src/legacy/billing.ts` (PayPal integration pattern)
 - Similar webhook: `src/webhooks/shipment.ts` (signature validation example)
@@ -1330,6 +1451,7 @@ Build robust Stripe API client with error handling, retry logic, and webhooks.
 ### Completion Criteria
 
 Task is ✅ COMPLETE when:
+
 - ALL iterations are ✅ COMPLETE
 - Task Notes updated with discoveries
 - All dependencies satisfied
@@ -1341,6 +1463,7 @@ Task is ✅ COMPLETE when:
 Pre-implementation tasks are discovered during brainstorming (Type A subjects) and must be completed BEFORE iteration implementation starts.
 
 **Structure**:
+
 ```
 Task
 ├── Iteration N
@@ -1356,6 +1479,7 @@ Task
 ### Task Too Large?
 
 **Signals**:
+
 - More than 5 iterations planned
 - Iterations span multiple unrelated concerns
 - Task takes > 4 weeks
@@ -1364,6 +1488,7 @@ Task
 **Solution**: Split into multiple tasks
 
 **Example**:
+
 ```
 Before:
 - Task: Payment System (10 iterations)
@@ -1377,6 +1502,7 @@ After:
 ### Task Too Small?
 
 **Signals**:
+
 - Only 1 iteration with 2-3 action items
 - No brainstorming needed
 - Can complete in < 1 hour
@@ -1384,6 +1510,7 @@ After:
 **Solution**: Use Single Iteration with Direct Action Items
 
 **Example**:
+
 ```
 Task: Add Logging
 - Iteration 1: Logging Implementation
@@ -1402,6 +1529,7 @@ Task: Add Logging
 **Why**: Two levels (Task → Iteration) is enough. If you need more nesting, split the task.
 
 **If You Feel You Need More Nesting**:
+
 1. You probably need multiple tasks instead
 2. Or your brainstorming subjects should become separate iterations
 
@@ -1453,11 +1581,13 @@ Level 5: ##### Subject N: [Name]                        ← Individual subjects/
 ### Golden Rules
 
 **Rule 1: Never Skip Levels**
+
 - ✅ CORRECT: Go 1 → 2 → 3 → 4 → 5 sequentially
 - ❌ WRONG: Skip from 1 → 3 or 2 → 5
 
 **Rule 2: Consistent Subsections**
 All four subsections within an iteration MUST be level 4:
+
 - `#### Pre-Implementation Tasks` (if needed)
 - `#### Brainstorming Session - [Topic]` (if needed)
 - `#### Action Items` (required)
@@ -1465,53 +1595,72 @@ All four subsections within an iteration MUST be level 4:
 
 **Rule 3: Subjects and Pre-Tasks are Level 5**
 Individual items within subsections MUST be level 5:
+
 - `##### ✅ Subject 1: [Name]`
 - `##### ⏳ Pre-Task 1: [Name]`
 
 **Rule 4: Status Markers in Heading Text**
 Include status emoji in heading for visual scanning:
+
 - `### ✅ Iteration 1: REST Client Setup`
 - `##### 🚧 Subject 2: Error Taxonomy`
 
 ### DO / DON'T Examples
 
 **✅ DO - Correct Hierarchy**:
+
 ```markdown
-## Iterations                           ← Level 2
-### ✅ Iteration 1: Setup                ← Level 3 (one level deeper)
-#### Brainstorming Session               ← Level 4 (one level deeper)
-##### ✅ Subject 1: Architecture          ← Level 5 (one level deeper)
+## Iterations ← Level 2
+
+### ✅ Iteration 1: Setup ← Level 3 (one level deeper)
+
+#### Brainstorming Session ← Level 4 (one level deeper)
+
+##### ✅ Subject 1: Architecture ← Level 5 (one level deeper)
 ```
 
 **❌ DON'T - Skipped Levels**:
+
 ```markdown
-## Iterations                           ← Level 2
-### ✅ Iteration 1: Setup                ← Level 3
-#### Brainstorming Session               ← Level 4
-###### Subject 1: Architecture           ← Level 6 (WRONG - skipped level 5!)
+## Iterations ← Level 2
+
+### ✅ Iteration 1: Setup ← Level 3
+
+#### Brainstorming Session ← Level 4
+
+###### Subject 1: Architecture ← Level 6 (WRONG - skipped level 5!)
 ```
 
 **❌ DON'T - Inconsistent Subsection Levels**:
+
 ```markdown
 ### Iteration 1: Setup
-### Brainstorming Session                ← WRONG - should be level 4 (####)
-#### Subject 1                           ← WRONG - should be level 5 (#####)
+
+### Brainstorming Session ← WRONG - should be level 4 (####)
+
+#### Subject 1 ← WRONG - should be level 5 (#####)
 ```
 
 **❌ DON'T - Content Sections with Headings Inside Subjects**:
+
 ```markdown
 ##### Subject 1: Error Handling
+
 **Decision**: Use exponential backoff
 **Resolution Type**: D
-###### Resolution Items                  ← WRONG - no level 6 allowed
+
+###### Resolution Items ← WRONG - no level 6 allowed
 ```
 
 **✅ DO - Use Bold Text, Not Headings**:
+
 ```markdown
 ##### Subject 1: Error Handling
+
 **Decision**: Use exponential backoff
 **Resolution Type**: D (Iteration Action Items)
-**Resolution Items**:                    ← Bold text, not heading
+**Resolution Items**: ← Bold text, not heading
+
 - Create RetryPolicy class
 - Implement backoff algorithm
 ```
@@ -1519,12 +1668,14 @@ Include status emoji in heading for visual scanning:
 ### Why This Matters
 
 **For Users**:
+
 - Clean folding in VSCode/GitHub - fold any section with one click
 - Easy navigation - jump between iterations/subjects
 - Visual hierarchy - clear parent-child relationships
 - Better readability - consistent structure across all tasks
 
 **For AI**:
+
 - Parsing consistency - AI can reliably extract sections
 - Template adherence - AI generates correctly structured files
 - Section identification - AI knows exactly where to add content
@@ -1533,6 +1684,7 @@ Include status emoji in heading for visual scanning:
 ### Validation
 
 When creating or updating task files, verify:
+
 1. Each heading is exactly one level deeper than its parent
 2. All iteration subsections use level 4 (`####`)
 3. All subjects/pre-tasks use level 5 (`#####`)
@@ -1542,11 +1694,13 @@ When creating or updating task files, verify:
 ---
 
 <!-- AI_SCAN:BRAINSTORMING_COMPLETE:1402-1700 -->
+
 # Brainstorming Pattern (Complete Guide)
 
 ## What is Brainstorming?
 
 **Brainstorming** is the design-before-code phase where you:
+
 1. Identify questions/decisions (subjects)
 2. Discuss each subject
 3. Document decisions
@@ -1567,6 +1721,7 @@ When creating or updating task files, verify:
 **Focus**: [What we're designing/deciding]
 
 **Subjects to Discuss**:
+
 1. ⏳ [Subject name]
 2. ⏳ [Subject name]
 3. ⏳ [Subject name]
@@ -1584,6 +1739,7 @@ When creating or updating task files, verify:
 **Rationale**: [Why this decision]
 
 **Action Items** (if Type A or D):
+
 - [ ] Item 1
 - [ ] Item 2
 
@@ -1604,18 +1760,21 @@ When creating or updating task files, verify:
 **When**: Small code change needed BEFORE iteration starts
 
 **Criteria**:
+
 - Required for iteration (blocking)
 - Small scope (< 30 min)
 - Can be done independently
 - Examples: Fix interface, rename file, update enum, fix bug
 
 **Action**:
+
 1. Document decision
 2. Create action items
 3. Add to "Pre-Implementation Tasks" section
 4. Complete BEFORE `/flow-brainstorm-complete`
 
 **Example**:
+
 ```markdown
 ##### ✅ Subject 3: Type Definition Updates
 
@@ -1626,6 +1785,7 @@ When creating or updating task files, verify:
 **Rationale**: Current enum missing "pending_retry" and "failed_permanent" states needed for retry logic
 
 **Action Items**:
+
 - [ ] Update PaymentStatus enum in types.ts
 - [ ] Update 4 switch statements to handle new states
 - [ ] Add tests for new states
@@ -1638,16 +1798,19 @@ When creating or updating task files, verify:
 **When**: Architectural decision that affects system design
 
 **Criteria**:
+
 - No code changes yet
 - Updates PLAN.md Architecture section
 - Examples: Design pattern choice, API contract, data model
 
 **Action**:
+
 1. Document decision
 2. Update PLAN.md Architecture section NOW
 3. Reference update in subject
 
 **Example**:
+
 ```markdown
 ##### ✅ Subject 1: Error Recovery Strategy
 
@@ -1656,6 +1819,7 @@ When creating or updating task files, verify:
 **Resolution Type**: B (Documentation)
 
 **Rationale**:
+
 - Exponential backoff handles transient failures well
 - Circuit breaker adds complexity, defer to V2
 - Stripe API has good rate limiting, low risk of cascade failures
@@ -1669,15 +1833,18 @@ Updated PLAN.md Architecture section with retry strategy diagram and V2 scope fo
 **When**: Subject answered by another subject's decision
 
 **Criteria**:
+
 - No independent decision needed
 - Cascade from another subject
 - Examples: Implementation detail determined by architecture choice
 
 **Action**:
+
 1. Note which subject resolved this
 2. No additional action items
 
 **Example**:
+
 ```markdown
 ##### ✅ Subject 4: Retry Delay Calculation
 
@@ -1693,16 +1860,19 @@ Updated PLAN.md Architecture section with retry strategy diagram and V2 scope fo
 **When**: Substantial feature work that IS the iteration
 
 **Criteria**:
+
 - Main implementation work
 - Takes significant time (> 30 min)
 - Examples: Build API endpoint, implement validator, create service
 
 **Action**:
+
 1. Document decision
 2. Create action items
 3. These become implementation action items
 
 **Example**:
+
 ```markdown
 ##### ✅ Subject 2: Retry Implementation
 
@@ -1711,11 +1881,13 @@ Updated PLAN.md Architecture section with retry strategy diagram and V2 scope fo
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Separate class for testability
 - Configurable for different API endpoints
 - Can swap strategies (exponential, linear, fixed)
 
 **Action Items**:
+
 - [ ] Create RetryPolicy class
 - [ ] Implement exponential backoff algorithm
 - [ ] Add configuration for max retries, base delay
@@ -1730,11 +1902,13 @@ Updated PLAN.md Architecture section with retry strategy diagram and V2 scope fo
 **When**: Starting brainstorming for current iteration
 
 **Effect**:
+
 - Adds brainstorming section to current iteration
 - Prompts user for subjects to discuss
 - Creates "Subjects to Discuss" list
 
 **Example**:
+
 ```
 User: /flow-brainstorm-start
 AI: Let's start brainstorming for Iteration 2: Error Handling.
@@ -1751,6 +1925,7 @@ AI: Added 4 subjects to brainstorming session in phase-2/task-3.md
 **When**: Ready to discuss next subject
 
 **Effect**:
+
 - Finds next ⏳ PENDING subject
 - Discusses with user
 - Documents decision
@@ -1759,6 +1934,7 @@ AI: Added 4 subjects to brainstorming session in phase-2/task-3.md
 - Marks subject ✅ COMPLETE
 
 **Example**:
+
 ```
 User: /flow-next-subject
 AI: Let's discuss Subject 1: Retry Strategy
@@ -1787,18 +1963,21 @@ AI: Documented. Subject 1 marked complete. 3 subjects remaining.
 **When**: After ALL subjects resolved, BEFORE `/flow-brainstorm-complete`
 
 **Why Critical**:
+
 - AI reviews all decisions holistically
 - Suggests if more iterations needed
 - Identifies pre-implementation tasks
 - Catches missing subjects
 
 **Effect**:
+
 - AI reads all resolved subjects
 - Suggests additional iterations if decisions reveal more work
 - Creates "Pre-Implementation Tasks" section if Type A subjects found
 - Confirms readiness to close brainstorming
 
 **Example**:
+
 ```
 User: /flow-brainstorm-review
 AI: Reviewing all 4 resolved subjects...
@@ -1838,11 +2017,13 @@ Ready to proceed?
 **When**: After completing ALL pre-implementation tasks
 
 **Effect**:
+
 - Marks brainstorming ✅ COMPLETE
 - Changes iteration status to 🎨 READY
 - Updates DASHBOARD.md
 
 **Example**:
+
 ```
 User: /flow-brainstorm-complete
 AI: Verifying pre-implementation tasks...
@@ -1867,10 +2048,12 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 **Why Blocking**: [Explanation of why this blocks implementation]
 
 **Scope** (< 30 min):
+
 - [What needs to be done]
 - [Specific changes]
 
 **Files**:
+
 - [List of files to modify]
 
 **Test**: [How to verify it's done]
@@ -1882,6 +2065,7 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 **Completed**: [Date]
 
 **Changes Made**:
+
 - [What was actually done]
 - [Any deviations from plan]
 ```
@@ -1897,12 +2081,14 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 ### Why This Pattern Exists
 
 **Problem**: During brainstorming, you discover small blocking issues:
+
 - Interface signature is wrong
 - Enum is missing a value
 - Legacy code doesn't support new pattern
 - Type definitions need update
 
 **Without Pre-Tasks**:
+
 - Start implementation
 - Hit blocker
 - Stop to fix blocker
@@ -1910,6 +2096,7 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 - Take longer overall
 
 **With Pre-Tasks**:
+
 - Identify blockers upfront during brainstorming
 - Fix them while context is fresh
 - Start implementation with clean path
@@ -1920,7 +2107,8 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 **Use Case**: During brainstorming, you analyze reference implementations and find bugs
 
 **Pattern**:
-```markdown
+
+````markdown
 #### Bugs Discovered in Reference Implementation
 
 ##### Bug 1: Race Condition in PaymentService
@@ -1928,6 +2116,7 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 **Location**: `src/services/PaymentService.ts:145`
 
 **Problem**:
+
 ```typescript
 // Current code (buggy)
 async processPayment(amount: number) {
@@ -1936,8 +2125,10 @@ async processPayment(amount: number) {
   await this.updatePayment(status);
 }
 ```
+````
 
 **Fix**:
+
 ```typescript
 // Fixed code
 async processPayment(amount: number) {
@@ -1951,7 +2142,8 @@ async processPayment(amount: number) {
 **Impact**: Could cause duplicate charges in concurrent requests
 
 **Action**: Add to Pre-Implementation Tasks
-```
+
+````
 
 **Why Document This**:
 - Shows thorough analysis
@@ -1990,18 +2182,20 @@ async processPayment(amount: number) {
 **Verification**:
 - ✅ [verification step 1]
 - ✅ [verification step 2]
-```
+````
 
 ## Implementation Workflow
 
 ### 1. `/flow-implement-start`
 
 **Prerequisites**:
+
 - Brainstorming ✅ COMPLETE
 - All pre-implementation tasks ✅ COMPLETE
 - Iteration status is 🎨 READY
 
 **Effect**:
+
 - Adds "Implementation" section to current iteration
 - Changes iteration status: 🎨 READY → 🚧 IN PROGRESS
 - Updates DASHBOARD.md
@@ -2009,14 +2203,17 @@ async processPayment(amount: number) {
 ### 2. Do the Work
 
 **During Implementation**:
+
 - Work through action items from resolved subjects
 - Document discoveries in "Implementation Notes"
 - Track files modified
 - Note any deviations from plan
 
 **Good Implementation Notes**:
+
 ```markdown
 **Implementation Notes**:
+
 - Discovered Stripe SDK v12 deprecated `charges.create()`, using `paymentIntents.create()` instead
 - Added StripeErrorMapper class to convert SDK errors to domain errors (not in original plan, but needed)
 - Performance: API calls taking 200-300ms, added caching layer (will document in Architecture)
@@ -2026,11 +2223,13 @@ async processPayment(amount: number) {
 ### 3. `/flow-implement-complete`
 
 **Prerequisites**:
+
 - All action items done
 - Code works (tests pass)
 - Implementation notes updated
 
 **Effect**:
+
 - Marks iteration ✅ COMPLETE
 - Updates DASHBOARD.md
 - Moves to next iteration or completes task
@@ -2040,24 +2239,28 @@ async processPayment(amount: number) {
 Before marking iteration complete, verify:
 
 **Code Quality**:
+
 - [ ] All action items implemented
 - [ ] Code follows project style guide
 - [ ] No commented-out code or TODOs left behind
 - [ ] Error handling in place
 
 **Testing**:
+
 - [ ] Unit tests written and passing
 - [ ] Integration tests if needed
 - [ ] Manual testing done
 - [ ] Edge cases covered
 
 **Documentation**:
+
 - [ ] Implementation notes updated
 - [ ] Files modified list complete
 - [ ] Any architecture changes documented in PLAN.md
 - [ ] Code comments for complex logic
 
 **Integration**:
+
 - [ ] Works with existing code
 - [ ] No breaking changes (or documented if intentional)
 - [ ] Dependencies satisfied
@@ -2066,12 +2269,14 @@ Before marking iteration complete, verify:
 ## When to Mark Complete
 
 **✅ Mark Complete When**:
+
 - All verification checklist items done
 - You would be comfortable shipping this
 - Another developer could understand what was done
 - No blocking issues remain
 
 **❌ Don't Mark Complete When**:
+
 - Tests are failing
 - Code is partially implemented
 - "TODO: finish this later" comments exist
@@ -2080,6 +2285,7 @@ Before marking iteration complete, verify:
 ---
 
 <!-- AI_SCAN:STATUS_MANAGEMENT:1972-2100 -->
+
 # Status Management
 
 ## Status Marker Lifecycle
@@ -2099,6 +2305,7 @@ Before marking iteration complete, verify:
 ```
 
 **Alternative Endings**:
+
 - ❌ CANCELLED (decided not to do this phase)
 - 🔮 DEFERRED (moved to V2/V3, added to BACKLOG.md)
 
@@ -2139,6 +2346,7 @@ Before marking iteration complete, verify:
 ```
 
 **Simplified Path** (no brainstorming):
+
 ```
 ⏳ PENDING
     ↓
@@ -2156,6 +2364,7 @@ Before marking iteration complete, verify:
 ### Valid Transitions
 
 **Phase**:
+
 - ⏳ → 🚧 (start)
 - 🚧 → ✅ (complete)
 - 🚧 → ❌ (cancel)
@@ -2164,12 +2373,14 @@ Before marking iteration complete, verify:
 - ⏳ → 🔮 (defer before starting)
 
 **Task**:
+
 - ⏳ → 🚧 (start)
 - 🚧 → ✅ (complete)
 - 🚧 → ❌ (cancel)
 - 🚧 → 🔮 (defer)
 
 **Iteration**:
+
 - ⏳ → 🚧 (start brainstorming or implementing)
 - 🚧 → 🎨 (finish brainstorming)
 - 🎨 → 🚧 (start implementing)
@@ -2178,6 +2389,7 @@ Before marking iteration complete, verify:
 ### Invalid Transitions
 
 **Never Do This**:
+
 - ❌ ✅ → 🚧 (reopening completed work - create new iteration instead)
 - ❌ ⏳ → ✅ (skipping work - mark cancelled or remove if never needed)
 - ❌ 🎨 → ⏳ (moving backwards - if brainstorming wrong, add new iteration)
@@ -2187,10 +2399,12 @@ Before marking iteration complete, verify:
 ### Pitfall 1: Marking Complete Too Early
 
 **Problem**:
+
 ```markdown
 ### Iteration 2: Error Handling ✅ COMPLETE
 
 **Implementation Notes**:
+
 - Started implementing retry logic
 - TODO: finish exponential backoff
 - TODO: add tests
@@ -2211,6 +2425,7 @@ Before marking iteration complete, verify:
 ### Pitfall 3: Skipping Brainstorming
 
 **Problem**:
+
 ```markdown
 ### Iteration 2: Complex Feature ⏳
 
@@ -2224,6 +2439,7 @@ Before marking iteration complete, verify:
 ### Pitfall 4: Mixing Status in DASHBOARD and Task File
 
 **Problem**:
+
 - DASHBOARD.md shows Iteration 2 🚧 IN PROGRESS
 - Task file shows Iteration 2 ✅ COMPLETE
 
@@ -2240,6 +2456,7 @@ Before marking iteration complete, verify:
 **Wrong Approach**: Change ✅ → 🚧
 
 **Right Approach**:
+
 1. Keep original iteration ✅ COMPLETE
 2. Add new iteration: "Iteration N+1: Fix Issues from Iteration N"
 3. Document what needs fixing
@@ -2251,6 +2468,7 @@ Before marking iteration complete, verify:
 **Scenario**: Started iteration, decided not to finish
 
 **Options**:
+
 1. **Cancel**: Mark ❌ CANCELLED with reason
 2. **Defer**: Mark 🔮 DEFERRED, move to BACKLOG.md with reason
 3. **Remove**: If truly never started, just delete iteration
@@ -2264,6 +2482,7 @@ Before marking iteration complete, verify:
 **Scenario**: Brainstorming taking too long, can't resolve subjects
 
 **Solution**:
+
 1. Review resolved subjects
 2. Identify if subject should be Type C (auto-resolved)
 3. Consider if subject should move to separate iteration
@@ -2272,6 +2491,7 @@ Before marking iteration complete, verify:
 ---
 
 <!-- AI_SCAN:FILE_TEMPLATES:2102-2600 -->
+
 # File Templates
 
 ## DASHBOARD.md Template
@@ -2304,6 +2524,7 @@ Before marking iteration complete, verify:
 **Status**: [Completion summary, e.g., "3/3 tasks complete"]
 
 **Tasks**:
+
 - [Status Emoji] **Task 1**: [Name] ([X/Y iterations])
   - [Status Emoji] Iteration 1: [Name]
   - [Status Emoji] Iteration 2: [Name]
@@ -2316,6 +2537,7 @@ Before marking iteration complete, verify:
 **Status**: [Completion summary]
 
 **Tasks**:
+
 - [Status Emoji] **Task 1**: [Name] ([X/Y iterations])
   - [Status Emoji] Iteration 1: [Name]
   - 🚧 Iteration 2: [Name] ← **CURRENT**
@@ -2326,11 +2548,13 @@ Before marking iteration complete, verify:
 ## 💡 Key Decisions
 
 **Decision Needed**: [Question for user]
+
 - Option A: [Choice] - [Rationale]
 - Option B: [Choice] - [Rationale]
 - **Recommendation**: [If AI has suggestion]
 
 **Resolved**:
+
 - **[Date]**: [Decision made] - [Brief rationale]
 ```
 
@@ -2362,11 +2586,13 @@ Before marking iteration complete, verify:
 [Describe what success looks like - text format, NOT checklists]
 
 **Primary Goals**:
+
 - [Measurable goal 1]
 - [Measurable goal 2]
 - [Measurable goal 3]
 
 **Success Criteria**:
+
 - [How we know this is successful]
 - [Performance targets, if applicable]
 - [User experience goals]
@@ -2374,6 +2600,7 @@ Before marking iteration complete, verify:
 ### Scope
 
 **V1 Scope** (Current Session):
+
 - [Feature 1]
 - [Feature 2]
 - [Feature 3]
@@ -2390,14 +2617,17 @@ Before marking iteration complete, verify:
 [High-level description of how this feature fits into the system - describe WHAT exists, NOT prescriptive current-vs-desired with line numbers]
 
 **Components**:
+
 - **[ComponentName]**: [Responsibility]
 - **[ComponentName]**: [Responsibility]
 
 **Key Dependencies**:
+
 - [Internal service/module]: [What we need from it]
 - [External library/API]: [Why we need it, version if relevant]
 
 **Reference Implementations** (if relevant):
+
 - [Existing code to learn from]: [File path or description]
 - [Similar feature]: [What to reuse/avoid]
 
@@ -2406,11 +2636,13 @@ Before marking iteration complete, verify:
 ## DO / DON'T Guidelines
 
 **✅ DO**:
+
 - [Best practice for this project]
 - [Quality standard to maintain]
 - [Pattern to follow]
 
 **❌ DO NOT**:
+
 - [Anti-pattern to avoid]
 - [Common mistake to prevent]
 - [Constraint to respect]
@@ -2420,9 +2652,11 @@ Before marking iteration complete, verify:
 ## Notes & Learnings
 
 **Design Decisions**:
+
 - [Date]: [Decision made and rationale]
 
 **References**:
+
 - [External doc]: [URL]
 - [Internal doc]: [Path]
 ```
@@ -2447,6 +2681,7 @@ Before marking iteration complete, verify:
 **Why This Task**: [Explanation of why this task is necessary]
 
 **Dependencies**:
+
 - **Requires**: [Task name/number] - [What we need from it]
 - **Blocks**: [Task name/number] - [What depends on this]
 
@@ -2471,9 +2706,11 @@ Before marking iteration complete, verify:
 **Focus**: [What we're designing - TBD]
 
 **Subjects to Discuss**:
+
 - (Add subjects with /flow-brainstorm-subject)
 
 **Resolved Subjects**:
+
 - (Filled during brainstorming)
 
 ---
@@ -2499,9 +2736,11 @@ Before marking iteration complete, verify:
 **Focus**: [What we're designing - TBD]
 
 **Subjects to Discuss**:
+
 - (Add subjects with /flow-brainstorm-subject)
 
 **Resolved Subjects**:
+
 - (Filled during brainstorming)
 
 ---
@@ -2515,12 +2754,15 @@ Before marking iteration complete, verify:
 ## Task Notes
 
 **Discoveries**:
+
 - [Things learned while working on this task]
 
 **Decisions**:
+
 - [Task-specific decisions made]
 
 **References**:
+
 - [Relevant code]: [Path]
 - [Documentation]: [URL]
 ```
@@ -2532,7 +2774,7 @@ Before marking iteration complete, verify:
 **Purpose**: This template shows the complete task file structure with all 5 heading levels explicitly labeled. Use this as a reference when creating or updating task files.
 
 ```markdown
-# Task 3: API Integration                                           ← LEVEL 1: Task title
+# Task 3: API Integration ← LEVEL 1: Task title
 
 **Status**: 🚧 IN PROGRESS
 **Phase**: [Phase 2 - Core Implementation](../DASHBOARD.md#phase-2-core-implementation)
@@ -2540,13 +2782,14 @@ Before marking iteration complete, verify:
 
 ---
 
-## Task Overview                                                     ← LEVEL 2: Major section
+## Task Overview ← LEVEL 2: Major section
 
 Build a robust Stripe API client with error handling, retry logic, and integration tests.
 
 **Why This Task**: Core payment functionality depends on reliable API integration.
 
 **Dependencies**:
+
 - **Requires**: Task 1 (Database Layer) - need PaymentRepository
 - **Blocks**: Task 4 (Webhook Handler) - webhook processing depends on API client
 
@@ -2554,9 +2797,9 @@ Build a robust Stripe API client with error handling, retry logic, and integrati
 
 ---
 
-## Iterations                                                        ← LEVEL 2: Major section
+## Iterations ← LEVEL 2: Major section
 
-### ✅ Iteration 1: REST Client Setup                                ← LEVEL 3: Iteration
+### ✅ Iteration 1: REST Client Setup ← LEVEL 3: Iteration
 
 **Goal**: Create Stripe API client wrapper with authentication
 
@@ -2564,7 +2807,7 @@ Build a robust Stripe API client with error handling, retry logic, and integrati
 
 ---
 
-#### Pre-Implementation Tasks                                        ← LEVEL 4: Iteration subsection
+#### Pre-Implementation Tasks ← LEVEL 4: Iteration subsection
 
 (Optional - only if Type A subjects identified during brainstorming)
 
@@ -2572,18 +2815,20 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 
 ---
 
-##### ✅ Pre-Task 1: Refactor Legacy ErrorHandler                   ← LEVEL 5: Individual pre-task
+##### ✅ Pre-Task 1: Refactor Legacy ErrorHandler ← LEVEL 5: Individual pre-task
 
 **Completed**: 2025-01-14
 
 **Why Blocking**: Current ErrorHandler doesn't support async retry logic
 
 **Scope** (< 30 min):
+
 - Update ErrorHandler.ts to support async
 - Add retryAsync() method
 - Update 3 existing call sites
 
 **Files**:
+
 - src/utils/ErrorHandler.ts
 - src/services/BillingService.ts
 - tests/utils/ErrorHandler.test.ts
@@ -2591,28 +2836,31 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 **Test**: Run existing test suite to ensure no regressions
 
 **Changes Made**:
+
 - Added `retryAsync<T>()` method
 - All tests passing
 - No breaking changes
 
 ---
 
-##### ⏳ Pre-Task 2: Update Type Definitions                         ← LEVEL 5: Individual pre-task
+##### ⏳ Pre-Task 2: Update Type Definitions ← LEVEL 5: Individual pre-task
 
 **Why Blocking**: Need new error types for error handling
 
 **Scope** (< 30 min):
+
 - Add ErrorType enum
 - Update function signatures
 
 **Files**:
+
 - src/types/errors.ts
 
 **Test**: TypeScript compilation succeeds
 
 ---
 
-#### Brainstorming Session - REST Client Architecture                ← LEVEL 4: Iteration subsection
+#### Brainstorming Session - REST Client Architecture ← LEVEL 4: Iteration subsection
 
 (Optional - only for complex iterations requiring design decisions)
 
@@ -2625,18 +2873,20 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 
 ---
 
-##### ✅ Subject 1: Client Architecture Pattern                       ← LEVEL 5: Individual subject
+##### ✅ Subject 1: Client Architecture Pattern ← LEVEL 5: Individual subject
 
 **Decision**: Use singleton pattern with lazy initialization
 
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Stripe SDK maintains connection pool internally
 - Multiple instances would create redundant connections
 - Lazy initialization delays credential validation until first use
 
 **Resolution Items**:
+
 - Create `StripeClient` singleton class
 - Implement lazy initialization in constructor
 - Add credential validation on first API call
@@ -2644,18 +2894,20 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 
 ---
 
-##### ✅ Subject 2: Authentication Flow                               ← LEVEL 5: Individual subject
+##### ✅ Subject 2: Authentication Flow ← LEVEL 5: Individual subject
 
 **Decision**: Use API key from environment variable with startup validation
 
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Stripe best practices recommend environment-based configuration
 - Supports different keys per environment (dev/staging/prod)
 - Validation at startup prevents runtime errors
 
 **Resolution Items**:
+
 - Load `STRIPE_API_KEY` from environment variables
 - Validate key format at startup (must start with `sk_test_` or `sk_live_`)
 - Throw descriptive error if key is missing or invalid
@@ -2663,18 +2915,20 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 
 ---
 
-##### ✅ Subject 3: API Timeout Configuration                         ← LEVEL 5: Individual subject
+##### ✅ Subject 3: API Timeout Configuration ← LEVEL 5: Individual subject
 
 **Decision**: Set 30-second timeout for API calls, configurable via environment
 
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Stripe recommends 30s timeout for payment operations
 - Prevents indefinite hanging on network issues
 - Configurable for different deployment scenarios
 
 **Resolution Items**:
+
 - Configure default timeout of 30 seconds
 - Make timeout configurable via `STRIPE_API_TIMEOUT_MS` env var
 - Add timeout handling in API call wrapper
@@ -2682,7 +2936,7 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 
 ---
 
-#### Action Items                                                    ← LEVEL 4: Iteration subsection
+#### Action Items ← LEVEL 4: Iteration subsection
 
 (Required - ONE list per iteration)
 
@@ -2703,13 +2957,14 @@ Consolidated from Resolution Items above by `/flow-brainstorm-review`
 
 ---
 
-#### Implementation - Iteration 1: REST Client Setup                 ← LEVEL 4: Iteration subsection
+#### Implementation - Iteration 1: REST Client Setup ← LEVEL 4: Iteration subsection
 
 (Added by `/flow-implement-start`, updated during work)
 
 **Status**: ✅ COMPLETE (2025-01-12)
 
 **Implementation Notes**:
+
 - Created `src/integrations/stripe/StripeClient.ts` with singleton pattern
 - Implemented lazy initialization - Stripe SDK initialized on first `getInstance()` call
 - Added comprehensive key validation (format check + test API call)
@@ -2717,12 +2972,14 @@ Consolidated from Resolution Items above by `/flow-brainstorm-review`
 - Performance: Singleton initialization takes ~50ms (acceptable for lazy init)
 
 **Files Modified**:
+
 - `src/integrations/stripe/StripeClient.ts` - Created new file (187 lines)
 - `src/config/env.ts` - Added STRIPE_API_KEY and STRIPE_API_TIMEOUT_MS validation
 - `src/integrations/stripe/index.ts` - Barrel export for clean imports
 - `scripts/stripe-client.scripts.ts` - Created test file
 
 **Verification**:
+
 - ✅ All tests passing in stripe-client.scripts.ts
 - ✅ API key validation working correctly (rejects invalid keys)
 - ✅ Singleton pattern verified (same instance returned)
@@ -2731,7 +2988,7 @@ Consolidated from Resolution Items above by `/flow-brainstorm-review`
 
 ---
 
-### 🚧 Iteration 2: Error Handling                                   ← LEVEL 3: Iteration
+### 🚧 Iteration 2: Error Handling ← LEVEL 3: Iteration
 
 **Goal**: Implement comprehensive error handling and error taxonomy
 
@@ -2743,7 +3000,7 @@ Consolidated from Resolution Items above by `/flow-brainstorm-review`
 
 ---
 
-### ⏳ Iteration 3: Advanced Retry Logic                             ← LEVEL 3: Iteration
+### ⏳ Iteration 3: Advanced Retry Logic ← LEVEL 3: Iteration
 
 **Goal**: Add jitter to exponential backoff and retry budget pattern
 
@@ -2751,23 +3008,27 @@ Consolidated from Resolution Items above by `/flow-brainstorm-review`
 
 ---
 
-## Task Notes                                                        ← LEVEL 2: Major section
+## Task Notes ← LEVEL 2: Major section
 
 **Discoveries**:
+
 - Stripe SDK already implements connection pooling (no need for custom)
 - Stripe SDK v12 uses `paymentIntents` API instead of deprecated `charges`
 - Error codes changed in Stripe API v2023-10-16
 
 **Decisions**:
+
 - Using Stripe Node SDK v12.18.0 (latest stable)
 - NOT implementing custom connection pool (SDK handles it)
 - NOT implementing circuit breaker for V1 (defer to V2)
 
 **Performance**:
+
 - Stripe API calls average 200-300ms response time
 - Singleton initialization overhead: ~50ms (one-time cost)
 
 **References**:
+
 - Stripe API Docs: https://stripe.com/docs/api
 - Existing PayPal integration: `src/legacy/billing.ts`
 ```
@@ -2778,20 +3039,20 @@ Consolidated from Resolution Items above by `/flow-brainstorm-review`
 
 When creating or editing task files, use this quick reference:
 
-| Level | Markdown | Usage | Example |
-|-------|----------|-------|---------|
-| **1** | `#` | Task title (once per file) | `# Task 3: API Integration` |
-| **2** | `##` | Major sections (3-4 per file) | `## Task Overview`, `## Iterations`, `## Task Notes` |
-| **3** | `###` | Individual iterations (multiple per task) | `### ✅ Iteration 1: REST Client Setup` |
-| **4** | `####` | Iteration subsections (4 types) | `#### Pre-Implementation Tasks`, `#### Brainstorming Session`, `#### Action Items`, `#### Implementation` |
-| **5** | `#####` | Individual items (subjects/pre-tasks) | `##### ✅ Subject 1: Architecture`, `##### ⏳ Pre-Task 1: Fix Types` |
+| Level | Markdown | Usage                                     | Example                                                                                                   |
+| ----- | -------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **1** | `#`      | Task title (once per file)                | `# Task 3: API Integration`                                                                               |
+| **2** | `##`     | Major sections (3-4 per file)             | `## Task Overview`, `## Iterations`, `## Task Notes`                                                      |
+| **3** | `###`    | Individual iterations (multiple per task) | `### ✅ Iteration 1: REST Client Setup`                                                                   |
+| **4** | `####`   | Iteration subsections (4 types)           | `#### Pre-Implementation Tasks`, `#### Brainstorming Session`, `#### Action Items`, `#### Implementation` |
+| **5** | `#####`  | Individual items (subjects/pre-tasks)     | `##### ✅ Subject 1: Architecture`, `##### ⏳ Pre-Task 1: Fix Types`                                      |
 
 **Critical Rule**: Never use level 6 (`######`) or deeper. If you need more nesting, restructure with additional iterations instead.
 
 ---
 
-
 <!-- AI_SCAN:COMMAND_PATTERNS:2726-2900 -->
+
 # Command Patterns
 
 ## Dashboard-First Navigation Pattern (Detailed)
@@ -2946,16 +3207,16 @@ Step 4: For Phase 3:
 Step 5: Generate summary
 → Format output:
   # Project Summary
-  
+
   ## Phase 1: Foundation ✅ COMPLETE
   - Task 1: Project Setup (3 iterations) ✅
     - Key decisions: Singleton pattern, env-based config
   - Task 2: Core Models (2 iterations) ✅
     - Key decisions: Entity validation, repository pattern
-  
+
   ## Phase 2: Core Implementation 🚧 IN PROGRESS
   ...
-  
+
 Step 6: Return summary to user
 ```
 
@@ -3012,6 +3273,7 @@ Step 6: Return result
 ---
 
 <!-- AI_SCAN:COMPLETE_WORKFLOW:2902-3200 -->
+
 # Complete Workflow Examples
 
 ## Example 1: Payment Gateway Integration (Full Feature)
@@ -3039,6 +3301,7 @@ AI: Created:
 ```
 
 **Files Created**:
+
 - `.flow/DASHBOARD.md` - Progress tracking
 - `.flow/PLAN.md` - Overview, architecture, testing strategy
 - `.flow/phase-1/` - First phase directory
@@ -3103,10 +3366,10 @@ AI: Reviewing all 3 subjects...
     - Subject 1: Directory layout (Type D)
     - Subject 2: Config setup (Type D)
     - Subject 3: Dependencies (Type A - Pre-task)
-    
+
     Pre-implementation task identified:
     - Update package.json with Stripe SDK
-    
+
     Ready to proceed?
 
 User: Yes
@@ -3134,7 +3397,9 @@ AI: Iteration 1 complete! ✅
 ```
 
 **Files Updated During This Workflow**:
+
 1. **DASHBOARD.md**:
+
    - Phase 1 status: ⏳ → 🚧
    - Task 1 status: ⏳ → 🚧 → ✅
    - Current work pointer updated throughout
@@ -3253,21 +3518,22 @@ AI: Pulled Task 5 from backlog.
 AI: Archiving completed work...
     - Phase 1: 3 tasks archived
     - Phase 2: Task 1-2 archived (completed only)
-    
+
     Created ARCHIVE.md with all completed task details.
-    
+
     Updated task files to reference archive:
     - phase-1/task-1.md → "See ARCHIVE.md"
     - phase-1/task-2.md → "See ARCHIVE.md"
     - phase-2/task-1.md → "See ARCHIVE.md"
     - phase-2/task-2.md → "See ARCHIVE.md"
-    
+
     DASHBOARD.md now shows only active work.
 ```
 
 ---
 
 <!-- AI_SCAN:BACKLOG_MANAGEMENT:3202-3500 -->
+
 # Backlog Management
 
 ## BACKLOG.md Structure
@@ -3284,12 +3550,14 @@ AI: Archiving completed work...
 **Total Items**: [N]
 
 **By Version**:
+
 - V2 Features: [N]
 - V3 Features: [N]
 - Technical Debt: [N]
 - Deferred Tasks: [N]
 
 **By Priority**:
+
 - High: [N]
 - Medium: [N]
 - Low: [N]
@@ -3308,6 +3576,7 @@ AI: Archiving completed work...
 
 **Reasoning**:
 V1 scope focuses on USD only. Multi-currency requires:
+
 - Exchange rate API integration
 - Currency conversion logic
 - Multi-currency display in UI
@@ -3319,6 +3588,7 @@ This adds 2-3 weeks and is not critical for V1 launch.
 **Dependencies**: Core payment processing complete (Phase 2, Task 1-3)
 
 **When to Pull Back**:
+
 - After V1 launch
 - When international customers become priority
 - When we have exchange rate API access
@@ -3334,6 +3604,7 @@ This adds 2-3 weeks and is not critical for V1 launch.
 **Reasoning**:
 Basic retry logic (3 attempts, exponential backoff) is sufficient for V1.
 Circuit breaker pattern adds value but requires:
+
 - State management for circuit status
 - Monitoring and alerting integration
 - Configuration management
@@ -3353,6 +3624,7 @@ Circuit breaker pattern adds value but requires:
 
 **Reasoning**:
 V1 focuses on one-time payments. Saved payment methods require:
+
 - Secure token storage
 - Card management UI
 - PCI compliance review
@@ -3397,6 +3669,7 @@ Not urgent, can refactor after V2 when we understand all use cases better.
 **Purpose**: Move task from active plan to backlog
 
 **Usage**:
+
 ```bash
 # Move single task
 /flow-backlog-add 6 "Multi-currency adds too much complexity for V1, deferring to V2"
@@ -3406,6 +3679,7 @@ Not urgent, can refactor after V2 when we understand all use cases better.
 ```
 
 **Effect**:
+
 1. Reads DASHBOARD.md, finds Phase/Task info
 2. Reads task file (phase-N/task-M.md)
 3. Copies task details to BACKLOG.md with reason
@@ -3413,6 +3687,7 @@ Not urgent, can refactor after V2 when we understand all use cases better.
 5. Updates task file status to 🔮 DEFERRED with reference to BACKLOG.md
 
 **Task File After**:
+
 ```markdown
 # Task 6: Multi-Currency Support
 
@@ -3430,11 +3705,13 @@ See [BACKLOG.md](../BACKLOG.md#task-multi-currency-support) for details and reas
 **Purpose**: Show backlog contents
 
 **Usage**:
+
 ```bash
 /flow-backlog-view
 ```
 
 **Output**:
+
 ```
 Backlog Summary:
 - Total items: 8
@@ -3460,6 +3737,7 @@ See BACKLOG.md for full details.
 **Purpose**: Pull task from backlog back into active plan
 
 **Usage**:
+
 ```bash
 # Pull task, add to end of current phase
 /flow-backlog-pull 6
@@ -3472,6 +3750,7 @@ See BACKLOG.md for full details.
 ```
 
 **Effect**:
+
 1. Reads BACKLOG.md, finds task details
 2. Determines current phase from DASHBOARD.md
 3. Creates new task file in phase directory
@@ -3480,13 +3759,14 @@ See BACKLOG.md for full details.
 6. Removes from BACKLOG.md (or marks as pulled)
 
 **Example**:
+
 ```bash
 /flow-backlog-pull 6
 
 AI: Pulled "Multi-Currency Support" from backlog.
     Created phase-2/task-6.md
     Updated DASHBOARD.md
-    
+
     Task is now ⏳ PENDING in Phase 2.
     Use /flow-task-start when ready to begin.
 ```
@@ -3498,21 +3778,25 @@ AI: Pulled "Multi-Currency Support" from backlog.
 ### Use Backlog For:
 
 **V2/V3 Features**:
+
 - Features planned but not in current version scope
 - Enhancements discovered during V1 development
 - Nice-to-have features that aren't MVP
 
 **Deferred Tasks**:
+
 - Tasks started but decided against mid-development
 - Tasks that turned out more complex than expected
 - Tasks blocked by external dependencies (waiting for API access, etc.)
 
 **Technical Debt**:
+
 - Refactoring opportunities identified
 - Code improvements that aren't urgent
 - Performance optimizations that can wait
 
 **Scope Creep Prevention**:
+
 - Features requested during development that expand scope
 - "Wouldn't it be cool if..." ideas
 - Gold-plating attempts
@@ -3520,20 +3804,24 @@ AI: Pulled "Multi-Currency Support" from backlog.
 ### Don't Use Backlog For:
 
 **Cancelled Work**:
+
 - Use ❌ CANCELLED status in task file instead
 - Document reason directly in task
 
 **Bugs**:
+
 - Bugs should be fixed, not backlogged
 - Exception: Non-critical bugs in V2 features can be backlogged with V2
 
 **Core MVP Features**:
+
 - If it's truly needed for V1, keep it in active plan
 - Descope properly rather than backlog everything
 
 ---
 
 <!-- AI_SCAN:BEST_PRACTICES:3502-3800 -->
+
 # Best Practices & Pitfalls
 
 ## Best Practices
@@ -3541,6 +3829,7 @@ AI: Pulled "Multi-Currency Support" from backlog.
 ### 1. Always Brainstorm for Complex Work
 
 **✅ DO**:
+
 ```markdown
 ### Iteration 2: Error Handling ⏳
 
@@ -3550,6 +3839,7 @@ AI: Pulled "Multi-Currency Support" from backlog.
 ```
 
 **❌ DON'T**:
+
 ```markdown
 ### Iteration 2: Error Handling ⏳
 
@@ -3563,11 +3853,13 @@ AI: Pulled "Multi-Currency Support" from backlog.
 ### 2. Keep DASHBOARD.md Up-to-Date
 
 **✅ DO**:
+
 - Update DASHBOARD.md every time status changes
 - Use commands that automatically update both files
 - Run `/flow-status` regularly to verify state
 
 **❌ DON'T**:
+
 - Update task file but forget DASHBOARD.md
 - Manually edit both files (error-prone)
 - Let DASHBOARD.md get stale
@@ -3579,6 +3871,7 @@ AI: Pulled "Multi-Currency Support" from backlog.
 ### 3. Use Descriptive Commit Messages
 
 **✅ DO**:
+
 ```bash
 git commit -m "Complete Iteration 2: Error Handling
 
@@ -3591,6 +3884,7 @@ Updated: phase-2/task-3.md, DASHBOARD.md"
 ```
 
 **❌ DON'T**:
+
 ```bash
 git commit -m "updates"
 ```
@@ -3602,8 +3896,10 @@ git commit -m "updates"
 ### 4. Document Discoveries Immediately
 
 **✅ DO**:
+
 ```markdown
 **Implementation Notes**:
+
 - Discovered Stripe SDK v12 deprecated charges API
 - Switched to PaymentIntents API (newer, more flexible)
 - Added StripeErrorMapper class (not in original plan)
@@ -3611,6 +3907,7 @@ git commit -m "updates"
 ```
 
 **❌ DON'T**:
+
 ```markdown
 **Implementation Notes**:
 (empty)
@@ -3623,6 +3920,7 @@ git commit -m "updates"
 ### 5. Break Down Large Tasks
 
 **✅ DO**:
+
 ```
 Phase 2: Core Implementation
 - Task 1: Database Layer (3 iterations)
@@ -3631,6 +3929,7 @@ Phase 2: Core Implementation
 ```
 
 **❌ DON'T**:
+
 ```
 Phase 2: Core Implementation
 - Task 1: Everything (25 iterations)
@@ -3643,6 +3942,7 @@ Phase 2: Core Implementation
 ### 6. Use Pre-Implementation Tasks
 
 **✅ DO**:
+
 ```markdown
 #### Pre-Implementation Tasks
 
@@ -3655,6 +3955,7 @@ Phase 2: Core Implementation
 ```
 
 **❌ DON'T**:
+
 ```markdown
 [Start implementation]
 [Hit blocker]
@@ -3669,11 +3970,13 @@ Phase 2: Core Implementation
 ### 7. Reference PLAN.md for Big Decisions
 
 **✅ DO**:
+
 - Update PLAN.md Architecture section for Type B decisions
 - Reference PLAN.md when explaining system design
 - Keep PLAN.md as single source of truth for architecture
 
 **❌ DON'T**:
+
 - Scatter architecture decisions across task files
 - Forget to document major design choices
 - Let PLAN.md get out of sync with reality
@@ -3683,6 +3986,7 @@ Phase 2: Core Implementation
 ### 8. Use /flow-verify-plan Regularly
 
 **✅ DO**:
+
 ```bash
 /flow-verify-plan
 
@@ -3702,6 +4006,7 @@ Phase 2: Core Implementation
 ### Pitfall 1: Skipping /flow-brainstorm-review
 
 **Problem**:
+
 ```bash
 /flow-next-subject  # Resolve all subjects
 /flow-brainstorm-complete  # Skip review!
@@ -3716,10 +4021,12 @@ Phase 2: Core Implementation
 ### Pitfall 2: Marking Complete Too Early
 
 **Problem**:
+
 ```markdown
 ### Iteration 2: Error Handling ✅ COMPLETE
 
 **Implementation Notes**:
+
 - TODO: Add tests
 - TODO: Fix edge case
 ```
@@ -3733,6 +4040,7 @@ Phase 2: Core Implementation
 ### Pitfall 3: Not Reading DASHBOARD.md First
 
 **Problem**:
+
 ```
 [AI tries to edit task file without reading DASHBOARD.md]
 [Edits wrong task/iteration]
@@ -3748,6 +4056,7 @@ Phase 2: Core Implementation
 ### Pitfall 4: Creating Too Many Small Tasks
 
 **Problem**:
+
 ```
 Phase 2: Core Implementation
 - Task 1: Create class (1 action item)
@@ -3765,6 +4074,7 @@ Phase 2: Core Implementation
 ### Pitfall 5: Not Linking Files
 
 **Problem**:
+
 ```markdown
 # Task 3 in phase-2/task-3.md
 
@@ -3774,6 +4084,7 @@ Phase 2: Core Implementation
 **Why Bad**: No clickable link back to DASHBOARD.md, hard to navigate.
 
 **Fix**: Always use markdown links:
+
 ```markdown
 **Phase**: [Phase 2 - Core Implementation](../DASHBOARD.md#phase-2-core-implementation)
 ```
@@ -3799,11 +4110,13 @@ Phase 2: Core Implementation
 **Solutions**:
 
 1. **Use /flow-plan-split regularly**:
+
    - Archives completed work
    - Keeps active plan small
    - Old work still accessible in ARCHIVE.md
 
 2. **Leverage DASHBOARD.md**:
+
    - Dashboard has jump links
    - Don't read all task files, just current one
    - Use Grep to search across files when needed
@@ -3822,11 +4135,13 @@ Phase 2: Core Implementation
 **Problem**: Multiple developers editing same files
 
 **With Multi-File Architecture**:
+
 - Conflicts localized to specific task files
 - DASHBOARD.md conflicts are small and obvious
 - Much better than monolithic PLAN.md merge conflicts
 
 **Best Practices**:
+
 1. Each developer works on different tasks (different files)
 2. Communicate before editing DASHBOARD.md
 3. Pull frequently to stay in sync
@@ -3839,6 +4154,7 @@ Phase 2: Core Implementation
 **Scenario**: Developer A starts task, Developer B finishes it
 
 **Process**:
+
 1. Developer A updates DASHBOARD.md and task file with current state
 2. Developer A commits and pushes
 3. Developer B pulls, runs `/flow-status` to understand current state
@@ -3868,4 +4184,3 @@ Phase 2: Core Implementation
 
 For quick reference, see lines 1-600 (Quick Reference section).
 For specific sections, see Section Index (lines 543-614).
-

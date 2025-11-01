@@ -19,7 +19,10 @@ export type WebsocketInstance = ReturnType<typeof useWebSocket<WebsocketStructur
 const WS_HOST = import.meta.env.VITE_WS_HOST || 'wss://game.rcl-team.com:443';
 const HEARTBEAT_INTERVAL = 30;
 
-type WebSocketEventCallback = (ws: WebSocket, wsm: WebsocketStructuredMessage) => void | Promise<void>;
+type WebSocketEventCallback = (
+  ws: WebSocket,
+  wsm: WebsocketStructuredMessage,
+) => void | Promise<void>;
 
 enum E_WebsocketEventType {
   CONNECTED = 'connected',
@@ -28,7 +31,7 @@ enum E_WebsocketEventType {
   ERROR = 'error',
 }
 
-export type WebsocketEventHandlerType = keyof typeof E_WebsocketEventType
+export type WebsocketEventHandlerType = keyof typeof E_WebsocketEventType;
 
 type WebSocketEventHandlers = {
   [E_WebsocketEventType.CONNECTED]?: (ws: WebSocket) => void | Promise<void>;
@@ -57,8 +60,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
 
   const isDisconnected = computed(() => status.value === 'disconnected');
 
-
-  function connect(protocol: string,) {
+  function connect(protocol: string) {
     status.value = 'connecting';
     _ws = useWebSocket(WS_HOST, {
       protocols: [protocol],
@@ -70,7 +72,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
         onFailed: () => {
           status.value = 'disconnected';
           console.error('[WS] Auto-reconnect failed after retries');
-
         },
       },
 
@@ -144,7 +145,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
       });
 
       await Promise.all(promises);
-
     } catch (error) {
       console.error('[WS] Failed to parse message:', error);
     }
@@ -162,8 +162,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
     await Promise.all(promises);
     lastError.value = event;
   }
-
-
 
   function register(source: string, callback: WebSocketEventHandlers) {
     if (import.meta.env.DEV) {
@@ -185,16 +183,23 @@ export const useWebSocketStore = defineStore('websocket', () => {
     }
 
     // Validate handler types
-    const validKeys: (keyof WebSocketEventHandlers)[] = [E_WebsocketEventType.CONNECTED, E_WebsocketEventType.DATA, E_WebsocketEventType.DISCONNECTED, E_WebsocketEventType.ERROR];
+    const validKeys: (keyof WebSocketEventHandlers)[] = [
+      E_WebsocketEventType.CONNECTED,
+      E_WebsocketEventType.DATA,
+      E_WebsocketEventType.DISCONNECTED,
+      E_WebsocketEventType.ERROR,
+    ];
     const providedKeys = Object.keys(callback) as (keyof WebSocketEventHandlers)[];
 
-    providedKeys.forEach(key => {
+    providedKeys.forEach((key) => {
       if (!validKeys.includes(key)) {
         console.warn(`[WS] Unknown handler type "${key}" in registration for "${source}"`);
       }
 
       if (callback[key] && typeof callback[key] !== 'function') {
-        throw new Error(`[WS] Handler "${key}" for "${source}" must be a function, got ${typeof callback[key]}`);
+        throw new Error(
+          `[WS] Handler "${key}" for "${source}" must be a function, got ${typeof callback[key]}`,
+        );
       }
     });
 
@@ -203,23 +208,25 @@ export const useWebSocketStore = defineStore('websocket', () => {
       const fnStr = callback.connected.toString();
       // Basic check: should accept at least 1 parameter (ws)
       if (callback.connected.length < 1) {
-        console.warn(`[WS] Handler "connected" for "${source}" may have incorrect signature (expects ws: WebSocket)`);
+        console.warn(
+          `[WS] Handler "connected" for "${source}" may have incorrect signature (expects ws: WebSocket)`,
+        );
       }
     }
   }
-
 
   function unregister(source: string) {
     registry.value.delete(source);
   }
 
-
   function setClientData(data: I_ClientData) {
-    if (clientData.value &&
-      (clientData.value.id !== data.id || clientData.value.name !== data.name)) {
+    if (
+      clientData.value &&
+      (clientData.value.id !== data.id || clientData.value.name !== data.name)
+    ) {
       console.warn(
         `[WS] Updating client data from ${clientData.value.name} (${clientData.value.id}) ` +
-        `to ${data.name} (${data.id})`
+          `to ${data.name} (${data.id})`,
       );
     }
     clientData.value = { id: data.id, name: data.name };
@@ -234,8 +241,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
     lastError.value = null;
     registry.value.clear();
   }
-
-
 
   return {
     // State

@@ -1,6 +1,6 @@
 import { Intersection } from 'three';
 import { GameComponent } from '../../GameComponent';
-import type {  I_Interactable, I_InteractionBuilder } from '../../common/gameobject.types';
+import type { I_Interactable, I_InteractionBuilder } from '../../common/gameobject.types';
 import { I_SceneContext } from '@/game/common/scenes.types';
 
 export interface I_ClickConfig {

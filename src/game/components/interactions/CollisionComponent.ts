@@ -71,7 +71,7 @@ export class CollisionComponent extends GameComponent {
 
   async init(context: I_SceneContext): Promise<void> {
     this.context = context;
-    const physics = context.getService('physics')
+    const physics = context.getService('physics');
 
     // Check if physics service is ready
     if (!physics.isReady()) {
@@ -95,7 +95,11 @@ export class CollisionComponent extends GameComponent {
       const position = transformComp?.getPositionArray() || [0, 0, 0];
       const rotation = transformComp?.getRotationArray() || [0, 0, 0];
 
-      const fullSize = this.config.shapeParams.map((halfExtent) => halfExtent * 2) as [number, number, number];
+      const fullSize = this.config.shapeParams.map((halfExtent) => halfExtent * 2) as [
+        number,
+        number,
+        number,
+      ];
 
       physics.registerStatic(
         this.gameObject.id,
@@ -109,11 +113,9 @@ export class CollisionComponent extends GameComponent {
       );
     } else if (meshComp) {
       // Single mesh registration (derive collision from mesh geometry)
-      physics.registerStaticFromMesh(
-        this.gameObject.id,
-        meshComp.mesh,
-        { showDebug: this.config.showDebug },
-      );
+      physics.registerStaticFromMesh(this.gameObject.id, meshComp.mesh, {
+        showDebug: this.config.showDebug,
+      });
     } else if (instancedMeshComp) {
       // Instanced mesh registration (multiple static bodies)
       this.instanceIds = physics.registerInstancedStatic(
@@ -138,7 +140,7 @@ export class CollisionComponent extends GameComponent {
    */
   protected registerCallbacks(): void {
     if (!this.context) return;
-    const physics = this.context.getService('physics')
+    const physics = this.context.getService('physics');
 
     if (
       this.config.onCollisionEnter ||
@@ -158,7 +160,7 @@ export class CollisionComponent extends GameComponent {
    */
   public updatePosition(x: number, y: number, z: number): void {
     if (!this.isRegistered || !this.context) return;
-    const physics = this.context.getService('physics')
+    const physics = this.context.getService('physics');
     physics.setPosition(this.gameObject.id, { x, y, z });
   }
 
@@ -167,7 +169,7 @@ export class CollisionComponent extends GameComponent {
    */
   public getPosition(): { x: number; y: number; z: number } | null {
     if (!this.isRegistered || !this.context) return null;
-    const physics = this.context.getService('physics')
+    const physics = this.context.getService('physics');
     return physics.getPosition(this.gameObject.id);
   }
 
@@ -179,7 +181,7 @@ export class CollisionComponent extends GameComponent {
       }
 
       // Remove physics body from world
-      const physics = this.context?.getService('physics')
+      const physics = this.context?.getService('physics');
       if (physics) {
         physics.remove(this.gameObject.id);
       }

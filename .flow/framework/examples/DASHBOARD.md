@@ -24,6 +24,7 @@
 **Status**: 100% complete (5/5 iterations)
 
 **Tasks**:
+
 - ✅ **Task 1**: Project Setup (3/3 iterations)
   - ✅ Iteration 1: Repository Structure
   - ✅ Iteration 2: Dependencies & Configuration
@@ -38,6 +39,7 @@
 **Status**: 40% complete (6/15 iterations)
 
 **Tasks**:
+
 - ✅ **Task 1**: Database Layer (2/2 iterations)
   - ✅ Iteration 1: Repository Pattern
   - ✅ Iteration 2: Transaction Support
@@ -65,6 +67,7 @@
 **Status**: Not started (0/8 iterations)
 
 **Tasks**:
+
 - ⏳ **Task 1**: Test Suite (0/3 iterations)
   - ⏳ Iteration 1: Unit Tests
   - ⏳ Iteration 2: Integration Tests
@@ -94,11 +97,13 @@ This example project demonstrates Flow's **Resolution Items Pattern**:
 ## 💡 Key Decisions
 
 **Decision Needed**: Should we implement circuit breaker pattern for retry logic?
+
 - Option A: Add circuit breaker now - More resilient, but adds complexity
 - Option B: Defer to V2 - Ship V1 faster, add sophistication later
 - **Recommendation**: Option B - Basic retry (exponential backoff, 3 attempts) is sufficient for V1. Circuit breaker can wait.
 
 **Resolved**:
+
 - **2025-01-13**: Retry Strategy - Using exponential backoff with 3 retries max. Balances reliability with user experience.
 - **2025-01-14**: Error Taxonomy - Mapping Stripe errors to domain errors to decouple domain logic from Stripe SDK.
 - **2025-01-13**: Circuit Breaker Deferred to V2 - Adds complexity, not critical for V1 launch.

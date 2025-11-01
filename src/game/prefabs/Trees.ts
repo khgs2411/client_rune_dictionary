@@ -1,9 +1,11 @@
 import { CollisionComponent } from '../components/interactions/CollisionComponent';
 import { GeometryComponent } from '../components/rendering/GeometryComponent';
-import { I_InstanceTransform, InstancedMeshComponent } from '../components/rendering/InstancedMeshComponent';
+import {
+  I_InstanceTransform,
+  InstancedMeshComponent,
+} from '../components/rendering/InstancedMeshComponent';
 import { MaterialComponent } from '../components/rendering/MaterialComponent';
 import { GameObject } from '../GameObject';
-
 
 export interface I_TreePosition {
   x: number;

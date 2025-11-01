@@ -28,7 +28,6 @@ export class Engine {
   };
 
   constructor(canvas: HTMLCanvasElement) {
-
     const settings = DataStore.settings;
 
     // Create clock for delta time

@@ -25,7 +25,7 @@ export interface I_MouseEvent {
 
 export interface I_MouseScrollEvent extends I_MouseEvent {
   scrollDelta: number; // Accumulated scroll delta (for tracking total scroll)
-  rawDelta: number;    // Raw wheel delta from this event (for incremental zoom)
+  rawDelta: number; // Raw wheel delta from this event (for incremental zoom)
 }
 
 export interface I_MouseDragEvent extends I_MouseEvent {

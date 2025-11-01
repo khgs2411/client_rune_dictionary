@@ -90,12 +90,10 @@ export class GeometryComponent extends GameComponent {
       case 'capsule':
         // params: [radius, height, radialSegments?, heightSegments?]
         // return new CylinderGeometry(params[0], params[0], params[1], params[2] || 8, params[3] || 16);
-        return new CapsuleGeometry(width, height, depth || 8, depth || 16)
+        return new CapsuleGeometry(width, height, depth || 8, depth || 16);
 
       default:
-        console.warn(
-          `[GeometryComponent] Unknown geometry type: ${type}, defaulting to box`,
-        );
+        console.warn(`[GeometryComponent] Unknown geometry type: ${type}, defaulting to box`);
         return new BoxGeometry(1, 1, 1);
     }
   }

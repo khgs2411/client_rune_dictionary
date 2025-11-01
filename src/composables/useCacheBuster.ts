@@ -43,7 +43,7 @@ export function useCacheBuster() {
     () => {
       ensureVersion();
     },
-    { immediate: true }
+    { immediate: true },
   );
 
   return {

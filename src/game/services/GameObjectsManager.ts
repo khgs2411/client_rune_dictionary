@@ -35,8 +35,6 @@ export class GameObjectsManager extends SceneService implements I_SceneService {
         );
       }
     }
-
-  
   }
 
   /**
@@ -80,7 +78,7 @@ export class GameObjectsManager extends SceneService implements I_SceneService {
    * Get a GameObject by ID
    */
   get<T extends GameObject>(id: string): T | null {
-    return this.gameObjects.get(id) as T || null;
+    return (this.gameObjects.get(id) as T) || null;
   }
 
   /**
@@ -118,16 +116,13 @@ export class GameObjectsManager extends SceneService implements I_SceneService {
           } catch (error) {
             console.error(
               `[GameObjectManager] Failed to notify theme change for component in GameObject "${gameObject.id}":`,
-              error
+              error,
             );
           }
         }
       }
     }
-
   }
-
-
 
   /**
    * Update all GameObjects
@@ -149,6 +144,5 @@ export class GameObjectsManager extends SceneService implements I_SceneService {
     }
 
     this.gameObjects.clear();
-
   }
 }

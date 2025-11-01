@@ -10,7 +10,6 @@ import { Light, AmbientLight, DirectionalLight } from 'three';
 export class LightingModule extends SceneModule implements I_SceneModule {
   private lights: Light[] = [];
 
-
   protected async init(context: I_SceneContext): Promise<void> {
     // Simulate async loading delay (for testing loading screen)
     // Ambient light
@@ -38,7 +37,6 @@ export class LightingModule extends SceneModule implements I_SceneModule {
 
     this.addToScene(context, directionalLight);
     this.lights.push(directionalLight);
-
   }
 
   public addToScene(context: I_SceneContext, directionalLight: DirectionalLight): void {

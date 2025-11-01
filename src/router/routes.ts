@@ -17,8 +17,8 @@ const routes = [
             path: 'scene',
             name: 'scene',
             component: () => import('../views/Scene.vue'),
-          }
-        ]
+          },
+        ],
       },
     ],
   },

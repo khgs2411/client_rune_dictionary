@@ -7,10 +7,7 @@ import { nanoid } from 'nanoid';
  * @param config - Configuration object
  * @returns New GameObject instance
  */
-export type FactoryFunction<T extends GameObject = GameObject> = (
-  id: string,
-  config: any,
-) => T;
+export type FactoryFunction<T extends GameObject = GameObject> = (id: string, config: any) => T;
 
 /**
  * ObjectPool - Generic object pooling for GameObjects
@@ -72,7 +69,9 @@ export class ObjectPool<T extends GameObject = GameObject> {
         (obj as any).reset(config);
       }
 
-      console.log(`♻️  [ObjectPool:${this.type}] Reused from pool (available: ${this.available.length})`);
+      console.log(
+        `♻️  [ObjectPool:${this.type}] Reused from pool (available: ${this.available.length})`,
+      );
     } else {
       // Create new instance
       const id = nanoid(8); // Short unique ID

@@ -142,7 +142,6 @@ export class InteractionService extends SceneService implements I_SceneService {
     this.gridHelper.visible = false; // Hidden by default
     ctx.scene.add(this.gridHelper);
     ctx.cleanupRegistry.registerObject(this.gridHelper);
-
   }
 
   public update(_delta: number): void {
@@ -387,7 +386,6 @@ export class InteractionService extends SceneService implements I_SceneService {
   private handleClick(): void {
     const buttonMap = { left: 0, middle: 1, right: 2 };
     this.mouseClickHandlers.forEach((handler) => {
-
       // Get current mouse button from last event
       const lastButton = (this.mouse as any).lastButton || 0;
 
@@ -547,9 +545,8 @@ export class InteractionService extends SceneService implements I_SceneService {
 
     // Apply grid snapping (resolve value if it's a function)
     if (handler.snapToGrid) {
-      const snapValue = typeof handler.snapToGrid === 'function'
-        ? handler.snapToGrid()
-        : handler.snapToGrid;
+      const snapValue =
+        typeof handler.snapToGrid === 'function' ? handler.snapToGrid() : handler.snapToGrid;
 
       if (snapValue > 0) {
         newPos.x = Math.round(newPos.x / snapValue) * snapValue;

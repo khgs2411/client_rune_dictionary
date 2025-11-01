@@ -48,8 +48,6 @@ export class MatchComponent extends GameComponent {
   async init(context: I_SceneContext): Promise<void> {
     // Require InteractionComponent for event system
     this.onInteraction(context);
-
-
   }
 
   private onInteraction(context: I_SceneContext) {
@@ -119,7 +117,6 @@ export class MatchComponent extends GameComponent {
 
     const response = await this.matchAPI.createPveMatch(payload);
 
-
     // Update match store via DataStore
     DataStore.match.setInitialMatchState({
       matchId: response.matchId,
@@ -131,7 +128,6 @@ export class MatchComponent extends GameComponent {
     // Transition to PVE_MATCH state
     const stateService = context.getService('state');
     stateService.setState(E_SceneState.PVE_MATCH);
-
   }
 
   /**

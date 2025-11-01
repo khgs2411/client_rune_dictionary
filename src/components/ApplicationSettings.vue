@@ -41,13 +41,20 @@
           <div class="space-y-2">
             <label class="text-xs text-muted-foreground">Color Theme</label>
             <div class="flex gap-3 flex-wrap">
-              <Button v-for="theme in THEME_OPTIONS" :key="theme.value" @click="settings.theme.setTheme(theme.value)"
-                variant="ghost" :class="[
+              <Button
+                v-for="theme in THEME_OPTIONS"
+                :key="theme.value"
+                @click="settings.theme.setTheme(theme.value)"
+                variant="ghost"
+                :class="[
                   'w-10 h-10 p-0 rounded-full border-2 transition-all shrink-0 overflow-hidden',
                   settings.theme.currentTheme === theme.value
                     ? 'border-foreground ring-2 ring-ring scale-110'
                     : 'border-transparent hover:scale-105',
-                ]" :style="{ background: theme.color }" :title="theme.label" :aria-label="theme.label">
+                ]"
+                :style="{ background: theme.color }"
+                :title="theme.label"
+                :aria-label="theme.label">
               </Button>
             </div>
           </div>
@@ -145,7 +152,11 @@
 
         <!-- Logout Button -->
         <div v-if="showLogout" class="pt-4 border-t border-border">
-          <Button @click="handleLogout" variant="destructive" size="sm" class="w-full text-destructive-foreground">
+          <Button
+            @click="handleLogout"
+            variant="destructive"
+            size="sm"
+            class="w-full text-destructive-foreground">
             <LogOut class="h-4 w-4 mr-2" />
             Logout
           </Button>
@@ -156,36 +167,36 @@
 </template>
 
 <script setup lang="ts">
-  import { Settings, Sun, Moon, LogOut } from 'lucide-vue-next';
-  import { useRouter } from 'vue-router';
-  import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-  } from '@/components/ui/sheet';
-  import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-  import Button from '@/components/ui/button/Button.vue';
-  import Switch from '@/components/ui/switch/Switch.vue';
-  import { useSettingsStore } from '@/stores/settings.store';
-  import { useAuthStore } from '@/stores/auth.store';
-  import { THEME_OPTIONS } from '@/composables/useTheme';
-  import { computed, ref } from 'vue';
+import { Settings, Sun, Moon, LogOut } from 'lucide-vue-next';
+import { useRouter } from 'vue-router';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import Button from '@/components/ui/button/Button.vue';
+import Switch from '@/components/ui/switch/Switch.vue';
+import { useSettingsStore } from '@/stores/settings.store';
+import { useAuthStore } from '@/stores/auth.store';
+import { THEME_OPTIONS } from '@/composables/useTheme';
+import { computed, ref } from 'vue';
 
-  const settings = useSettingsStore();
-  const auth = useAuthStore();
-  const router = useRouter();
+const settings = useSettingsStore();
+const auth = useAuthStore();
+const router = useRouter();
 
-  const isOpen = ref(false);
+const isOpen = ref(false);
 
-  function handleLogout() {
-    console.log('👋 Logging out...');
-    isOpen.value = false; // Close the sheet
-    auth.logout(); // Clear auth tokens with TTL
-    router.push({ name: 'login' });
-  }
+function handleLogout() {
+  console.log('👋 Logging out...');
+  isOpen.value = false; // Close the sheet
+  auth.logout(); // Clear auth tokens with TTL
+  router.push({ name: 'login' });
+}
 
-  const showLogout = computed(() => router.currentRoute.value.name !== 'login');
+const showLogout = computed(() => router.currentRoute.value.name !== 'login');
 </script>

@@ -1,8 +1,5 @@
 import { ComponentPriority, GameComponent } from '@/game/GameComponent';
-import type {
-  I_PlayerPositionUpdate,
-  I_RemotePlayerConfig,
-} from '@/game/common/multiplayer.types';
+import type { I_PlayerPositionUpdate, I_RemotePlayerConfig } from '@/game/common/multiplayer.types';
 import { I_SceneContext } from '@/game/common/scenes.types';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 import { Euler, Vector3 } from 'three';
@@ -109,9 +106,12 @@ export class RemotePlayerComponent extends GameComponent {
     // Interpolate rotation (if changed)
     if (this.currentRotation.equals(this.targetRotation) === false) {
       // Smooth rotation interpolation
-      this.currentRotation.x += (this.targetRotation.x - this.currentRotation.x) * this.interpolationSpeed;
-      this.currentRotation.y += (this.targetRotation.y - this.currentRotation.y) * this.interpolationSpeed;
-      this.currentRotation.z += (this.targetRotation.z - this.currentRotation.z) * this.interpolationSpeed;
+      this.currentRotation.x +=
+        (this.targetRotation.x - this.currentRotation.x) * this.interpolationSpeed;
+      this.currentRotation.y +=
+        (this.targetRotation.y - this.currentRotation.y) * this.interpolationSpeed;
+      this.currentRotation.z +=
+        (this.targetRotation.z - this.currentRotation.z) * this.interpolationSpeed;
     }
 
     // Apply to transform
@@ -151,7 +151,7 @@ export class RemotePlayerComponent extends GameComponent {
     // Update timing
     this.lastUpdateTime = data.timestamp;
     this.timeSinceLastUpdate = 0;
-  };
+  }
 
   /**
    * Teleport player to new position (no interpolation)

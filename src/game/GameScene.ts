@@ -10,7 +10,11 @@ import { I_ConnectedClientData } from '@/common/types';
 import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
 import { CleanupRegistry } from '@/game/CleanupRegistry';
-import { I_SceneContext, I_SceneModule, I_ModuleServices as I_SceneServices } from '@/game/common/scenes.types';
+import {
+  I_SceneContext,
+  I_SceneModule,
+  I_ModuleServices as I_SceneServices,
+} from '@/game/common/scenes.types';
 import type { Engine } from '@/game/Engine';
 import { ModuleRegistry } from '@/game/ModuleRegistry';
 import { GameObjectsManager } from '@/game/services/GameObjectsManager';
@@ -41,7 +45,6 @@ import NetworkingService from './services/NetworkingService';
 export abstract class GameScene<
   TModuleRegistry extends Record<string, I_SceneModule> = Record<string, I_SceneModule>,
 > {
-
   private enabled = false;
   public modulesLoaded = false;
 
@@ -120,7 +123,8 @@ export abstract class GameScene<
     // Only update camera if not frozen (frozen camera = fixed match camera)
     if (!this.camera.controller.freezeReactiveUpdates.value) {
       // Use followTarget if set, otherwise follow character
-      const cameraTarget = this.camera.controller.followTarget || this.character.controller.getPosition();
+      const cameraTarget =
+        this.camera.controller.followTarget || this.character.controller.getPosition();
       this.camera.update(cameraTarget);
     }
 
@@ -130,7 +134,6 @@ export abstract class GameScene<
     // Update only initialized updateable modules (performance optimization)
     this.updateAllModules(delta);
   }
-
 
   /**
    * Add a module to the registry with type-safe key checking
@@ -178,7 +181,6 @@ export abstract class GameScene<
     this.sceneEvents.$next(event, { sceneName: this.name, ...data });
   }
 
-
   protected async initializeAllServices(): Promise<void> {
     for (const service of Object.values(this.services)) {
       await service.start(this.getSceneContext());
@@ -192,7 +194,6 @@ export abstract class GameScene<
       }
     }
   }
-
 
   protected async destroyAllServices(): Promise<void> {
     for (const service of Object.values(this.services)) {
@@ -219,10 +220,9 @@ export abstract class GameScene<
     // no-op by default
   }
 
-
   /**
    * Update all initialized modules
-   * @param delta 
+   * @param delta
    */
   protected updateAllModules(delta: number) {
     this.registry.getInitializedUpdateable().forEach((module) => {
@@ -231,7 +231,6 @@ export abstract class GameScene<
       }
     });
   }
-
 
   /**
    * Start async module loading
@@ -264,7 +263,6 @@ export abstract class GameScene<
   }
 
   private getClientData() {
-
     const connectedClientData: Partial<I_ConnectedClientData> = {
       id: this.websocketManager.clientData?.id,
       name: this.websocketManager.clientData?.name,
@@ -281,7 +279,6 @@ export abstract class GameScene<
     this.camera.start();
     this.onSceneLoaded();
   }
-
 
   private subscribe() {
     this.moduleEvents.$subscribe({
@@ -321,7 +318,10 @@ export abstract class GameScene<
     this.character.destroy();
     this.camera.destroy();
     await this.destroyAllServices(); // Wait for physics cleanup!
-    this.forEachModule((m) => { m.destroy(this.getSceneContext()); m.close?.() });
+    this.forEachModule((m) => {
+      m.destroy(this.getSceneContext());
+      m.close?.();
+    });
     this.cleanupRegistry.cleanup(this.engine.scene);
     this.registry.clear();
 

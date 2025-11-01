@@ -1,5 +1,8 @@
 import type { I_SceneContext } from '@/game/common/scenes.types';
-import { CollisionComponent, I_CollisionConfig } from '@/game/components/interactions/CollisionComponent';
+import {
+  CollisionComponent,
+  I_CollisionConfig,
+} from '@/game/components/interactions/CollisionComponent';
 import type { Mesh, Object3D } from 'three';
 
 export interface I_KinematicPhysicsConfig extends I_CollisionConfig {
@@ -88,7 +91,6 @@ export class KinematicCollisionComponent extends CollisionComponent {
     this.registerCallbacks();
 
     this.isRegistered = true;
-    
   }
 
   /**

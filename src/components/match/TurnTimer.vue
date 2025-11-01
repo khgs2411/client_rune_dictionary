@@ -2,14 +2,10 @@
   <!-- Turn Timer - Top-center shared element -->
   <div
     v-if="isActiveTurn"
-    class="bg-card/90 backdrop-blur-sm rounded-lg border border-border shadow-lg px-6 py-3 min-w-[280px] sm:min-w-[320px]"
-  >
+    class="bg-card/90 backdrop-blur-sm rounded-lg border border-border shadow-lg px-6 py-3 min-w-[280px] sm:min-w-[320px]">
     <!-- Turn indicator -->
     <div class="text-center mb-2">
-      <span :class="[
-        'text-sm font-semibold',
-        isPlayerTurn ? 'text-primary' : 'text-destructive'
-      ]">
+      <span :class="['text-sm font-semibold', isPlayerTurn ? 'text-primary' : 'text-destructive']">
         {{ isPlayerTurn ? 'Your Turn' : 'Enemy Turn' }}
       </span>
     </div>
@@ -21,10 +17,9 @@
         :class="[
           'absolute left-0 top-0 h-full transition-all duration-100 ease-linear',
           isPlayerTurn ? 'bg-primary' : 'bg-destructive',
-          isWarningState && 'animate-pulse'
+          isWarningState && 'animate-pulse',
         ]"
-        :style="{ width: `${timePercentage}%` }"
-      ></div>
+        :style="{ width: `${timePercentage}%` }"></div>
 
       <!-- Time remaining text (centered) -->
       <div class="absolute inset-0 flex items-center justify-center">
@@ -36,45 +31,41 @@
 
     <!-- Warning message (< 3 seconds) -->
     <div v-if="isWarningState" class="text-center mt-2">
-      <span class="text-xs text-destructive font-medium animate-pulse">
-        Time running out!
-      </span>
+      <span class="text-xs text-destructive font-medium animate-pulse"> Time running out! </span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { computed, ref } from 'vue';
+import { computed } from 'vue';
+import { useMatchStore } from '@/stores/match.store';
 
-  // ========================================
-  // PLACEHOLDER LOGIC
-  // ========================================
-  // TODO: Replace with real turn timer data from match state
+// ========================================
+// Match State Integration
+// ========================================
 
-  const isActiveTurn = ref(true); // Whether any turn is active
-  const isPlayerTurn = ref(true); // Whose turn (player vs enemy)
-  const timeRemaining = ref(7); // Seconds remaining (0-10)
-  const maxTurnTime = ref(10); // Max turn duration in seconds
+const matchStore = useMatchStore();
 
-  // Computed values
-  const timePercentage = computed(() => {
-    return (timeRemaining.value / maxTurnTime.value) * 100;
-  });
+// Timer state from gameState composable
+const isActiveTurn = computed(() => matchStore.gameState.timer.active);
+const isPlayerTurn = computed(() => matchStore.gameState.turn.isPlayerTurn);
+const timeRemaining = computed(() => Math.ceil((matchStore.gameState.timer.remaining ?? 0) / 1000)); // Convert ms to seconds
+const maxTurnTime = computed(() =>
+  Math.ceil((matchStore.gameState.timer.duration ?? 10000) / 1000),
+); // Convert ms to seconds
 
-  const formattedTimeRemaining = computed(() => {
-    return `${timeRemaining.value}s`;
-  });
+// Computed values
+const timePercentage = computed(() => {
+  const max = maxTurnTime.value;
+  const remaining = timeRemaining.value;
+  return max > 0 ? (remaining / max) * 100 : 0;
+});
 
-  const isWarningState = computed(() => {
-    return timeRemaining.value < 3;
-  });
+const formattedTimeRemaining = computed(() => {
+  return `${timeRemaining.value}s`;
+});
 
-  // ========================================
-  // FUTURE: Connect to match state
-  // ========================================
-  // - Listen to match.turnTimer WebSocket event
-  // - Update timeRemaining every second
-  // - Toggle isPlayerTurn based on active character
-  // - Hide timer (isActiveTurn = false) when no active turn
-  // - Auto-pass or default action when timer hits 0
+const isWarningState = computed(() => {
+  return timeRemaining.value < 3;
+});
 </script>

@@ -3,8 +3,8 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Important rules and guidelines
-- **This project leverages 'flow framework'**: This project uses the flow framework for project management. Follow flow conventions for tasks, iterations, and brainstorming. Try to use the skills agents where possible for the best results. Alternatively, use the slash commands to interact with the flow system.
 
+- **This project leverages 'flow framework'**: This project uses the flow framework for project management. Follow flow conventions for tasks, iterations, and brainstorming. Try to use the skills agents where possible for the best results. Alternatively, use the slash commands to interact with the flow system.
 
 ## Development Commands
 
@@ -95,6 +95,7 @@ The game uses a **custom imperative architecture** with Three.js, not declarativ
 **Entity-Component System** for dynamic, interactive game objects:
 
 **When to use GameObjects vs SceneModules:**
+
 - Use **GameObject/Component** for: Individual game entities, interactive objects, anything that needs composition
 - Use **SceneModule** for: Scene-wide infrastructure (lighting, camera, character, global systems)
 - **Rule of thumb**: If you're creating multiple instances, use GameObject. If it's singular infrastructure, use SceneModule.
@@ -131,6 +132,7 @@ The game uses a **custom imperative architecture** with Three.js, not declarativ
 **Available Components:**
 
 - **Rendering Components** (Priority: 1)
+
   - `TransformComponent` - Position, rotation, scale
   - `GeometryComponent` - Box, sphere, capsule, cylinder, cone, plane geometries
   - `MaterialComponent` - Standard material with color, roughness, metalness
@@ -139,9 +141,11 @@ The game uses a **custom imperative architecture** with Three.js, not declarativ
   - `GridHelperComponent` - Debug grid visualization
 
 - **Physics Components** (Priority: 200)
+
   - `PhysicsComponent` - Registers with PhysicsService (static, kinematic, or dynamic bodies)
 
 - **Interaction Components** (Priority: 300)
+
   - `HoverComponent` - Hover glow effect via InteractionService
   - `ClickComponent` - Click VFX, camera shake, particles via InteractionService
   - `DragComponent` - Drag objects on XZ plane with optional grid snapping (editor mode only)
@@ -373,7 +377,7 @@ src/
 │   │       ├── CharacterModule.ts
 │   │       ├── DebugModule.ts
 │   │       └── VFXModule.ts
-│   ├── components/         # GameComponents 
+│   ├── components/         # GameComponents
 │   │   ├── rendering/      # Visual components
 │   │   │   ├── GeometryComponent.ts
 │   │   │   ├── MaterialComponent.ts
@@ -605,22 +609,12 @@ export class MyObject extends GameObject {
     super({ id: config.id });
 
     // Add components in fluent chain
-    this.addComponent(
-      new TransformComponent({ position: config.position || [0, 0, 0] }),
-    )
-      .addComponent(
-        new GeometryComponent({ type: 'box', params: [1, 1, 1] }),
-      )
-      .addComponent(
-        new MaterialComponent({ color: 0xff1493 }),
-      )
+    this.addComponent(new TransformComponent({ position: config.position || [0, 0, 0] }))
+      .addComponent(new GeometryComponent({ type: 'box', params: [1, 1, 1] }))
+      .addComponent(new MaterialComponent({ color: 0xff1493 }))
       .addComponent(new MeshComponent())
-      .addComponent(
-        new PhysicsComponent({ type: 'static', shape: 'cuboid' }),
-      )
-      .addComponent(
-        new HoverComponent({ glowColor: 0xff8c00 }),
-      );
+      .addComponent(new PhysicsComponent({ type: 'static', shape: 'cuboid' }))
+      .addComponent(new HoverComponent({ glowColor: 0xff8c00 }));
   }
 }
 
@@ -760,11 +754,9 @@ export class PhysicsComponent extends GameComponent implements I_Interactable {
     const mesh = this.requireComponent(MeshComponent);
 
     // Register with physics service
-    context.services.physics.registerStaticFromMesh(
-      this.gameObject.id,
-      mesh.mesh,
-      { showDebug: true }
-    );
+    context.services.physics.registerStaticFromMesh(this.gameObject.id, mesh.mesh, {
+      showDebug: true,
+    });
   }
 
   // Implement I_Interactable to add drag behavior
@@ -776,10 +768,11 @@ export class PhysicsComponent extends GameComponent implements I_Interactable {
         snapToGrid: dragConfig.snapToGrid,
         onEnd: (pos) => {
           // Update physics body when dragged
-          context.services.physics.updateStaticBodyPosition(
-            this.gameObject.id,
-            [pos.x, pos.y, pos.z]
-          );
+          context.services.physics.updateStaticBodyPosition(this.gameObject.id, [
+            pos.x,
+            pos.y,
+            pos.z,
+          ]);
         },
       });
     }
@@ -837,11 +830,12 @@ tryOnUnmounted(() => destroy());
 This codebase uses **two complementary patterns**:
 
 1. **SceneModule Pattern** - For scene infrastructure
+
    - Examples: LightingModule, CharacterModule, PhysicsService
    - One per scene, registered in scene's module registry
    - Lifecycle: init() → update() → destroy()
 
-2. **GameObject/Component Pattern** - For game entities 
+2. **GameObject/Component Pattern** - For game entities
    - Examples: EditableBox, Ground, Trees (prefabs)
    - Many instances per scene, managed by GameObjectManager
    - Components: GeometryComponent, MaterialComponent, PhysicsComponent, HoverComponent, etc.

@@ -79,7 +79,6 @@ export class MatchAreaDome extends GameObject {
           showDebug: config.showDebug,
         }),
       );
-
   }
 
   async init(context: I_SceneContext): Promise<void> {

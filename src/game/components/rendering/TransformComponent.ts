@@ -47,7 +47,6 @@ export class TransformComponent extends GameComponent {
     return forward.normalize();
   }
 
-
   /**
    * Set position
    */

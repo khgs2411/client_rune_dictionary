@@ -56,7 +56,6 @@ export class InteractionComponent extends GameComponent {
 
   public async init(context: I_SceneContext): Promise<void> {
     this.registerInteractions(context);
-   
   }
 
   /**
@@ -77,7 +76,7 @@ export class InteractionComponent extends GameComponent {
     const meshComp = this.requireComponent(MeshComponent);
     // Get InteractionService
     const interaction = context.getService('interaction');
-    
+
     // Register hover handler (required for hover detection to work!)
     // We don't need callbacks, just need object in hover system for raycasting
     this.unregisterHover = interaction.registerHover(
@@ -103,9 +102,7 @@ export class InteractionComponent extends GameComponent {
         object3D: meshComp.mesh,
       },
     );
-
   }
-
 
   /**
    * Emit event to all registered listeners
@@ -119,8 +116,8 @@ export class InteractionComponent extends GameComponent {
 
   /**
    * Handle click event from InteractionService
-   * @param _event 
-   * @param intersection 
+   * @param _event
+   * @param intersection
    * @returns void
    */
   private onClick(_event: MouseEvent, intersection: Intersection | undefined): void {

@@ -71,7 +71,6 @@ export class TrainingDummy extends GameObject {
 
       // Interaction components (order matters for dependencies)
       .addComponent(new InteractionComponent()) // Provides click/doubleclick events
-      .addComponent(new MatchComponent()) // Listens to doubleclick, creates match
-      
+      .addComponent(new MatchComponent()); // Listens to doubleclick, creates match
   }
 }

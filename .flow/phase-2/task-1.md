@@ -13,6 +13,7 @@ Create the visual and interactive components for the match arena, including a fi
 **Why This Task**: Players need clear visual feedback about the match arena boundaries and a consistent camera view. Without proper UI components, players wouldn't understand the match space constraints or have a stable viewing angle.
 
 **Dependencies**:
+
 - **Requires**: Task 1 (Match Environment Setup) - needs SceneStateService and MatchModule infrastructure
 - **Blocks**: Task 3 (Combat Mechanics) - combat actions require stable arena and camera
 
@@ -48,12 +49,14 @@ Create the visual and interactive components for the match arena, including a fi
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Collision walls prevent player from leaving arena without visible obstruction
 - Rapier physics engine handles collision detection efficiently
 - Invisible walls maintain visual clarity (no ugly barriers blocking view)
 - Can show debug wireframes during development via showPhysicsDebug flag
 
 **Resolution Items**:
+
 - Create MatchAreaWalls prefab extending GameObject
 - Use CollisionComponent with explicit shape parameters (no mesh required)
 - Configure as static physics bodies (immovable walls)
@@ -68,6 +71,7 @@ Create the visual and interactive components for the match arena, including a fi
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Rectangular arena is simpler than circular (4 walls vs 16+ segments)
 - Fixed size ensures consistent gameplay every match
 - Width > depth fits asymmetric camera viewport better
@@ -75,6 +79,7 @@ Create the visual and interactive components for the match arena, including a fi
 - 40x25 dimensions fit in camera view without clipping
 
 **Resolution Items**:
+
 - Define fixed arena dimensions: 40 units width (X axis), 25 units depth (Z axis)
 - Position arena center at NPC transform position
 - Create 4 rectangular walls (North, South, East, West)
@@ -89,6 +94,7 @@ Create the visual and interactive components for the match arena, including a fi
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Full grid clutters the view and distracts from gameplay
 - Border lines provide clear visual indication of arena boundaries
 - Ground-level positioning prevents z-fighting with terrain
@@ -96,6 +102,7 @@ Create the visual and interactive components for the match arena, including a fi
 - Three.js Line objects are lightweight and performant
 
 **Resolution Items**:
+
 - Create 4 border lines matching wall positions at ground level
 - Use LineBasicMaterial with orange color (0xff6b35) and 40% opacity
 - Position slightly above ground (Y + 0.05) to prevent z-fighting
@@ -110,12 +117,14 @@ Create the visual and interactive components for the match arena, including a fi
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Centralized state management prevents scattered state logic
 - Callback registration allows modules to react to state changes
 - Clean separation between state (SceneStateService) and environment (MatchModule)
 - Easy to debug state transitions with centralized logging
 
 **Resolution Items**:
+
 - Register MatchModule callback with SceneStateService
 - Spawn walls/camera when transitioning to PVE_MATCH
 - Cleanup walls/camera when returning to OVERWORLD
@@ -130,6 +139,7 @@ Create the visual and interactive components for the match arena, including a fi
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Fixed camera provides consistent view angle every match
 - Asymmetric positioning (offset behind and above center) shows more arena
 - Frozen position prevents Vue reactivity from moving camera
@@ -137,6 +147,7 @@ Create the visual and interactive components for the match arena, including a fi
 - Manual position.set() and lookAt() give precise control
 
 **Resolution Items**:
+
 - Add freezeReactiveUpdates flag to useCameraController
 - Set camera position at [centerX, 18, centerZ + 18]
 - Make camera lookAt [centerX, 2, centerZ] (slightly above ground)
@@ -154,6 +165,7 @@ Create the visual and interactive components for the match arena, including a fi
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - SceneModule pattern fits existing game architecture
 - Module lifecycle (init → update → destroy) handles spawning/cleanup
 - Direct access to GameObjectManager for wall registration
@@ -161,6 +173,7 @@ Create the visual and interactive components for the match arena, including a fi
 - State callback registration in init(), cleanup in destroy()
 
 **Resolution Items**:
+
 - Create MatchModule extending SceneModule
 - Register state change callback in init()
 - Spawn walls when state becomes PVE_MATCH
@@ -183,12 +196,14 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **Why Blocking**: MatchAreaWalls needs collision without visible meshes, but CollisionComponent required MeshComponent
 
 **Scope** (< 30 min):
+
 - Add explicit shape registration path to CollisionComponent.init()
 - Check for shape + shapeParams before requiring mesh
 - Use physics.registerStatic() with explicit dimensions
 - Convert shapeParams (half-extents) to full dimensions for Rapier
 
 **Files**:
+
 - `src/game/components/interactions/CollisionComponent.ts` - Add shape-only registration
 - `src/game/prefabs/Ground.ts` - Update shapeParams to half-extents
 - `src/game/prefabs/MatchAreaWalls.ts` - Use shapeParams without mesh
@@ -196,6 +211,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **Test**: Verify Ground collision still works, walls can register without mesh
 
 **Changes Made**:
+
 - Added conditional in CollisionComponent.init() checking for shape + shapeParams
 - Import TransformComponent dynamically to get position/rotation arrays
 - Map half-extents to full dimensions (multiply by 2) for registerStatic()
@@ -244,6 +260,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **Status**: ✅ COMPLETE (2025-10-30)
 
 **Implementation Notes**:
+
 - Created `MatchAreaWalls` prefab with 4 invisible collision walls
   - Uses CollisionComponent with explicit shapeParams (half-extents)
   - Creates 4 border lines (Three.js Line) at ground level
@@ -273,6 +290,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
   - Dispose geometry and material to prevent memory leaks
 
 **Files Modified**:
+
 - `src/game/prefabs/MatchAreaWalls.ts` - Created (238 lines)
 - `src/game/modules/scene/MatchModule.ts` - Created (280 lines)
 - `src/game/services/SceneStateService.ts` - Created (145 lines)
@@ -285,6 +303,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - `src/game/common/scenes.types.ts` - Added I_ModuleContext.services type
 
 **Verification**:
+
 - ✅ Border lines appear when entering match
 - ✅ Border lines are faint orange glow at ground level
 - ✅ Collision walls are invisible (no mesh)
@@ -297,6 +316,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - ✅ Full integration test with match start/end cycle
 
 **Known Issues**:
+
 - None - all issues from development session resolved
 
 ---
@@ -339,6 +359,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Vue 3 wraps the game specifically to leverage powerful HTML/CSS/JS capabilities for UI
 - Reka UI provides accessible, unstyled primitives (shadcn-vue foundation)
 - Tailwind CSS offers utility-first styling with full theming support
@@ -347,6 +368,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - Better for web-based games compared to Three.js canvas rendering
 
 **Action Items**:
+
 - [ ] Refactor existing `src/components/match/MatchHUD.vue` to be the base container component
 - [ ] Create child components for each HUD section (timer, status, actions)
 - [ ] Maintain existing visibility pattern: `computed(() => matchStore.currentMatchId !== null)`
@@ -362,6 +384,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Pokemon battle UI is proven, clean, and instantly understandable
 - Simple and clean design keeps center screen clear for gameplay
 - Three-corner layout creates natural visual balance:
@@ -373,6 +396,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - Mobile-friendly corner anchoring
 
 **Layout Specification**:
+
 - **Bottom-left corner**: Player status panel (name, level, HP/MP bars, portrait, **ATB bar**)
 - **Top-right corner**: Enemy status panel (name, level, HP bar, **ATB bar**)
 - **Bottom-right corner**: Action buttons (attack, abilities, items, flee)
@@ -380,6 +404,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - **Center**: Clear for gameplay and visual effects
 
 **ATB System Integration**:
+
 - **ATB Bar** (per-character): Shows "waiting for turn" progress, attached to each character's status panel
   - Fills gradually as character waits their turn
   - Visual indicator of turn order
@@ -391,6 +416,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
   - Clearly indicates whose turn it is (player vs enemy color coding)
 
 **Action Items**:
+
 - [ ] Position player status component in bottom-left corner with integrated ATB bar
 - [ ] Position enemy status component in top-right corner with integrated ATB bar
 - [ ] Position action buttons in bottom-right corner
@@ -410,6 +436,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Existing implementation already works: `v-if="matchStore.currentMatchId !== null"`
 - Simple and reliable with zero complexity
 - Easily modified later if transitions/animations are desired
@@ -418,6 +445,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - Polish (animations) can be added in future iterations
 
 **Action Items**:
+
 - [ ] Keep existing visibility pattern in MatchHUD.vue (no changes needed)
 - [ ] Document that transitions can be added later if desired (not blocking)
 
@@ -430,6 +458,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - HUD should match the overall app theme for consistency
 - Semantic color classes (`bg-background`, `text-foreground`, `border-border`, etc.) automatically adapt
 - Zero extra configuration needed - leverages existing theme system
@@ -438,6 +467,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - Simpler maintenance - one theming system, not two
 
 **Action Items**:
+
 - [ ] Use Tailwind semantic color classes for all HUD components
 - [ ] Use `bg-background/70` or `bg-card` for HUD panel backgrounds
 - [ ] Use `text-foreground` for primary text, `text-muted-foreground` for secondary
@@ -454,6 +484,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Project is already mobile-first with virtual joystick support
 - Pokemon UI reference scales well across device sizes (same layout, different scales)
 - Tailwind breakpoints (`sm:`, `md:`, `lg:`) make this trivial to implement
@@ -462,11 +493,13 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - Can selectively hide elements later (portraits on mobile) if needed without major refactoring
 
 **Responsive Strategy**:
+
 - **Mobile** (default): Smaller HP bars, compact buttons, minimal padding, smaller text
 - **Tablet** (`md:`): Medium sizing with comfortable spacing
 - **Desktop** (`lg:`): Full-size panels with generous spacing and larger text
 
 **Action Items**:
+
 - [ ] Use responsive text sizing: `text-sm md:text-base lg:text-lg`
 - [ ] Use responsive padding: `p-2 md:p-4 lg:p-6`
 - [ ] Use responsive spacing: `space-y-1 md:space-y-2 lg:space-y-3`
@@ -484,6 +517,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - **ATB Bar (count up)**: Fills gradually from 0% → 100%, building anticipation for turn
 - **Turn Timer (countdown)**: Starts at max (e.g., 10 seconds), counts down to 0, creating action urgency
 - Clear gameplay rhythm: "Build up your turn, then act quickly"
@@ -492,12 +526,14 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - Matches established ATB game conventions (Final Fantasy, Grandia)
 
 **Timer Behavior**:
+
 - **ATB Bar**: Gradually fills based on character speed/tempo stats
 - **Turn Timer**: Appears when turn starts, counts down from configurable limit (default: 10 seconds)
 - **On Timeout**: Auto-pass turn or execute default action (design decision for later)
 - **Visual Feedback**: Warning state when < 3 seconds remaining (color change, pulse animation)
 
 **Action Items**:
+
 - [ ] Implement ATB bar as fill progress (0% → 100%)
 - [ ] Implement Turn Timer as countdown (10s → 0s)
 - [ ] Display Turn Timer at top-center when turn is active
@@ -515,6 +551,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - Keep it simple and clean like Pokemon reference
 - HP bar (red/green gradient) with current/max numbers
 - MP bar (blue) as placeholder for future mana system
@@ -523,6 +560,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - ATB bar needs visual integration - to be determined during implementation
 
 **Status Panel Contents**:
+
 - **Character name** (top of panel)
 - **Level indicator** (e.g., "Lv. 7")
 - **HP bar** (red/green, with numbers: "23/23")
@@ -530,6 +568,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - **ATB bar** (integrated visually - implementation detail to explore)
 
 **ATB Bar Integration Options** (to be decided during implementation):
+
 - Option A: Separate horizontal bar below HP/MP
 - Option B: Panel border that fills and changes color as ATB charges
 - Option C: Glow effect around entire panel that intensifies
@@ -537,6 +576,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - **Decision deferred** - experiment during implementation to see what looks/feels best
 
 **Action Items**:
+
 - [ ] Create status panel component with name, level, HP bar, MP bar
 - [ ] Use HP bar with red/green gradient (theme-aware colors)
 - [ ] Use MP bar with blue gradient (placeholder for future)
@@ -554,6 +594,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **Resolution Type**: D (Iteration Action Items)
 
 **Rationale**:
+
 - **Speed matters**: 10-second turn timer means clicks/keypresses must be minimal
 - **Horizontal layout**: Better for quick scanning than Pokemon's vertical list
 - **Keyboard bindings** (1-8): Fast action execution for desktop players
@@ -564,6 +605,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - **Component-based**: Self-contained logic within MatchHUD component tree
 
 **Action Bar Structure**:
+
 - **8 ability slots** (horizontal row):
   - Mapped to keyboard keys 1-8
   - Clickable/tappable for mouse/touch
@@ -577,6 +619,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - **Position persistence**: Saved to localStorage via `useLocalStorage`
 
 **Technical Implementation**:
+
 - Component hierarchy: `MatchHUD.vue` → `ActionBar.vue` component
 - No Pinia store for HUD logic (keep it component-local)
 - Use VueUse `useLocalStorage('actionBarPosition', { x: default, y: default })`
@@ -585,6 +628,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - Responsive sizing via Tailwind breakpoints
 
 **Action Items**:
+
 - [ ] Create `ActionBar.vue` component in `src/components/match/`
 - [ ] Implement horizontal 8-slot layout with keyboard bindings (1-8)
 - [ ] Add "Run" button (reuse existing leave match logic)
@@ -605,6 +649,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 (Consolidated from all Resolution Items above by `/flow-brainstorm-review`)
 
 **Component Architecture:**
+
 - [x] Refactor existing `src/components/match/MatchHUD.vue` to be the base container component
 - [x] Create child components for each HUD section (timer, status, actions)
 - [x] Maintain existing visibility pattern: `computed(() => matchStore.currentMatchId !== null)`
@@ -612,6 +657,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - [x] Use component composition pattern (parent container + child feature components)
 
 **Layout & Positioning:**
+
 - [x] Position player status component in bottom-left corner with integrated ATB bar
 - [x] Position enemy status component in top-right corner with integrated ATB bar
 - [x] Position action buttons in bottom-right corner
@@ -623,10 +669,12 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - [x] Add color coding for Turn Timer (player color vs enemy color)
 
 **Visibility Management:**
+
 - [x] Keep existing visibility pattern in MatchHUD.vue (no changes needed)
 - [x] Document that transitions can be added later if desired (not blocking)
 
 **Theme Integration:**
+
 - [x] Use Tailwind semantic color classes for all HUD components
 - [x] Use `bg-background/70` or `bg-card` for HUD panel backgrounds
 - [x] Use `text-foreground` for primary text, `text-muted-foreground` for secondary
@@ -635,6 +683,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - [x] Test HUD appearance in both light and dark modes
 
 **Responsive Design:**
+
 - [x] Use responsive text sizing: `text-sm md:text-base lg:text-lg`
 - [x] Use responsive padding: `p-2 md:p-4 lg:p-6`
 - [x] Use responsive spacing: `space-y-1 md:space-y-2 lg:space-y-3`
@@ -644,6 +693,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - [x] Ensure touch targets are adequate on mobile (min 44x44px)
 
 **Timer Design:**
+
 - [x] Implement ATB bar as fill progress (0% → 100%)
 - [x] Implement Turn Timer as countdown (10s → 0s)
 - [x] Display Turn Timer at top-center when turn is active
@@ -653,6 +703,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - [x] Define timeout behavior (auto-pass or default action)
 
 **Status Indicators:**
+
 - [x] Create status panel component with name, level, HP bar, MP bar
 - [x] Use HP bar with red/green gradient (theme-aware colors)
 - [x] Use MP bar with blue gradient (placeholder for future)
@@ -662,6 +713,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - [x] Choose ATB visualization that feels natural and doesn't clutter
 
 **Action Buttons:**
+
 - [x] Create `ActionBar.vue` component in `src/components/match/`
 - [x] Implement horizontal 8-slot layout with keyboard bindings (1-8)
 - [x] Add "Run" button (reuse existing leave match logic)
@@ -686,18 +738,21 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **Implementation Notes**:
 
 **Component Architecture - MVP Complete**:
+
 - Refactored `MatchHUD.vue` to Pokemon-inspired three-corner layout container
 - Created `TurnTimer.vue` (top-center) - countdown timer with color-coding and warning states
 - Created `StatusPanel.vue` (reusable for player/enemy) - name, level, HP/MP/ATB bars with gradients
 - Created `ActionBar.vue` (bottom-right) - 8-slot horizontal hotbar with keyboard bindings (1-8), Run/Pass buttons, draggable via VueUse, position persisted to localStorage
 
 **Layout Refinements**:
+
 - All top elements use `mt-16` to clear menu bar (Turn Timer, Enemy Status)
 - Player status uses `mb-16` for symmetry with enemy panel
 - `pointer-events-none` on container, `pointer-events-auto` on children for click-through
 - Consistent spacing and positioning across all corners
 
 **Design Decisions**:
+
 - All components use Tailwind semantic classes for automatic theme support
 - Placeholder data hardcoded (will connect to match state in future iteration)
 - Responsive breakpoints: `sm:` for mobile, base for desktop
@@ -707,18 +762,21 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - ATB bar: color-coded by entity type (player = primary, enemy = destructive)
 
 **Testing**:
+
 - Auto-match debug feature works with new scene hooks
 - HUD renders correctly in match state
 - Layout is clean and unobtrusive
 - Components are properly scoped and isolated
 
 **Files Modified**:
+
 - `src/components/match/MatchHUD.vue` - Refactored as container (135 lines)
 - `src/components/match/TurnTimer.vue` - Created (71 lines)
 - `src/components/match/StatusPanel.vue` - Created (104 lines)
 - `src/components/match/ActionBar.vue` - Created (149 lines)
 
 **Verification**:
+
 - ✅ HUD appears when entering match (auto-match works)
 - ✅ Three-corner layout renders correctly
 - ✅ No menu overlap (top elements use mt-16)
@@ -759,6 +817,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 ## Task Notes
 
 **Discoveries**:
+
 - Circular arena math was complex and error-prone (gaps between wall segments)
 - Rectangular arena is much simpler and fits camera viewport better
 - GameObject.destroy() doesn't trigger scene-level CleanupRegistry cleanup
@@ -768,6 +827,7 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - Half-extents convention is standard for physics (Rapier expects this)
 
 **Decisions**:
+
 - Rectangular arena (40x25) instead of circular - simpler and more practical
 - Fixed camera position instead of following - matches Diablo II style
 - Manual border line cleanup instead of relying on CleanupRegistry - more explicit and reliable
@@ -775,12 +835,14 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - Faint orange border lines instead of solid walls - clear but not distracting
 
 **Performance**:
+
 - Border line creation: ~5ms (4 lines with geometry + material)
 - Wall collision registration: ~10ms (4 static bodies)
 - Camera freeze/unfreeze: <1ms (flag toggle)
 - Border line cleanup: ~2ms (4 removes + dispose calls)
 
 **References**:
+
 - Flow Task Template: `.flow/framework/examples/phase-2/task-3.md`
 - CollisionComponent: `src/game/components/interactions/CollisionComponent.ts`
 - PhysicsService: `src/game/services/PhysicsService.ts`
