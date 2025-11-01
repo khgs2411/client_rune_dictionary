@@ -104,7 +104,6 @@ export class DragComponent extends GameComponent {
       },
     );
 
-    console.log(`📦 [DragComponent] Registered drag for GameObject "${this.gameObject.id}"`);
   }
 
   destroy(): void {
@@ -113,6 +112,5 @@ export class DragComponent extends GameComponent {
       this.unregister();
     }
 
-    console.log(`📦 [DragComponent] Unregistered drag for GameObject "${this.gameObject.id}"`);
   }
 }

@@ -1,4 +1,4 @@
-import { GameComponent, ComponentPriority } from '@/game/GameComponent';
+import { ComponentPriority, GameComponent } from '@/game/GameComponent';
 import type { I_SceneContext } from '@/game/common/scenes.types';
 import { TransformComponent } from '@/game/components/rendering/TransformComponent';
 import { Vector3 } from 'three';
@@ -103,9 +103,6 @@ export class TrajectoryComponent extends GameComponent {
       this.start();
     }
 
-    console.log(
-      `🎯 [TrajectoryComponent] Initialized (distance: ${this.distance.toFixed(2)}, duration: ${this.duration.toFixed(2)}s, speed: ${this.speed.toFixed(2)} u/s)`,
-    );
   }
 
   /**
@@ -253,8 +250,6 @@ export class TrajectoryComponent extends GameComponent {
     if (this.config.onComplete) {
       this.config.onComplete();
     }
-
-    console.log('✅ [TrajectoryComponent] Trajectory complete');
   }
 
   /**

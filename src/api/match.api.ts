@@ -1,40 +1,7 @@
-import { I_ClientData } from '@/common/types';
-import { I_GameState } from '@/stores/match.store';
+import { CreatePveMatchResponseData, I_CreatePveMatchRequest, I_CreatePveMatchResponse, I_LeaveMatchRequest } from '@/common/match.types';
 import { BaseAPI } from 'topsyde-utils';
 
-// ============================================================================
-// Request/Response Types
-// ============================================================================
 
-/**
- * Request payload for creating a PvE match
- */
-export interface I_CreatePveMatchRequest {
-  whoami: I_ClientData; // Player entity initiating the match
-}
-
-/**
- * Request payload for leaving a match
- */
-export interface I_LeaveMatchRequest {
-  whoami: I_ClientData; // Player entity leaving the match
-  matchId: string; // Match ID to leave
-}
-
-export type CreatePveMatchResponseData = {
-  matchId: string;
-  channelId: string;
-  channelName: string;
-  state: I_GameState;
-}
-
-/**
- * Response data from creating a PvE match
- */
-export interface I_CreatePveMatchResponse {
-  success: boolean;
-  data: CreatePveMatchResponseData;
-}
 
 // ============================================================================
 // MatchAPI Class

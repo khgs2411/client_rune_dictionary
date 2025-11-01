@@ -1,6 +1,6 @@
-import { ref, onUnmounted, type Ref } from 'vue';
 import { Mouse, type I_MouseEvent, type I_MouseScrollEvent } from '@/game/utils/Mouse';
 import { useSettingsStore } from '@/stores/settings.store';
+import { onUnmounted, ref, type Ref } from 'vue';
 import type { CameraRotation } from './useCameraRotation';
 import type { CameraZoom } from './useCameraZoom';
 
@@ -47,11 +47,6 @@ export function useCameraMouseInput(
       }
 
       isDragging.value = true;
-
-      // Request pointer lock for MMO-style camera (hides cursor)
-      if (settings.debug.enableConsoleLog) {
-        console.log('🔒 [CameraMouseInput] Requesting pointer lock...');
-      }
       mouse.requestPointerLock();
     }
   });
@@ -70,9 +65,6 @@ export function useCameraMouseInput(
       isDragging.value = false;
 
       // Exit pointer lock (show cursor)
-      if (settings.debug.enableConsoleLog) {
-        console.log('🔓 [CameraMouseInput] Releasing pointer lock...');
-      }
       mouse.exitPointerLock();
     }
   });

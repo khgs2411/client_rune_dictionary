@@ -54,7 +54,7 @@ import TurnTimer from './TurnTimer.vue';
   // TODO: Replace with real match data from matchStore
 
   // Player data (hardcoded placeholder)
-  const playerName = ref('Player');
+  const playerName = computed(() => websocketStore.clientData ? `${websocketStore.clientData?.name} (${websocketStore.clientData?.id})` : 'Player');
   const playerLevel = ref(1);
   const playerHp = ref(23);
   const playerMaxHp = ref(23);
@@ -95,7 +95,6 @@ import TurnTimer from './TurnTimer.vue';
         matchId: matchStore.currentMatchId,
       });
 
-      console.log('[MatchHUD] Left match successfully:', response.message);
 
       // Clear match store
       matchStore.$reset();
@@ -103,7 +102,6 @@ import TurnTimer from './TurnTimer.vue';
       // Emit RxJS event to SceneStateService
       rxjs.$next('onStateChange', E_SceneState.OVERWORLD);
 
-      console.log('[MatchHUD] Emitted state change to OVERWORLD via RxJS');
     } catch (error) {
       console.error('[MatchHUD] Failed to leave match:', error);
 

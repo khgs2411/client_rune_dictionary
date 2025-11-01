@@ -73,10 +73,6 @@ export class KinematicMovementComponent extends GameComponent {
     const stateService = context.getService('state');
     this.stateChangeCallback = this.onStateChange.bind(this);
     stateService.register(this.stateChangeCallback);
-
-    console.log(
-      `🏃 [KinematicMovementComponent] Initialized for "${this.gameObject.id}" - subscribed to state changes`,
-    );
   }
 
   /**
@@ -89,10 +85,6 @@ export class KinematicMovementComponent extends GameComponent {
    * - MENU: enableMovement=false, enableJumping=false
    */
   private onStateChange(newState: E_SceneState, oldState: E_SceneState): void {
-    console.log(
-      `🏃 [KinematicMovementComponent] State change: ${oldState} → ${newState}`,
-    );
-
     switch (newState) {
       case E_SceneState.OVERWORLD:
         this.enableMovement = true;
@@ -214,9 +206,6 @@ export class KinematicMovementComponent extends GameComponent {
     if (this.stateChangeCallback && this.context) {
       const stateService = this.context.getService('state');
       stateService.unregister(this.stateChangeCallback);
-      console.log(
-        `🏃 [KinematicMovementComponent] Unregistered from state changes for "${this.gameObject.id}"`,
-      );
       this.stateChangeCallback = null;
     }
 

@@ -47,7 +47,6 @@ export type StateChangeCallback = (newState: E_SceneState, oldState: E_SceneStat
  * ```typescript
  * // Register for state changes
  * const callback = (newState, oldState) => {
- *   console.log(`State changed: ${oldState} → ${newState}`);
  * };
  * stateService.register(callback);
  *
@@ -71,11 +70,9 @@ export default class SceneStateService extends SceneService implements I_SceneSe
     this.rxjs.$subscribe({
       'onStateChange': this.onStateChange.bind(this),
     })
-    console.log('🎮 [SceneStateService] Initialized with state:', this.currentState);
   }
 
   private onStateChange(newState: E_SceneState) { 
-    console.log('🎮 [SceneStateService] onStateChange triggered:', newState);
     this.setState(newState);
   }
 
@@ -96,7 +93,6 @@ export default class SceneStateService extends SceneService implements I_SceneSe
   public setState(newState: E_SceneState): void {
     const oldState = this.currentState;
     this.currentState = newState;
-    console.log(`🎮 [SceneStateService] State transition: ${oldState} → ${newState}`);
 
     // Notify all registered listeners
     this.notifyListeners(newState, oldState);
@@ -117,7 +113,6 @@ export default class SceneStateService extends SceneService implements I_SceneSe
    */
   public register(callback: StateChangeCallback): void {
     this.listeners.add(callback);
-    console.log(`🎮 [SceneStateService] Registered listener (total: ${this.listeners.size})`);
   }
 
   /**
@@ -128,7 +123,6 @@ export default class SceneStateService extends SceneService implements I_SceneSe
   public unregister(callback: StateChangeCallback): void {
     const wasRemoved = this.listeners.delete(callback);
     if (wasRemoved) {
-      console.log(`🎮 [SceneStateService] Unregistered listener (total: ${this.listeners.size})`);
     }
   }
 
@@ -141,7 +135,6 @@ export default class SceneStateService extends SceneService implements I_SceneSe
   private notifyListeners(newState: E_SceneState, oldState: E_SceneState): void {
     if (this.listeners.size === 0) return;
 
-    console.log(`🎮 [SceneStateService] Notifying ${this.listeners.size} listener(s)...`);
     this.listeners.forEach(callback => {
       try {
         callback(newState, oldState);
@@ -186,6 +179,5 @@ export default class SceneStateService extends SceneService implements I_SceneSe
     this.reset();
     this.listeners.clear();
     this.rxjs.$unsubscribe();
-    console.log('🎮 [SceneStateService] Destroyed');
   }
 }

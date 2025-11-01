@@ -36,9 +36,7 @@ export class GameObjectsManager extends SceneService implements I_SceneService {
       }
     }
 
-    console.log(
-      `✅ [GameObjectManager] Initialized ${this.gameObjects.size} GameObjects`,
-    );
+  
   }
 
   /**
@@ -116,7 +114,6 @@ export class GameObjectsManager extends SceneService implements I_SceneService {
         // Runtime check if component has onThemeChange method
         if ('onThemeChange' in component && typeof component.onThemeChange === 'function') {
           try {
-            console.log(component);
             (component as I_GameComponent).onThemeChange?.(theme);
           } catch (error) {
             console.error(
@@ -128,7 +125,6 @@ export class GameObjectsManager extends SceneService implements I_SceneService {
       }
     }
 
-    console.log(`🎨 [GameObjectManager] Notified ${this.gameObjects.size} GameObjects of theme change to "${theme}"`);
   }
 
 
@@ -154,6 +150,5 @@ export class GameObjectsManager extends SceneService implements I_SceneService {
 
     this.gameObjects.clear();
 
-    console.log(`🧹 [GameObjectManager] Destroyed all GameObjects`);
   }
 }

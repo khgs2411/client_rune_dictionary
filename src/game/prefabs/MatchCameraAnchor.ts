@@ -56,9 +56,5 @@ export class MatchCameraAnchor extends GameObject {
         position: [config.position.x, config.position.y, config.position.z],
       }),
     );
-
-    console.log(
-      `📷 [MatchCameraAnchor] Created camera anchor at (${config.position.x.toFixed(1)}, ${config.position.y.toFixed(1)}, ${config.position.z.toFixed(1)})`,
-    );
   }
 }

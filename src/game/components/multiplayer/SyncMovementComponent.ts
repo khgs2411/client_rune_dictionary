@@ -62,8 +62,6 @@ export class SyncMovementComponent extends GameComponent {
 
     // Verify TransformComponent exists
     this.requireComponent(TransformComponent);
-
-    console.log(`📡 [SyncMovementComponent] Initialized for player: ${this.playerId}`);
   }
 
   update(delta: number): void {

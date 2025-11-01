@@ -1,8 +1,8 @@
 import { I_ClientData } from '@/common/types';
 import { useWebSocket } from '@vueuse/core';
 import { defineStore } from 'pinia';
-import { Guards, WebsocketStructuredMessage } from 'topsyde-utils';
-import { ref, computed, Ref } from 'vue';
+import { WebsocketStructuredMessage } from 'topsyde-utils';
+import { computed, ref, Ref } from 'vue';
 
 export type WebSocketStatus =
   | 'disconnected'
@@ -107,7 +107,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
     status.value = 'connected';
     connectedAt.value = new Date();
     reconnectAttempts.value = 0;
-    console.log('[WS] Connected successfully');
     const promises: Promise<void>[] = [];
     registry.value.forEach((handlers) => {
       if (handlers.connected) {
@@ -129,7 +128,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
     });
 
     await Promise.all(promises);
-    console.log('[WS] Disconnected', { code: event.code, reason: event.reason });
   }
 
   async function handleMessage(_ws: WebSocket, event: MessageEvent) {
@@ -172,7 +170,6 @@ export const useWebSocketStore = defineStore('websocket', () => {
       // Strict validation in development
       validateRegistration(source, callback);
     }
-
     registry.value.set(source, callback);
   }
 
@@ -237,6 +234,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
     lastError.value = null;
     registry.value.clear();
   }
+
 
 
   return {

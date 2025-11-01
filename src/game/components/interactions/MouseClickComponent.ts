@@ -1,12 +1,12 @@
 import type { I_SceneContext } from '@/game/common/scenes.types';
 import { ComponentPriority, GameComponent } from '@/game/GameComponent';
-import type { Intersection } from 'three';
+import type { Intersection, Object3D } from 'three';
 
 export interface I_MouseClickConfig {
   button?: 'left' | 'right' | 'middle'; // Mouse button (default: 'left')
   onClick: (event: MouseEvent, intersection?: Intersection) => void; // Callback when clicked
   requireHover?: boolean; // Only trigger if hovering over object3D
-  provideObject3D?: () => THREE.Object3D; // Optional - provide object for raycasting/hover
+  provideObject3D?: () => Object3D; // Optional - provide object for raycasting/hover
 }
 
 /**
@@ -74,9 +74,6 @@ export class MouseClickComponent extends GameComponent {
       },
     );
 
-    console.log(
-      `🖱️  [MouseClickComponent] Registered ${this.config.button || 'left'}-click for GameObject "${this.gameObject.id}"`,
-    );
   }
 
   destroy(): void {

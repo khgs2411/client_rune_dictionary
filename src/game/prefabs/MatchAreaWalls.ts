@@ -1,8 +1,8 @@
 import { CollisionComponent } from '@/game/components/interactions/CollisionComponent';
-import { GameObject } from '../GameObject';
-import { TransformComponent } from '../components/rendering/TransformComponent';
-import { I_SceneContext } from '../common/scenes.types';
 import { BufferGeometry, Line, LineBasicMaterial, Vector3 } from 'three';
+import { GameObject } from '../GameObject';
+import { I_SceneContext } from '../common/scenes.types';
+import { TransformComponent } from '../components/rendering/TransformComponent';
 
 export interface I_MatchAreaWallsConfig {
   id: string;
@@ -66,9 +66,7 @@ export class MatchAreaWalls extends GameObject {
     const halfWidth = width / 2;
     const halfDepth = depth / 2;
 
-    console.log(
-      `🛡️ [MatchAreaWalls] Creating 4 walls - Width: ${width}, Depth: ${depth}, Height: ${height}`,
-    );
+   
 
     // Create 4 walls forming a rectangle
     const walls = [
@@ -130,9 +128,6 @@ export class MatchAreaWalls extends GameObject {
       this.wallSegments.push(wallSegment);
     }
 
-    console.log(
-      `🛡️ [MatchAreaWalls] Created 4 walls at (${config.center.x.toFixed(1)}, ${config.center.y.toFixed(1)}, ${config.center.z.toFixed(1)}) - ${width}x${depth} rectangle`,
-    );
   }
 
   async init(context: I_SceneContext): Promise<void> {
@@ -147,9 +142,7 @@ export class MatchAreaWalls extends GameObject {
     // Create visual border lines at ground level
     this.createBorderLines(context);
 
-    console.log(
-      `🛡️ [MatchAreaWalls] Initialized ${this.wallSegments.length} wall segments (invisible, collision wireframes: ${this.config.showDebug})`,
-    );
+   
   }
 
   /**
@@ -204,11 +197,9 @@ export class MatchAreaWalls extends GameObject {
       this.borderLines.push(line);
     }
 
-    console.log(`🛡️ [MatchAreaWalls] Created ${this.borderLines.length} border lines`);
   }
 
   destroy(): void {
-    console.log('🛡️ [MatchAreaWalls] Destroying walls and cleaning up collision');
 
     // Destroy all wall segments
     if (this.context) {
@@ -218,7 +209,6 @@ export class MatchAreaWalls extends GameObject {
       }
 
       // Manually remove and dispose border lines from scene
-      console.log(`🛡️ [MatchAreaWalls] Removing ${this.borderLines.length} border lines from scene`);
       for (const line of this.borderLines) {
         this.context.scene.remove(line);
         line.geometry.dispose();

@@ -1,7 +1,7 @@
 import { useWebSocketStore, WebsocketManager } from "@/stores/websocket.store";
+import { WebsocketStructuredMessage } from "topsyde-utils";
 import { I_SceneContext, I_SceneService } from "../common/scenes.types";
 import SceneService from "./SceneService";
-import { WebsocketStructuredMessage } from "topsyde-utils";
 
 /**
  * Network event categories that can be subscribed to
@@ -42,8 +42,6 @@ export type NetworkEventHandlers = Partial<Record<E_NetworkEventCategory, Networ
  * ```typescript
  * // In a module:
  * networkingService.register('MultiplayerModule', {
- *   [E_NetworkEventCategory.SCENE]: (msg) => console.log('Scene event:', msg),
- *   [E_NetworkEventCategory.PLAYER]: (msg) => console.log('Player event:', msg),
  * });
  * ```
  */
@@ -54,7 +52,6 @@ export default class NetworkingService extends SceneService implements I_SceneSe
   constructor() {
     super();
     this.websocketManager = useWebSocketStore();
-    console.log('[NetworkingService] Initialized');
   }
 
   public send(category: E_NetworkEventCategory, content: any): void {
@@ -81,7 +78,6 @@ export default class NetworkingService extends SceneService implements I_SceneSe
       },
     });
 
-    console.log('[NetworkingService] Registered with WebSocket store');
   }
 
   /**
@@ -154,10 +150,8 @@ export default class NetworkingService extends SceneService implements I_SceneSe
    * ```typescript
    * networkingService.register('MultiplayerModule', {
    *   [E_NetworkEventCategory.SCENE]: async (msg) => {
-   *     console.log('Scene event:', msg);
    *   },
    *   [E_NetworkEventCategory.PLAYER]: async (msg) => {
-   *     console.log('Player event:', msg);
    *   },
    * });
    * ```
@@ -183,7 +177,6 @@ export default class NetworkingService extends SceneService implements I_SceneSe
     this.registry.set(source, handlers);
 
     const categories = Object.keys(handlers).join(', ');
-    console.log(`[NetworkingService] Registered "${source}" for categories: ${categories}`);
   }
 
   /**
@@ -193,7 +186,6 @@ export default class NetworkingService extends SceneService implements I_SceneSe
    */
   public unregister(source: string): void {
     if (this.registry.delete(source)) {
-      console.log(`[NetworkingService] Unregistered "${source}"`);
     } else {
       console.warn(`[NetworkingService] Attempted to unregister unknown source: "${source}"`);
     }
@@ -205,7 +197,6 @@ export default class NetworkingService extends SceneService implements I_SceneSe
   public async destroy(): Promise<void> {
     this.websocketManager.unregister('NetworkingService');
     this.registry.clear();
-    console.log('[NetworkingService] Destroyed');
   }
 
   /**

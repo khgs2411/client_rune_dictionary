@@ -129,7 +129,6 @@ export class PhysicsService extends SceneService {
     // Watch global debug setting and toggle wireframe visibility
     this.addEventListeners(context);
 
-    console.log('✅ [PhysicsService] Initialized');
   }
 
   private addEventListeners(context: I_SceneContext) {
@@ -138,7 +137,6 @@ export class PhysicsService extends SceneService {
       () => settings.debug.showPhysicsDebug,
       (newValue) => {
         this.setDebugWireframesVisible(newValue);
-        console.log(`[PhysicsService] Debug wireframes ${newValue ? 'shown' : 'hidden'}`);
       },
       { immediate: true } // Run immediately with current value
     );
@@ -174,7 +172,6 @@ export class PhysicsService extends SceneService {
       this.world.free();
     }
     this.isInitialized = false;
-    console.log('🧹 [PhysicsService] Destroyed');
   }
 
   public isReady(): boolean {
@@ -456,7 +453,6 @@ export class PhysicsService extends SceneService {
       this.debugWireframes.delete(id);
     }
 
-    console.log(`[PhysicsService] Removed body: ${id}`);
   }
 
   // ============================================================================

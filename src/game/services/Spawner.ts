@@ -55,7 +55,6 @@ export class Spawner extends SceneService implements I_SceneService {
    * Initialize spawn module
    */
   async init(context: I_SceneContext): Promise<void> {
-    console.log('✅ [SpawnModule] Initialized');
   }
 
   /**
@@ -185,7 +184,6 @@ export class Spawner extends SceneService implements I_SceneService {
     this.typeMap.delete(id);
     this.ownerMap.delete(id);
 
-    console.log(`🗑️  [SpawnModule] Despawned "${type}" (id: ${id})`);
 
     return true;
   }
@@ -219,9 +217,6 @@ export class Spawner extends SceneService implements I_SceneService {
       }
     }
 
-    console.log(
-      `🧹 [SpawnModule] Despawned ${count} objects${type ? ` of type "${type}"` : ''}`,
-    );
 
     return count;
   }
@@ -240,9 +235,7 @@ export class Spawner extends SceneService implements I_SceneService {
 
     this.factories.set(type, factory);
     this.factoryConfigs.set(type, config);
-    console.log(
-      `📝 [SpawnModule] Registered factory for type: "${type}"${config.poolSize ? ` (poolSize: ${config.poolSize})` : ''}${config.maxActivePerOwner ? ` (maxActivePerOwner: ${config.maxActivePerOwner})` : ''}`,
-    );
+
   }
 
   /**
@@ -383,6 +376,5 @@ export class Spawner extends SceneService implements I_SceneService {
     this.typeMap.clear();
     this.ownerMap.clear();
 
-    console.log('🧹 [SpawnModule] Destroyed');
   }
 }

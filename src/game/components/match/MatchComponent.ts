@@ -49,9 +49,7 @@ export class MatchComponent extends GameComponent {
     // Require InteractionComponent for event system
     this.onInteraction(context);
 
-    console.log(
-      `⚔️ [MatchComponent] Listening for double-click events on GameObject "${this.gameObject.id}"`,
-    );
+
   }
 
   private onInteraction(context: I_SceneContext) {
@@ -59,7 +57,7 @@ export class MatchComponent extends GameComponent {
 
     // Listen to doubleclick event
     interaction.on('doubleclick', async (_intersection) => {
-      console.log('⚔️ [MatchComponent] Double-click detected, initiating match creation...');
+      console.groupCollapsed(`⚔️ [MatchComponent] Double-click detected on ${this.gameObject.id}`);
       // intersection.distance = distance from camera to hit point
       console.log('Distance from camera:', _intersection.distance);
 
@@ -77,6 +75,7 @@ export class MatchComponent extends GameComponent {
 
       // _intersection.uv = UV coordinates at hit point (for textures)
       console.log('UV coords:', _intersection.uv);
+      console.groupEnd();
       await this.handleMatchCreation(context);
     });
   }
@@ -111,8 +110,7 @@ export class MatchComponent extends GameComponent {
     if (!clientData) {
       throw new Error('Client not connected - cannot create match');
     }
-
-    console.log('⚔️ [MatchComponent] Creating PvE match...');
+    // console.clear();
 
     // Make API request
     const payload: I_CreatePveMatchRequest = {
@@ -121,7 +119,6 @@ export class MatchComponent extends GameComponent {
 
     const response = await this.matchAPI.createPveMatch(payload);
 
-    console.log('⚔️ [MatchComponent] Match created successfully:', response.matchId);
 
     // Update match store via DataStore
     DataStore.match.setInitialMatchState({
@@ -135,7 +132,6 @@ export class MatchComponent extends GameComponent {
     const stateService = context.getService('state');
     stateService.setState(E_SceneState.PVE_MATCH);
 
-    console.log('⚔️ [MatchComponent] Match state updated, entering PVE mode');
   }
 
   /**
@@ -156,8 +152,5 @@ export class MatchComponent extends GameComponent {
 
   destroy(): void {
     // Nothing to clean up (InteractionComponent handles its own cleanup)
-    console.log(
-      `⚔️ [MatchComponent] Destroyed for GameObject "${this.gameObject.id}"`,
-    );
   }
 }

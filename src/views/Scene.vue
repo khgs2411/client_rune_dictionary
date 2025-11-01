@@ -12,15 +12,15 @@
 </template>
 
 <script setup lang="ts">
-  import { Engine } from '@/game/Engine';
-  import { PlaygroundScene } from '@/scenes/PlaygroundScene';
-  import { I_GameScene, I_SceneConfig } from '@/game/common/scenes.types';
-  import LoadingScreen from '@/components/LoadingScreen.vue';
   import EditorPanel from '@/components/EditorPanel.vue';
-  import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
-  import { computed, ref, watch } from 'vue';
-  import { useSceneStore } from '@/stores/scene.store';
-  import { useAuthStore } from '@/stores/auth.store';
+import LoadingScreen from '@/components/LoadingScreen.vue';
+import { I_GameScene, I_SceneConfig } from '@/game/common/scenes.types';
+import { Engine } from '@/game/Engine';
+import { PlaygroundScene } from '@/scenes/PlaygroundScene';
+import { useAuthStore } from '@/stores/auth.store';
+import { useSceneStore } from '@/stores/scene.store';
+import { tryOnMounted, tryOnUnmounted, useRafFn, useWindowSize } from '@vueuse/core';
+import { ref, watch } from 'vue';
 
   const canvasRef = ref<HTMLCanvasElement | null>(null);
   const auth = useAuthStore();
@@ -55,8 +55,6 @@
 
       // Start render loop
       resumeRenderLoop();
-
-      console.log('✅ [Game] Game initialization complete');
     } catch (error) {
       console.error('❌ [Game] Error during initialization:', error);
     }

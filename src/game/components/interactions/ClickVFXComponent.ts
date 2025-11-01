@@ -102,9 +102,6 @@ export class ClickVFXComponent extends GameComponent {
       },
     );
 
-    console.log(
-      `🖱️  [ClickVFXComponent] Registered click VFX for GameObject "${this.gameObject.id}"`,
-    );
   }
 
   destroy(): void {
@@ -113,8 +110,5 @@ export class ClickVFXComponent extends GameComponent {
       this.unregister();
     }
 
-    console.log(
-      `🖱️  [ClickVFXComponent] Unregistered click VFX for GameObject "${this.gameObject.id}"`,
-    );
   }
 }

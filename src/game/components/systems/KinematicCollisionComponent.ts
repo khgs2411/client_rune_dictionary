@@ -88,9 +88,7 @@ export class KinematicCollisionComponent extends CollisionComponent {
     this.registerCallbacks();
 
     this.isRegistered = true;
-    console.log(
-      `🎮 [KinematicPhysicsComponent] Registered kinematic controller for "${this.gameObject.id}"`,
-    );
+    
   }
 
   /**

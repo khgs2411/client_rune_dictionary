@@ -143,7 +143,6 @@ export class InteractionService extends SceneService implements I_SceneService {
     ctx.scene.add(this.gridHelper);
     ctx.cleanupRegistry.registerObject(this.gridHelper);
 
-    console.log('✅ [InteractionService] Initialized (API layer)');
   }
 
   public update(_delta: number): void {
@@ -163,7 +162,6 @@ export class InteractionService extends SceneService implements I_SceneService {
     this.opacityCache.clear();
     this.gridHelper = null; // Cleanup is handled by cleanupRegistry
     window.removeEventListener('keydown', this.handleKeyDown.bind(this));
-    console.log('🧹 [InteractionService] Destroyed');
   }
 
   // ============================================
@@ -182,7 +180,6 @@ export class InteractionService extends SceneService implements I_SceneService {
    * @example
    * ```typescript
    * interactionService.registerMouseClick('my-click', 'left', (event, intersection) => {
-   *   console.log('Clicked at:', intersection?.point);
    * }, { requireHover: true, object3D: mesh });
    * ```
    */
@@ -325,9 +322,7 @@ export class InteractionService extends SceneService implements I_SceneService {
    * @example
    * ```typescript
    * interactionService.registerDrag('my-drag', mesh, {
-   *   onStart: (startPos) => console.log('Drag started'),
    *   onMove: (currentPos) => mesh.position.copy(currentPos),
-   *   onEnd: (endPos) => console.log('Drag ended at:', endPos)
    * }, { lockAxis: ['y'], snapToGrid: 0.5 });
    *
    * // Or use a getter for dynamic values:

@@ -80,9 +80,6 @@ export class MatchAreaDome extends GameObject {
         }),
       );
 
-    console.log(
-      `🛡️ [MatchAreaDome] Created dome at (${config.center.x.toFixed(1)}, ${config.center.y.toFixed(1)}, ${config.center.z.toFixed(1)}) with radius ${config.radius.toFixed(1)}`,
-    );
   }
 
   async init(context: I_SceneContext): Promise<void> {
@@ -100,16 +97,13 @@ export class MatchAreaDome extends GameObject {
         material.opacity = 0.3;
         material.transparent = true;
       }
-      console.log('🛡️ [MatchAreaDome] Debug mode - showing wireframe');
     } else {
       // Hide mesh completely when not debugging
       meshComp.mesh.visible = false;
-      console.log('🛡️ [MatchAreaDome] Mesh hidden (not in debug mode)');
     }
   }
 
   destroy(): void {
-    console.log('🛡️ [MatchAreaDome] Destroying dome and cleaning up collision');
     super.destroy();
   }
 }

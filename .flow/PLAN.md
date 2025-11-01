@@ -122,3 +122,14 @@ The combat system follows an event-driven architecture with clear separation bet
 - Example Dashboard: `.flow/framework/examples/DASHBOARD.md`
 - Example Task Files: `.flow/framework/examples/phase-2/task-3.md`
 - Project CLAUDE.md: `CLAUDE.md` and `client_rune_dictionary/CLAUDE.md`
+
+---
+
+## Development Phases
+
+### Phase 3: Bug Fixes ⏳
+
+**Strategy**: Identify and resolve critical bugs that block feature development or break existing functionality
+**Goal**: Resolve critical bugs blocking feature development
+
+**Tasks**: See [phase-3/](phase-3/) directory for detailed task files

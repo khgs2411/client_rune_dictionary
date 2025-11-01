@@ -1,102 +1,16 @@
+import { I_ATBState, I_GameState, I_MatchResult, I_TurnState, MatchState } from '@/common/match.types';
+import { useWebSocketStore } from '@/stores/websocket.store';
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
-
-// ============================================================================
-// TypeScript Interfaces
-// ============================================================================
-
-/**
- * Stats structure for both player and NPC participants
- */
-export interface I_ParticipantStats {
-  attack: number;
-  defense: number;
-  speed: number;
-}
-
-/**
- * Player participant data structure
- */
-export interface I_PlayerParticipant {
-  entityId: string;
-  name: string;
-  health: number;
-  maxHealth: number;
-  stats: I_ParticipantStats;
-}
-
-/**
- * NPC participant data structure (same as player for PvE)
- */
-export interface I_NPCParticipant {
-  entityId: string;
-  name: string;
-  health: number;
-  maxHealth: number;
-  stats: I_ParticipantStats;
-}
-
-/**
- * Turn state information
- */
-export interface I_TurnState {
-  number: number;
-  currentEntityId: string;
-  isPlayerTurn: boolean;
-}
-
-/**
- * ATB (Active Time Battle) readiness state
- */
-export interface I_ATBState {
-  playerReadiness: number; // 0-100 percentage
-  npcReadiness: number; // 0-100 percentage
-}
-
-/**
- * Timer configuration for turn duration
- */
-export interface I_TimerConfig {
-  duration: number; // milliseconds per turn
-  warningThreshold: number; // percentage threshold for warning (e.g., 80)
-  fallbackAction: 'pass' | 'skip'; // action on timeout
-}
-
-/**
- * Complete game state received from server
- */
-export interface I_GameState {
-  player: I_PlayerParticipant;
-  npc: I_NPCParticipant;
-  turn: I_TurnState;
-  atb: I_ATBState;
-  timer: I_TimerConfig;
-}
-
-/**
- * Match result data (populated when match ends)
- */
-export interface I_MatchResult {
-  winner: 'player' | 'npc' | 'draw';
-  playerFinalHealth: number;
-  npcFinalHealth: number;
-  totalTurns: number;
-  duration: number; // match duration in seconds
-  // Future: Add stats like damage dealt, actions taken, etc.
-}
-
-/**
- * Match state enum for UI state machine
- */
-export type MatchState = 'LOBBY' | 'IN_PROGRESS' | 'FINISHED';
-
-// ============================================================================
-// Store Definition
-// ============================================================================
+import { Lib, WebsocketStructuredMessage } from 'topsyde-utils';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
 export const useMatchStore = defineStore(
   'match',
   () => {
+
+    const websocket = useWebSocketStore();
+
+
     // ========================================================================
     // State
     // ========================================================================
@@ -268,6 +182,26 @@ export const useMatchStore = defineStore(
       gameState.value = null;
       matchResult.value = null;
     }
+
+
+    onMounted(() => {
+      console.error('mounted')
+      websocket.register('match.store', {
+        data: async (_ws: WebSocket, message: WebsocketStructuredMessage) => {
+          /* const alreadyCatalogied = ["match.state.change", "match.created", "match.atb.readiness.update ", "client.leave.channel",];
+          if (alreadyCatalogied.includes(message.type)) {
+            return;
+          } */
+          console.log('[match.store] Incoming message: ',);
+          Lib.LogObject(message)
+        }
+      })
+    })
+
+    onBeforeUnmount(() => {
+      console.error('[WS] Match store unmounting, disconnecting...');
+      websocket.unregister('match.store');
+    })
 
     return {
       // State

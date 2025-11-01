@@ -63,9 +63,7 @@ export class HotkeyComponent extends GameComponent {
       this.config.modifiers,
     );
 
-    console.log(
-      `⌨️  [HotkeyComponent] Registered key "${this.config.key}" for GameObject "${this.gameObject.id}"`,
-    );
+   
   }
 
   destroy(): void {
@@ -74,8 +72,5 @@ export class HotkeyComponent extends GameComponent {
       this.unregister();
     }
 
-    console.log(
-      `⌨️  [HotkeyComponent] Unregistered key "${this.config.key}" for GameObject "${this.gameObject.id}"`,
-    );
   }
 }

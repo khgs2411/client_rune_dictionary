@@ -58,14 +58,14 @@
 </template>
 
 <script setup lang="ts">
-  import { Button } from '@/components/ui/button';
   import AppLoadingScreen from '@/components/AppLoadingScreen.vue';
-  import ConnectionDiagnosticModal from '@/components/ConnectionDiagnosticModal.vue';
-  import { useWebSocketConnection } from '@/composables/useWebSocketConnection';
-  import { useAuthStore } from '@/stores/auth.store';
-  import { useWebSocketStore } from '@/stores/websocket.store';
-  import { tryOnMounted, tryOnUnmounted } from '@vueuse/core';
-  import { computed, ref } from 'vue';
+import ConnectionDiagnosticModal from '@/components/ConnectionDiagnosticModal.vue';
+import { Button } from '@/components/ui/button';
+import { useWebSocketConnection } from '@/composables/useWebSocketConnection';
+import { useAuthStore } from '@/stores/auth.store';
+import { useWebSocketStore } from '@/stores/websocket.store';
+import { tryOnMounted, tryOnUnmounted } from '@vueuse/core';
+import { computed, ref } from 'vue';
 
   // Props (optional - for flexibility)
   const props = withDefaults(
@@ -98,7 +98,6 @@
 
   // Handle diagnostic success - show loading then connect modal
   async function handleDiagnosticSuccess() {
-    console.log('[WebSocketManager] Diagnostic passed, preparing connection...');
     diagnosticPassed.value = true;
 
     // Show loading screen
@@ -114,7 +113,6 @@
 
   // Handle diagnostic failure - user sees diagnostic modal
   function handleDiagnosticFailed() {
-    console.log('[WebSocketManager] Diagnostic failed, user will see troubleshooting');
     diagnosticPassed.value = false;
     showConnectModal.value = false;
     showLoadingScreen.value = false;
@@ -130,13 +128,11 @@
     errorMessage.value = '';
 
     try {
-      console.log('[WebSocketManager] Connecting to WebSocket...');
 
       // ✅ This happens during user click - popup blockers won't trigger!
       await ws$.connect();
       ws$.register();
 
-      console.log('✅ [WebSocketManager] Connected successfully!');
       showConnectModal.value = false; // Hide modal on success
     } catch (error: any) {
       console.error('❌ [WebSocketManager] Connection failed:', error);

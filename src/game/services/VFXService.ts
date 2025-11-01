@@ -395,14 +395,6 @@ export class VFXService extends SceneService {
       context.cleanupRegistry.registerObject(particles.points);
       this.particlePool.push(particles);
     }
-
-    console.log(
-      '✨ [VFXModule] Initialized with pools (text: %d, tooltips: %d, particles: %d)',
-      this.textSpritePool.length,
-      this.tooltipPool.length,
-      this.particlePool.length,
-    );
-
   }
 
   update(delta: number): void {

@@ -85,10 +85,6 @@ export class RemotePlayerComponent extends GameComponent {
     this.targetPosition.copy(transform.position);
     this.currentRotation.copy(transform.rotation);
     this.targetRotation.copy(transform.rotation);
-
-    console.log(
-      `👤 [RemotePlayerComponent] Initialized for player: ${this.username} (${this.playerId})`,
-    );
   }
 
   update(delta: number): void {

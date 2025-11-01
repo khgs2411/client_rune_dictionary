@@ -1,9 +1,9 @@
-import { I_CameraPerspective, I_GameCamera } from './composables.types';
 import { useGameConfigStore } from '@/stores/config.store';
 import { useEventListener, useRafFn } from '@vueuse/core';
-import { ref, watchEffect } from 'vue';
-import { useCameraController } from './useCameraController';
 import { MathUtils, PerspectiveCamera, Vector3 } from 'three';
+import { ref, watchEffect } from 'vue';
+import { I_CameraPerspective, I_GameCamera } from './composables.types';
+import { useCameraController } from './useCameraController';
 
 /**
  * High-level camera entity composable
@@ -12,7 +12,7 @@ import { MathUtils, PerspectiveCamera, Vector3 } from 'three';
 export function useCamera(): I_GameCamera {
   const config = useGameConfigStore();
 
-  
+
 
   // Initialize pure controller (state/input logic)
   const controller = useCameraController();
@@ -130,14 +130,9 @@ export function useCamera(): I_GameCamera {
         if (progress >= 1.0 && !isComplete.value) {
           isComplete.value = true;
           pause(); // Stop animation loop
-          console.log('🎥 [useCamera] changeTarget animation complete');
           resolve();
         }
       });
-
-      console.log(
-        `🎥 [useCamera] Starting changeTarget animation (duration: ${duration}ms)`,
-      );
     });
   }
 

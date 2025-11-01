@@ -187,7 +187,6 @@ export class GameObject {
    *   async init(context: I_SceneContext) {
    *     const interaction = this.getComponent(InteractionComponent);
    *     interaction.on('click', (intersection) => {
-   *       console.log('Clicked!');
    *     });
    *   }
    * }

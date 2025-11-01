@@ -140,12 +140,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
     // Register player AFTER all components are added
     gom.register(localPlayer);
-
-    console.log(`
-🎯 [PlaygroundScene] Spawn system initialized:
-- Press '1' to spawn Fireball (prefab)
-- Right-click to spawn Ice Shard (manual) at cursor
-    `);
   }
 
   protected onSceneLoaded(): void {

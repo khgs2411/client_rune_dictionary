@@ -1,5 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
+import { createRouter, createWebHistory } from 'vue-router';
 import routes from './routes';
 
 const router = createRouter({
@@ -25,7 +25,6 @@ router.beforeEach((to, _from, next) => {
   if (authStore.isAuthenticated) {
     // Refresh TTL on every route navigation
     authStore.refreshTTL();
-    console.log('✅ Auth valid, TTL refreshed');
     next();
   } else {
     // Not authenticated or expired, redirect to login

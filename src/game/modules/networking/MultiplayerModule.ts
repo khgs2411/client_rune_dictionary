@@ -26,13 +26,11 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
    * Initialize service and subscribe to WebSocket events
    */
   public async init(context: I_SceneContext): Promise<void> {
-    console.log('🌐 [MultiplayerModule] Starting...');
     // Test API connection
     try {
       await this.fetchRemotePlayers(context);
       this.registerWithNetworkingService(context);
 
-      console.log('✅ [MultiplayerModule] Started');
       this.initialized(context.sceneName)
     } catch (error) {
       console.error('❌ [MultiplayerModule] Failed to connect to Multiplayer API:', error);
@@ -83,7 +81,6 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     const data = (message as WebsocketStructuredMessage<{ playerId: string; }>).content;
     const playerId = data.playerId;
     this.unregisterRemotePlayer(playerId);
-    console.log('[MultiplayerModule] Player left:', data.playerId);
   }
 
   private onSceneJoined(message: WebsocketStructuredMessage) {
@@ -93,7 +90,6 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
       position: [number, number, number];
       raw?: { position: { x: number; y: number; z: number; }; rotation?: { x: number; y: number; z: number; }; };
     }>).content;
-    console.log('[MultiplayerModule] Player joined:', message.content);
 
     const remotePlayer = new RemotePlayer({ playerId: data.id, username: data.username || "Remote Player", position: data.position });
     this.registerRemotePlayer(remotePlayer.id, remotePlayer);
@@ -133,7 +129,6 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
       this.unregisterRemotePlayer(playerId);
     });
     this.remotePlayers.clear();
-    console.log('🧹 [MultiplayerModule] Destroyed');
   }
 
 
@@ -151,7 +146,6 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
     }
 
     this.remotePlayers.set(playerId, state);
-    console.log(`👤 [MultiplayerModule] Registered remote player: ${playerId}`);
   }
 
   /**
@@ -165,7 +159,6 @@ export class MultiplayerModule extends SceneModule implements I_MultiplayerHandl
         gom.unregister(playerId);
       }
       this.remotePlayers.delete(playerId);
-      console.log(`👤 [MultiplayerModule] Unregistered remote player: ${playerId}`);
     }
   }
 

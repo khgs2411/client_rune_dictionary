@@ -79,10 +79,6 @@ export class MatchGrid extends GameObject {
         yOffset: 0.01,
       }),
     );
-
-    console.log(
-      `🎯 [MatchGrid] Created grid at (${config.center.x.toFixed(1)}, ${config.center.y.toFixed(1)}, ${config.center.z.toFixed(1)}) - Size: ${config.diameter}x${config.diameter}, Cell: ${this.cellSize}`,
-    );
   }
 
   /**

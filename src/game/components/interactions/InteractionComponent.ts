@@ -56,9 +56,7 @@ export class InteractionComponent extends GameComponent {
 
   public async init(context: I_SceneContext): Promise<void> {
     this.registerInteractions(context);
-    console.log(
-      `👆 [InteractionComponent] Registered interaction events for GameObject "${this.gameObject.id}"`,
-    );
+   
   }
 
   /**

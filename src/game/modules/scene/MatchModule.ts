@@ -48,7 +48,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
     this.stateChangeCallback = this.onStateChange.bind(this);
     stateService.register(this.stateChangeCallback);
 
-    console.log('⚔️ [MatchModule] Initialized - subscribed to state changes');
   }
 
   /**
@@ -57,7 +56,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
    * - PVE_MATCH → OVERWORLD: Destroy match environment
    */
   private onStateChange(newState: E_SceneState, oldState: E_SceneState): void {
-    console.log(`⚔️ [MatchModule] State change: ${oldState} → ${newState}`);
 
     if (newState === E_SceneState.PVE_MATCH && oldState !== E_SceneState.PVE_MATCH) {
       this.enterMatch();
@@ -81,7 +79,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
       return;
     }
 
-    console.log('⚔️ [MatchModule] Entering match - spawning environment');
     const gameObjects = this.context.getService('gameObjectsManager');
 
     // FIXED ARENA CONFIGURATION
@@ -99,7 +96,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
       const transform = trainingDummy.getComponent(TransformComponent);
       if (transform && transform.position) {
         arenaCenter = new Vector3(transform.position.x, 0, transform.position.z);
-        console.log('⚔️ [MatchModule] Using NPC position as arena center');
       } else {
         arenaCenter = new Vector3(0, 0, 0); // Fallback to world origin
         console.warn('⚔️ [MatchModule] Could not get NPC position, using world origin');
@@ -117,9 +113,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
     const arenaWidth = 40; // X axis (left-right)
     const arenaDepth = 25; // Z axis (near-far, shorter to fit in camera view)
 
-    console.log(
-      `⚔️ [MatchModule] Fixed Rectangular Arena - Center: (${centerX.toFixed(1)}, ${centerY.toFixed(1)}, ${centerZ.toFixed(1)}), Size: ${arenaWidth}x${arenaDepth}`,
-    );
 
     // Spawn match environment (4 walls forming a rectangle)
     this.walls = new MatchAreaWalls({
@@ -172,10 +165,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
     // Look at a point slightly above ground for better framing
     const arenaLookAt = new Vector3(centerX, 2, centerZ); // Look 2 units above ground
 
-    console.log(
-      `⚔️ [MatchModule] Camera transition - Anchor: (${cameraAnchorPos.x.toFixed(1)}, ${cameraAnchorPos.y.toFixed(1)}, ${cameraAnchorPos.z.toFixed(1)}), LookAt: (${arenaLookAt.x.toFixed(1)}, ${arenaLookAt.y.toFixed(1)}, ${arenaLookAt.z.toFixed(1)})`,
-    );
-
     // Disable mouse rotation and zoom immediately
     camera.controller.mouseRotationEnabled.value = false;
 
@@ -202,7 +191,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
 
         // Now freeze camera so it stays locked at this exact position
         camera.controller.freezeReactiveUpdates.value = true;
-        console.log('⚔️ [MatchModule] Camera locked at fixed position, looking at arena center');
       });
   }
 
@@ -216,7 +204,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
       return;
     }
 
-    console.log('⚔️ [MatchModule] Exiting match - destroying environment');
 
     // Remove from scene via GameObjectManager
     const gameObjects = this.context.getService('gameObjectsManager');
@@ -245,17 +232,14 @@ export class MatchModule extends SceneModule implements I_SceneModule {
     // Unfreeze camera reactive updates BEFORE starting transition
     // This allows the camera to smoothly follow the character again
     camera.controller.freezeReactiveUpdates.value = false;
-    console.log('⚔️ [MatchModule] Camera reactive updates unfrozen (follow player)');
 
     camera
       .changeTarget(character.controller.getPosition(), CAMERA_PRESET_OVERWORLD, 1000)
       .then(() => {
-        console.log('⚔️ [MatchModule] Camera transition to overworld complete');
       });
 
     // Re-enable mouse rotation and zoom
     camera.controller.mouseRotationEnabled.value = true;
-    console.log('⚔️ [MatchModule] Mouse rotation and zoom enabled');
 
     // Clear references
     this.walls = null;
@@ -268,7 +252,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
     if (this.stateChangeCallback && this.context) {
       const stateService = this.context.getService('state');
       stateService.unregister(this.stateChangeCallback);
-      console.log('⚔️ [MatchModule] Unregistered from state changes');
     }
 
     // Clean up any remaining objects

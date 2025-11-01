@@ -83,9 +83,6 @@ export class HoverGlowComponent extends GameComponent {
       },
     );
 
-    console.log(
-      `✨ [HoverGlowComponent] Registered hover glow for GameObject "${this.gameObject.id}"`,
-    );
   }
 
   destroy(): void {
@@ -94,6 +91,5 @@ export class HoverGlowComponent extends GameComponent {
       this.unregister();
     }
 
-    console.log(`✨ [HoverGlowComponent] Unregistered hover glow for GameObject "${this.gameObject.id}"`);
   }
 }
