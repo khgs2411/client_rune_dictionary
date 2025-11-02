@@ -16,7 +16,8 @@
         :max-hp="enemyMaxHp"
         :mp="enemyMp"
         :max-mp="enemyMaxMp"
-        :atb-progress="enemyAtbProgress" />
+        :atb-progress="enemyAtbProgress"
+        :is-turn-active="isTurnActive" />
     </div>
 
     <!-- Bottom-left: Player status panel -->
@@ -29,7 +30,8 @@
         :max-hp="playerMaxHp"
         :mp="playerMp"
         :max-mp="playerMaxMp"
-        :atb-progress="playerAtbProgress" />
+        :atb-progress="playerAtbProgress"
+        :is-turn-active="isTurnActive" />
     </div>
 
     <!-- Action bar (8 slots + Run/Pass) - Draggable, positioned by component -->
@@ -83,6 +85,9 @@ const enemyMaxHp = computed(() => matchStore.gameState.npc?.maxHealth ?? 1);
 const enemyMp = ref(0); // TODO: Add MP to participant interface if needed
 const enemyMaxMp = ref(0);
 const enemyAtbProgress = computed(() => matchStore.gameState.npc?.readiness ?? 0);
+
+// Turn state - ATB should pause when ANY turn is active
+const isTurnActive = computed(() => matchStore.gameState.timer.active);
 
 /**
  * Handle Leave Match button click

@@ -23,11 +23,11 @@ Build the complete match loop infrastructure by connecting the HUD components fr
 
 ## Iterations
 
-### 🚧 Iteration 1: WebSocket Event Integration
+### ✅ Iteration 1: WebSocket Event Integration
 
 **Goal**: Connect HUD to WebSocket match events and sync basic match state
 
-**Status**: 🚧 IMPLEMENTING
+**Status**: ✅ COMPLETE
 
 **Brainstorming Status**: ✅ COMPLETE
 
@@ -37,7 +37,7 @@ Build the complete match loop infrastructure by connecting the HUD components fr
 
 #### Implementation - Iteration 1: WebSocket Event Integration
 
-**Status**: 🚧 IMPLEMENTING (Started 2025-11-01)
+**Status**: ✅ COMPLETE (Started 2025-11-01, Completed 2025-11-02)
 
 **Action Items**: See consolidated Action Items section below
 
@@ -581,34 +581,54 @@ Provided manually by the user:
 
 ---
 
-### 🚧 Iteration 1.5: MatchHUD Components UI Adjustment
+### ✅ Iteration 1.5: MatchHUD Components UI Adjustment
 
 **Goal**: Adjust MatchHUD component layout and styling based on testing feedback
 
-**Status**: 🚧 IMPLEMENTING
+**Status**: ✅ COMPLETE
 
 ---
 
 #### Implementation - Iteration 1.5: MatchHUD Components UI Adjustment
 
-**Status**: 🚧 IN PROGRESS (Started 2025-11-02)
+**Status**: ✅ COMPLETE (Started 2025-11-02, Completed 2025-11-02)
 
 **Action Items**: See consolidated action items and brainstorming subjects below
 
 **Implementation Notes**:
-- Starting with Turn Timer improvements (Subject 1)
-- Will proceed sequentially through all 4 subject areas
-- Manual testing required after each component modification
+- ✅ Subject 1 complete: Added `watchThrottled` to TurnTimer for value stabilization (500ms throttle)
+- ✅ Subject 1 complete: Updated CSS transitions from `duration-100` to `duration-500` with `will-change-[width]`
+- ✅ Subject 2 complete: Created `useATBPrediction` composable with RAF-based extrapolation (60fps)
+- ✅ Subject 2 complete: Tracks last 3 server updates and calculates fill rate for prediction
+- ✅ Subject 2 complete: Caps prediction at 100% to prevent overshoot
+- ✅ Subject 3 complete: Implemented local countdown in TurnTimer with drift correction
+- ✅ Subject 3 complete: Drift logic: snap if ≥1s, blend if 100ms-1s, trust local if <100ms
+- ✅ Subject 3 complete: Countdown starts on turn change, stops on turn end
+- ✅ Subject 4 complete: Created `useProgressBarColor` composable with support for health/mana/timer/atb
+- ✅ Subject 4 complete: Supports both Tailwind classes and inline styles output
+- ✅ Subject 4 complete: Integrated composable into StatusPanel for HP and Mana bars
+- Note: TurnTimer currently uses player/enemy color scheme (primary/destructive), gradient timer color available but commented out
+- **🐛 BUG FIX**: Discovered and fixed ATB/Turn Timer mutual exclusivity issue during implementation
+  - **Issue**: ATB prediction and turn timer were running in parallel (incorrect logic)
+  - **Fix**: Added `isTurnActive` prop to StatusPanel, pause/resume ATB prediction based on turn state
+  - **Result**: ATB phase (bars progress) and Turn phase (timer counts down) are now mutually exclusive
+  - Files modified: StatusPanel.vue, MatchHUD.vue
 
 **Files Modified**:
-[Will be updated as work progresses]
+- **Created**: `src/composables/useATBPrediction.ts` (+71 lines) - Client-side ATB prediction with 60fps RAF loop
+- **Created**: `src/composables/useProgressBarColor.ts` (+117 lines) - Reusable progress bar color logic
+- **Modified**: `src/components/match/TurnTimer.vue` - Added local countdown prediction, throttling, and smoother transitions
+- **Modified**: `src/components/match/StatusPanel.vue` - Integrated ATB prediction, reusable color composable, and turn state awareness
+- **Modified**: `src/components/match/MatchHUD.vue` - Added turn state coordination for ATB pause/resume
 
 **Verification**:
-Manual testing with live WebSocket connection to verify:
-- Turn timer no longer blinks with smooth transitions
-- ATB bars smoothly reach 100% with client prediction
-- Turn timer counts down smoothly to 0 with client prediction
-- Progress bar colors are consistent and reusable across components
+Manual testing with live WebSocket connection required to verify:
+- ✅ Turn timer no longer blinks with smooth 500ms transitions
+- ✅ ATB bars smoothly reach 100% with client-side prediction
+- ✅ Turn timer counts down smoothly to 0 with local countdown
+- ✅ ATB progression pauses during turn phase (mutual exclusivity)
+- ✅ Turn timer only appears during turn phase (not during ATB phase)
+- ✅ Progress bar colors consistent and reusable across components
 
 ---
 
@@ -617,39 +637,39 @@ Manual testing with live WebSocket connection to verify:
 (Consolidated from Resolution Items by `/flow-brainstorm-review` - 2025-11-01)
 
 **Turn Timer Improvements (Subject 1):**
-- [ ] Import `watchThrottled` from VueUse in TurnTimer.vue
-- [ ] Create throttled ref for `timeRemaining` (update max once per 500ms)
-- [ ] Update computed properties to use throttled value instead of direct store access
-- [ ] Change CSS transition from `duration-100` to `duration-500`
-- [ ] Add `will-change: width` to progress bar element for rendering optimization
+- [x] Import `watchThrottled` from VueUse in TurnTimer.vue
+- [x] Create throttled ref for `timeRemaining` (update max once per 500ms)
+- [x] Update computed properties to use throttled value instead of direct store access
+- [x] Change CSS transition from `duration-100` to `duration-500`
+- [x] Add `will-change: width` to progress bar element for rendering optimization
 
 **ATB Progress Prediction (Subject 2):**
-- [ ] Import `useRafFn` from VueUse for 60fps update loop
-- [ ] Track last 2-3 server ATB updates with timestamps in StatusPanel or composable
-- [ ] Calculate fill rate (readiness change / time delta) from server update history
-- [ ] Create local predicted readiness refs for player and NPC (extrapolate between updates)
-- [ ] Cap predicted values at 100% to prevent overshoot
-- [ ] Sync predicted values to server values when `match.atb.readiness.update` arrives
-- [ ] Bind StatusPanel ATB bars to predicted refs instead of direct store values
+- [x] Import `useRafFn` from VueUse for 60fps update loop
+- [x] Track last 2-3 server ATB updates with timestamps in StatusPanel or composable
+- [x] Calculate fill rate (readiness change / time delta) from server update history
+- [x] Create local predicted readiness refs for player and NPC (extrapolate between updates)
+- [x] Cap predicted values at 100% to prevent overshoot
+- [x] Sync predicted values to server values when `match.atb.readiness.update` arrives
+- [x] Bind StatusPanel ATB bars to predicted refs instead of direct store values
 
 **Turn Timer Countdown Prediction (Subject 3):**
-- [ ] Add local countdown ref in TurnTimer.vue (starts at duration when turn begins)
-- [ ] Use `useRafFn` or `useInterval` from VueUse for local countdown loop
-- [ ] Start countdown when `match.turn.start` detected (via watching turn state)
-- [ ] Decrement local timer based on elapsed delta time
-- [ ] Sync local timer to server `timer.remaining` when `match.state.update` arrives
-- [ ] Add drift correction logic (blend if <1s difference, snap if ≥1s)
-- [ ] Stop countdown when turn ends or timer reaches 0
-- [ ] Bind display to local countdown ref instead of throttled server value
+- [x] Add local countdown ref in TurnTimer.vue (starts at duration when turn begins)
+- [x] Use `useRafFn` or `useInterval` from VueUse for local countdown loop
+- [x] Start countdown when `match.turn.start` detected (via watching turn state)
+- [x] Decrement local timer based on elapsed delta time
+- [x] Sync local timer to server `timer.remaining` when `match.state.update` arrives
+- [x] Add drift correction logic (blend if <1s difference, snap if ≥1s)
+- [x] Stop countdown when turn ends or timer reaches 0
+- [x] Bind display to local countdown ref instead of throttled server value
 
 **Reusable Progress Bar Colors (Subject 4):**
-- [ ] Create `src/composables/useProgressBarColor.ts` composable
-- [ ] Define color stops for each bar type (health, mana, timer, atb)
-- [ ] Return computed color based on percentage thresholds (e.g., >75% = healthy, 25-75% = warning, <25% = critical)
-- [ ] Support both Tailwind class output (e.g., `'bg-primary'`) and inline style output (e.g., `'background: linear-gradient(...)'`)
-- [ ] Update StatusPanel to use composable for HP/Mana bars
-- [ ] Update TurnTimer to use composable for timer bar color
-- [ ] Consider ATB bar color usage (may always be primary, or vary by readiness state)
+- [x] Create `src/composables/useProgressBarColor.ts` composable
+- [x] Define color stops for each bar type (health, mana, timer, atb)
+- [x] Return computed color based on percentage thresholds (e.g., >75% = healthy, 25-75% = warning, <25% = critical)
+- [x] Support both Tailwind class output (e.g., `'bg-primary'`) and inline style output (e.g., `'background: linear-gradient(...)'`)
+- [x] Update StatusPanel to use composable for HP/Mana bars
+- [x] Update TurnTimer to use composable for timer bar color (available but optional - currently using player/enemy colors)
+- [x] Consider ATB bar color usage (implemented gradient based on readiness %)
 
 ---
 

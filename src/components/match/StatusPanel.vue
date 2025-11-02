@@ -32,9 +32,10 @@
         <span class="text-xs font-mono text-foreground"> {{ mp }}/{{ maxMp }} </span>
       </div>
       <div class="relative w-full h-2 sm:h-3 bg-muted rounded-full overflow-hidden">
-        <!-- MP fill with blue gradient -->
+        <!-- MP fill with blue gradient from composable -->
         <div
-          class="absolute left-0 top-0 h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-300"
+          class="absolute left-0 top-0 h-full transition-all duration-300"
+          :class="mpGradientClass"
           :style="{ width: `${mpPercentage}%` }"></div>
       </div>
     </div>
@@ -44,24 +45,26 @@
       <div class="flex items-center justify-between">
         <span class="text-xs text-muted-foreground">ATB</span>
         <span class="text-xs font-mono text-muted-foreground">
-          {{ Math.round(atbProgress) }}%
+          {{ Math.round(predictedATB) }}%
         </span>
       </div>
       <div class="relative w-full h-2 bg-muted rounded-full overflow-hidden">
-        <!-- ATB fill progress (0-100%) -->
+        <!-- ATB fill progress (0-100%) with client prediction -->
         <div
           :class="[
             'absolute left-0 top-0 h-full transition-all duration-200',
             entityType === 'player' ? 'bg-primary' : 'bg-destructive',
           ]"
-          :style="{ width: `${atbProgress}%` }"></div>
+          :style="{ width: `${predictedATB}%` }"></div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
+import { useATBPrediction } from '@/composables/useATBPrediction';
+import { useProgressBarColor } from '@/composables/useProgressBarColor';
 
 // Props
 const props = defineProps<{
@@ -72,31 +75,39 @@ const props = defineProps<{
   maxHp: number;
   mp: number;
   maxMp: number;
-  atbProgress: number; // 0-100%
+  atbProgress: number; // 0-100% (server value)
+  isTurnActive: boolean; // True when ANY turn is active (ATB should pause)
 }>();
 
-// Computed values
-const hpPercentage = computed(() => {
-  return (props.hp / props.maxHp) * 100;
-});
+// ATB client-side prediction for smooth 100% fill
+const { predictedReadiness, pause: pauseATB, resume: resumeATB } = useATBPrediction(() => props.atbProgress);
 
-const mpPercentage = computed(() => {
-  return (props.mp / props.maxMp) * 100;
-});
+// Pause ATB prediction when turn is active, resume when ATB phase
+watch(
+  () => props.isTurnActive,
+  (turnActive) => {
+    if (turnActive) {
+      pauseATB(); // Turn phase - stop ATB progression
+    } else {
+      resumeATB(); // ATB phase - resume progression
+    }
+  },
+  { immediate: true },
+);
 
-// HP bar color gradient (green → yellow → red)
-const hpGradientClass = computed(() => {
-  const percentage = hpPercentage.value;
+// Use predicted ATB value for display
+const predictedATB = computed(() => predictedReadiness.value);
 
-  if (percentage > 66) {
-    // High HP: green gradient
-    return 'bg-gradient-to-r from-green-400 to-green-600';
-  } else if (percentage > 33) {
-    // Medium HP: yellow gradient
-    return 'bg-gradient-to-r from-yellow-400 to-yellow-600';
-  } else {
-    // Low HP: red gradient
-    return 'bg-gradient-to-r from-red-400 to-red-600';
-  }
-});
+// Progress bar colors using composable
+const { colorClass: hpGradientClass, percentage: hpPercentage } = useProgressBarColor(
+  () => props.hp,
+  () => props.maxHp,
+  'health',
+);
+
+const { colorClass: mpGradientClass, percentage: mpPercentage } = useProgressBarColor(
+  () => props.mp,
+  () => props.maxMp,
+  'mana',
+);
 </script>
