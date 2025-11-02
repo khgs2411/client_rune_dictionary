@@ -585,7 +585,30 @@ Provided manually by the user:
 
 **Goal**: Adjust MatchHUD component layout and styling based on testing feedback
 
-**Status**: 🚧 BRAINSTORMING
+**Status**: 🚧 IMPLEMENTING
+
+---
+
+#### Implementation - Iteration 1.5: MatchHUD Components UI Adjustment
+
+**Status**: 🚧 IN PROGRESS (Started 2025-11-02)
+
+**Action Items**: See consolidated action items and brainstorming subjects below
+
+**Implementation Notes**:
+- Starting with Turn Timer improvements (Subject 1)
+- Will proceed sequentially through all 4 subject areas
+- Manual testing required after each component modification
+
+**Files Modified**:
+[Will be updated as work progresses]
+
+**Verification**:
+Manual testing with live WebSocket connection to verify:
+- Turn timer no longer blinks with smooth transitions
+- ATB bars smoothly reach 100% with client prediction
+- Turn timer counts down smoothly to 0 with client prediction
+- Progress bar colors are consistent and reusable across components
 
 ---
 

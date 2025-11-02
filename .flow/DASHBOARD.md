@@ -1,6 +1,6 @@
 # Combat System Reimplementation - Dashboard
 
-**Last Updated**: 2025-11-01 18:15
+**Last Updated**: 2025-11-02
 
 **Project**: Vue 3 + Three.js combat system with match mode, camera controls, and arena boundaries
 **Status**: Phase 2 in progress (this plan is migrated from original plan.md file and is starting from phase 2 given phase 1 is complete)
@@ -12,8 +12,8 @@
 
 - **Phase**: [Phase 2 - Combat System Reimplementation](phase-2/)
 - **Task**: [Task 2 - WebSocket Match Events & Match Loop System](phase-2/task-2.md)
-- **Iteration**: [Iteration 1 - WebSocket Event Integration](phase-2/task-2.md#iteration-1-websocket-event-integration) 🚧 IMPLEMENTING
-- **Focus**: Creating useMatchState composable and event routing architecture
+- **Iteration**: [Iteration 1.5 - MatchHUD Components UI Adjustment](phase-2/task-2.md#iteration-15-matchhud-components-ui-adjustment) 🚧 IMPLEMENTING
+- **Focus**: Fix visual issues and implement client-side prediction for smooth UI updates (turn timer, ATB progress, reusable color logic)
 
 ---
 
@@ -32,8 +32,8 @@
   - ❌ Iteration 2: Character Status Display (CANCELLED - consolidated into Iteration 1)
   - ❌ Iteration 3: Combat Actions UI (CANCELLED - consolidated into Iteration 1)
 - 🚧 **Task 2**: WebSocket Match Events & Match Loop System (0/5 iterations) ← **CURRENT**
-  - 🚧 Iteration 1: WebSocket Event Integration (IMPLEMENTING) ← **ACTIVE**
-  - ⏳ Iteration 1.5: MatchHUD Components UI Adjustment
+  - 🚧 Iteration 1: WebSocket Event Integration (IMPLEMENTING)
+  - 🚧 Iteration 1.5: MatchHUD Components UI Adjustment (IMPLEMENTING) ← **ACTIVE**
   - ⏳ Iteration 2: Turn System Implementation
   - ⏳ Iteration 3: ATB System Implementation
   - ⏳ Iteration 4: Action System Implementation
