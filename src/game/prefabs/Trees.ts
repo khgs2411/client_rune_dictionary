@@ -51,10 +51,11 @@ export class Trees {
    * Returns [trunks, leaves]
    */
   static create(config: I_TreesConfig): [GameObject, GameObject] {
-    const trunkHeight = config.trunkHeight ?? 1.5;
-    const trunkRadius = config.trunkRadius ?? 0.15;
-    const leavesHeight = config.leavesHeight ?? 1.5;
-    const leavesRadius = config.leavesRadius ?? 0.8;
+    const SIZE_MULTIPLAYER = 8.0;
+    const trunkHeight = config.trunkHeight ?? (1.5 * SIZE_MULTIPLAYER);
+    const trunkRadius = config.trunkRadius ?? (0.15 * SIZE_MULTIPLAYER);
+    const leavesHeight = config.leavesHeight ?? (1.5 * SIZE_MULTIPLAYER);
+    const leavesRadius = config.leavesRadius ?? (0.8 * SIZE_MULTIPLAYER);
     const trunkColor = config.trunkColor ?? 0x654321;
     const leavesColor = config.leavesColor ?? 0x228b22;
     const enablePhysics = config.enablePhysics ?? true;

@@ -190,11 +190,11 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     // Trees (using prefab)
     const [treeTrunks, treeLeaves] = Trees.create({
       positions: [
-        { x: 10, y: 0, z: 0 },
+        { x: 8, y: 0, z: 3 },
         { x: 12, y: 0, z: 2 },
-        { x: 14, y: 0, z: -1 },
-        { x: 10, y: 0, z: -3 },
-        { x: 13, y: 0, z: -2 },
+        { x: 16, y: 0, z: -6 },
+        { x: 8, y: 0, z: -5 },
+        { x: 15, y: 0, z: -2 },
       ],
     });
 

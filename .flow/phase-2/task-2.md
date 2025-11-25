@@ -819,7 +819,6 @@ Manual testing with live WebSocket connection required to verify:
 
 - [ ] [TBD] - Define during brainstorming
 - [ ] Implement turn start/end events
-- [ ] Start 10-second countdown when turn begins
 - [ ] Update TurnTimer component with countdown
 - [ ] Handle turn timeout (auto-pass or default action)
 - [ ] Disable/enable ActionBar based on turn state

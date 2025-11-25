@@ -3,8 +3,32 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Important rules and guidelines
-- **This project leverages 'flow framework'**: This project uses the flow framework for project management. Follow flow conventions for tasks, iterations, and brainstorming. ALWAYS try to use the agent skills where possible as a first priority for the best results. Alternatively, suggest using the slash commands to interact with the flow system.
+**This project uses the Flow framework for project management.**
 
+**CRITICAL DELEGATION RULE**: You MUST delegate ALL Flow-related operations to the Flow sub-agent.
+
+**HOW TO DELEGATE TO FLOW:**
+```
+Task tool → subagent_type: "flow" → description + prompt
+```
+
+**DO NOT use these (they execute in YOUR context, not Flow's):**
+- ❌ Skill tool with flow-* skills
+- ❌ SlashCommand tool with /flow-* commands
+- ❌ Reading .flow/ files directly
+- ❌ Task tool with subagent_type: "general-purpose"
+
+**ALWAYS delegate when the user**:
+- Asks about status/progress: "what am I working on?", "what's next?", "show my status"
+- Manages work: "add a task", "create a phase", "start iteration", "mark as complete"
+- Plans features: "I want to build X", "let's plan Y", "add feature Z"
+- Updates architecture: "update PLAN.md", "add a guideline", "change the approach"
+- Asks methodology questions: "what are iterations?", "how do phases work?"
+- Mentions ANY of: tasks, phases, iterations, DASHBOARD, PLAN, brainstorm, .flow/ files, /flow-* commands
+
+**ROLE SEPARATION:**
+- Flow agent = PROJECT MANAGER (workflow, planning, status)
+- You = ENGINEER (code implementation, debugging, git operations)
 
 ## Development Commands
 
