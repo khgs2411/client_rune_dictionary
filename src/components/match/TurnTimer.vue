@@ -1,7 +1,7 @@
 <template>
   <!-- Turn Timer - Top-center shared element -->
   <div
-    v-if="isActiveTurn"
+    v-if="isVisible"
     class="bg-card/90 backdrop-blur-sm rounded-lg border border-border shadow-lg px-6 py-3 min-w-[280px] sm:min-w-[320px]">
     <!-- Turn indicator -->
     <div class="text-center mb-2">
@@ -47,34 +47,25 @@ import { computed, ref, watch } from 'vue';
 
 const matchStore = useMatchStore();
 
-// Timer state from gameState composable
-const isActiveTurn = computed(() => matchStore.match.timer.active);
+// UI controls from composable (granular controls)
+const isVisible = computed(() => matchStore.match.turnTimer.visible);
+const isRunning = computed(() => matchStore.match.turnTimer.running);
 const isPlayerTurn = computed(() => matchStore.match.turn.isPlayerTurn);
 
 // Local countdown prediction
 const localCountdown = ref(0); // in milliseconds
-const lastUpdateTime = ref(0);
 
 const maxTurnTime = computed(() => matchStore.match.timer.duration ?? 10000); // in ms
 
-// Start countdown when turn starts
+// Start countdown when turn timer becomes visible
 watch(
-  () => matchStore.match.turn.currentEntityId,
-  (newEntityId, oldEntityId) => {
-    if (newEntityId && newEntityId !== oldEntityId) {
+  () => matchStore.match.turnTimer.visible,
+  (visible) => {
+    if (visible) {
       // Turn started - initialize local countdown
       localCountdown.value = maxTurnTime.value;
-      lastUpdateTime.value = performance.now();
-    }
-  },
-);
-
-// Watch for timer active state
-watch(
-  () => matchStore.match.timer.active,
-  (active) => {
-    if (!active) {
-      // Turn ended - stop countdown
+    } else {
+      // Turn ended - reset countdown
       localCountdown.value = 0;
     }
   },
@@ -84,7 +75,7 @@ watch(
 watch(
   () => matchStore.match.timer.remaining,
   (serverRemaining) => {
-    if (serverRemaining != null && isActiveTurn.value) {
+    if (serverRemaining != null && isRunning.value) {
       const diff = Math.abs(localCountdown.value - serverRemaining);
 
       if (diff >= 1000) {
@@ -99,9 +90,9 @@ watch(
   },
 );
 
-// 60fps countdown loop
+// 60fps countdown loop - only runs when isRunning is true
 const { pause, resume } = useRafFn(({ delta }) => {
-  if (isActiveTurn.value && localCountdown.value > 0) {
+  if (isRunning.value && localCountdown.value > 0) {
     // Decrement countdown based on delta time
     localCountdown.value -= delta;
 
@@ -112,8 +103,14 @@ const { pause, resume } = useRafFn(({ delta }) => {
   }
 });
 
-// Start RAF loop
-resume();
+// Watch running state to pause/resume RAF loop
+watch(isRunning, (running) => {
+  if (running) {
+    resume();
+  } else {
+    pause();
+  }
+}, { immediate: true });
 
 // Computed values using local countdown
 const timeRemainingSeconds = computed(() => Math.ceil(localCountdown.value / 1000));

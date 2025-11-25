@@ -9,13 +9,13 @@
     <!-- Top-right: Enemy status panel -->
     <div class="absolute top-0 right-4 mt-16 pointer-events-auto">
       <StatusPanel entity-type="enemy" :name="enemyName" :level="enemyLevel" :hp="enemyHp" :max-hp="enemyMaxHp"
-        :mp="enemyMp" :max-mp="enemyMaxMp" :atb-progress="enemyAtbProgress" :is-turn-active="isTurnActive" />
+        :mp="enemyMp" :max-mp="enemyMaxMp" :atb-progress="enemyAtbProgress" :is-atb-running="isAtbRunning" />
     </div>
 
     <!-- Bottom-left: Player status panel -->
     <div class="absolute bottom-0 left-4 mb-16 pointer-events-auto">
       <StatusPanel entity-type="player" :name="playerName" :level="playerLevel" :hp="playerHp" :max-hp="playerMaxHp"
-        :mp="playerMp" :max-mp="playerMaxMp" :atb-progress="playerAtbProgress" :is-turn-active="isTurnActive" />
+        :mp="playerMp" :max-mp="playerMaxMp" :atb-progress="playerAtbProgress" :is-atb-running="isAtbRunning" />
     </div>
 
     <!-- Action bar (8 slots + Run/Pass) - Draggable, positioned by component -->
@@ -69,8 +69,8 @@ import TurnTimer from './TurnTimer.vue';
   const enemyMaxMp = ref(0);
   const enemyAtbProgress = computed(() => matchStore.match.npc?.readiness ?? 0);
 
-  // Turn state - ATB should pause when ANY turn is active
-  const isTurnActive = computed(() => matchStore.match.timer.active);
+  // ATB running state from granular controls
+  const isAtbRunning = computed(() => matchStore.match.atb.running);
 
   /**
    * Handle Leave Match button click

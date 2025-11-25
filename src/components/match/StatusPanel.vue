@@ -76,20 +76,20 @@ const props = defineProps<{
   mp: number;
   maxMp: number;
   atbProgress: number; // 0-100% (server value)
-  isTurnActive: boolean; // True when ANY turn is active (ATB should pause)
+  isAtbRunning: boolean; // Controls ATB prediction pause/resume
 }>();
 
 // ATB client-side prediction for smooth 100% fill
 const { predictedReadiness, pause: pauseATB, resume: resumeATB } = useATBPrediction(() => props.atbProgress);
 
-// Pause ATB prediction when turn is active, resume when ATB phase
+// Pause/resume ATB prediction based on isAtbRunning prop
 watch(
-  () => props.isTurnActive,
-  (turnActive) => {
-    if (turnActive) {
-      pauseATB(); // Turn phase - stop ATB progression
-    } else {
+  () => props.isAtbRunning,
+  (running) => {
+    if (running) {
       resumeATB(); // ATB phase - resume progression
+    } else {
+      pauseATB(); // Turn phase - stop ATB progression
     }
   },
   { immediate: true },

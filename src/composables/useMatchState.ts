@@ -42,13 +42,14 @@ export function useMatchState() {
     isPlayerTurn: false,
   });
 
-  // ATB state
-  const atb = ref<I_ATBState>({
+  // ATB state (server data + UI control)
+  const atb = ref<I_ATBState & { running: boolean }>({
     playerReadiness: 0,
     npcReadiness: 0,
+    running: true, // Controls ATB bar progression
   });
 
-  // Timer state
+  // Timer state (server data)
   const timer = ref<I_TimerConfig>({
     duration: 0,
     warningThreshold: 80,
@@ -57,6 +58,12 @@ export function useMatchState() {
     remaining: 0,
     elapsed: 0,
     percentage: 0,
+  });
+
+  // Turn Timer UI controls (separate from server timer state)
+  const turnTimer = ref({
+    visible: false, // Controls TurnTimer component visibility
+    running: false, // Controls TurnTimer countdown progression
   });
 
   /**
@@ -130,6 +137,11 @@ export function useMatchState() {
     turn.value.currentEntityId = entityId;
     turn.value.isPlayerTurn = player.value ? entityId === player.value.entityId : false;
 
+    // UI controls: show turn timer, start countdown, pause ATB
+    turnTimer.value.visible = true;
+    turnTimer.value.running = true;
+    atb.value.running = false;
+
     console.log(`[useMatchState] Turn ${turnNumber} started for ${entityId}`);
   }
 
@@ -140,8 +152,14 @@ export function useMatchState() {
   function handleTurnEnd(event: MatchTurnEndEvent): void {
     const { entityId, turnNumber } = event.content;
     console.log(`[useMatchState] Turn ${turnNumber} ended for ${entityId}`);
+
+    // Server timer state
     timer.value.active = false;
-    // Turn state will be updated by next match.turn.start event
+
+    // UI controls: hide turn timer, stop countdown, resume ATB
+    turnTimer.value.visible = false;
+    turnTimer.value.running = false;
+    atb.value.running = true;
   }
 
   /**
@@ -218,6 +236,7 @@ export function useMatchState() {
     atb.value = {
       playerReadiness: 0,
       npcReadiness: 0,
+      running: true, // ATB starts running
     };
 
     timer.value = {
@@ -228,6 +247,11 @@ export function useMatchState() {
       remaining: 0,
       elapsed: 0,
       percentage: 0,
+    };
+
+    turnTimer.value = {
+      visible: false, // Turn timer hidden until first turn
+      running: false,
     };
 
     console.log('[useMatchState] Match state initialized', {
@@ -253,6 +277,7 @@ export function useMatchState() {
     atb.value = {
       playerReadiness: 0,
       npcReadiness: 0,
+      running: false, // Stop ATB on reset
     };
 
     timer.value = {
@@ -265,6 +290,11 @@ export function useMatchState() {
       percentage: 0,
     };
 
+    turnTimer.value = {
+      visible: false,
+      running: false,
+    };
+
     console.log('[useMatchState] State reset');
   }
 
@@ -275,6 +305,7 @@ export function useMatchState() {
     turn,
     atb,
     timer,
+    turnTimer,
 
     // Event handlers
     handleMatchCreated,
