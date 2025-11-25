@@ -22,6 +22,9 @@ import { MultiplayerModule } from '@/game/modules/networking/MultiplayerModule';
 import { Fireball } from '@/game/prefabs/Fireball';
 import { Ground } from '@/game/prefabs/Ground';
 import { Trees } from '@/game/prefabs/Trees';
+import { House } from '@/game/prefabs/environment/House';
+import { Path } from '@/game/prefabs/environment/Path';
+import { Rocks } from '@/game/prefabs/environment/Rock';
 import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
 import { TrainingDummy } from '@/game/prefabs/npc/TrainingDummy';
 
@@ -150,10 +153,13 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
   private addEnvironmentObjects() {
     const gom = this.getService('gameObjectsManager');
 
+    // ========================================
+    // INTERACTIVE TEST OBJECT
+    // ========================================
     const interactiveBox = new GameObject({ id: 'interactive-box' })
       .addComponent(new TransformComponent({ position: [5, 1, 5] }))
       .addComponent(
-        new GeometryComponent({ type: 'box', params: { x: 3, y: 2, z: 1.5 } /* [3, 1.5, 1.5] */ }),
+        new GeometryComponent({ type: 'box', params: { x: 3, y: 2, z: 1.5 } }),
       )
       .addComponent(new MaterialComponent({ color: 0xff1493, roughness: 0.8, metalness: 0.2 }))
       .addComponent(new MeshComponent())
@@ -182,40 +188,172 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
       .addComponent(
         new DragComponent({
           lockAxis: ['y'],
-          // snapToGrid omitted - will use live gameConfig.editor.snapToGrid value
           onDragEnd: (pos) => console.log('✅ Interactive box dragged to:', pos),
         }),
       );
 
-    // Trees (using prefab)
-    const [treeTrunks, treeLeaves] = Trees.create({
-      positions: [
-        { x: 8, y: 0, z: 3 },
-        { x: 12, y: 0, z: 2 },
-        { x: 16, y: 0, z: -6 },
-        { x: 8, y: 0, z: -5 },
-        { x: 15, y: 0, z: -2 },
-      ],
-    });
+    gom.register(interactiveBox);
 
-    // Bushes (instanced, native components)
+    // ========================================
+    // SMALL TOWN (Toon Shading + Vibrant)
+    // ========================================
+
+    // Town center house
+    const [townHouseWalls, townHouseRoof] = House.create({
+      id: 'town-house-1',
+      position: [30, 0, 0],
+      useToonShading: true,
+      vibrant: true,
+      wallColor: 0xf5deb3, // Wheat
+      roofColor: 0x8b0000, // Dark red
+    });
+    gom.register(townHouseWalls);
+    gom.register(townHouseRoof);
+
+    // Second house
+    const [house2Walls, house2Roof] = House.create({
+      id: 'town-house-2',
+      position: [45, 0, -10],
+      rotation: [0, Math.PI / 6, 0],
+      useToonShading: true,
+      vibrant: true,
+      wallColor: 0xffe4c4, // Bisque
+      roofColor: 0x2f4f4f, // Dark slate gray
+    });
+    gom.register(house2Walls);
+    gom.register(house2Roof);
+
+    // Third house
+    const [house3Walls, house3Roof] = House.create({
+      id: 'town-house-3',
+      position: [50, 0, 15],
+      rotation: [0, -Math.PI / 4, 0],
+      scale: 0.8,
+      useToonShading: true,
+      vibrant: true,
+      wallColor: 0xfaebd7, // Antique white
+      roofColor: 0x556b2f, // Dark olive green
+    });
+    gom.register(house3Walls);
+    gom.register(house3Roof);
+
+    // Town paths
+    const townPaths = Path.createStraight({
+      id: 'town-main-path',
+      start: [0, 0],
+      end: [30, 0],
+      width: 5,
+      useToonShading: true,
+      color: 0xd2b48c, // Tan
+    });
+    townPaths.forEach((segment) => gom.register(segment));
+
+    // Path to second house
+    const path2 = Path.createStraight({
+      id: 'town-house2-path',
+      start: [30, 0],
+      end: [45, -10],
+      width: 4,
+      useToonShading: true,
+      color: 0xd2b48c,
+    });
+    path2.forEach((segment) => gom.register(segment));
+
+    // ========================================
+    // FOREST (Toon Shading + Vibrant)
+    // ========================================
+
+    // Dense forest area (negative X side)
+    const [forestTrunks, forestLeaves] = Trees.create({
+      id: 'forest-trees',
+      positions: [
+        // Forest cluster 1
+        { x: -25, y: 0, z: 10 },
+        { x: -30, y: 0, z: 8 },
+        { x: -28, y: 0, z: 15 },
+        { x: -35, y: 0, z: 12 },
+        { x: -32, y: 0, z: 5 },
+        // Forest cluster 2
+        { x: -40, y: 0, z: -5 },
+        { x: -45, y: 0, z: -8 },
+        { x: -42, y: 0, z: 0 },
+        { x: -38, y: 0, z: -12 },
+        { x: -50, y: 0, z: -3 },
+        // Scattered trees
+        { x: -20, y: 0, z: -15 },
+        { x: -55, y: 0, z: 10 },
+        { x: -48, y: 0, z: 18 },
+      ],
+      useToonShading: true,
+      vibrant: true,
+      leavesColor: 0x228b22, // Forest green
+      trunkColor: 0x8b4513, // Saddle brown
+    });
+    gom.register(forestTrunks);
+    gom.register(forestLeaves);
+
+    // Trees near town (sparser)
+    const [townTrunks, townLeaves] = Trees.create({
+      id: 'town-trees',
+      positions: [
+        { x: 20, y: 0, z: 20 },
+        { x: 55, y: 0, z: 25 },
+        { x: 60, y: 0, z: -5 },
+        { x: 25, y: 0, z: -20 },
+      ],
+      useToonShading: true,
+      vibrant: true,
+      leavesColor: 0x32cd32, // Lime green (variety)
+    });
+    gom.register(townTrunks);
+    gom.register(townLeaves);
+
+    // ========================================
+    // ROCKS (scattered around)
+    // ========================================
+
+    const rocks = Rocks.create({
+      positions: [
+        // Near forest
+        { x: -22, y: 0, z: 5, scale: 1.2 },
+        { x: -35, y: 0, z: -15, scale: 0.8 },
+        { x: -48, y: 0, z: 8, scale: 1.5 },
+        // Near town
+        { x: 35, y: 0, z: 10, scale: 0.6 },
+        { x: 52, y: 0, z: -15, scale: 1.0 },
+        // Random scatter
+        { x: 10, y: 0, z: -25, scale: 0.9 },
+        { x: -10, y: 0, z: 25, scale: 1.1 },
+      ],
+      useToonShading: true,
+      vibrant: true,
+      color: 0x696969, // Dim gray
+    });
+    gom.register(rocks);
+
+    // ========================================
+    // BUSHES (using instanced mesh)
+    // ========================================
     const bushes = new GameObject({ id: 'bushes' })
-      .addComponent(new GeometryComponent({ type: 'sphere', params: [0.4, 8, 8] }))
-      .addComponent(new MaterialComponent({ color: 0x2d5016, roughness: 1.0 }))
+      .addComponent(new GeometryComponent({ type: 'sphere', params: [1.5, 6, 6] }))
+      .addComponent(new MaterialComponent({ color: 0x228b22, roughness: 1.0 }))
       .addComponent(
         new InstancedMeshComponent({
           instances: [
-            { position: [8, 0.3, 1] },
-            { position: [11, 0.3, -1] },
-            { position: [15, 0.3, 0] },
-            { position: [9, 0.3, -4] },
+            // Near forest
+            { position: [-26, 0.8, 6] },
+            { position: [-33, 0.8, 10] },
+            { position: [-41, 0.8, -2] },
+            // Near town
+            { position: [28, 0.8, 5] },
+            { position: [48, 0.8, -8] },
+            { position: [38, 0.8, 18] },
+            // Near spawn
+            { position: [8, 0.8, 8] },
+            { position: [-5, 0.8, -8] },
           ],
         }),
       );
-
-    gom.register(interactiveBox);
-    gom.register(treeTrunks);
-    gom.register(treeLeaves);
     gom.register(bushes);
   }
 

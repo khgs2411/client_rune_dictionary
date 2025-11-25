@@ -5,6 +5,7 @@ import {
   InstancedMeshComponent,
 } from '../components/rendering/InstancedMeshComponent';
 import { MaterialComponent } from '../components/rendering/MaterialComponent';
+import { ToonMaterialComponent } from '../components/rendering/ToonMaterialComponent';
 import { GameObject } from '../GameObject';
 
 export interface I_TreePosition {
@@ -14,6 +15,7 @@ export interface I_TreePosition {
 }
 
 export interface I_TreesConfig {
+  id?: string; // Base ID for tree GameObjects (default: 'trees')
   positions: I_TreePosition[]; // Base positions for trees
   trunkHeight?: number; // Height of trunk (default: 1.5)
   trunkRadius?: number; // Radius of trunk (default: 0.15-0.2)
@@ -22,6 +24,8 @@ export interface I_TreesConfig {
   trunkColor?: number; // Trunk color (default: 0x654321 - brown)
   leavesColor?: number; // Leaves color (default: 0x228b22 - green)
   enablePhysics?: boolean; // Enable physics for trunks (default: true)
+  useToonShading?: boolean; // Use cel-shaded materials (default: false)
+  vibrant?: boolean; // Boost color saturation for Genshin-style vibrancy (default: false)
 }
 
 /**
@@ -51,14 +55,17 @@ export class Trees {
    * Returns [trunks, leaves]
    */
   static create(config: I_TreesConfig): [GameObject, GameObject] {
-    const SIZE_MULTIPLAYER = 8.0;
-    const trunkHeight = config.trunkHeight ?? (1.5 * SIZE_MULTIPLAYER);
-    const trunkRadius = config.trunkRadius ?? (0.15 * SIZE_MULTIPLAYER);
-    const leavesHeight = config.leavesHeight ?? (1.5 * SIZE_MULTIPLAYER);
-    const leavesRadius = config.leavesRadius ?? (0.8 * SIZE_MULTIPLAYER);
-    const trunkColor = config.trunkColor ?? 0x654321;
-    const leavesColor = config.leavesColor ?? 0x228b22;
+    const id = config.id ?? 'trees';
+    const SIZE_MULTIPLIER = 8.0;
+    const trunkHeight = config.trunkHeight ?? 1.5 * SIZE_MULTIPLIER;
+    const trunkRadius = config.trunkRadius ?? 0.15 * SIZE_MULTIPLIER;
+    const leavesHeight = config.leavesHeight ?? 1.5 * SIZE_MULTIPLIER;
+    const leavesRadius = config.leavesRadius ?? 0.8 * SIZE_MULTIPLIER;
+    const trunkColor = config.trunkColor ?? 0x8b5a2b; // Warmer brown
+    const leavesColor = config.leavesColor ?? 0x2e8b57; // Sea green (vibrant)
     const enablePhysics = config.enablePhysics ?? true;
+    const useToonShading = config.useToonShading ?? false;
+    const vibrant = config.vibrant ?? false;
 
     // Create trunk instances
     const trunkInstances: I_InstanceTransform[] = config.positions.map((pos) => ({
@@ -74,21 +81,42 @@ export class Trees {
       scale: [1, 1, 1],
     }));
 
+    // Choose material component based on toon shading option
+    const createTrunkMaterial = () =>
+      useToonShading
+        ? new ToonMaterialComponent({
+            color: trunkColor,
+            gradientSteps: 3,
+            vibrant,
+          })
+        : new MaterialComponent({
+            color: trunkColor,
+            roughness: 0.9,
+            metalness: 0,
+          });
+
+    const createLeavesMaterial = () =>
+      useToonShading
+        ? new ToonMaterialComponent({
+            color: leavesColor,
+            gradientSteps: 4,
+            vibrant,
+          })
+        : new MaterialComponent({
+            color: leavesColor,
+            roughness: 0.9,
+            metalness: 0,
+          });
+
     // Trunks GameObject
-    const trunks = new GameObject({ id: 'tree-trunks' })
+    const trunks = new GameObject({ id: `${id}-trunks` })
       .addComponent(
         new GeometryComponent({
           type: 'cylinder',
           params: [trunkRadius, trunkRadius + 0.05, trunkHeight], // Slightly wider at base
         }),
       )
-      .addComponent(
-        new MaterialComponent({
-          color: trunkColor,
-          roughness: 0.9,
-          metalness: 0,
-        }),
-      )
+      .addComponent(createTrunkMaterial())
       .addComponent(
         new InstancedMeshComponent({
           instances: trunkInstances,
@@ -108,20 +136,14 @@ export class Trees {
     }
 
     // Leaves GameObject
-    const leaves = new GameObject({ id: 'tree-leaves' })
+    const leaves = new GameObject({ id: `${id}-leaves` })
       .addComponent(
         new GeometryComponent({
           type: 'cone',
-          params: [leavesRadius, leavesHeight, 8],
+          params: [leavesRadius, leavesHeight, 8], // 8 segments for low-poly look
         }),
       )
-      .addComponent(
-        new MaterialComponent({
-          color: leavesColor,
-          roughness: 0.9,
-          metalness: 0,
-        }),
-      )
+      .addComponent(createLeavesMaterial())
       .addComponent(
         new InstancedMeshComponent({
           instances: leavesInstances,

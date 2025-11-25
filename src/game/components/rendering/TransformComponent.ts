@@ -32,7 +32,8 @@ export class TransformComponent extends GameComponent {
     super();
 
     this.position = new Vector3(...(config.position || [0, 0, 0]));
-    this.rotation = new Euler(...(config.rotation || [0, 0, 0]));
+    const rot = config.rotation || [0, 0, 0];
+    this.rotation = new Euler(rot[0], rot[1], rot[2], 'XYZ');
     this.scale = new Vector3(...(config.scale || [1, 1, 1]));
   }
 
@@ -65,7 +66,7 @@ export class TransformComponent extends GameComponent {
     if (x instanceof Euler) {
       this.rotation.copy(x);
     } else {
-      this.rotation.set(x, y!, z!);
+      this.rotation.set(x, y!, z!, 'XYZ');
     }
   }
 

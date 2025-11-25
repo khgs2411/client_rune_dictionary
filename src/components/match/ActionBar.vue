@@ -140,6 +140,14 @@ const actionSlots = ref([
 
 function handleActionClick(slotId: number) {
   console.log(`[ActionBar] Action ${slotId} clicked`);
+  /* const wsm: WebsocketStructuredMessage = {
+    type: "match.action",
+    content: { action: "attack", ...data },
+    channel: store.currentChannelId,
+    timestamp: new Date().toISOString(),
+    client: auth$.client.value,
+  };
+  ws.send(JSON.stringify(wsm)); */
   // TODO: Send action to match server
 }
 
