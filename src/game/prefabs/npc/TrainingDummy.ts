@@ -1,5 +1,6 @@
 import { GameObject } from '@/game/GameObject';
 import { I_GameObjectConfig } from '@/game/common/gameobject.types';
+import { CollisionComponent } from '@/game/components/interactions/CollisionComponent';
 import { InteractionComponent } from '@/game/components/interactions/InteractionComponent';
 import { MatchComponent } from '@/game/components/match/MatchComponent';
 import { GeometryComponent } from '@/game/components/rendering/GeometryComponent';
@@ -71,6 +72,7 @@ export class TrainingDummy extends GameObject {
 
       // Interaction components (order matters for dependencies)
       .addComponent(new InteractionComponent()) // Provides click/doubleclick events
-      .addComponent(new MatchComponent()); // Listens to doubleclick, creates match
+      .addComponent(new MatchComponent()) // Listens to doubleclick, creates match
+      .addComponent(new CollisionComponent())
   }
 }

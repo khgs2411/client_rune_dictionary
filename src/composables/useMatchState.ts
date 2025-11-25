@@ -1,23 +1,23 @@
-import { ref } from 'vue';
 import type {
-  I_PlayerParticipant,
-  I_NPCParticipant,
-  I_TurnState,
-  I_ATBState,
-  I_TimerConfig,
-} from '@/common/match.types';
-import type {
-  MatchCreatedEvent,
-  MatchStateChangeEvent,
-  MatchHealthUpdateEvent,
   MatchATBReadinessUpdateEvent,
-  MatchTurnStartEvent,
-  MatchTurnEndEvent,
-  MatchStateUpdateEvent,
+  MatchCreatedEvent,
   MatchDamageDealtEvent,
-  MatchVictoryEvent,
   MatchEndEvent,
+  MatchHealthUpdateEvent,
+  MatchStateChangeEvent,
+  MatchStateUpdateEvent,
+  MatchTurnEndEvent,
+  MatchTurnStartEvent,
+  MatchVictoryEvent,
 } from '@/common/match-events.types';
+import type {
+  I_ATBState,
+  I_NPCParticipant,
+  I_PlayerParticipant,
+  I_TimerConfig,
+  I_TurnState,
+} from '@/common/match.types';
+import { ref } from 'vue';
 
 /**
  * Composable for managing granular combat state in matches
@@ -76,6 +76,9 @@ export function useMatchState() {
   function handleMatchStateChange(event: MatchStateChangeEvent): void {
     const { previousState, currentState, reason } = event.content;
     console.log(`[useMatchState] State change: ${previousState} → ${currentState} (${reason})`);
+    if (currentState === 'COMPLETED') { 
+      
+    }
     // State changes are handled at store level (LOBBY → IN_PROGRESS → FINISHED)
   }
 
@@ -137,6 +140,7 @@ export function useMatchState() {
   function handleTurnEnd(event: MatchTurnEndEvent): void {
     const { entityId, turnNumber } = event.content;
     console.log(`[useMatchState] Turn ${turnNumber} ended for ${entityId}`);
+    timer.value.active = false;
     // Turn state will be updated by next match.turn.start event
   }
 
@@ -192,6 +196,7 @@ export function useMatchState() {
   function handleMatchEnd(event: MatchEndEvent): void {
     const { winnerId } = event.content;
     console.log(`[useMatchState] Match ended. Winner: ${winnerId}`);
+    resetState();
     // Match end is handled at store level
   }
 

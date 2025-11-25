@@ -1,21 +1,21 @@
+import type {
+  MatchATBReadinessUpdateEvent,
+  MatchCreatedEvent,
+  MatchDamageDealtEvent,
+  MatchEndEvent,
+  MatchHealthUpdateEvent,
+  MatchStateChangeEvent,
+  MatchStateUpdateEvent,
+  MatchTurnEndEvent,
+  MatchTurnStartEvent,
+  MatchVictoryEvent
+} from '@/common/match-events.types';
 import { I_GameState, I_MatchResult, MatchState } from '@/common/match.types';
+import { useMatchState } from '@/composables/useMatchState';
 import { useWebSocketStore } from '@/stores/websocket.store';
 import { defineStore } from 'pinia';
 import { Lib, WebsocketStructuredMessage } from 'topsyde-utils';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { useMatchState } from '@/composables/useMatchState';
-import type {
-  MatchCreatedEvent,
-  MatchStateChangeEvent,
-  MatchHealthUpdateEvent,
-  MatchATBReadinessUpdateEvent,
-  MatchTurnStartEvent,
-  MatchTurnEndEvent,
-  MatchStateUpdateEvent,
-  MatchDamageDealtEvent,
-  MatchVictoryEvent,
-  MatchEndEvent,
-} from '@/common/match-events.types';
 
 export const useMatchStore = defineStore('match', () => {
   const websocket = useWebSocketStore();
@@ -28,7 +28,7 @@ export const useMatchStore = defineStore('match', () => {
    * Game state composable - handles real-time match events
    * Components access via: matchStore.gameState.player.health, etc.
    */
-  const gameState = useMatchState();
+  const match = useMatchState();
 
   // ========================================================================
   // State (high-level lifecycle)
@@ -109,37 +109,7 @@ export const useMatchStore = defineStore('match', () => {
     isConnectedToMatch.value = false; // Will be set to true when WebSocket confirms
 
     // Initialize gameState composable with player/NPC data
-    gameState.initializeMatchState(data.state.player, data.state.npc);
-  }
-
-  /**
-   * Confirm WebSocket connection to match channel
-   */
-  function confirmMatchConnection() {
-    isConnectedToMatch.value = true;
-  }
-
-  /**
-   * End match and store result
-   */
-  function endMatch(result: I_MatchResult) {
-    matchResult.value = result;
-    matchState.value = 'FINISHED';
-  }
-
-  /**
-   * Leave match and return to lobby
-   */
-  function leaveMatch() {
-    currentMatchId.value = null;
-    currentChannelId.value = null;
-    channelName.value = null;
-    matchResult.value = null;
-    matchState.value = 'LOBBY';
-    isConnectedToMatch.value = false;
-
-    // Reset gameState composable
-    gameState.resetState();
+    match.initializeMatchState(data.state.player, data.state.npc);
   }
 
   /**
@@ -154,7 +124,7 @@ export const useMatchStore = defineStore('match', () => {
     matchResult.value = null;
 
     // Reset gameState composable
-    gameState.resetState();
+    match.resetState();
   }
 
   // ========================================================================
@@ -168,43 +138,45 @@ export const useMatchStore = defineStore('match', () => {
         // Route match events to gameState composable handlers
         switch (message.type) {
           case 'match.created':
-            gameState.handleMatchCreated(message as MatchCreatedEvent);
+            match.handleMatchCreated(message as MatchCreatedEvent);
             break;
 
           case 'match.state.change':
-            gameState.handleMatchStateChange(message as MatchStateChangeEvent);
+            const event = message as MatchStateChangeEvent
+            if (event.content.currentState === 'COMPLETED') matchState.value = 'FINISHED';
+            match.handleMatchStateChange(event);
             break;
 
           case 'match.health.update':
-            gameState.handleHealthUpdate(message as MatchHealthUpdateEvent);
+            match.handleHealthUpdate(message as MatchHealthUpdateEvent);
             break;
 
           case 'match.atb.readiness.update':
-            gameState.handleATBUpdate(message as MatchATBReadinessUpdateEvent);
+            match.handleATBUpdate(message as MatchATBReadinessUpdateEvent);
             break;
 
           case 'match.turn.start':
-            gameState.handleTurnStart(message as MatchTurnStartEvent);
+            match.handleTurnStart(message as MatchTurnStartEvent);
             break;
 
           case 'match.turn.end':
-            gameState.handleTurnEnd(message as MatchTurnEndEvent);
+            match.handleTurnEnd(message as MatchTurnEndEvent);
             break;
 
           case 'match.state.update':
-            gameState.handleStateUpdate(message as MatchStateUpdateEvent);
+            match.handleStateUpdate(message as MatchStateUpdateEvent);
             break;
 
           case 'match.damage.dealt':
-            gameState.handleDamageDealt(message as MatchDamageDealtEvent);
+            match.handleDamageDealt(message as MatchDamageDealtEvent);
             break;
 
           case 'match.victory':
-            gameState.handleMatchVictory(message as MatchVictoryEvent);
+            match.handleMatchVictory(message as MatchVictoryEvent);
             break;
 
           case 'match.end':
-            gameState.handleMatchEnd(message as MatchEndEvent);
+            match.handleMatchEnd(message as MatchEndEvent);
             break;
 
           default:
@@ -233,7 +205,7 @@ export const useMatchStore = defineStore('match', () => {
     matchResult,
 
     // Composable (combat state)
-    gameState,
+    match,
 
     // Computed
     hasActiveMatch,
@@ -243,9 +215,6 @@ export const useMatchStore = defineStore('match', () => {
 
     // Actions (lifecycle only)
     setInitialMatchState,
-    confirmMatchConnection,
-    endMatch,
-    leaveMatch,
     $reset,
   };
 });

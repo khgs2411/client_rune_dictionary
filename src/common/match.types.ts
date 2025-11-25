@@ -120,3 +120,4 @@ export interface I_MatchResult {
  * Match state enum for UI state machine
  */
 export type MatchState = 'LOBBY' | 'IN_PROGRESS' | 'FINISHED';
+

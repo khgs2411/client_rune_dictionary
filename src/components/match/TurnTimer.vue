@@ -37,10 +37,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-import { useRafFn } from '@vueuse/core';
 import { useMatchStore } from '@/stores/match.store';
-import { useProgressBarColor } from '@/composables/useProgressBarColor';
+import { useRafFn } from '@vueuse/core';
+import { computed, ref, watch } from 'vue';
 
 // ========================================
 // Match State Integration
@@ -49,18 +48,18 @@ import { useProgressBarColor } from '@/composables/useProgressBarColor';
 const matchStore = useMatchStore();
 
 // Timer state from gameState composable
-const isActiveTurn = computed(() => matchStore.gameState.timer.active);
-const isPlayerTurn = computed(() => matchStore.gameState.turn.isPlayerTurn);
+const isActiveTurn = computed(() => matchStore.match.timer.active);
+const isPlayerTurn = computed(() => matchStore.match.turn.isPlayerTurn);
 
 // Local countdown prediction
 const localCountdown = ref(0); // in milliseconds
 const lastUpdateTime = ref(0);
 
-const maxTurnTime = computed(() => matchStore.gameState.timer.duration ?? 10000); // in ms
+const maxTurnTime = computed(() => matchStore.match.timer.duration ?? 10000); // in ms
 
 // Start countdown when turn starts
 watch(
-  () => matchStore.gameState.turn.currentEntityId,
+  () => matchStore.match.turn.currentEntityId,
   (newEntityId, oldEntityId) => {
     if (newEntityId && newEntityId !== oldEntityId) {
       // Turn started - initialize local countdown
@@ -72,7 +71,7 @@ watch(
 
 // Watch for timer active state
 watch(
-  () => matchStore.gameState.timer.active,
+  () => matchStore.match.timer.active,
   (active) => {
     if (!active) {
       // Turn ended - stop countdown
@@ -83,7 +82,7 @@ watch(
 
 // Sync local countdown with server updates (drift correction)
 watch(
-  () => matchStore.gameState.timer.remaining,
+  () => matchStore.match.timer.remaining,
   (serverRemaining) => {
     if (serverRemaining != null && isActiveTurn.value) {
       const diff = Math.abs(localCountdown.value - serverRemaining);

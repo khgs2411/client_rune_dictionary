@@ -64,7 +64,7 @@ export class CollisionComponent extends GameComponent {
   protected instanceIds: string[] = []; // Track physics IDs for instanced meshes
   protected context: I_SceneContext | null = null;
 
-  constructor(config: I_CollisionConfig) {
+  constructor(config: I_CollisionConfig = { type: 'static' }) {
     super();
     this.config = config;
   }

@@ -3,30 +3,37 @@
     "context7": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"],
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
       "env": {},
       "icon": "⚙️"
     },
     "fetch": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["mcp-server-fetch"],
+      "args": [
+        "mcp-server-fetch"
+      ],
       "env": {},
       "icon": "⚙️"
     },
     "memory": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
       "env": {},
       "icon": "⚙️"
     },
-    "playwright": {
-      "type": "stdio",
+    "chrome-devtools": {
       "command": "npx",
-      "args": ["@playwright/mcp@latest"],
-      "env": {},
-      "icon": "⚙️"
+      "args": [
+        "chrome-devtools-mcp@latest"
+      ]
     }
   }
 }
