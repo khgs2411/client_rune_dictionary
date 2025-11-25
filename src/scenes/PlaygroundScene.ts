@@ -67,7 +67,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     const trainingDummy = new TrainingDummy({
       id: 'training-dummy-1',
       type: 'npc',
-      position: [-5, 0.9, 5], // Positioned away from other objects
+      position: [-5, 1.25, 5], // Positioned away from other objects
       color: 0xff0000, // Red (indicates enemy/NPC)
     });
     gom.register(trainingDummy);
