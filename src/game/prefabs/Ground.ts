@@ -78,8 +78,8 @@ export class Ground extends GameObject {
       )
       .addComponent(
         new MaterialComponent({
-          reactiveColor: 'background',
-          roughness: 0.8,
+          color: 0x55aa55, // Fantasy Grass Green
+          roughness: 0.9, // Matte surface
           metalness: 0,
         }),
       )
