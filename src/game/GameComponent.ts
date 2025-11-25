@@ -5,6 +5,29 @@ import { Scene } from 'three';
 import { I_SceneContext } from './common/scenes.types';
 
 /**
+ * Capability symbols for interface-based component lookup
+ *
+ * These symbols allow components to declare what interfaces they implement,
+ * enabling consumers to find any component providing a capability without
+ * knowing the concrete class.
+ *
+ * Usage:
+ * ```typescript
+ * // In component constructor:
+ * this.registerCapability(CAPABILITY.MATERIAL_PROVIDER);
+ *
+ * // In consumer:
+ * const material = this.requireByCapability<I_MaterialProvider>(CAPABILITY.MATERIAL_PROVIDER);
+ * ```
+ */
+export const CAPABILITY = {
+  MATERIAL_PROVIDER: Symbol('I_MaterialProvider'),
+  MESH_PROVIDER: Symbol('I_MeshProvider'),
+} as const;
+
+export type CapabilityKey = (typeof CAPABILITY)[keyof typeof CAPABILITY];
+
+/**
  * Component initialization priority
  * Lower numbers initialize first
  *
@@ -81,6 +104,38 @@ export abstract class GameComponent implements I_GameComponent {
   public readonly priority: number = ComponentPriority.DEFAULT;
 
   /**
+   * Set of capabilities this component provides
+   * Capabilities are registered via registerCapability() in constructor
+   */
+  private readonly _capabilities = new Set<CapabilityKey>();
+
+  /**
+   * Register a capability this component provides
+   * Call in constructor (after super()) to declare interface implementations
+   *
+   * @example
+   * ```typescript
+   * class MaterialComponent extends GameComponent implements I_MaterialProvider {
+   *   constructor(config) {
+   *     super();
+   *     this.registerCapability(CAPABILITY.MATERIAL_PROVIDER);
+   *   }
+   * }
+   * ```
+   */
+  protected registerCapability(capability: CapabilityKey): void {
+    this._capabilities.add(capability);
+  }
+
+  /**
+   * Check if this component provides a capability
+   * @internal Used by GameObject for capability-based lookup
+   */
+  public hasCapability(capability: CapabilityKey): boolean {
+    return this._capabilities.has(capability);
+  }
+
+  /**
    * Called when component is attached to a GameObject
    * @internal - Called by GameObject.addComponent()
    */
@@ -128,6 +183,36 @@ export abstract class GameComponent implements I_GameComponent {
         : `[${this.constructor.name}] Cannot be used with ${componentClass.name} on GameObject "${this.gameObject.id}"`;
       throw new Error(message);
     }
+  }
+
+  /**
+   * Find a sibling component by capability
+   * Returns null if no component provides the capability
+   *
+   * @example
+   * ```typescript
+   * const material = this.findByCapability<I_MaterialProvider>(CAPABILITY.MATERIAL_PROVIDER);
+   * if (material) {
+   *   console.log(material.material);
+   * }
+   * ```
+   */
+  protected findByCapability<T>(capability: CapabilityKey): T | null {
+    return this.gameObject.findByCapability<T>(capability);
+  }
+
+  /**
+   * Require a sibling component by capability
+   * Throws error if no component provides the capability
+   *
+   * @example
+   * ```typescript
+   * const material = this.requireByCapability<I_MaterialProvider>(CAPABILITY.MATERIAL_PROVIDER);
+   * this.mesh = new Mesh(geometry, material.material);
+   * ```
+   */
+  protected requireByCapability<T>(capability: CapabilityKey): T {
+    return this.gameObject.requireByCapability<T>(capability);
   }
 
   /**

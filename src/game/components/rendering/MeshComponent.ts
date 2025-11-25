@@ -1,10 +1,9 @@
 import { Mesh } from 'three';
-import { GameComponent, ComponentPriority } from '../../GameComponent';
+import { GameComponent, ComponentPriority, CAPABILITY } from '../../GameComponent';
 import { GeometryComponent } from './GeometryComponent';
-import { MaterialComponent } from './MaterialComponent';
 import { TransformComponent } from './TransformComponent';
 import { I_SceneContext } from '@/game/common/scenes.types';
-import type { I_MeshProvider } from './mesh.types';
+import type { I_MeshProvider, I_MaterialProvider } from './mesh.types';
 
 export interface I_MeshConfig {
   castShadow?: boolean;
@@ -18,17 +17,23 @@ export interface I_MeshConfig {
  *
  * This component requires:
  * - GeometryComponent (for geometry)
- * - MaterialComponent (for material)
+ * - Any I_MaterialProvider (MaterialComponent, ToonMaterialComponent, etc.)
  *
  * Optionally uses:
  * - TransformComponent (for position/rotation/scale)
  *
  * Usage:
  * ```typescript
+ * // With standard material
  * gameObject
  *   .addComponent(new GeometryComponent({ type: 'box', params: [1, 1, 1] }))
  *   .addComponent(new MaterialComponent({ color: 0xff1493 }))
- *   .addComponent(new TransformComponent({ position: [0, 1, 0] }))
+ *   .addComponent(new MeshComponent());
+ *
+ * // With toon material (cel-shading)
+ * gameObject
+ *   .addComponent(new GeometryComponent({ type: 'box', params: [1, 1, 1] }))
+ *   .addComponent(new ToonMaterialComponent({ color: 0x228b22, vibrant: true }))
  *   .addComponent(new MeshComponent());
  * ```
  */
@@ -41,6 +46,8 @@ export class MeshComponent extends GameComponent implements I_MeshProvider {
   constructor(config: I_MeshConfig = {}) {
     super();
     this.config = config;
+    // Register capability for interface-based lookup
+    this.registerCapability(CAPABILITY.MESH_PROVIDER);
   }
 
   async init(context: I_SceneContext): Promise<void> {
@@ -53,12 +60,16 @@ export class MeshComponent extends GameComponent implements I_MeshProvider {
       'Use InstancedMeshComponent OR MeshComponent, not both.',
     );
 
-    // Require geometry and material components
+    // Require geometry component
     const geometryComp = this.requireComponent(GeometryComponent);
-    const materialComp = this.requireComponent(MaterialComponent);
+
+    // Find any component that provides MATERIAL_PROVIDER capability
+    const materialProvider = this.requireByCapability<I_MaterialProvider>(
+      CAPABILITY.MATERIAL_PROVIDER,
+    );
 
     // Create mesh
-    this.mesh = new Mesh(geometryComp.geometry, materialComp.material);
+    this.mesh = new Mesh(geometryComp.geometry, materialProvider.material);
 
     // Configure shadows
     this.mesh.castShadow = this.config.castShadow ?? true;

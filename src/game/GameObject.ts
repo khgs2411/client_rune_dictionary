@@ -1,4 +1,4 @@
-import type { GameComponent } from './GameComponent';
+import type { GameComponent, CapabilityKey } from './GameComponent';
 import type { GameObjectType, I_GameObjectConfig } from './common/gameobject.types';
 import { I_SceneContext } from './common/scenes.types';
 
@@ -100,6 +100,54 @@ export class GameObject {
    */
   hasComponent(componentClass: Function): boolean {
     return this.components.has(componentClass);
+  }
+
+  /**
+   * Find a component by capability
+   * Returns null if no component provides the capability
+   *
+   * Example:
+   * ```typescript
+   * const material = gameObject.findByCapability<I_MaterialProvider>(CAPABILITY.MATERIAL_PROVIDER);
+   * if (material) {
+   *   console.log(material.material);
+   * }
+   * ```
+   */
+  findByCapability<T>(capability: CapabilityKey): T | null {
+    for (const component of this.components.values()) {
+      if (component.hasCapability(capability)) {
+        return component as unknown as T;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Require a component by capability
+   * Throws error if no component provides the capability
+   *
+   * Example:
+   * ```typescript
+   * const material = gameObject.requireByCapability<I_MaterialProvider>(CAPABILITY.MATERIAL_PROVIDER);
+   * this.mesh = new Mesh(geometry, material.material);
+   * ```
+   */
+  requireByCapability<T>(capability: CapabilityKey): T {
+    const component = this.findByCapability<T>(capability);
+    if (!component) {
+      throw new Error(
+        `[GameObject] No component with capability ${capability.description} found on "${this.id}"`,
+      );
+    }
+    return component;
+  }
+
+  /**
+   * Check if any component provides a specific capability
+   */
+  hasCapability(capability: CapabilityKey): boolean {
+    return this.findByCapability(capability) !== null;
   }
 
   /**

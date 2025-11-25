@@ -1,9 +1,9 @@
 import { InstancedMesh, Matrix4, Euler, Quaternion, Vector3 } from 'three';
-import { GameComponent, ComponentPriority } from '../../GameComponent';
+import { GameComponent, ComponentPriority, CAPABILITY } from '../../GameComponent';
 import { GeometryComponent } from './GeometryComponent';
-import { MaterialComponent } from './MaterialComponent';
 import { MeshComponent } from './MeshComponent';
 import { I_SceneContext } from '@/game/common/scenes.types';
+import { I_MaterialProvider } from './mesh.types';
 
 export interface I_InstanceTransform {
   position: [number, number, number];
@@ -25,7 +25,7 @@ export interface I_InstancedMeshConfig {
  *
  * This component requires:
  * - GeometryComponent (for geometry)
- * - MaterialComponent (for material)
+ * - Any I_MaterialProvider (MaterialComponent, ToonMaterialComponent, etc.)
  *
  * This component CANNOT be used with:
  * - MeshComponent (use one OR the other, not both)
@@ -34,16 +34,17 @@ export interface I_InstancedMeshConfig {
  *
  * Usage:
  * ```typescript
+ * // With standard material
  * const trees = new GameObject({ id: 'tree-group' })
  *   .addComponent(new GeometryComponent({ type: 'cylinder', params: [0.2, 0.2, 1.5] }))
  *   .addComponent(new MaterialComponent({ color: 0x654321 }))
- *   .addComponent(new InstancedMeshComponent({
- *     instances: [
- *       { position: [10, 0, 0] },
- *       { position: [12, 0, 2] },
- *       { position: [14, 0, -1] }
- *     ]
- *   }));
+ *   .addComponent(new InstancedMeshComponent({ instances: [...] }));
+ *
+ * // With toon material (cel-shading)
+ * const toonTrees = new GameObject({ id: 'toon-tree-group' })
+ *   .addComponent(new GeometryComponent({ type: 'cylinder', params: [0.2, 0.2, 1.5] }))
+ *   .addComponent(new ToonMaterialComponent({ color: 0x228b22, vibrant: true }))
+ *   .addComponent(new InstancedMeshComponent({ instances: [...] }));
  * ```
  */
 export class InstancedMeshComponent extends GameComponent {
@@ -69,14 +70,18 @@ export class InstancedMeshComponent extends GameComponent {
       );
     }
 
-    // Require geometry and material components
+    // Require geometry component
     const geometryComp = this.requireComponent(GeometryComponent);
-    const materialComp = this.requireComponent(MaterialComponent);
+
+    // Find any component that provides MATERIAL_PROVIDER capability
+    const materialProvider = this.requireByCapability<I_MaterialProvider>(
+      CAPABILITY.MATERIAL_PROVIDER,
+    );
 
     // Create instanced mesh
     this.instancedMesh = new InstancedMesh(
       geometryComp.geometry,
-      materialComp.material,
+      materialProvider.material,
       this.config.instances.length,
     );
 
