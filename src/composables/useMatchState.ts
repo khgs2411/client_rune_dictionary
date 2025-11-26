@@ -83,8 +83,7 @@ export function useMatchState() {
   function handleMatchStateChange(event: MatchStateChangeEvent): void {
     const { previousState, currentState, reason } = event.content;
     console.log(`[useMatchState] State change: ${previousState} → ${currentState} (${reason})`);
-    if (currentState === 'COMPLETED') { 
-      
+    if (currentState === 'COMPLETED') {
     }
     // State changes are handled at store level (LOBBY → IN_PROGRESS → FINISHED)
   }

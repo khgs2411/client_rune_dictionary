@@ -8,7 +8,7 @@ import type {
   MatchStateUpdateEvent,
   MatchTurnEndEvent,
   MatchTurnStartEvent,
-  MatchVictoryEvent
+  MatchVictoryEvent,
 } from '@/common/match-events.types';
 import { I_GameState, I_MatchResult, MatchState } from '@/common/match.types';
 import { useMatchState } from '@/composables/useMatchState';
@@ -142,7 +142,7 @@ export const useMatchStore = defineStore('match', () => {
             break;
 
           case 'match.state.change':
-            const event = message as MatchStateChangeEvent
+            const event = message as MatchStateChangeEvent;
             if (event.content.currentState === 'COMPLETED') matchState.value = 'FINISHED';
             match.handleMatchStateChange(event);
             break;

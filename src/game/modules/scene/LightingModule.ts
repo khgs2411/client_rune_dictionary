@@ -23,7 +23,7 @@ export class LightingModule extends SceneModule implements I_SceneModule {
     const directionalLight = new DirectionalLight(0xffdfba, 1.2); // Warm golden sunlight
     directionalLight.position.set(10, 20, 10); // Higher angle for better shadows
     directionalLight.castShadow = true;
-    
+
     // High quality shadows
     directionalLight.shadow.mapSize.width = 2048;
     directionalLight.shadow.mapSize.height = 2048;

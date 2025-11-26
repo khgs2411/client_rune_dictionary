@@ -104,13 +104,17 @@ const { pause, resume } = useRafFn(({ delta }) => {
 });
 
 // Watch running state to pause/resume RAF loop
-watch(isRunning, (running) => {
-  if (running) {
-    resume();
-  } else {
-    pause();
-  }
-}, { immediate: true });
+watch(
+  isRunning,
+  (running) => {
+    if (running) {
+      resume();
+    } else {
+      pause();
+    }
+  },
+  { immediate: true },
+);
 
 // Computed values using local countdown
 const timeRemainingSeconds = computed(() => Math.ceil(localCountdown.value / 1000));

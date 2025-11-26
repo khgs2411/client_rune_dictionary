@@ -1,5 +1,6 @@
 <template>
-  <div v-if="config.editor.enabled"
+  <div
+    v-if="config.editor.enabled"
     class="fixed top-20 right-4 z-40 bg-card/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-4 space-y-4 w-72"
     @wheel.stop>
     <!-- Header -->
@@ -38,10 +39,14 @@
           <label class="text-xs font-medium">Grid Snap</label>
           <span class="text-xs text-muted-foreground font-mono">{{
             config.editor.snapToGrid
-            }}</span>
+          }}</span>
         </div>
-        <Slider :model-value="[config.editor.snapToGrid]"
-          @update:model-value="(val) => val && (config.editor.snapToGrid = val[0])" :min="0.1" :max="2" :step="0.1"
+        <Slider
+          :model-value="[config.editor.snapToGrid]"
+          @update:model-value="(val) => val && (config.editor.snapToGrid = val[0])"
+          :min="0.1"
+          :max="2"
+          :step="0.1"
           class="w-full" />
         <div class="flex justify-between text-xs text-muted-foreground">
           <span>0.1</span>
@@ -55,10 +60,14 @@
           <label class="text-xs font-medium">Drag Opacity</label>
           <span class="text-xs text-muted-foreground font-mono">{{
             config.editor.dragOpacity.toFixed(2)
-            }}</span>
+          }}</span>
         </div>
-        <Slider :model-value="[config.editor.dragOpacity]"
-          @update:model-value="(val) => val && (config.editor.dragOpacity = val[0])" :min="0.1" :max="1" :step="0.05"
+        <Slider
+          :model-value="[config.editor.dragOpacity]"
+          @update:model-value="(val) => val && (config.editor.dragOpacity = val[0])"
+          :min="0.1"
+          :max="1"
+          :step="0.05"
           class="w-full" />
       </div>
     </div>

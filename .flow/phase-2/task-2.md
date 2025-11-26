@@ -596,6 +596,7 @@ Provided manually by the user:
 **Action Items**: See consolidated action items and brainstorming subjects below
 
 **Implementation Notes**:
+
 - ✅ Subject 1 complete: Added `watchThrottled` to TurnTimer for value stabilization (500ms throttle)
 - ✅ Subject 1 complete: Updated CSS transitions from `duration-100` to `duration-500` with `will-change-[width]`
 - ✅ Subject 2 complete: Created `useATBPrediction` composable with RAF-based extrapolation (60fps)
@@ -615,6 +616,7 @@ Provided manually by the user:
   - Files modified: StatusPanel.vue, MatchHUD.vue
 
 **Files Modified**:
+
 - **Created**: `src/composables/useATBPrediction.ts` (+71 lines) - Client-side ATB prediction with 60fps RAF loop
 - **Created**: `src/composables/useProgressBarColor.ts` (+117 lines) - Reusable progress bar color logic
 - **Modified**: `src/components/match/TurnTimer.vue` - Added local countdown prediction, throttling, and smoother transitions
@@ -623,6 +625,7 @@ Provided manually by the user:
 
 **Verification**:
 Manual testing with live WebSocket connection required to verify:
+
 - ✅ Turn timer no longer blinks with smooth 500ms transitions
 - ✅ ATB bars smoothly reach 100% with client-side prediction
 - ✅ Turn timer counts down smoothly to 0 with local countdown
@@ -637,6 +640,7 @@ Manual testing with live WebSocket connection required to verify:
 (Consolidated from Resolution Items by `/flow-brainstorm-review` - 2025-11-01)
 
 **Turn Timer Improvements (Subject 1):**
+
 - [x] Import `watchThrottled` from VueUse in TurnTimer.vue
 - [x] Create throttled ref for `timeRemaining` (update max once per 500ms)
 - [x] Update computed properties to use throttled value instead of direct store access
@@ -644,6 +648,7 @@ Manual testing with live WebSocket connection required to verify:
 - [x] Add `will-change: width` to progress bar element for rendering optimization
 
 **ATB Progress Prediction (Subject 2):**
+
 - [x] Import `useRafFn` from VueUse for 60fps update loop
 - [x] Track last 2-3 server ATB updates with timestamps in StatusPanel or composable
 - [x] Calculate fill rate (readiness change / time delta) from server update history
@@ -653,6 +658,7 @@ Manual testing with live WebSocket connection required to verify:
 - [x] Bind StatusPanel ATB bars to predicted refs instead of direct store values
 
 **Turn Timer Countdown Prediction (Subject 3):**
+
 - [x] Add local countdown ref in TurnTimer.vue (starts at duration when turn begins)
 - [x] Use `useRafFn` or `useInterval` from VueUse for local countdown loop
 - [x] Start countdown when `match.turn.start` detected (via watching turn state)
@@ -663,6 +669,7 @@ Manual testing with live WebSocket connection required to verify:
 - [x] Bind display to local countdown ref instead of throttled server value
 
 **Reusable Progress Bar Colors (Subject 4):**
+
 - [x] Create `src/composables/useProgressBarColor.ts` composable
 - [x] Define color stops for each bar type (health, mana, timer, atb)
 - [x] Return computed color based on percentage thresholds (e.g., >75% = healthy, 25-75% = warning, <25% = critical)
@@ -693,17 +700,20 @@ Manual testing with live WebSocket connection required to verify:
 **Decision**: Use Value Stabilization + Transition Smoothing (Option A)
 
 **Root Cause Analysis**:
+
 - Rapid WebSocket updates (every 100-250ms) trigger unnecessary computed recalculations
 - Short CSS transition duration (100ms) can't keep up with update frequency
 - Component recalculates even when values haven't meaningfully changed (network jitter: 5001ms → 4998ms → 5002ms)
 - Multiple derived computeds cascade from single timer update, potentially triggering multiple render cycles
 
 **Solution Approach**:
+
 - Use VueUse's `watchThrottled` to stabilize `timeRemaining` updates (max 1 update per 500ms)
 - Increase CSS transition duration to `duration-300` or `duration-500` for smoother visual changes
 - Add `will-change: width` CSS property to optimize browser rendering performance
 
 **Resolution Items**:
+
 - [ ] Import `watchThrottled` from VueUse in TurnTimer.vue
 - [ ] Create throttled ref for `timeRemaining` (update max once per 500ms)
 - [ ] Update computed properties to use throttled value instead of direct store access
@@ -719,18 +729,21 @@ Manual testing with live WebSocket connection required to verify:
 **Problem**: ATB readiness bars never visually reach 100% due to server latency. Bars jump from ~95% to turn start, creating jarring UX.
 
 **Solution Approach**:
+
 - Calculate ATB fill rate using last 2-3 server updates (handles variable speed/tempo stats per character)
 - Use VueUse's `useRafFn` for RAF-based smooth extrapolation at 60fps
 - Extrapolate forward between server updates, capped at 100% to prevent overshoot
 - Reset/sync to server value when new `match.atb.readiness.update` event arrives
 
 **Why This Works**:
+
 - ATB system has variable fill rates (different character speed/tempo from research/atb/)
 - Accounts for different characters filling at different speeds
 - 60fps smooth animation feels native
 - Safe cap at 100% prevents prediction overshoot
 
 **Resolution Items**:
+
 - [ ] Import `useRafFn` from VueUse for 60fps update loop
 - [ ] Track last 2-3 server ATB updates with timestamps in StatusPanel or composable
 - [ ] Calculate fill rate (readiness change / time delta) from server update history
@@ -748,6 +761,7 @@ Manual testing with live WebSocket connection required to verify:
 **Problem**: Turn timer countdown relies on server updates for remaining time. Due to network latency, timer never visually reaches 0 before turn ends (jumps from "2s" or "1s" to turn end).
 
 **Solution Approach**:
+
 - Start local countdown when `match.turn.start` event received
 - Use VueUse's `useRafFn` or `useInterval` for smooth local countdown (can reuse RAF from Subject 2)
 - Decrement local timer every second for display
@@ -755,6 +769,7 @@ Manual testing with live WebSocket connection required to verify:
 - Handle correction gracefully (blend if difference is small, jump if large drift)
 
 **Why This Works**:
+
 - Turn timer is simpler than ATB (fixed duration, linear countdown)
 - Gives immediate responsive feedback when turn starts
 - Consistent with Subject 1's throttling approach (reduces server update noise)
@@ -762,6 +777,7 @@ Manual testing with live WebSocket connection required to verify:
 - Server sync handles edge cases (pauses, time extensions) if added later
 
 **Resolution Items**:
+
 - [ ] Add local countdown ref in TurnTimer.vue (starts at duration when turn begins)
 - [ ] Use `useRafFn` or `useInterval` from VueUse for local countdown loop
 - [ ] Start countdown when `match.turn.start` detected (via watching turn state)
@@ -780,6 +796,7 @@ Manual testing with live WebSocket connection required to verify:
 **Problem**: HP bar gradient effect (green → yellow → red based on percentage) needs to be reused across multiple bars (health, mana, turn timer, ATB) but is currently hardcoded in one component.
 
 **Solution Approach**:
+
 - Create `useProgressBarColor(value, max, barType)` composable in `src/composables/`
 - Returns computed reactive color classes or inline styles based on percentage
 - Supports different bar types: `'health'`, `'mana'`, `'timer'`, `'atb'`
@@ -787,6 +804,7 @@ Manual testing with live WebSocket connection required to verify:
 - Can return both Tailwind classes AND inline gradient styles for flexibility
 
 **Why This Works**:
+
 - Fits Vue 3 Composition API pattern already in use
 - Reactive by default (works with computed values)
 - Flexible output (Tailwind classes or inline styles)
@@ -795,6 +813,7 @@ Manual testing with live WebSocket connection required to verify:
 - Simple usage: `const barColor = useProgressBarColor(health, maxHealth, 'health')`
 
 **Resolution Items**:
+
 - [ ] Create `src/composables/useProgressBarColor.ts` composable
 - [ ] Define color stops for each bar type (health, mana, timer, atb)
 - [ ] Return computed color based on percentage thresholds (e.g., >75% = healthy, 25-75% = warning, <25% = critical)

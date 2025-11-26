@@ -80,7 +80,11 @@ const props = defineProps<{
 }>();
 
 // ATB client-side prediction for smooth 100% fill
-const { predictedReadiness, pause: pauseATB, resume: resumeATB } = useATBPrediction(() => props.atbProgress);
+const {
+  predictedReadiness,
+  pause: pauseATB,
+  resume: resumeATB,
+} = useATBPrediction(() => props.atbProgress);
 
 // Pause/resume ATB prediction based on isAtbRunning prop
 watch(

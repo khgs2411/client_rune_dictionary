@@ -99,12 +99,20 @@ export function useProgressBarColor(
       case 'atb':
         // Use CSS variables for theme-aware primary color
         if (pct >= 100) {
-          return { background: 'linear-gradient(to right, hsl(var(--primary)), hsl(var(--primary) / 0.8))' };
+          return {
+            background: 'linear-gradient(to right, hsl(var(--primary)), hsl(var(--primary) / 0.8))',
+          };
         }
         if (pct > 75) {
-          return { background: 'linear-gradient(to right, hsl(var(--primary) / 0.8), hsl(var(--primary) / 0.6))' };
+          return {
+            background:
+              'linear-gradient(to right, hsl(var(--primary) / 0.8), hsl(var(--primary) / 0.6))',
+          };
         }
-        return { background: 'linear-gradient(to right, hsl(var(--primary) / 0.6), hsl(var(--primary) / 0.4))' };
+        return {
+          background:
+            'linear-gradient(to right, hsl(var(--primary) / 0.6), hsl(var(--primary) / 0.4))',
+        };
 
       default:
         return { background: 'hsl(var(--primary))' };

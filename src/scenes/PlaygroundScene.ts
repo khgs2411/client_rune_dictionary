@@ -158,9 +158,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
     // ========================================
     const interactiveBox = new GameObject({ id: 'interactive-box' })
       .addComponent(new TransformComponent({ position: [5, 1, 5] }))
-      .addComponent(
-        new GeometryComponent({ type: 'box', params: { x: 3, y: 2, z: 1.5 } }),
-      )
+      .addComponent(new GeometryComponent({ type: 'box', params: { x: 3, y: 2, z: 1.5 } }))
       .addComponent(new MaterialComponent({ color: 0xff1493, roughness: 0.8, metalness: 0.2 }))
       .addComponent(new MeshComponent())
       .addComponent(

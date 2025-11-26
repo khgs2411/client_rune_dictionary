@@ -39,6 +39,7 @@ description: Navigate Flow framework's multi-file architecture (DASHBOARD.md, PL
 ```
 
 **Why it works**:
+
 - ✅ Describes capability: "Navigate multi-file architecture"
 - ✅ Lists specific triggers: "where am I", "what's next", "show status"
 - ✅ States outcome: "dashboard-first navigation guidance"
@@ -51,6 +52,7 @@ description: Helps with navigation
 ```
 
 **Why it fails**:
+
 - ❌ Vague: "Helps with" is too general
 - ❌ No triggers: Claude won't know when to activate
 - ❌ No outcome: What does it provide?
@@ -58,6 +60,7 @@ description: Helps with navigation
 ### Trigger Phrase Best Practices
 
 **Include natural language users would actually say**:
+
 - ✅ "what should I work on next?"
 - ✅ "let's implement this"
 - ✅ "review the plan"
@@ -65,6 +68,7 @@ description: Helps with navigation
 - ❌ "use skill" (too meta)
 
 **Cover variations**:
+
 - "What's next?" / "What should I do next?" / "Where am I?"
 - "Let's code" / "Time to implement" / "Start building"
 - "Check the plan" / "Review status" / "Verify completion"
@@ -78,11 +82,13 @@ The `allowed-tools` field restricts which tools Claude can use when a Skill is a
 ### When to Restrict (Read-Only Skills)
 
 **Use `allowed-tools: Read, Grep, Glob` for**:
+
 - **Navigation Skills**: Only read files, don't modify
 - **Review Skills**: Inspect code/plans without changes
 - **Status Skills**: Check state without altering it
 
 **Example**:
+
 ```yaml
 ---
 name: flow-navigator
@@ -92,6 +98,7 @@ allowed-tools: Read, Grep, Glob
 ```
 
 **Benefits**:
+
 - Prevents accidental modifications
 - Faster (no permission prompts for read operations)
 - Clear intent (inspection only)
@@ -99,11 +106,13 @@ allowed-tools: Read, Grep, Glob
 ### When NOT to Restrict (Implementation Skills)
 
 **Omit `allowed-tools` for**:
+
 - **Planning Skills**: Need to create/modify files
 - **Implementation Skills**: Need full tool access
 - **Documentation Skills**: Need write access
 
 **Example**:
+
 ```yaml
 ---
 name: flow-implementer
@@ -121,6 +130,7 @@ Use this decision tree:
 ### Use Single-File Template (`_TEMPLATE/`)
 
 **When**:
+
 - ✅ Skill fits in < 200 lines
 - ✅ No supporting documentation needed
 - ✅ Instructions are straightforward
@@ -131,6 +141,7 @@ Use this decision tree:
 ### Use Multi-File Template (`_TEMPLATE-MULTI/`)
 
 **When**:
+
 - ✅ Skill requires > 200 lines
 - ✅ Detailed reference documentation needed
 - ✅ Multiple complex examples
@@ -144,15 +155,18 @@ Multi-file Skills use **progressive disclosure** - Claude only loads supporting 
 
 ```markdown
 # SKILL.md (always loaded)
+
 Quick start instructions here.
 
-For details, see [REFERENCE.md](REFERENCE.md).  # Loaded only if user needs details
+For details, see [REFERENCE.md](REFERENCE.md). # Loaded only if user needs details
 
 ## Examples
-See [EXAMPLES.md](EXAMPLES.md) for scenarios.  # Loaded only for examples
+
+See [EXAMPLES.md](EXAMPLES.md) for scenarios. # Loaded only for examples
 ```
 
 **Benefits**:
+
 - Keeps context manageable
 - Fast initial activation
 - Deep dive available when needed
@@ -192,11 +206,13 @@ Expected: Skill activates, checks brainstorming, uses /flow-implement-start
 ### Step 3: Verify Activation
 
 **Signs Skill activated correctly**:
+
 - Claude references Skill content in response
 - Appropriate guidance provided
 - Correct tools used (respecting allowed-tools if set)
 
 **Signs Skill did NOT activate**:
+
 - Generic response without Skill context
 - Wrong workflow suggested
 - No mention of Flow patterns
@@ -204,6 +220,7 @@ Expected: Skill activates, checks brainstorming, uses /flow-implement-start
 ### Step 4: Refine Description
 
 If Skill doesn't activate:
+
 1. Add more trigger phrase variations to description
 2. Make description more specific
 3. Ensure trigger phrases match how users actually talk
@@ -255,6 +272,7 @@ If Skill doesn't activate:
 ### Skill Doesn't Activate
 
 **Check**:
+
 1. Description includes specific trigger phrases
 2. Description under 1024 characters
 3. YAML syntax valid (opening/closing `---`)
@@ -262,6 +280,7 @@ If Skill doesn't activate:
 5. Skill file deployed to `.claude/skills/flow-*/SKILL.md`
 
 **Test**:
+
 ```bash
 # Verify Skill exists
 ls ~/.claude/skills/flow-navigator/SKILL.md
@@ -277,6 +296,7 @@ cat .claude/skills/flow-navigator/SKILL.md | head -10
 **Problem**: Skill triggers when it shouldn't
 
 **Solution**: Make description more specific:
+
 - Add context about when NOT to use
 - Narrow trigger phrases
 - Add distinguishing terms
@@ -286,6 +306,7 @@ cat .claude/skills/flow-navigator/SKILL.md | head -10
 **Problem**: Two Skills activate simultaneously or wrong one activates
 
 **Solution**: Differentiate descriptions:
+
 - Use distinct trigger terms
 - Add specific context (e.g., "for navigation" vs "for implementation")
 - Reference different user intents
@@ -295,6 +316,7 @@ cat .claude/skills/flow-navigator/SKILL.md | head -10
 **Problem**: Skill still asks for write permissions despite `allowed-tools: Read, Grep, Glob`
 
 **Check**:
+
 1. YAML syntax correct (comma-separated tools)
 2. Tool names match exactly: Read, Grep, Glob (capitalized)
 3. Skill redeployed after changes
@@ -350,4 +372,4 @@ allowed-tools: Read, Grep, Glob
 - **Agent Skills Documentation**: https://docs.claude.com/en/docs/claude-code/skills
 - **Agent Skills Best Practices**: https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices
 - **Flow Framework**: framework/DEVELOPMENT_FRAMEWORK.md
-- **Skills Templates**: framework/skills/_TEMPLATE/ and framework/skills/_TEMPLATE-MULTI/
+- **Skills Templates**: framework/skills/\_TEMPLATE/ and framework/skills/\_TEMPLATE-MULTI/
