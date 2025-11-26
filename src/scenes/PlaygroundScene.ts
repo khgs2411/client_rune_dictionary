@@ -22,10 +22,10 @@ import { MultiplayerModule } from '@/game/modules/networking/MultiplayerModule';
 import { Fireball } from '@/game/prefabs/Fireball';
 import { Ground } from '@/game/prefabs/Ground';
 import { Trees } from '@/game/prefabs/Trees';
+import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
 import { House } from '@/game/prefabs/environment/House';
 import { Path } from '@/game/prefabs/environment/Path';
 import { Rocks } from '@/game/prefabs/environment/Rock';
-import { LocalPlayer } from '@/game/prefabs/character/LocalPlayer';
 import { TrainingDummy } from '@/game/prefabs/npc/TrainingDummy';
 
 /**
@@ -353,6 +353,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
         }),
       );
     gom.register(bushes);
+    
   }
 
   /**

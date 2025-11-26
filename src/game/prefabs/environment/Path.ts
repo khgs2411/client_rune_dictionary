@@ -57,34 +57,32 @@ export class Path {
     // Material factory
     const createMaterial = () =>
       useToonShading
-        ? new ToonMaterialComponent({
-            color,
-            gradientSteps: 3,
-            vibrant,
-          })
-        : new MaterialComponent({
-            color,
-            roughness: 0.95,
-            metalness: 0,
-          });
+        ? new ToonMaterialComponent({ color, gradientSteps: 3, vibrant })
+        : new MaterialComponent({ color, roughness: 0.95, metalness: 0 });
 
     // Create a GameObject for each segment
     const segments: GameObject[] = config.segments.map((segment, index) => {
-      const width = segment.width ?? defaultWidth;
-      const length = segment.length ?? defaultLength;
-      const rotation = segment.rotation ?? 0;
-
-      return new GameObject({ id: `${id}-segment-${index}` })
+      // Organic variation
+      const width = (segment.width ?? defaultWidth) * (0.9 + Math.random() * 0.2); // +/- 10% size
+      const length = (segment.length ?? defaultLength) * (0.9 + Math.random() * 0.2);
+      const rotation = (segment.rotation ?? 0) + (Math.random() * 0.5 - 0.25); // +/- 15 deg random rot
+      
+      // Use Cylinder for stepping stone look (flattened)
+      // Or Box for paving stone
+      // Let's use Cylinder with low segments for "Stone" look
+      
+      return new GameObject({ id: `${id}-stone-${index}` })
         .addComponent(
           new TransformComponent({
             position: [segment.x, yOffset, segment.z],
-            rotation: [-Math.PI / 2, 0, rotation], // Flat on ground + Y rotation
+            rotation: [0, rotation, 0], // Flat on ground (Cylinder is upright by default, need to scale Y down)
+            scale: [1, 0.1, 1] // Flatten the cylinder
           }),
         )
         .addComponent(
           new GeometryComponent({
-            type: 'plane',
-            params: [width, length],
+            type: 'cylinder',
+            params: [width / 2, width / 2, 1, 7], // 7 segments = irregular stone shape
           }),
         )
         .addComponent(createMaterial())
@@ -113,22 +111,27 @@ export class Path {
     useToonShading?: boolean;
     vibrant?: boolean;
   }): GameObject[] {
-    const width = config.width ?? 4;
-    const segmentLength = config.segmentLength ?? 8;
+    const width = config.width ?? 3;
+    const segmentLength = config.segmentLength ?? 4; // Smaller stones
 
     const dx = config.end[0] - config.start[0];
     const dz = config.end[1] - config.start[1];
     const totalLength = Math.sqrt(dx * dx + dz * dz);
     const angle = Math.atan2(dx, dz);
 
-    const numSegments = Math.ceil(totalLength / segmentLength);
+    const numSegments = Math.ceil(totalLength / (segmentLength * 0.8)); // Overlap slightly
     const segments: I_PathSegment[] = [];
 
     for (let i = 0; i < numSegments; i++) {
-      const t = (i + 0.5) / numSegments; // Center of each segment
+      const t = i / numSegments;
+      
+      // Add some jitter to position for organic feel
+      const jitterX = (Math.random() - 0.5) * (width * 0.3);
+      const jitterZ = (Math.random() - 0.5) * (width * 0.3);
+      
       segments.push({
-        x: config.start[0] + dx * t,
-        z: config.start[1] + dz * t,
+        x: config.start[0] + dx * t + jitterX,
+        z: config.start[1] + dz * t + jitterZ,
         width,
         length: segmentLength,
         rotation: angle,
