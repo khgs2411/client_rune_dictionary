@@ -1,4 +1,5 @@
-import MatchAPI, { I_CreatePveMatchRequest } from '@/api/match.api';
+import MatchAPI from '@/api/match.api';
+import { I_CreatePveMatchRequest } from '@/common/match.types';
 import type { I_SceneContext } from '@/game/common/scenes.types';
 import { ComponentPriority, GameComponent } from '@/game/GameComponent';
 import { E_SceneState } from '@/game/services/SceneStateService';
