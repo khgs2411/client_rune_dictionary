@@ -1,4 +1,4 @@
-import type { GameComponent, CapabilityKey } from './GameComponent';
+import type { GameComponent, TraitKey } from './GameComponent';
 import type { GameObjectType, I_GameObjectConfig } from './common/gameobject.types';
 import { I_SceneContext } from './common/scenes.types';
 
@@ -103,20 +103,20 @@ export class GameObject {
   }
 
   /**
-   * Find a component by capability
-   * Returns null if no component provides the capability
+   * Find a component by trait
+   * Returns null if no component has the trait
    *
    * Example:
    * ```typescript
-   * const material = gameObject.findByCapability<I_MaterialProvider>(CAPABILITY.MATERIAL_PROVIDER);
+   * const material = gameObject.findByTrait<I_MaterialProvider>(TRAIT.MATERIAL_PROVIDER);
    * if (material) {
    *   console.log(material.material);
    * }
    * ```
    */
-  findByCapability<T>(capability: CapabilityKey): T | null {
+  findByTrait<T>(trait: TraitKey): T | null {
     for (const component of this.components.values()) {
-      if (component.hasCapability(capability)) {
+      if (component.hasTrait(trait)) {
         return component as unknown as T;
       }
     }
@@ -124,30 +124,30 @@ export class GameObject {
   }
 
   /**
-   * Require a component by capability
-   * Throws error if no component provides the capability
+   * Require a component by trait
+   * Throws error if no component has the trait
    *
    * Example:
    * ```typescript
-   * const material = gameObject.requireByCapability<I_MaterialProvider>(CAPABILITY.MATERIAL_PROVIDER);
+   * const material = gameObject.requireByTrait<I_MaterialProvider>(TRAIT.MATERIAL_PROVIDER);
    * this.mesh = new Mesh(geometry, material.material);
    * ```
    */
-  requireByCapability<T>(capability: CapabilityKey): T {
-    const component = this.findByCapability<T>(capability);
+  requireByTrait<T>(trait: TraitKey): T {
+    const component = this.findByTrait<T>(trait);
     if (!component) {
       throw new Error(
-        `[GameObject] No component with capability ${capability.description} found on "${this.id}"`,
+        `[GameObject] No component with trait ${trait.description} found on "${this.id}"`,
       );
     }
     return component;
   }
 
   /**
-   * Check if any component provides a specific capability
+   * Check if any component has a specific trait
    */
-  hasCapability(capability: CapabilityKey): boolean {
-    return this.findByCapability(capability) !== null;
+  hasTrait(trait: TraitKey): boolean {
+    return this.findByTrait(trait) !== null;
   }
 
   /**

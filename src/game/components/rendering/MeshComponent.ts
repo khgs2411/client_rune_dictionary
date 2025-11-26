@@ -1,5 +1,5 @@
 import { Mesh } from 'three';
-import { GameComponent, ComponentPriority, CAPABILITY } from '../../GameComponent';
+import { GameComponent, ComponentPriority, TRAIT } from '../../GameComponent';
 import { GeometryComponent } from './GeometryComponent';
 import { TransformComponent } from './TransformComponent';
 import { I_SceneContext } from '@/game/common/scenes.types';
@@ -46,8 +46,8 @@ export class MeshComponent extends GameComponent implements I_MeshProvider {
   constructor(config: I_MeshConfig = {}) {
     super();
     this.config = config;
-    // Register capability for interface-based lookup
-    this.registerCapability(CAPABILITY.MESH_PROVIDER);
+    // Register trait for interface-based lookup
+    this.registerTrait(TRAIT.MESH_PROVIDER);
   }
 
   async init(context: I_SceneContext): Promise<void> {
@@ -63,10 +63,8 @@ export class MeshComponent extends GameComponent implements I_MeshProvider {
     // Require geometry component
     const geometryComp = this.requireComponent(GeometryComponent);
 
-    // Find any component that provides MATERIAL_PROVIDER capability
-    const materialProvider = this.requireByCapability<I_MaterialProvider>(
-      CAPABILITY.MATERIAL_PROVIDER,
-    );
+    // Find any component that has MATERIAL_PROVIDER trait
+    const materialProvider = this.requireByTrait<I_MaterialProvider>(TRAIT.MATERIAL_PROVIDER);
 
     // Create mesh
     this.mesh = new Mesh(geometryComp.geometry, materialProvider.material);

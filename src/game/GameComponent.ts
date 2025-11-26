@@ -5,27 +5,27 @@ import { Scene } from 'three';
 import { I_SceneContext } from './common/scenes.types';
 
 /**
- * Capability symbols for interface-based component lookup
+ * Trait symbols for interface-based component lookup
  *
- * These symbols allow components to declare what interfaces they implement,
- * enabling consumers to find any component providing a capability without
+ * Traits allow components to declare what interfaces they implement,
+ * enabling consumers to find any component with a trait without
  * knowing the concrete class.
  *
  * Usage:
  * ```typescript
  * // In component constructor:
- * this.registerCapability(CAPABILITY.MATERIAL_PROVIDER);
+ * this.registerTrait(TRAIT.MATERIAL_PROVIDER);
  *
  * // In consumer:
- * const material = this.requireByCapability<I_MaterialProvider>(CAPABILITY.MATERIAL_PROVIDER);
+ * const material = this.requireByTrait<I_MaterialProvider>(TRAIT.MATERIAL_PROVIDER);
  * ```
  */
-export const CAPABILITY = {
+export const TRAIT = {
   MATERIAL_PROVIDER: Symbol('I_MaterialProvider'),
   MESH_PROVIDER: Symbol('I_MeshProvider'),
 } as const;
 
-export type CapabilityKey = (typeof CAPABILITY)[keyof typeof CAPABILITY];
+export type TraitKey = (typeof TRAIT)[keyof typeof TRAIT];
 
 /**
  * Component initialization priority
@@ -104,13 +104,13 @@ export abstract class GameComponent implements I_GameComponent {
   public readonly priority: number = ComponentPriority.DEFAULT;
 
   /**
-   * Set of capabilities this component provides
-   * Capabilities are registered via registerCapability() in constructor
+   * Set of traits this component provides
+   * Traits are registered via registerTrait() in constructor
    */
-  private readonly _capabilities = new Set<CapabilityKey>();
+  private readonly _traits = new Set<TraitKey>();
 
   /**
-   * Register a capability this component provides
+   * Register a trait this component provides
    * Call in constructor (after super()) to declare interface implementations
    *
    * @example
@@ -118,21 +118,21 @@ export abstract class GameComponent implements I_GameComponent {
    * class MaterialComponent extends GameComponent implements I_MaterialProvider {
    *   constructor(config) {
    *     super();
-   *     this.registerCapability(CAPABILITY.MATERIAL_PROVIDER);
+   *     this.registerTrait(TRAIT.MATERIAL_PROVIDER);
    *   }
    * }
    * ```
    */
-  protected registerCapability(capability: CapabilityKey): void {
-    this._capabilities.add(capability);
+  protected registerTrait(trait: TraitKey): void {
+    this._traits.add(trait);
   }
 
   /**
-   * Check if this component provides a capability
-   * @internal Used by GameObject for capability-based lookup
+   * Check if this component has a trait
+   * @internal Used by GameObject for trait-based lookup
    */
-  public hasCapability(capability: CapabilityKey): boolean {
-    return this._capabilities.has(capability);
+  public hasTrait(trait: TraitKey): boolean {
+    return this._traits.has(trait);
   }
 
   /**
@@ -186,33 +186,33 @@ export abstract class GameComponent implements I_GameComponent {
   }
 
   /**
-   * Find a sibling component by capability
-   * Returns null if no component provides the capability
+   * Find a sibling component by trait
+   * Returns null if no component has the trait
    *
    * @example
    * ```typescript
-   * const material = this.findByCapability<I_MaterialProvider>(CAPABILITY.MATERIAL_PROVIDER);
+   * const material = this.findByTrait<I_MaterialProvider>(TRAIT.MATERIAL_PROVIDER);
    * if (material) {
    *   console.log(material.material);
    * }
    * ```
    */
-  protected findByCapability<T>(capability: CapabilityKey): T | null {
-    return this.gameObject.findByCapability<T>(capability);
+  protected findByTrait<T>(trait: TraitKey): T | null {
+    return this.gameObject.findByTrait<T>(trait);
   }
 
   /**
-   * Require a sibling component by capability
-   * Throws error if no component provides the capability
+   * Require a sibling component by trait
+   * Throws error if no component has the trait
    *
    * @example
    * ```typescript
-   * const material = this.requireByCapability<I_MaterialProvider>(CAPABILITY.MATERIAL_PROVIDER);
+   * const material = this.requireByTrait<I_MaterialProvider>(TRAIT.MATERIAL_PROVIDER);
    * this.mesh = new Mesh(geometry, material.material);
    * ```
    */
-  protected requireByCapability<T>(capability: CapabilityKey): T {
-    return this.gameObject.requireByCapability<T>(capability);
+  protected requireByTrait<T>(trait: TraitKey): T {
+    return this.gameObject.requireByTrait<T>(trait);
   }
 
   /**

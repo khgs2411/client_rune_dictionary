@@ -1,8 +1,8 @@
-import { Material } from 'three';
-import { GameComponent, CAPABILITY } from '../../GameComponent';
-import { useSettingsStore } from '@/stores/settings.store';
 import { I_ThemeColors } from '@/composables/useTheme';
 import { I_SceneContext } from '@/game/common/scenes.types';
+import { useSettingsStore } from '@/stores/settings.store';
+import { Material } from 'three';
+import { GameComponent, TRAIT } from '../../GameComponent';
 import { I_MaterialProvider } from './mesh.types';
 
 /**
@@ -23,7 +23,7 @@ export interface I_BaseMaterialConfig {
  * - Color resolution (static, theme, reactive)
  * - Theme change handling
  * - Settings store integration
- * - Automatic MATERIAL_PROVIDER capability registration
+ * - Automatic MATERIAL_PROVIDER trait registration
  *
  * Subclasses must implement:
  * - `createMaterial(color, context)` - Create the specific Three.js material
@@ -54,8 +54,8 @@ export abstract class BaseMaterialComponent<
   constructor(config: TConfig) {
     super();
     this.config = config;
-    // Auto-register capability - subclasses inherit this
-    this.registerCapability(CAPABILITY.MATERIAL_PROVIDER);
+    // Auto-register trait - subclasses inherit this
+    this.registerTrait(TRAIT.MATERIAL_PROVIDER);
   }
 
   async init(context: I_SceneContext): Promise<void> {

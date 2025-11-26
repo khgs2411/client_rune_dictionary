@@ -1,9 +1,9 @@
 import { InstancedMesh, Matrix4, Euler, Quaternion, Vector3 } from 'three';
-import { GameComponent, ComponentPriority, CAPABILITY } from '../../GameComponent';
+import { GameComponent, ComponentPriority, TRAIT } from '../../GameComponent';
 import { GeometryComponent } from './GeometryComponent';
 import { MeshComponent } from './MeshComponent';
 import { I_SceneContext } from '@/game/common/scenes.types';
-import { I_MaterialProvider } from './mesh.types';
+import type { I_MaterialProvider, I_MeshProvider } from './mesh.types';
 
 export interface I_InstanceTransform {
   position: [number, number, number];
@@ -47,7 +47,7 @@ export interface I_InstancedMeshConfig {
  *   .addComponent(new InstancedMeshComponent({ instances: [...] }));
  * ```
  */
-export class InstancedMeshComponent extends GameComponent {
+export class InstancedMeshComponent extends GameComponent implements I_MeshProvider {
   public readonly priority = ComponentPriority.RENDERING; // 100 - creates mesh AFTER geometry/material
 
   public instancedMesh!: InstancedMesh;
@@ -56,10 +56,18 @@ export class InstancedMeshComponent extends GameComponent {
   constructor(config: I_InstancedMeshConfig) {
     super();
     this.config = config;
+    this.registerTrait(TRAIT.MESH_PROVIDER);
 
     if (!config.instances || config.instances.length === 0) {
       throw new Error('[InstancedMeshComponent] instances array cannot be empty');
     }
+  }
+
+  /**
+   * Implements I_MeshProvider - returns the instanced mesh for physics/interactions
+   */
+  public getMesh(): InstancedMesh {
+    return this.instancedMesh;
   }
 
   async init(context: I_SceneContext): Promise<void> {
@@ -73,10 +81,8 @@ export class InstancedMeshComponent extends GameComponent {
     // Require geometry component
     const geometryComp = this.requireComponent(GeometryComponent);
 
-    // Find any component that provides MATERIAL_PROVIDER capability
-    const materialProvider = this.requireByCapability<I_MaterialProvider>(
-      CAPABILITY.MATERIAL_PROVIDER,
-    );
+    // Find any component that has MATERIAL_PROVIDER trait
+    const materialProvider = this.requireByTrait<I_MaterialProvider>(TRAIT.MATERIAL_PROVIDER);
 
     // Create instanced mesh
     this.instancedMesh = new InstancedMesh(
