@@ -75,20 +75,12 @@ export interface I_SceneModule {
   addToScene?(context: I_SceneContext, ...args: any[]): void;
 }
 
-/**
- * Entity modules - lightweight features managed by scene modules
- */
-export interface I_EntityModule {
-  start(context: I_SceneContext): Promise<void>;
-  destroy(): Promise<void>;
-  update?(delta: number): void;
-}
 
 /**
  * Services available to modules via context
  * This is how cross-cutting concerns (interaction, audio, etc.) are shared
  */
-export interface I_ModuleServices {
+export interface I_SceneServices {
   interaction: InteractionService;
   vfx: VFXService;
   physics: PhysicsService;
@@ -110,8 +102,8 @@ export interface I_SceneContext {
   /**
    * @deprecated Use getService instead
    */
-  services: I_ModuleServices;
-  getService<K extends keyof I_ModuleServices>(serviceName: K): I_ModuleServices[K];
+  services: I_SceneServices;
+  getService<K extends keyof I_SceneServices>(serviceName: K): I_SceneServices[K];
   clientData: Partial<I_ConnectedClientData>;
   camera?: ReturnType<typeof useCamera>; // Optional: for modules that need camera
   character?: ReturnType<typeof useCharacter>; // Optional: for modules that need character

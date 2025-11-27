@@ -13,7 +13,7 @@ import { CleanupRegistry } from '@/game/CleanupRegistry';
 import {
   I_SceneContext,
   I_SceneModule,
-  I_ModuleServices as I_SceneServices,
+  I_SceneServices,
 } from '@/game/common/scenes.types';
 import type { Engine } from '@/game/Engine';
 import { ModuleRegistry } from '@/game/ModuleRegistry';
