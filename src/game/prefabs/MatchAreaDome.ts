@@ -30,7 +30,7 @@ export interface I_MatchAreaDomeConfig {
  * - PhysicsComponent: Static collision body
  *
  * **Lifecycle**:
- * - Created: When match starts (MATCH_INSTANTIATING state)
+ * - Created: When match starts (MATCH_REQUEST → PVE_MATCH)
  * - Destroyed: When match ends (return to OVERWORLD)
  *
  * **Usage**:

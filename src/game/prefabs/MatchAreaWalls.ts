@@ -35,7 +35,7 @@ export interface I_MatchAreaWallsConfig {
  * - Visual border lines: Faint glowing lines at ground level (40% opacity, orange)
  *
  * **Lifecycle**:
- * - Created: When match starts (MATCH_INSTANTIATING state)
+ * - Created: When match starts (MATCH_REQUEST → PVE_MATCH)
  * - Destroyed: When match ends (return to OVERWORLD)
  *
  * **Usage**:

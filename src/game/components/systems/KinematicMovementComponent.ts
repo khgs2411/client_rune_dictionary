@@ -80,7 +80,7 @@ export class KinematicMovementComponent extends GameComponent {
    *
    * State-based movement rules (from Subject 1):
    * - OVERWORLD: enableMovement=true, enableJumping=true
-   * - MATCH_INSTANTIATING: enableMovement=true, enableJumping=false
+   * - MATCH_REQUEST: enableMovement=false, enableJumping=false
    * - PVE_MATCH: enableMovement=true, enableJumping=false
    * - MENU: enableMovement=false, enableJumping=false
    */
@@ -92,7 +92,7 @@ export class KinematicMovementComponent extends GameComponent {
         console.log('🏃 [KinematicMovementComponent] Movement: ✅ | Jumping: ✅');
         break;
 
-      case E_SceneState.MATCH_INSTANTIATING:
+      case E_SceneState.MATCH_REQUEST:
         this.enableMovement = false;
         this.enableJumping = false;
         console.log('🏃 [KinematicMovementComponent] Movement: 🚫 | Jumping: 🚫');

@@ -1,24 +1,33 @@
-import MatchAPI from '@/api/match.api';
-import { I_CreatePveMatchRequest } from '@/common/match.types';
 import type { I_SceneContext } from '@/game/common/scenes.types';
 import { ComponentPriority, GameComponent } from '@/game/GameComponent';
 import { E_SceneState } from '@/game/services/SceneStateService';
-import { DataStore } from '@/stores/DataStore';
 import { InteractionComponent } from '../interactions/InteractionComponent';
 
 /**
- * MatchComponent - Handles PvE match creation from NPC interaction
+ * Arena configuration for match environment
+ */
+export interface I_ArenaConfig {
+  width: number;
+  depth: number;
+  height: number;
+}
+
+/**
+ * MatchComponent - Bridge that makes a GameObject "matchable"
  *
  * This component listens to double-click events from InteractionComponent
- * and triggers the match creation flow.
+ * and triggers the match request flow via scene state change.
  *
  * Responsibilities:
  * - Listen to 'doubleclick' event from InteractionComponent
  * - Validate scene state (must be OVERWORLD)
- * - Call MatchAPI to create PvE match
- * - Update match store with response data
- * - Transition scene state (OVERWORLD → MATCH_INSTANTIATING → PVE_MATCH)
- * - Handle errors and revert state if needed
+ * - Trigger MATCH_REQUEST state (MatchModule handles the rest)
+ * - Hold arena configuration for match environment
+ *
+ * Does NOT handle:
+ * - API calls (moved to MatchModule)
+ * - Store updates (moved to MatchModule)
+ * - Error handling (moved to MatchModule)
  *
  * Dependencies:
  * - Requires InteractionComponent (for doubleclick event)
@@ -26,12 +35,8 @@ import { InteractionComponent } from '../interactions/InteractionComponent';
  * Usage:
  * ```typescript
  * const npc = new GameObject({ id: 'training-dummy' })
- *   .addComponent(new TransformComponent({ position: [10, 0, 5] }))
- *   .addComponent(new GeometryComponent({ type: 'capsule' }))
- *   .addComponent(new MaterialComponent({ color: 0xff0000 }))
- *   .addComponent(new MeshComponent())
- *   .addComponent(new InteractionComponent())  // Provides doubleclick event
- *   .addComponent(new MatchComponent());       // Handles match creation
+ *   .addComponent(new InteractionComponent())
+ *   .addComponent(new MatchComponent());
  * ```
  *
  * Priority: INTERACTION (300) - Runs after InteractionComponent
@@ -39,115 +44,46 @@ import { InteractionComponent } from '../interactions/InteractionComponent';
 export class MatchComponent extends GameComponent {
   public readonly priority = ComponentPriority.INTERACTION;
 
-  private matchAPI: MatchAPI;
-
-  constructor() {
-    super();
-    this.matchAPI = new MatchAPI();
-  }
+  /**
+   * Arena configuration - read by MatchModule when spawning arena
+   * Defaults match current arena dimensions
+   */
+  public readonly arenaConfig: I_ArenaConfig = {
+    width: 40,
+    depth: 25,
+    height: 20,
+  };
 
   async init(context: I_SceneContext): Promise<void> {
-    // Require InteractionComponent for event system
-    this.onInteraction(context);
+    this.setupInteractionListener(context);
   }
 
-  private onInteraction(context: I_SceneContext) {
+  private setupInteractionListener(context: I_SceneContext): void {
     const interaction = this.requireComponent(InteractionComponent);
 
-    // Listen to doubleclick event
-    interaction.on('doubleclick', async (_intersection) => {
-      console.groupCollapsed(`⚔️ [MatchComponent] Double-click detected on ${this.gameObject.id}`);
-      // intersection.distance = distance from camera to hit point
-      console.log('Distance from camera:', _intersection.distance);
-
-      // _intersection.point = 3D world position where ray hit the object
-      console.log('Hit point:', _intersection.point); // Vector3
-
-      // _intersection.object = the Three.js mesh that was clicked
-      console.log('Clicked mesh:', _intersection.object);
-
-      // _intersection.face = the face of the mesh that was hit
-      console.log('Face hit:', _intersection.face);
-
-      // _intersection.faceIndex = index of the face
-      console.log('Face index:', _intersection.faceIndex);
-
-      // _intersection.uv = UV coordinates at hit point (for textures)
-      console.log('UV coords:', _intersection.uv);
-      console.groupEnd();
-      await this.handleMatchCreation(context);
+    interaction.on('doubleclick', async () => {
+      console.log(`⚔️ [MatchComponent] Double-click detected on ${this.gameObject.id}`);
+      this.requestMatch(context);
     });
   }
 
   /**
-   * Handle match creation flow
+   * Request match start - triggers state change
+   * MatchModule handles API calls, arena spawning, camera transitions
    */
-  private async handleMatchCreation(context: I_SceneContext): Promise<void> {
-    // Check scene state - must be in OVERWORLD
+  private requestMatch(context: I_SceneContext): void {
     const stateService = context.getService('state');
+
     if (!stateService.isOverworld()) {
       console.warn('⚔️ [MatchComponent] Cannot start match - not in OVERWORLD state');
       return;
     }
 
-    // Transition to MATCH_INSTANTIATING
-    stateService.setState(E_SceneState.MATCH_INSTANTIATING);
-
-    try {
-      if (this.gameObject.isType('npc')) await this.createPveMatch(context);
-    } catch (error) {
-      this.handleMatchCreationError(error, context);
-    }
-  }
-
-  /**
-   * Create PvE match via API
-   */
-  private async createPveMatch(context: I_SceneContext): Promise<void> {
-    // Get client data from DataStore
-    const clientData = DataStore.websocket.clientData;
-    if (!clientData) {
-      throw new Error('Client not connected - cannot create match');
-    }
-    // console.clear();
-
-    // Make API request
-    const payload: I_CreatePveMatchRequest = {
-      whoami: clientData,
-    };
-
-    const response = await this.matchAPI.createPveMatch(payload);
-
-    // Update match store via DataStore
-    DataStore.match.setInitialMatchState({
-      matchId: response.matchId,
-      channelId: response.channelId,
-      channelName: response.channelName,
-      state: response.state,
-    });
-
-    // Transition to PVE_MATCH state
-    const stateService = context.getService('state');
-    stateService.setState(E_SceneState.PVE_MATCH);
-  }
-
-  /**
-   * Handle match creation error - revert to OVERWORLD state
-   */
-  private handleMatchCreationError(error: any, context: I_SceneContext): void {
-    console.error('⚔️ [MatchComponent] Match creation failed:', error);
-
-    // Revert to OVERWORLD state
-    const stateService = context.getService('state');
-    stateService.setState(E_SceneState.OVERWORLD);
-
-    // TODO: Show error toast notification to user
-    // For now, just log to console
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create match';
-    console.error('⚔️ [MatchComponent] Error message:', errorMessage);
+    // Just trigger state change - MatchModule handles everything else
+    stateService.setState(E_SceneState.MATCH_REQUEST);
   }
 
   destroy(): void {
-    // Nothing to clean up (InteractionComponent handles its own cleanup)
+    // InteractionComponent handles its own cleanup
   }
 }

@@ -6,12 +6,12 @@ import SceneService from './SceneService';
  * Scene state enum for controlling game behavior
  *
  * - OVERWORLD: Normal gameplay (movement, interactions enabled)
- * - MATCH_INSTANTIATING: Match creation in progress (disable movement, other interactions)
+ * - MATCH_REQUEST: Match requested, API call in progress
  * - PVE_MATCH: Match active (different control scheme, limited interactions)
  */
 export enum E_SceneState {
   OVERWORLD = 'OVERWORLD',
-  MATCH_INSTANTIATING = 'MATCH_INSTANTIATING',
+  MATCH_REQUEST = 'MATCH_REQUEST',
   PVE_MATCH = 'PVE_MATCH',
   PVP_MATCH = 'PVP_MATCH',
   MENU = 'MENU',
@@ -39,8 +39,8 @@ export type StateChangeCallback = (newState: E_SceneState, oldState: E_SceneStat
  * - InteractionService can check state to disable interactions
  *
  * **State Transitions**:
- * - OVERWORLD → MATCH_INSTANTIATING (when player initiates match)
- * - MATCH_INSTANTIATING → PVE_MATCH (when match successfully created)
+ * - OVERWORLD → MATCH_REQUEST (when player initiates match)
+ * - MATCH_REQUEST → PVE_MATCH (when match successfully created)
  * - PVE_MATCH → OVERWORLD (when match ends)
  *
  * **Example**:
@@ -51,7 +51,7 @@ export type StateChangeCallback = (newState: E_SceneState, oldState: E_SceneStat
  * stateService.register(callback);
  *
  * // Trigger state change (notifies all registered callbacks)
- * stateService.setState(E_SceneState.MATCH_INSTANTIATING);
+ * stateService.setState(E_SceneState.MATCH_REQUEST);
  *
  * // Cleanup
  * stateService.unregister(callback);
@@ -152,10 +152,10 @@ export default class SceneStateService extends SceneService implements I_SceneSe
   }
 
   /**
-   * Check if currently instantiating a match
+   * Check if a match has been requested (API call in progress)
    */
-  public isMatchInstantiating(): boolean {
-    return this.currentState === E_SceneState.MATCH_INSTANTIATING;
+  public isMatchRequested(): boolean {
+    return this.currentState === E_SceneState.MATCH_REQUEST;
   }
 
   /**
