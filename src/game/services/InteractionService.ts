@@ -1,7 +1,9 @@
 import type { I_SceneContext, I_SceneService } from '@/game/common/scenes.types';
+import { GameObject } from '@/game/GameObject';
 import { Mouse } from '@/game/utils/Mouse';
 import { Raycast } from '@/game/utils/Raycast';
 import { useGameConfigStore } from '@/stores/config.store';
+import { DataStore } from '@/stores/DataStore';
 import { GridHelper, Intersection, Mesh, Object3D, Plane, Vector3 } from 'three';
 import SceneService from './SceneService';
 
@@ -25,6 +27,7 @@ interface MouseClickHandler {
   callback: MouseClickCallback;
   requireHover?: boolean; // Only trigger if hovering over registered object
   object3D?: Object3D; // Optional - for raycasting
+  gameObject?: GameObject; // Optional - for game object reference
 }
 
 interface KeyPressHandler {
@@ -189,6 +192,7 @@ export class InteractionService extends SceneService implements I_SceneService {
     options?: {
       requireHover?: boolean;
       object3D?: Object3D;
+      gameObject?: GameObject;
     },
   ): () => void {
     this.mouseClickHandlers.set(id, {
@@ -197,6 +201,7 @@ export class InteractionService extends SceneService implements I_SceneService {
       callback,
       requireHover: options?.requireHover,
       object3D: options?.object3D,
+      gameObject: options?.gameObject,
     });
 
     return () => this.unregisterMouseClick(id);
@@ -401,6 +406,7 @@ export class InteractionService extends SceneService implements I_SceneService {
       // Raycast to get intersection point (if object3D provided)
       let intersection: Intersection | undefined;
       if (handler.object3D && this.context.camera) {
+        if(handler.gameObject)DataStore.scene.setSavedGameObject(handler.gameObject);
         const intersects = this.raycast.fromCamera(
           this.mouse.normalizedPositionRef,
           this.context.camera.instance,

@@ -1,6 +1,7 @@
 import { PositionVector3 } from '@/common/types';
+import { GameObject } from '@/game/GameObject';
 import { defineStore } from 'pinia';
-import { reactive, ref } from 'vue';
+import { reactive, Ref, ref } from 'vue';
 
 /**
  * Saved object state for level editor
@@ -35,6 +36,15 @@ export const useSceneStore = defineStore(
     // Use reactive Record instead of Map for proper localStorage persistence
     const scenes = reactive<Record<string, I_SceneReference>>({});
     const currentScene = ref(<string | null>null);
+    const savedObject: Ref<GameObject | null> = ref(null);
+
+    function getSavedGameObject(): GameObject | null {
+      return savedObject.value;
+    }
+
+    function setSavedGameObject(object: GameObject | null): void {
+      savedObject.value = object;
+    }
 
     /**
      * Save an object's position
@@ -126,6 +136,8 @@ export const useSceneStore = defineStore(
       hasScene,
       setActiveScene,
       getActiveScene,
+      getSavedGameObject,
+      setSavedGameObject,
     };
   },
   { persist: true },

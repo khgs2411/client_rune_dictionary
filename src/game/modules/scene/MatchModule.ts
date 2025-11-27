@@ -86,11 +86,11 @@ export class MatchModule extends SceneModule implements I_SceneModule {
     // Option 2: Center arena at NPC position (so NPC doesn't move)
 
     // Get NPC position to use as arena center
-    const trainingDummy = gameObjects.get('training-dummy-1');
+    const gameObject = DataStore.scene.getSavedGameObject();
     let arenaCenter: Vector3;
 
-    if (trainingDummy) {
-      const transform = trainingDummy.getComponent(TransformComponent);
+    if (gameObject) {
+      const transform = gameObject.getComponent(TransformComponent);
       if (transform && transform.position) {
         arenaCenter = new Vector3(transform.position.x, 0, transform.position.z);
       } else {
