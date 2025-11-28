@@ -7,7 +7,7 @@ import { Engine } from "@/game/Engine";
 import { GameObjectsManager } from "@/game/systems/GameObjectsManager";
 import type { InteractionSystem } from "@/game/systems/InteractionSystem";
 import { PhysicsSystem } from "@/game/systems/PhysicsSystem";
-import SceneStateService from "@/game/systems/SceneStateService";
+import SceneState from "@/game/systems/SceneState";
 import { Spawner } from "@/game/systems/Spawner";
 import { VFXSystem } from "@/game/systems/VFXSystem";
 import { BufferGeometry, BufferGeometryEventMap, NormalBufferAttributes, Scene } from "three";
@@ -86,7 +86,7 @@ export interface I_SceneSystems {
 	networking: NetworkingSystem;
 	gameObjectsManager: GameObjectsManager;
 	spawner: Spawner;
-	state: SceneStateService;
+	state: SceneState;
 }
 
 /**

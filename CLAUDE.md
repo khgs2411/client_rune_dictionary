@@ -146,7 +146,7 @@ The game uses a **custom imperative architecture** with Three.js, not declarativ
     - Lifecycle: `init(context)` → `update(delta)` → `destroy()`
     - **Priority levels**: DEFAULT (1), RENDERING (100), PHYSICS (200), INTERACTION (300)
 
-3. **GameObjectManager** (`src/game/services/GameObjectManager.ts`)
+3. **GameObjectManager** (`src/game/systems/GameObjectsManager.ts`)
 
     - SceneModule that manages all GameObjects in a scene
     - Handles GameObject lifecycle coordination
@@ -379,7 +379,7 @@ async init(context: I_SceneContext): Promise<void> {
 }
 ```
 
-**Current Systems** (`src/game/services/`):
+**Current Systems** (`src/game/systems/`):
 
 - **InteractionSystem** - Centralized interaction detection and event handling
     - Registers hover/click handlers for meshes
@@ -405,7 +405,7 @@ async init(context: I_SceneContext): Promise<void> {
     - **Camera shake**: `shakeCamera(intensity, duration)` - Screen feedback
     - Pre-allocated pools for performance (TextSprites: 10, Tooltips: 3, Particles: 5)
 
-- **SceneStateSystem** - Scene state machine
+- **SceneState** - Scene state machine
     - States: `OVERWORLD`, `MATCH_REQUEST`, `MATCH`, etc.
     - Components query state: `stateService.isOverworld()`
     - Components trigger transitions: `stateService.setState(E_SceneState.MATCH_REQUEST)`
@@ -542,14 +542,14 @@ src/
 │   │   ├── MatchAreaWalls.ts
 │   │   ├── MatchAreaDome.ts
 │   │   └── MatchCameraAnchor.ts
-│   ├── services/           # Game systems (scene-wide subsystems)
-│   │   ├── InteractionService.ts   # Interaction detection + event handling
-│   │   ├── PhysicsService.ts       # Rapier3D physics wrapper
-│   │   ├── VFXService.ts           # Visual effects (emissive, particles, tooltips)
+│   ├── systems/            # Game systems (scene-wide subsystems)
+│   │   ├── InteractionSystem.ts    # Interaction detection + event handling
+│   │   ├── PhysicsSystem.ts        # Rapier3D physics wrapper
+│   │   ├── VFXSystem.ts            # Visual effects (emissive, particles, tooltips)
 │   │   ├── GameObjectsManager.ts   # GameObject lifecycle management
-│   │   ├── SceneStateService.ts    # Scene state machine (OVERWORLD, MATCH_REQUEST, etc.)
-│   │   ├── NetworkingService.ts    # WebSocket multiplayer communication
-│   │   ├── SceneService.ts         # Base class for systems
+│   │   ├── SceneState.ts           # Scene state machine (OVERWORLD, MATCH_REQUEST, etc.)
+│   │   ├── NetworkingSystem.ts     # WebSocket multiplayer communication
+│   │   ├── SceneSystem.ts          # Base class for systems
 │   │   └── Spawner.ts              # Entity spawning utilities
 │   ├── common/             # Types and interfaces
 │   │   ├── scenes.types.ts
@@ -822,8 +822,8 @@ protected registerModules(): void {
 #### Adding a New System
 
 ```typescript
-// 1. Create system class in src/game/services/
-export class MySystem extends SceneService {
+// 1. Create system class in src/game/systems/
+export class MySystem extends SceneSystem {
   protected async init(context: I_SceneContext): Promise<void> {
     // Initialize system
   }

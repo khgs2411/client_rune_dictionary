@@ -9,7 +9,7 @@ import { ModuleRegistry } from "@/game/ModuleRegistry";
 import { GameObjectsManager } from "@/game/systems/GameObjectsManager";
 import { InteractionSystem } from "@/game/systems/InteractionSystem";
 import { PhysicsSystem } from "@/game/systems/PhysicsSystem";
-import SceneStateService from "@/game/systems/SceneStateService";
+import SceneState from "@/game/systems/SceneState";
 import { Spawner } from "@/game/systems/Spawner";
 import { VFXSystem } from "@/game/systems/VFXSystem";
 import { GameConfig } from "@/stores/config.store";
@@ -50,7 +50,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
 		networking: new NetworkingSystem(),
 		gameObjectsManager: new GameObjectsManager(),
 		spawner: new Spawner(),
-		state: new SceneStateService(),
+		state: new SceneState(),
 	};
 
 	// High-level entity composables

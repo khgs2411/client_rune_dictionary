@@ -1,6 +1,6 @@
 import type { I_SceneContext } from "@/game/common/scenes.types";
 import { ComponentPriority, GameComponent } from "@/game/GameComponent";
-import { E_SceneState } from "@/game/systems/SceneStateService";
+import { E_SceneState } from "@/game/systems/SceneState";
 import { UnitsComponent } from "../entities/UnitsComponent";
 import { HoverComponent } from "../interactions/HoverComponent";
 import { InteractionComponent } from "../interactions/InteractionComponent";

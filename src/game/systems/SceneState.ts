@@ -57,7 +57,7 @@ export type StateChangeCallback = (newState: E_SceneState, oldState: E_SceneStat
  * stateService.unregister(callback);
  * ```
  */
-export default class SceneStateService extends SceneSystem implements I_SceneSystem {
+export default class SceneState extends SceneSystem implements I_SceneSystem {
 	private currentState: E_SceneState = E_SceneState.OVERWORLD;
 	private rxjs = useRxjs("scene:state", undefined, { static_instance: true });
 	private listeners: Set<StateChangeCallback> = new Set();

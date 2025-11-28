@@ -8,7 +8,7 @@ import SceneModule from "@/game/modules/SceneModule";
 import { MatchAreaWalls } from "@/game/prefabs/MatchAreaWalls";
 import { MatchCameraAnchor } from "@/game/prefabs/MatchCameraAnchor";
 import { MatchGrid } from "@/game/prefabs/MatchGrid";
-import { E_SceneState, type StateChangeCallback } from "@/game/systems/SceneStateService";
+import { E_SceneState, type StateChangeCallback } from "@/game/systems/SceneState";
 import { DataStore } from "@/stores/DataStore";
 import { Vector3 } from "three";
 
