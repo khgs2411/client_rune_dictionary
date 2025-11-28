@@ -1,6 +1,6 @@
 import type { I_SceneContext, I_SceneSystem } from "@/game/common/scenes.types";
 import { GameObject } from "@/game/GameObject";
-import SceneSystem from "@/game/services/SceneService";
+import SceneSystem from "@/game/systems/SceneService";
 import { FactoryFunction, ObjectPool } from "@/game/utils/ObjectPool";
 
 /**

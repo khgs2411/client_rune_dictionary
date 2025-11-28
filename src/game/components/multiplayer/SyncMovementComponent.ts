@@ -2,7 +2,7 @@ import { ComponentPriority, GameComponent } from "@/game/GameComponent";
 import type { I_PlayerPositionUpdate, I_SyncMovementConfig } from "@/game/common/multiplayer.types";
 import { I_SceneContext } from "@/game/common/scenes.types";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
-import { E_NetworkEventCategory } from "@/game/services/NetworkingService";
+import { E_NetworkEventCategory } from "@/game/systems/NetworkingService";
 import { Vector3 } from "three";
 
 /**

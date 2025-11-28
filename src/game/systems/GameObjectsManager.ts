@@ -1,6 +1,6 @@
 import { I_ThemeColors } from "@/composables/useTheme";
 import type { I_SceneContext, I_SceneSystem } from "@/game/common/scenes.types";
-import SceneSystem from "@/game/services/SceneService";
+import SceneSystem from "@/game/systems/SceneService";
 import { I_GameComponent } from "../GameComponent";
 import { GameObject } from "../GameObject";
 

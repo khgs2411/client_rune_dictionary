@@ -4,14 +4,14 @@ import { useCharacter } from "@/composables/useCharacter";
 import { I_ThemeColors } from "@/composables/useTheme";
 import { CleanupRegistry } from "@/game/CleanupRegistry";
 import { Engine } from "@/game/Engine";
-import { GameObjectsManager } from "@/game/services/GameObjectsManager";
-import type { InteractionSystem } from "@/game/services/InteractionSystem";
-import { PhysicsService } from "@/game/services/PhysicsService";
-import SceneStateService from "@/game/services/SceneStateService";
-import { Spawner } from "@/game/services/Spawner";
-import { VFXService } from "@/game/services/VFXService";
+import { GameObjectsManager } from "@/game/systems/GameObjectsManager";
+import type { InteractionSystem } from "@/game/systems/InteractionSystem";
+import { PhysicsService } from "@/game/systems/PhysicsService";
+import SceneStateService from "@/game/systems/SceneStateService";
+import { Spawner } from "@/game/systems/Spawner";
+import { VFXService } from "@/game/systems/VFXService";
 import { BufferGeometry, BufferGeometryEventMap, NormalBufferAttributes, Scene } from "three";
-import NetworkingService from "../services/NetworkingService";
+import NetworkingService from "../systems/NetworkingService";
 import type { I_InteractableBehaviors } from "./interaction.types";
 
 /**

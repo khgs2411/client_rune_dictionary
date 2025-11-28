@@ -6,19 +6,19 @@ import { CleanupRegistry } from "@/game/CleanupRegistry";
 import { I_SceneContext, I_SceneModule, I_SceneSystems } from "@/game/common/scenes.types";
 import type { Engine } from "@/game/Engine";
 import { ModuleRegistry } from "@/game/ModuleRegistry";
-import { GameObjectsManager } from "@/game/services/GameObjectsManager";
-import { InteractionSystem } from "@/game/services/InteractionSystem";
-import { PhysicsService } from "@/game/services/PhysicsService";
-import SceneStateService from "@/game/services/SceneStateService";
-import { Spawner } from "@/game/services/Spawner";
-import { VFXService } from "@/game/services/VFXService";
+import { GameObjectsManager } from "@/game/systems/GameObjectsManager";
+import { InteractionSystem } from "@/game/systems/InteractionSystem";
+import { PhysicsService } from "@/game/systems/PhysicsService";
+import SceneStateService from "@/game/systems/SceneStateService";
+import { Spawner } from "@/game/systems/Spawner";
+import { VFXService } from "@/game/systems/VFXService";
 import { GameConfig } from "@/stores/config.store";
 import { DataStore } from "@/stores/DataStore";
 import { SceneStore as ScenesManager } from "@/stores/scene.store";
 import type { ApplicationSettings } from "@/stores/settings.store";
 import { WebsocketManager } from "@/stores/websocket.store";
 import { useRxjs } from "topsyde-utils";
-import NetworkingService from "./services/NetworkingService";
+import NetworkingService from "./systems/NetworkingService";
 
 /**
  * Base class for game scenes with typed module registry support

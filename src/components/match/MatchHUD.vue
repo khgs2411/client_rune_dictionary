@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import MatchAPI from "@/api/match.api";
-import { E_SceneState } from "@/game/services/SceneStateService";
+import { E_SceneState } from "@/game/systems/SceneStateService";
 import { DataStore } from "@/stores/DataStore";
 import { useRxjs } from "topsyde-utils";
 import { computed, ref, watch } from "vue";
