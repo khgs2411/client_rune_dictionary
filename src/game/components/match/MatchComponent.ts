@@ -66,8 +66,8 @@ export class MatchComponent extends GameComponent {
 
 	/** Default interaction range in units */
 	private static readonly DEFAULT_INTERACTION_RANGE = 10;
-	private static readonly DEFAULT_GLOW_COLOR = 0xff4444; // Combat red
-	private static readonly DEFAULT_GLOW_INTENSITY = 0.4;
+	private static readonly DEFAULT_GLOW_COLOR = 0xff6666; // Subtle combat red
+	private static readonly DEFAULT_GLOW_INTENSITY = 0.15; // Subtle highlight, not full glow
 
 	/** Interaction range - player must be within this distance to start match */
 	public readonly interactionRange: number;

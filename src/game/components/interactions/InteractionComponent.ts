@@ -1,9 +1,10 @@
 import type { I_SceneContext } from "@/game/common/scenes.types";
 import { ComponentPriority, GameComponent } from "@/game/GameComponent";
+import { GameObject } from "@/game/GameObject";
 import type { Intersection } from "three";
 import { MeshComponent } from "../rendering/MeshComponent";
 
-export type InteractionEventCallback = (intersection: Intersection) => void;
+export type InteractionEventCallback = (gameObject: GameObject, intersection: Intersection) => void;
 
 /**
  * InteractionComponent - Generic interaction event proxy layer
@@ -91,7 +92,7 @@ export class InteractionComponent extends GameComponent {
 	private emit(event: string, intersection: Intersection): void {
 		const callbacks = this.events.get(event);
 		if (callbacks) {
-			callbacks.forEach((cb) => cb(intersection));
+			callbacks.forEach((cb) => cb(this.gameObject, intersection));
 		}
 	}
 

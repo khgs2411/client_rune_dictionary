@@ -1,9 +1,10 @@
 import { I_SceneContext } from "@/game/common/scenes.types";
-import { ComponentPriority, GameComponent } from "../../GameComponent";
+import { GameObject } from "@/game/GameObject";
 import { Intersection } from "three";
+import { ComponentPriority, GameComponent } from "../../GameComponent";
 import { MeshComponent } from "../rendering/MeshComponent";
 
-export type HoverEventCallback = (intersection?: Intersection) => void;
+export type HoverEventCallback = (target: GameObject, intersection?: Intersection) => void;
 
 /**
  * HoverComponent - Pure hover capability that emits events
@@ -88,7 +89,7 @@ export class HoverComponent extends GameComponent {
 	private emit(event: string, intersection?: Intersection): void {
 		const callbacks = this.events.get(event);
 		if (callbacks) {
-			callbacks.forEach((cb) => cb(intersection));
+			callbacks.forEach((cb) => cb(this.gameObject, intersection));
 		}
 	}
 

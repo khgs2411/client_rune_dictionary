@@ -158,29 +158,95 @@ The game uses a **custom imperative architecture** with Three.js, not declarativ
     - Example: `EditableBox` - draggable, physics-enabled, persistent box
     - Create custom prefabs by extending GameObject and adding components in constructor
 
+**Component Architecture Philosophy:**
+
+The component system follows **Pattern B** - a layered architecture where:
+
+- **Low-level components** (Capability Layer) - Emit events, provide pure data/measurements
+- **High-level components** (Orchestrator Layer) - Listen to events, make decisions, coordinate behavior
+
+This separation enables:
+- Reusable low-level components across different use cases
+- Single responsibility principle (each component does one thing well)
+- Flexible composition (swap orchestrators without changing capabilities)
+
+**Example: Match initiation flow**
+```
+InteractionComponent (emits 'doubleclick')
+    → MatchComponent (listens, checks range via UnitsComponent, triggers state change)
+        → MatchModule (handles API calls, arena spawning, transitions)
+```
+
+**Trait System:**
+
+Components can declare interfaces they implement via traits, enabling interface-based lookup:
+
+```typescript
+// In component constructor:
+this.registerTrait(TRAIT.MATERIAL_PROVIDER);
+
+// In consumer:
+const material = this.requireByTrait<I_MaterialProvider>(TRAIT.MATERIAL_PROVIDER);
+```
+
+Available traits: `TRAIT.MATERIAL_PROVIDER`, `TRAIT.MESH_PROVIDER`
+
 **Available Components:**
 
-- **Rendering Components** (Priority: 1)
+- **Rendering Components** (`components/rendering/`) - Priority: DEFAULT (1)
 
     - `TransformComponent` - Position, rotation, scale
     - `GeometryComponent` - Box, sphere, capsule, cylinder, cone, plane geometries
     - `MaterialComponent` - Standard material with color, roughness, metalness
-    - `MeshComponent` - Combines geometry + material into Three.js Mesh (Priority: 100)
+    - `ToonMaterialComponent` - Cel-shaded toon material
+    - `BaseMaterialComponent` - Abstract base for material components (registers MATERIAL_PROVIDER trait)
+    - `MeshComponent` - Combines geometry + material into Three.js Mesh (Priority: RENDERING 100)
+    - `CharacterMeshComponent` - Character-specific mesh with animations
     - `InstancedMeshComponent` - Instanced rendering for many identical objects
     - `GridHelperComponent` - Debug grid visualization
 
-- **Physics Components** (Priority: 200)
+- **Entity Components** (`components/entities/`) - Priority: DEFAULT (1)
 
-    - `PhysicsComponent` - Registers with PhysicsService (static, kinematic, or dynamic bodies)
+    - `UnitsComponent` - **Pure measurement utility** for distance calculations
+      - `distanceTo(target)` - Euclidean distance to Vector3
+      - `distanceToPlayer()` - Distance to player character
+      - `isPlayerWithinRange(range)` - Range check helper
+    - `SpawnComponent` - Spawn point configuration
+    - `TrajectoryComponent` - Projectile trajectory calculation
+    - `KinematicMovementComponent` - Kinematic body movement
+    - `KinematicCollisionComponent` - Kinematic collision detection
 
-- **Interaction Components** (Priority: 300)
+- **Interaction Components** (`components/interactions/`) - Priority: INTERACTION (300)
 
-    - `HoverComponent` - Hover glow effect via InteractionService
-    - `ClickComponent` - Click VFX, camera shake, particles via InteractionService
-    - `DragComponent` - Drag objects on XZ plane with optional grid snapping (editor mode only)
+    - `InteractionComponent` - **Pure event emitter** for click/doubleclick
+      - Emits 'click' and 'doubleclick' events
+      - Handles double-click detection (300ms threshold)
+      - Other components listen via `.on('doubleclick', callback)`
+    - `HoverComponent` - **Pure hover capability** that emits events
+      - Emits 'start' and 'end' events (no visual effects!)
+      - Consumers decide what to do on hover
+      - Query hover state via `.hovering` property
+    - `HoverGlowComponent` - Applies emissive glow on hover
+    - `ClickVFXComponent` - Shows click effects (POW!, particles)
+    - `MouseClickComponent` - Generic mouse click handler
+    - `HotkeyComponent` - Keyboard shortcut bindings
+    - `CollisionComponent` - Static collision body registration
+    - `DragComponent` - Drag objects on XZ plane (editor mode only)
 
-- **System Components** (Priority: 1)
-    - `PersistenceComponent` - Auto-save/load GameObject position to localStorage
+- **Match Components** (`components/match/`) - Priority: INTERACTION (300)
+
+    - `MatchComponent` - **Orchestrator** for match initiation
+      - Listens to InteractionComponent doubleclick events
+      - Listens to HoverComponent hover events
+      - Checks player range via UnitsComponent
+      - Shows combat glow when hovering in range (via VFXService)
+      - Triggers MATCH_REQUEST state change
+      - Holds arena configuration for match environment
+
+- **Multiplayer Components** (`components/multiplayer/`)
+
+    - `RemotePlayerComponent` - Renders remote player characters
+    - `SyncMovementComponent` - Synchronizes movement with server
 
 #### Example Scene Structure
 
@@ -323,6 +389,7 @@ async start(context: I_ModuleContext): Promise<void> {
     - Eliminates need for `I_InteractableModule` interface boilerplate
     - Modules simply call `context.services.interaction.register()`
     - Components use builder pattern: `context.services.interaction.register(id, mesh).withHoverGlow().withClickVFX()`
+
 - **PhysicsService** - Rapier-based physics engine wrapper (Rapier3D WASM)
     - Simple facade over Rapier physics (single file, minimal API)
     - Static bodies: `registerStatic()`, `registerStaticFromMesh()`, `registerInstancedStatic()`
@@ -330,6 +397,22 @@ async start(context: I_ModuleContext): Promise<void> {
     - Movement: `moveKinematic()`, `isGrounded()`, `getPosition()`, `setPosition()`
     - Debug wireframes with global toggle via gameConfig store
     - Auto-cleanup via CleanupRegistry
+
+- **VFXService** - Visual effects with object pooling
+    - **Emissive glow**: `applyEmissive(mesh, color, intensity)`, `restoreEmissive(mesh)`
+      - Caches original material values for restoration
+      - Used by MatchComponent for combat hover glow
+    - **Click effects**: `showClickEffect(position, text, color)` - POW!, BAM! text sprites
+    - **Tooltips**: `showTooltip(position, title, description)`, `hideTooltip()`
+      - Billboards that face camera (using troika-three-text for crisp rendering)
+    - **Particles**: `spawnParticles(position, count, color, speed)` - Burst effects
+    - **Camera shake**: `shakeCamera(intensity, duration)` - Screen feedback
+    - Pre-allocated pools for performance (TextSprites: 10, Tooltips: 3, Particles: 5)
+
+- **SceneStateService** - Scene state machine
+    - States: `OVERWORLD`, `MATCH_REQUEST`, `MATCH`, etc.
+    - Components query state: `stateService.isOverworld()`
+    - Components trigger transitions: `stateService.setState(E_SceneState.MATCH_REQUEST)`
 
 #### 4. Loading System
 
@@ -395,40 +478,72 @@ src/
 │   ├── ModuleRegistry.ts   # Type-safe module management
 │   ├── CleanupRegistry.ts  # Cleanup manager (formerly SceneLifecycle)
 │   ├── GameObject.ts       # Entity container for components
-│   ├── GameComponent.ts    # Base class for all components
-│   ├── EntityModule.ts     # (Deprecated - use GameComponent instead)
+│   ├── GameComponent.ts    # Base class for all components (includes TRAIT system)
 │   ├── modules/            # Reusable scene modules
 │   │   └── scene/          # Scene infrastructure modules
 │   │       ├── LightingModule.ts
-│   │       ├── GroundModule.ts (DEPRECATED - use prefabs)
 │   │       ├── SceneObjectsModule.ts
 │   │       ├── SceneInstancedObjectsModule.ts
 │   │       ├── CharacterModule.ts
 │   │       ├── DebugModule.ts
 │   │       └── VFXModule.ts
-│   ├── components/         # GameComponents
-│   │   ├── rendering/      # Visual components
-│   │   │   ├── GeometryComponent.ts
-│   │   │   ├── MaterialComponent.ts
-│   │   │   ├── MeshComponent.ts
+│   ├── components/         # GameComponents (organized by domain)
+│   │   ├── rendering/      # Visual components (Priority: DEFAULT/RENDERING)
 │   │   │   ├── TransformComponent.ts
+│   │   │   ├── GeometryComponent.ts
+│   │   │   ├── BaseMaterialComponent.ts  # Abstract base with TRAIT registration
+│   │   │   ├── MaterialComponent.ts
+│   │   │   ├── ToonMaterialComponent.ts
+│   │   │   ├── MeshComponent.ts
+│   │   │   ├── CharacterMeshComponent.ts
 │   │   │   ├── InstancedMeshComponent.ts
 │   │   │   └── GridHelperComponent.ts
-│   │   ├── interactions/   # Interaction components
-│   │   │   ├── HoverComponent.ts
-│   │   │   ├── ClickComponent.ts
-│   │   │   ├── DragComponent.ts
-│   │   │   └── PhysicsComponent.ts
-│   │   └── systems/        # System components
-│   │       └── PersistenceComponent.ts
-│   ├── prefabs/            # Pre-configured GameObjects
-│   │   ├── EditableBox.ts  # Draggable physics box with persistence
+│   │   ├── entities/       # Entity measurement/movement (Priority: DEFAULT)
+│   │   │   ├── UnitsComponent.ts         # Pure distance measurement utility
+│   │   │   ├── TransformComponent.ts
+│   │   │   ├── SpawnComponent.ts
+│   │   │   ├── TrajectoryComponent.ts
+│   │   │   ├── KinematicMovementComponent.ts
+│   │   │   └── KinematicCollisionComponent.ts
+│   │   ├── interactions/   # Interaction capabilities (Priority: INTERACTION)
+│   │   │   ├── InteractionComponent.ts   # Pure event emitter (click/doubleclick)
+│   │   │   ├── HoverComponent.ts         # Pure hover events (no visuals)
+│   │   │   ├── HoverGlowComponent.ts     # Emissive glow on hover
+│   │   │   ├── ClickVFXComponent.ts      # Click visual effects
+│   │   │   ├── MouseClickComponent.ts
+│   │   │   ├── HotkeyComponent.ts
+│   │   │   ├── CollisionComponent.ts
+│   │   │   └── DragComponent.ts
+│   │   ├── match/          # Match/combat orchestration (Priority: INTERACTION)
+│   │   │   └── MatchComponent.ts         # Orchestrator for match initiation
+│   │   └── multiplayer/    # Network synchronization
+│   │       ├── RemotePlayerComponent.ts
+│   │       └── SyncMovementComponent.ts
+│   ├── prefabs/            # Pre-configured GameObjects (organized by type)
+│   │   ├── character/      # Player-related prefabs
+│   │   │   ├── LocalPlayer.ts
+│   │   │   ├── RemotePlayer.ts
+│   │   │   └── createPlayer.ts
+│   │   ├── environment/    # World objects
+│   │   │   ├── Rock.ts
+│   │   │   ├── House.ts
+│   │   │   ├── Path.ts
+│   │   │   └── Hill.ts
+│   │   ├── npc/            # Non-player characters
+│   │   │   └── TrainingDummy.ts  # Matchable NPC (example of Pattern B)
 │   │   ├── Ground.ts       # Static ground plane
-│   │   └── Trees.ts        # Instanced tree meshes
+│   │   ├── Trees.ts        # Instanced tree meshes
+│   │   ├── Fireball.ts     # Projectile prefab
+│   │   ├── MatchGrid.ts    # Match arena grid
+│   │   ├── MatchAreaWalls.ts
+│   │   ├── MatchAreaDome.ts
+│   │   └── MatchCameraAnchor.ts
 │   ├── services/           # Scene services
 │   │   ├── InteractionService.ts
 │   │   ├── PhysicsService.ts
+│   │   ├── VFXService.ts           # Visual effects (emissive, particles, tooltips)
 │   │   ├── GameObjectManager.ts
+│   │   ├── SceneStateService.ts    # Scene state machine (OVERWORLD, MATCH_REQUEST, etc.)
 │   │   └── InteractableBuilder.ts
 │   ├── common/             # Types and interfaces
 │   │   ├── scenes.types.ts
@@ -730,12 +845,12 @@ async start(context: I_ModuleContext) {
 
 #### Creating a Custom Component
 
+**Simple Component (no dependencies):**
+
 ```typescript
 // 1. Create component in src/game/components/
 export class RotateComponent extends GameComponent {
-	// Set priority for initialization order
 	public readonly priority = ComponentPriority.DEFAULT;
-
 	private speed: number;
 	private axis: "x" | "y" | "z";
 
@@ -746,7 +861,6 @@ export class RotateComponent extends GameComponent {
 	}
 
 	async init(context: I_SceneContext): Promise<void> {
-		// Query required sibling components
 		const mesh = this.requireComponent(MeshComponent);
 		console.log("RotateComponent initialized for", mesh.mesh.name);
 	}
@@ -754,22 +868,82 @@ export class RotateComponent extends GameComponent {
 	update(delta: number): void {
 		const mesh = this.getComponent(MeshComponent);
 		if (!mesh) return;
-
-		// Rotate mesh
 		mesh.mesh.rotation[this.axis] += this.speed * delta;
 	}
+}
+```
 
-	destroy(): void {
-		// Cleanup if needed
+**Event Emitter Component (Capability Layer - Pattern B):**
+
+```typescript
+// Pure capability - emits events, no behavior decisions
+export class HoverComponent extends GameComponent {
+	public readonly priority = ComponentPriority.INTERACTION;
+	private events = new Map<string, HoverEventCallback[]>();
+	private isHovered = false;
+
+	async init(context: I_SceneContext): Promise<void> {
+		const meshComp = this.requireComponent(MeshComponent);
+		const interaction = context.getService("interaction");
+
+		interaction.registerHover(`${this.gameObject.id}-hover`, meshComp.mesh, {
+			onStart: (intersection) => {
+				this.isHovered = true;
+				this.emit("start", intersection);
+			},
+			onEnd: () => {
+				this.isHovered = false;
+				this.emit("end");
+			},
+		});
+	}
+
+	public on(event: "start" | "end", callback: HoverEventCallback): void {
+		if (!this.events.has(event)) this.events.set(event, []);
+		this.events.get(event)!.push(callback);
+	}
+
+	public get hovering(): boolean { return this.isHovered; }
+}
+```
+
+**Orchestrator Component (Pattern B):**
+
+```typescript
+// Orchestrates behavior - listens to events, queries data, makes decisions
+export class MatchComponent extends GameComponent {
+	public readonly priority = ComponentPriority.INTERACTION;
+	public readonly interactionRange: number;
+
+	async init(context: I_SceneContext): Promise<void> {
+		this.context = context;
+		this.unitsComponent = this.requireComponent(UnitsComponent);
+		this.meshComponent = this.requireComponent(MeshComponent);
+
+		// Listen to low-level events
+		const interaction = this.requireComponent(InteractionComponent);
+		interaction.on("doubleclick", () => this.requestMatch(context));
+
+		const hover = this.getComponent(HoverComponent);
+		hover?.on("start", () => {
+			if (this.isWithinInteractionRange()) this.showCombatGlow();
+		});
+		hover?.on("end", () => this.hideCombatGlow());
+	}
+
+	private requestMatch(context: I_SceneContext): void {
+		const stateService = context.getService("state");
+		if (!stateService.isOverworld()) return;
+		if (!this.isWithinInteractionRange()) return;
+
+		// Trigger state change - MatchModule handles the rest
+		stateService.setState(E_SceneState.MATCH_REQUEST);
+	}
+
+	public isWithinInteractionRange(): boolean {
+		return this.unitsComponent.isPlayerWithinRange(this.interactionRange);
 	}
 }
-
-// 2. Use in GameObject
-const obj = new GameObject({ id: "spinner" })
-	.addComponent(new GeometryComponent({ type: "box", params: [1, 1, 1] }))
-	.addComponent(new MaterialComponent({ color: 0x00ff00 }))
-	.addComponent(new MeshComponent())
-	.addComponent(new RotateComponent({ speed: 1, axis: "y" }));
 ```
 
 #### Using Physics in Components
@@ -834,17 +1008,27 @@ tryOnUnmounted(() => destroy());
 
 ### Important Conventions
 
+**Component Architecture:**
+
+- **Follow Pattern B** - Low-level components emit events, high-level orchestrate behavior
+- **Keep event emitters pure** - HoverComponent/InteractionComponent emit events only, no visual effects
+- **Orchestrators own behavior** - MatchComponent decides when to show glow, when to start match
+- **Use UnitsComponent for distance** - Pure measurement utility, don't embed distance logic elsewhere
+- **Component priority matters** - Default (1), Rendering (100), Physics (200), Interaction (300)
+- **Use traits for interfaces** - `this.registerTrait(TRAIT.MATERIAL_PROVIDER)` for interface-based lookup
+
+**General Rules:**
+
 - **Never modify `src_deprecated/`** - it's frozen for reference
 - **Always use VueUse** for common tasks (event listeners, window size, RAF, etc.)
 - **Mobile-first mindset** - test on touch devices, use virtual joystick
 - **Register all Three.js objects** with `cleanupRegistry.registerObject()` to prevent memory leaks
 - **Register disposables** with `cleanupRegistry.registerDisposable()` for geometries, materials, textures
 - **Use GameObject/Component pattern for game entities** - SceneModules are for scene infrastructure only
-- **Component priority matters** - Default (1), Rendering (100), Physics (200), Interaction (300)
 - **Always call `super.init(context)` first** in SceneModule init() method to store context reference
 - **Use RxJS from topsyde-utils** for event coordination (`useRxjs(channel)`)
 - **Prefer Services over Interfaces** - Use `context.services.X` instead of creating complex interfaces
-- **InteractableBuilder pattern** - Use `.withHoverGlow()`, `.withClickVFX()`, `.withDrag()` for interactions
+- **VFXService for visual effects** - Use `applyEmissive()`, `spawnParticles()`, `shakeCamera()` instead of custom effects
 - **Physics via Rapier3D** - Use PhysicsService facade, not raw Rapier API
 - **ModuleRegistry handles tracking** - Don't manually manage module collections
 
@@ -861,19 +1045,24 @@ This codebase uses **two complementary patterns**:
     - Lifecycle: init() → update() → destroy()
 
 2. **GameObject/Component Pattern** - For game entities
-    - Examples: EditableBox, Ground, Trees (prefabs)
+    - Examples: TrainingDummy, Ground, Trees (prefabs)
     - Many instances per scene, managed by GameObjectManager
-    - Components: GeometryComponent, MaterialComponent, PhysicsComponent, HoverComponent, etc.
+    - Components organized by domain: rendering/, entities/, interactions/, match/, multiplayer/
     - Lifecycle: GameObject.init() → Component.init() → Component.update() → Component.destroy()
 
 #### Key Design Patterns
 
+- **Pattern B (Layered Components)** - Low-level emit events, high-level orchestrate behavior
+  - Capability Layer: HoverComponent, InteractionComponent, UnitsComponent (pure events/data)
+  - Orchestrator Layer: MatchComponent (listens, decides, coordinates)
+  - Module Layer: MatchModule (handles side effects - API calls, arena spawning)
 - **Template Pattern** - GameScene provides lifecycle framework, subclasses override registerModules()
 - **Builder Pattern** - InteractableBuilder for fluent interaction configuration
-- **Facade Pattern** - PhysicsService wraps Rapier3D complexity
+- **Facade Pattern** - PhysicsService wraps Rapier3D, VFXService wraps effect systems
 - **Registry Pattern** - ModuleRegistry for type-safe module tracking, GameObjectManager for entity tracking
 - **Priority Pattern** - Components initialize in priority order (rendering → physics → interaction)
-- **Service Locator** - Services available via context.services (interaction, physics)
+- **Service Locator** - Services available via context.getService() (interaction, physics, vfx, state)
+- **Trait Pattern** - Interface-based component lookup via TRAIT symbols
 
 #### Component Priority Order
 
@@ -902,10 +1091,30 @@ This codebase uses **two complementary patterns**:
 
 #### Interaction System
 
-- **InteractionService** - Centralized raycasting + visual feedback
+**Service-Based (low-level registration):**
+- **InteractionService** - Centralized raycasting + event detection
 - **InteractableBuilder** - Fluent API for defining behaviors
     - Hover: `.withHoverGlow(color, intensity)`, `.withTooltip(title, description)`
     - Click: `.withClickVFX(text, color)`, `.withCameraShake(intensity, duration)`, `.withParticles(count, color)`
     - Drag: `.withDrag({ lockAxis, snapToGrid, onEnd })` (editor mode only)
-- Components implement `I_Interactable` interface to register with builder
-- GameObject coordinates registration via `registerInteractions()` lifecycle hook
+
+**Component-Based (Pattern B - RECOMMENDED):**
+- **InteractionComponent** - Pure event emitter for click/doubleclick
+- **HoverComponent** - Pure hover detection (emits 'start'/'end' events)
+- **MatchComponent** - Orchestrator example (listens to events, checks range, triggers state)
+- **UnitsComponent** - Pure distance measurement (no events, just data)
+- **VFXService** - Visual effects (emissive glow, particles, camera shake)
+
+**Pattern B Flow Example:**
+```
+User hovers over NPC
+  → HoverComponent emits 'start'
+  → MatchComponent listens, checks UnitsComponent.isPlayerWithinRange()
+  → If in range: VFXService.applyEmissive() shows combat glow
+
+User double-clicks NPC
+  → InteractionComponent emits 'doubleclick'
+  → MatchComponent checks range + scene state
+  → If valid: SceneStateService.setState(MATCH_REQUEST)
+  → MatchModule handles API calls, arena spawning, camera transition
+```
