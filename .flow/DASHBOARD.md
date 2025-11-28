@@ -10,11 +10,11 @@
 
 ## 📍 Current Work
 
-- **Phase**: [Phase 2 - Combat System Reimplementation](.flow/phase-2/PHASE.md)
-- **Task**: [Task 2 - WebSocket Match Events & Match Loop System](.flow/phase-2/task-2.md)
-- **Iteration**: [Iteration 2.5 - InteractionComponent Range Extension & HoverComponent Refactor](.flow/phase-2/task-2.md) 🚧 BRAINSTORMING
+- **Phase**: [Phase 2 - Combat System Reimplementation](phase-2/PHASE.md)
+- **Task**: [Task 2 - WebSocket Match Events & Match Loop System](phase-2/task-2.md)
+- **Iteration**: [Iteration 2.5 - InteractionComponent Range Extension & HoverComponent Refactor](phase-2/task-2.md) 🚧 BRAINSTORMING
 - **Focus**: Designing component architecture for range-based interactions
-- **Architecture**: See [PLAN.md](.flow/PLAN.md) for design patterns and guidelines
+- **Architecture**: See [PLAN.md](PLAN.md) for design patterns and guidelines
 
 ---
 
@@ -24,24 +24,24 @@
 
 **Goal**: Build match environment with camera controls, arena boundaries, and visual feedback
 **Status**: 60% complete (3/4 tasks, 6/8 total iterations)
-**Reference**: [Phase 2 Details](.flow/phase-2/PHASE.md)
+**Reference**: [Phase 2 Details](phase-2/PHASE.md)
 
 **Tasks**:
 
-- ✅ [**Task 1**: Match UI Components](.flow/phase-2/task-1.md) (2/2 iterations) - COMPLETE
+- ✅ [**Task 1**: Match UI Components](phase-2/task-1.md) (2/2 iterations) - COMPLETE
     - ✅ Iteration 0: Game Mode Controls & Visibility Management
     - ✅ Iteration 1: Match HUD Elements
     - ❌ Iteration 2: Character Status Display (CANCELLED - consolidated into Iteration 1)
     - ❌ Iteration 3: Combat Actions UI (CANCELLED - consolidated into Iteration 1)
-- ✅ [**Task 1.5**: Match Instantiation Flow Refactoring](.flow/phase-2/task-1-5.md) (1/1 iterations) - COMPLETE
+- ✅ [**Task 1.5**: Match Instantiation Flow Refactoring](phase-2/task-1-5.md) (1/1 iterations) - COMPLETE
     - ✅ Iteration 1: Match Lifecycle State Management & Arena Spawning
-- 🚧 [**Task 2**: WebSocket Match Events & Match Loop System](.flow/phase-2/task-2.md) (5/5 iterations) ← **CURRENT**
+- 🚧 [**Task 2**: WebSocket Match Events & Match Loop System](phase-2/task-2.md) (5/5 iterations) ← **CURRENT**
     - ✅ Iteration 1: WebSocket Event Integration (COMPLETE)
     - ✅ Iteration 1.5: MatchHUD Components UI Adjustment (COMPLETE)
     - ✅ Iteration 2: ATB System Implementation (COMPLETE - server-driven with client prediction)
     - 🚧 Iteration 2.5: InteractionComponent Range Extension & HoverComponent Refactor ← **CURRENT** (brainstorming complete - ready for implementation)
     - ⏳ Iteration 3: Action System & Turn Integration (consolidated iterations 2 & 4)
-- ⏳ [**Task 3**: Grid System for Distance-Based Skills](.flow/phase-2/task-3.md) (0/1 iterations)
+- ⏳ [**Task 3**: Grid System for Distance-Based Skills](phase-2/task-3.md) (0/1 iterations)
     - ⏳ Iteration 1: [TBD]
 
 ---
@@ -50,11 +50,11 @@
 
 **Goal**: Resolve critical bugs blocking feature development
 **Status**: 0% complete (0/1 tasks)
-**Reference**: [Phase 3 Details](.flow/phase-3/PHASE.md)
+**Reference**: [Phase 3 Details](phase-3/PHASE.md)
 
 **Tasks**:
 
-- ⏳ [**Task 1**: WebSocket Connection Bug](.flow/phase-3/task-1.md) (0/1 iterations)
+- ⏳ [**Task 1**: WebSocket Connection Bug](phase-3/task-1.md) (0/1 iterations)
 
 ---
 
@@ -62,7 +62,7 @@
 
 ### Decisions Needed
 
-Currently none - all architectural direction established in [PLAN.md](.flow/PLAN.md).
+Currently none - all architectural direction established in [PLAN.md](PLAN.md).
 
 ### Recent Architectural Resolutions
 
