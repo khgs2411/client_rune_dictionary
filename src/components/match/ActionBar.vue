@@ -79,9 +79,6 @@ const emit = defineEmits<{
 	leaveMatch: [];
 }>();
 
-// ========================================
-// DRAGGABLE POSITIONING
-// ========================================
 
 const container = ref<HTMLElement | null>(null);
 const handle = ref<HTMLElement | null>(null);
@@ -121,9 +118,6 @@ watchDebounced(
 	{ debounce: 300 },
 );
 
-// ========================================
-// ACTION SLOTS (Placeholder data)
-// ========================================
 
 const actionSlots = ref([
 	{ id: 1, name: "Attack", keybind: "1", isActive: false },
@@ -136,9 +130,21 @@ const actionSlots = ref([
 	{ id: 8, name: "Attack", keybind: "8", isActive: false },
 ]);
 
-// ========================================
-// EVENT HANDLERS
-// ========================================
+function handleKeyPress(event: KeyboardEvent) {
+	const key = event.key;
+
+	// Check if key is 1-8
+	if (key >= "1" && key <= "8") {
+		// Turn validation happens inside handleActionClick
+		const slotIndex = parseInt(key) - 1;
+		const slot = actionSlots.value[slotIndex];
+
+		if (slot) {
+			event.preventDefault();
+			handleActionClick(slot.id);
+		}
+	}
+}
 
 function handleActionClick(slotId: number) {
 	if (!props.isPlayerTurn) {
@@ -162,27 +168,7 @@ function emitLeaveMatch() {
 	emit("leaveMatch");
 }
 
-// ========================================
-// KEYBOARD BINDINGS (1-8)
-// ========================================
 
-function handleKeyPress(event: KeyboardEvent) {
-	const key = event.key;
-
-	// Check if key is 1-8
-	if (key >= "1" && key <= "8") {
-		// Turn validation happens inside handleActionClick
-		const slotIndex = parseInt(key) - 1;
-		const slot = actionSlots.value[slotIndex];
-
-		if (slot) {
-			event.preventDefault();
-			handleActionClick(slot.id);
-		}
-	}
-}
-
-// Register keyboard event listeners
 onMounted(() => {
 	window.addEventListener("keydown", handleKeyPress);
 });

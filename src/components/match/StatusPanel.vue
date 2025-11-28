@@ -41,7 +41,7 @@
 			</div>
 			<div class="relative w-full h-2 bg-muted rounded-full overflow-hidden">
 				<!-- ATB fill progress (0-100%) with client prediction -->
-				<div :class="['absolute left-0 top-0 h-full transition-all duration-200', entityType === 'player' ? 'bg-primary' : 'bg-destructive']" :style="{ width: `${predictedATB}%` }"></div>
+				<div :class="['absolute left-0 top-0 h-full', entityType === 'player' ? 'bg-primary' : 'bg-destructive']" :style="{ width: `${predictedATB}%` }"></div>
 			</div>
 		</div>
 	</div>

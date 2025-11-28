@@ -1,74 +1,73 @@
-import { ref, watch } from "vue";
 import { useRafFn } from "@vueuse/core";
+import { ref, watch } from "vue";
 
 /**
  * Client-side ATB progress prediction composable
  *
- * Tracks server ATB updates and extrapolates between updates for smooth 60fps animation.
- * Prevents jarring jumps from ~95% to turn start by predicting up to 100%.
+ * Smoothly interpolates toward server ATB value using lerp.
+ * No prediction/extrapolation - just smooth following of server state.
  */
 export function useATBPrediction(serverReadiness: () => number) {
-	// Predicted readiness value (extrapolated)
+	// Display value (smoothly interpolated)
 	const predictedReadiness = ref(0);
 
-	// History of server updates for fill rate calculation
-	const updateHistory = ref<Array<{ readiness: number; timestamp: number }>>([]);
+	// Target value from server
+	const targetReadiness = ref(0);
 
-	// Current fill rate (readiness per millisecond)
-	const fillRate = ref(0);
+	// Track last server value to detect resets
+	let lastServerValue = 0;
 
 	// Watch server readiness updates
 	watch(
 		() => serverReadiness(),
 		(newReadiness) => {
-			const now = performance.now();
+			// Detect ATB reset (value dropped significantly)
+			const isReset = newReadiness < lastServerValue - 10;
 
-			// Add to history
-			updateHistory.value.push({ readiness: newReadiness, timestamp: now });
-
-			// Keep only last 3 updates
-			if (updateHistory.value.length > 3) {
-				updateHistory.value.shift();
+			if (isReset) {
+				// Instant snap on reset
+				predictedReadiness.value = newReadiness;
+				targetReadiness.value = newReadiness;
+			} else {
+				// Normal update - set target for smooth interpolation
+				targetReadiness.value = newReadiness;
 			}
 
-			// Calculate fill rate from history (if we have at least 2 updates)
-			if (updateHistory.value.length >= 2) {
-				const oldest = updateHistory.value[0];
-				const newest = updateHistory.value[updateHistory.value.length - 1];
-
-				const readinessChange = newest.readiness - oldest.readiness;
-				const timeDelta = newest.timestamp - oldest.timestamp;
-
-				if (timeDelta > 0) {
-					fillRate.value = readinessChange / timeDelta; // readiness per ms
-				}
-			}
-
-			// Sync predicted value to server value
-			predictedReadiness.value = newReadiness;
+			lastServerValue = newReadiness;
 		},
 		{ immediate: true },
 	);
 
-	// 60fps extrapolation loop
-	const { pause, resume } = useRafFn(({ delta }) => {
-		if (fillRate.value > 0 && predictedReadiness.value < 100) {
-			// Extrapolate forward based on fill rate and time delta
-			predictedReadiness.value += fillRate.value * delta;
+	// 60fps smooth interpolation loop
+	const { resume: resumeRaf } = useRafFn(() => {
+		const current = predictedReadiness.value;
+		const target = targetReadiness.value;
+		const diff = target - current;
 
-			// Cap at 100% to prevent overshoot
-			if (predictedReadiness.value > 100) {
-				predictedReadiness.value = 100;
-			}
+		// Lerp toward target (0.15 = smooth but responsive)
+		if (Math.abs(diff) > 0.1) {
+			predictedReadiness.value = current + diff * 0.15;
+		} else {
+			// Snap when close enough
+			predictedReadiness.value = target;
 		}
 	});
 
 	// Start RAF loop immediately
-	resume();
+	resumeRaf();
+
+	// Pause handler: snap to 100% if close (turn started)
+	function pause() {
+		if (targetReadiness.value >= 95) {
+			targetReadiness.value = 100;
+		}
+	}
+
+	// Resume handler (no-op, kept for API compatibility)
+	function resume() {}
 
 	return {
 		predictedReadiness,
-		fillRate,
 		pause,
 		resume,
 	};
