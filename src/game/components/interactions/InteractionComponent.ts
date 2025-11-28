@@ -77,21 +77,6 @@ export class InteractionComponent extends GameComponent {
     // Get InteractionService
     const interaction = context.getService('interaction');
 
-    // Register hover handler (required for hover detection to work!)
-    // We don't need callbacks, just need object in hover system for raycasting
-    this.unregisterHover = interaction.registerHover(
-      `${this.gameObject.id}-interaction-hover`,
-      meshComp.mesh,
-      {
-        onStart: () => {
-          // Optional: Could emit 'hoverstart' event here if needed
-        },
-        onEnd: () => {
-          // Optional: Could emit 'hoverend' event here if needed
-        },
-      },
-    );
-
     // Register click handler with requireHover
     this.unregisterClick = interaction.registerMouseClick(
       `${this.gameObject.id}-interaction-click`,
@@ -100,6 +85,7 @@ export class InteractionComponent extends GameComponent {
       {
         requireHover: true,
         object3D: meshComp.mesh,
+        gameObject: this.gameObject, // Pass gameObject so it's saved to store on click
       },
     );
   }

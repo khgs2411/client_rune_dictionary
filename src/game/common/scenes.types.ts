@@ -75,7 +75,6 @@ export interface I_SceneModule {
   addToScene?(context: I_SceneContext, ...args: any[]): void;
 }
 
-
 /**
  * Services available to modules via context
  * This is how cross-cutting concerns (interaction, audio, etc.) are shared

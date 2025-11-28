@@ -52,9 +52,17 @@ export class MatchModule extends SceneModule implements I_SceneModule {
     height: 20,
   };
 
-  // ============================================
-  // LIFECYCLE
-  // ============================================
+  /**
+   * State action handlers map
+   * Keys can be:
+   * - Single state: "NEW_STATE" - triggers on any transition TO that state
+   * - Compound state: "OLD_STATE->NEW_STATE" - triggers only on specific transition
+   */
+  private readonly stateActions: Map<string, () => void | Promise<void>> = new Map([
+    [E_SceneState.MATCH_REQUEST, this.onMatchRequest.bind(this)],
+    [`${E_SceneState.MATCH_REQUEST}->${E_SceneState.PVE_MATCH}`, this.enterMatch.bind(this)],
+    [`${E_SceneState.PVE_MATCH}->${E_SceneState.OVERWORLD}`, this.exitMatch.bind(this)],
+  ]);
 
   async init(context: I_SceneContext): Promise<void> {
     const stateService = context.getService('state');
@@ -71,40 +79,29 @@ export class MatchModule extends SceneModule implements I_SceneModule {
     this.stateChangeCallback = null;
   }
 
-  // ============================================
-  // STATE HANDLER
-  // ============================================
-
   /**
-   * React to scene state changes
+   * React to scene state changes using the state actions map
    */
   private async onStateChange(newState: E_SceneState, oldState: E_SceneState): Promise<void> {
-    // MATCH_REQUEST: Create match via API
-    if (newState === E_SceneState.MATCH_REQUEST) {
-      try {
-        await this.createMatch();
-        this.context?.getService('state').setState(E_SceneState.PVE_MATCH);
-      } catch (error) {
-        this.handleMatchCreationError(error);
-      }
-      return;
-    }
+    const compoundKey = `${oldState}->${newState}`;
 
-    // PVE_MATCH: Spawn arena and transition camera
-    if (newState === E_SceneState.PVE_MATCH && oldState === E_SceneState.MATCH_REQUEST) {
-      this.enterMatch();
-      return;
-    }
+    // Try compound key first (more specific), then fall back to single state key
+    const action = this.stateActions.get(compoundKey) ?? this.stateActions.get(newState);
 
-    // OVERWORLD: Cleanup
-    if (newState === E_SceneState.OVERWORLD && oldState === E_SceneState.PVE_MATCH) {
-      this.exitMatch();
-    }
+    if (action) await action();
   }
 
-  // ============================================
-  // MATCH LIFECYCLE
-  // ============================================
+  /**
+   * Handle MATCH_REQUEST state - create match via API
+   */
+  private async onMatchRequest() {
+    try {
+      await this.createMatch();
+      this.context?.getService('state').setState(E_SceneState.PVE_MATCH);
+    } catch (error) {
+      this.handleMatchCreationError(error);
+    }
+  }
 
   /**
    * Create match via API and update store
@@ -158,10 +155,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
     this.destroyArena();
     this.transitionToOverworldCamera();
   }
-
-  // ============================================
-  // ARENA MANAGEMENT
-  // ============================================
 
   /**
    * Get arena config from target's MatchComponent or use defaults
@@ -248,10 +241,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
     this.grid = null;
     this.cameraAnchor = null;
   }
-
-  // ============================================
-  // CAMERA CONTROL
-  // ============================================
 
   /**
    * Calculate camera position based on arena center

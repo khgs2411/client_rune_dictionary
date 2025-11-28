@@ -406,7 +406,7 @@ export class InteractionService extends SceneService implements I_SceneService {
       // Raycast to get intersection point (if object3D provided)
       let intersection: Intersection | undefined;
       if (handler.object3D && this.context.camera) {
-        if(handler.gameObject)DataStore.scene.setSavedGameObject(handler.gameObject);
+        if (handler.gameObject) DataStore.scene.setSavedGameObject(handler.gameObject);
         const intersects = this.raycast.fromCamera(
           this.mouse.normalizedPositionRef,
           this.context.camera.instance,

@@ -826,61 +826,84 @@ Manual testing with live WebSocket connection required to verify:
 
 ---
 
-### ⏳ Iteration 2: Turn System Implementation
+### ✅ Iteration 2: ATB System Implementation
 
-**Goal**: Implement turn-based action flow with 10-second countdown timer
+**Goal**: Implement Active Time Battle progress tracking with client-side prediction
 
-**Status**: ⏳ PENDING
+**Status**: ✅ COMPLETE
+
+**Implementation Notes**:
+
+- ATB system is **server-driven** - server calculates ATB readiness, client receives updates via `match.atb.readiness.update` events
+- Client-side prediction via `useATBPrediction` composable extrapolates between updates for smooth 60fps animation
+- ATB bars in StatusPanel integrated with prediction and pause during turn phases
+- Fill rate calculation from server update history handles variable speed/tempo stats per character
+- ATB progression pauses during turn phase (mutual exclusivity with turn timer)
+
+**Why Complete**:
+
+- ✅ ATB prediction composable fully implemented (`useATBPrediction.ts`)
+- ✅ ATB updates handled from server (`handleATBUpdate` in `useMatchState.ts`)
+- ✅ ATB pause/resume based on turn state (`atb.running` synchronized with `isPlayerTurn`)
+- ✅ StatusPanel ATB bars integrated with prediction and automatic updates
+- ✅ Fill rate calculation working from server update history
+- No need to emit ATB updates to server (server-driven design)
+- No need to calculate turn order (server determines turn order)
+
+**Verification Status**: ✅ Manually tested - ATB bars fill smoothly, pause during turns, resume during ATB phase
 
 ---
+
+### ⏳ Iteration 3: Action System & Turn Integration
+
+**Goal**: Integrate ActionBar with turn state and implement action submission to server
+
+**Status**: ⏳ PENDING (ready to start)
+
+**Consolidation Rationale**:
+
+This iteration consolidates Iterations 2 & 4 from original plan because:
+- Both iterations depend on turn state awareness in ActionBar
+- Turn validation and action submission are interdependent features
+- Turn timeout handling relates to action fallback behavior
+- More efficient to implement as single cohesive iteration
+
+---
+
+#### Implementation Dependencies
+
+**Already Complete**:
+- ✅ Turn start/end events tracked (`handleTurnStart`, `handleTurnEnd` in `useMatchState.ts`)
+- ✅ TurnTimer countdown with local prediction & drift correction
+- ✅ `turn.isPlayerTurn` tracked in state
+- ✅ Turn timer visibility/running controls
+- ✅ ActionBar UI with 8 slots + Pass/Run buttons
+- ✅ Keyboard bindings (1-8) for action selection
+- ✅ Leave match handler
+- ✅ Health updates reflected in StatusPanel
+- ✅ Damage dealt event logging
+
+**Still Needed**:
+- [ ] Add `isPlayerTurn` prop to ActionBar component
+- [ ] Disable action buttons when `isPlayerTurn` is false
+- [ ] Implement `sendAction()` WebSocket message to server
+- [ ] Implement `sendPass()` WebSocket message to server (fallback action)
+- [ ] Add turn validation before allowing action submission
+- [ ] Handle action response events from server
+- [ ] Implement turn timeout handling (auto-pass at 0 using `fallbackAction: 'pass'`)
 
 #### Action Items
 
-- [ ] [TBD] - Define during brainstorming
-- [ ] Implement turn start/end events
-- [ ] Update TurnTimer component with countdown
-- [ ] Handle turn timeout (auto-pass or default action)
-- [ ] Disable/enable ActionBar based on turn state
-- [ ] Test turn flow (player turn → enemy turn → repeat)
-
----
-
-### ⏳ Iteration 3: ATB System Implementation
-
-**Goal**: Implement Active Time Battle progress tracking and turn order calculation
-
-**Status**: ⏳ PENDING
-
----
-
-#### Action Items
-
-- [ ] [TBD] - Define during brainstorming
-- [ ] Implement ATB progress calculation (0-100% fill)
-- [ ] Update StatusPanel ATB bars with character progress
-- [ ] Calculate turn order based on ATB completion
-- [ ] Emit ATB updates to server
-- [ ] Test ATB bar visual updates
-
----
-
-### ⏳ Iteration 4: Action System Implementation
-
-**Goal**: Implement action execution and communicate with server
-
-**Status**: ⏳ PENDING
-
----
-
-#### Action Items
-
-- [ ] [TBD] - Define during brainstorming
-- [ ] Connect ActionBar buttons to action handlers
-- [ ] Send action events to server (attack, pass, run)
-- [ ] Handle action responses from server
-- [ ] Update HUD based on action results (HP changes, status effects)
-- [ ] Implement action validation (can't act on enemy turn)
-- [ ] Test action flow end-to-end
+- [ ] Update ActionBar.vue to accept `isPlayerTurn` prop from parent
+- [ ] Add visual disabled state styling to ActionBar buttons when not player's turn
+- [ ] Create action submission methods in WebSocket store (`sendAction(actionId)`, `sendPass()`)
+- [ ] Add turn validation: throw error if trying to submit action when `isPlayerTurn` is false
+- [ ] Integrate action keyboard bindings (1-8) with validation
+- [ ] Create event handler for `match.action.executed` or similar response event
+- [ ] Implement turn timeout handler - call `sendPass()` when timer reaches 0 on player turn
+- [ ] Test action submission end-to-end (player turn → select action → server receives → action executes)
+- [ ] Test turn timeout behavior (player turn expires → auto-pass fires → enemy turn begins)
+- [ ] Verify action buttons are disabled during enemy turn
 
 ---
 

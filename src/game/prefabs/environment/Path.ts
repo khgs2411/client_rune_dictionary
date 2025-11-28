@@ -66,17 +66,17 @@ export class Path {
       const width = (segment.width ?? defaultWidth) * (0.9 + Math.random() * 0.2); // +/- 10% size
       const length = (segment.length ?? defaultLength) * (0.9 + Math.random() * 0.2);
       const rotation = (segment.rotation ?? 0) + (Math.random() * 0.5 - 0.25); // +/- 15 deg random rot
-      
+
       // Use Cylinder for stepping stone look (flattened)
       // Or Box for paving stone
       // Let's use Cylinder with low segments for "Stone" look
-      
+
       return new GameObject({ id: `${id}-stone-${index}` })
         .addComponent(
           new TransformComponent({
             position: [segment.x, yOffset, segment.z],
             rotation: [0, rotation, 0], // Flat on ground (Cylinder is upright by default, need to scale Y down)
-            scale: [1, 0.1, 1] // Flatten the cylinder
+            scale: [1, 0.1, 1], // Flatten the cylinder
           }),
         )
         .addComponent(
@@ -124,11 +124,11 @@ export class Path {
 
     for (let i = 0; i < numSegments; i++) {
       const t = i / numSegments;
-      
+
       // Add some jitter to position for organic feel
       const jitterX = (Math.random() - 0.5) * (width * 0.3);
       const jitterZ = (Math.random() - 0.5) * (width * 0.3);
-      
+
       segments.push({
         x: config.start[0] + dx * t + jitterX,
         z: config.start[1] + dz * t + jitterZ,

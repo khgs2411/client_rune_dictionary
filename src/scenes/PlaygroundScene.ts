@@ -353,7 +353,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
         }),
       );
     gom.register(bushes);
-    
   }
 
   /**

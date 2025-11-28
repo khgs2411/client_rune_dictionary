@@ -10,11 +10,7 @@ import { I_ConnectedClientData } from '@/common/types';
 import { useCamera } from '@/composables/useCamera';
 import { useCharacter } from '@/composables/useCharacter';
 import { CleanupRegistry } from '@/game/CleanupRegistry';
-import {
-  I_SceneContext,
-  I_SceneModule,
-  I_SceneServices,
-} from '@/game/common/scenes.types';
+import { I_SceneContext, I_SceneModule, I_SceneServices } from '@/game/common/scenes.types';
 import type { Engine } from '@/game/Engine';
 import { ModuleRegistry } from '@/game/ModuleRegistry';
 import { GameObjectsManager } from '@/game/services/GameObjectsManager';
