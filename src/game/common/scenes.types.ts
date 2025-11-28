@@ -6,7 +6,7 @@ import { CleanupRegistry } from "@/game/CleanupRegistry";
 import { Engine } from "@/game/Engine";
 import { GameObjectsManager } from "@/game/systems/GameObjectsManager";
 import type { InteractionSystem } from "@/game/systems/InteractionSystem";
-import { PhysicsSystem } from "@/game/systems/PhysicsSystem";
+import { PhysicsSystem } from "@/game/systems/physics/PhysicsSystem";
 import SceneState from "@/game/systems/SceneState";
 import { Spawner } from "@/game/systems/Spawner";
 import { VFXSystem } from "@/game/systems/VFXSystem";

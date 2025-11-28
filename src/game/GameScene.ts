@@ -8,7 +8,7 @@ import type { Engine } from "@/game/Engine";
 import { ModuleRegistry } from "@/game/ModuleRegistry";
 import { GameObjectsManager } from "@/game/systems/GameObjectsManager";
 import { InteractionSystem } from "@/game/systems/InteractionSystem";
-import { PhysicsSystem } from "@/game/systems/PhysicsSystem";
+import { PhysicsSystem } from "@/game/systems/physics/PhysicsSystem";
 import SceneState from "@/game/systems/SceneState";
 import { Spawner } from "@/game/systems/Spawner";
 import { VFXSystem } from "@/game/systems/VFXSystem";
