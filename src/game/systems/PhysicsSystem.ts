@@ -87,7 +87,7 @@ interface MovementResult {
  * - isGrounded(): Check if kinematic is on ground
  * - remove(): Clean up physics body
  */
-export class PhysicsService extends SceneSystem {
+export class PhysicsSystem extends SceneSystem {
 	private world!: RAPIER_TYPE.World;
 	private RAPIER!: typeof RAPIER_TYPE;
 	private isInitialized = false;

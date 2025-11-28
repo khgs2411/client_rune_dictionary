@@ -8,7 +8,7 @@ import type { Engine } from "@/game/Engine";
 import { ModuleRegistry } from "@/game/ModuleRegistry";
 import { GameObjectsManager } from "@/game/systems/GameObjectsManager";
 import { InteractionSystem } from "@/game/systems/InteractionSystem";
-import { PhysicsService } from "@/game/systems/PhysicsService";
+import { PhysicsSystem } from "@/game/systems/PhysicsSystem";
 import SceneStateService from "@/game/systems/SceneStateService";
 import { Spawner } from "@/game/systems/Spawner";
 import { VFXService } from "@/game/systems/VFXService";
@@ -46,7 +46,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
 	protected services: I_SceneSystems = {
 		interaction: new InteractionSystem(),
 		vfx: new VFXService(),
-		physics: new PhysicsService(),
+		physics: new PhysicsSystem(),
 		networking: new NetworkingSystem(),
 		gameObjectsManager: new GameObjectsManager(),
 		spawner: new Spawner(),

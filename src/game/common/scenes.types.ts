@@ -6,7 +6,7 @@ import { CleanupRegistry } from "@/game/CleanupRegistry";
 import { Engine } from "@/game/Engine";
 import { GameObjectsManager } from "@/game/systems/GameObjectsManager";
 import type { InteractionSystem } from "@/game/systems/InteractionSystem";
-import { PhysicsService } from "@/game/systems/PhysicsService";
+import { PhysicsSystem } from "@/game/systems/PhysicsSystem";
 import SceneStateService from "@/game/systems/SceneStateService";
 import { Spawner } from "@/game/systems/Spawner";
 import { VFXService } from "@/game/systems/VFXService";
@@ -82,7 +82,7 @@ export interface I_SceneModule {
 export interface I_SceneSystems {
 	interaction: InteractionSystem;
 	vfx: VFXService;
-	physics: PhysicsService;
+	physics: PhysicsSystem;
 	networking: NetworkingSystem;
 	gameObjectsManager: GameObjectsManager;
 	spawner: Spawner;
