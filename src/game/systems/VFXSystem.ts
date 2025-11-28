@@ -338,7 +338,7 @@ class ParticleSystem {
  * VFX Module - Visual Effects with Object Pooling
  * Handles text sprites, tooltips, particle effects, etc.
  */
-export class VFXService extends SceneSystem {
+export class VFXSystem extends SceneSystem {
 	// Pool size constants
 	private static readonly POOL_SIZES = {
 		TEXT_SPRITES: 10, // POW!/BAM! text effects
@@ -365,7 +365,7 @@ export class VFXService extends SceneSystem {
 		this.context = context;
 
 		// Pre-create text sprite pool
-		for (let i = 0; i < VFXService.POOL_SIZES.TEXT_SPRITES; i++) {
+		for (let i = 0; i < VFXSystem.POOL_SIZES.TEXT_SPRITES; i++) {
 			const sprite = new TextSprite();
 			context.scene.add(sprite.sprite);
 			context.cleanupRegistry.registerObject(sprite.sprite);
@@ -373,7 +373,7 @@ export class VFXService extends SceneSystem {
 		}
 
 		// Pre-create tooltip pool
-		for (let i = 0; i < VFXService.POOL_SIZES.TOOLTIPS; i++) {
+		for (let i = 0; i < VFXSystem.POOL_SIZES.TOOLTIPS; i++) {
 			const tooltip = new TooltipBillboard();
 			context.scene.add(tooltip.group);
 			context.cleanupRegistry.registerObject(tooltip.group);
@@ -381,7 +381,7 @@ export class VFXService extends SceneSystem {
 		}
 
 		// Pre-create particle systems pool
-		for (let i = 0; i < VFXService.POOL_SIZES.PARTICLES; i++) {
+		for (let i = 0; i < VFXSystem.POOL_SIZES.PARTICLES; i++) {
 			const particles = new ParticleSystem();
 			context.scene.add(particles.points);
 			context.cleanupRegistry.registerObject(particles.points);

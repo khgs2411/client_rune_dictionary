@@ -9,7 +9,7 @@ import type { InteractionSystem } from "@/game/systems/InteractionSystem";
 import { PhysicsSystem } from "@/game/systems/PhysicsSystem";
 import SceneStateService from "@/game/systems/SceneStateService";
 import { Spawner } from "@/game/systems/Spawner";
-import { VFXService } from "@/game/systems/VFXService";
+import { VFXSystem } from "@/game/systems/VFXSystem";
 import { BufferGeometry, BufferGeometryEventMap, NormalBufferAttributes, Scene } from "three";
 import NetworkingSystem from "../systems/NetworkingSystem";
 import type { I_InteractableBehaviors } from "./interaction.types";
@@ -81,7 +81,7 @@ export interface I_SceneModule {
  */
 export interface I_SceneSystems {
 	interaction: InteractionSystem;
-	vfx: VFXService;
+	vfx: VFXSystem;
 	physics: PhysicsSystem;
 	networking: NetworkingSystem;
 	gameObjectsManager: GameObjectsManager;

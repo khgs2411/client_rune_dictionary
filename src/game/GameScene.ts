@@ -11,7 +11,7 @@ import { InteractionSystem } from "@/game/systems/InteractionSystem";
 import { PhysicsSystem } from "@/game/systems/PhysicsSystem";
 import SceneStateService from "@/game/systems/SceneStateService";
 import { Spawner } from "@/game/systems/Spawner";
-import { VFXService } from "@/game/systems/VFXService";
+import { VFXSystem } from "@/game/systems/VFXSystem";
 import { GameConfig } from "@/stores/config.store";
 import { DataStore } from "@/stores/DataStore";
 import { SceneStore as ScenesManager } from "@/stores/scene.store";
@@ -45,7 +45,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
 	// Services (shared across modules)
 	protected services: I_SceneSystems = {
 		interaction: new InteractionSystem(),
-		vfx: new VFXService(),
+		vfx: new VFXSystem(),
 		physics: new PhysicsSystem(),
 		networking: new NetworkingSystem(),
 		gameObjectsManager: new GameObjectsManager(),
