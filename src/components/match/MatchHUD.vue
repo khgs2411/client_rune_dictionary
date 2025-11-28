@@ -26,7 +26,7 @@
 		</div>
 
 		<!-- Action bar (8 slots + Run/Pass) - Draggable, positioned by component -->
-		<ActionBar @leave-match="handleLeaveMatch" :is-leaving="isLeaving" />
+		<ActionBar @leave-match="handleLeaveMatch" :is-leaving="isLeaving" :is-player-turn="isPlayerTurn" />
 	</div>
 </template>
 
@@ -78,6 +78,9 @@ const enemyAtbProgress = computed(() => matchStore.match.npc?.readiness ?? 0);
 
 // ATB running state from granular controls
 const isAtbRunning = computed(() => matchStore.match.atb.running);
+
+// Turn state - is it currently the player's turn?
+const isPlayerTurn = computed(() => matchStore.match.turn.isPlayerTurn);
 
 /**
  * Handle Leave Match button click

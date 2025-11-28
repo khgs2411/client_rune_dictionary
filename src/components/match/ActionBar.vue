@@ -19,7 +19,13 @@
 
 			<!-- Utility Buttons (Run / Pass) -->
 			<div class="flex gap-2">
-				<button @click="handlePass" class="flex-1 px-3 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-md font-medium text-xs sm:text-sm transition-colors min-h-[44px] sm:min-h-0">
+				<button
+					@click="handlePass"
+					:disabled="!props.isPlayerTurn"
+					:class="[
+						'flex-1 px-3 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-md font-medium text-xs sm:text-sm transition-colors min-h-[44px] sm:min-h-0',
+						!props.isPlayerTurn && 'opacity-50 cursor-not-allowed hover:bg-secondary',
+					]">
 					Pass
 				</button>
 				<button
@@ -36,9 +42,11 @@
 					v-for="slot in actionSlots"
 					:key="slot.id"
 					@click="handleActionClick(slot.id)"
+					:disabled="!props.isPlayerTurn"
 					:class="[
 						'relative aspect-square bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-md font-medium text-xs sm:text-sm transition-colors flex flex-col items-center justify-center p-1 min-h-[44px] sm:min-h-0',
 						slot.isActive && 'ring-2 ring-primary',
+						!props.isPlayerTurn && 'opacity-50 cursor-not-allowed hover:bg-secondary',
 					]"
 					:title="`${slot.name} (Hotkey: ${slot.keybind})`">
 					<!-- Action name -->
@@ -63,6 +71,7 @@ import { onMounted, onUnmounted, ref } from "vue";
 // Props
 const props = defineProps<{
 	isLeaving: boolean;
+	isPlayerTurn: boolean;
 }>();
 
 // Emits
@@ -132,21 +141,21 @@ const actionSlots = ref([
 // ========================================
 
 function handleActionClick(slotId: number) {
+	if (!props.isPlayerTurn) {
+		console.warn("[ActionBar] Cannot perform action - not your turn");
+		return;
+	}
 	console.log(`[ActionBar] Action ${slotId} clicked`);
-	/* const wsm: WebsocketStructuredMessage = {
-    type: "match.action",
-    content: { action: "attack", ...data },
-    channel: store.currentChannelId,
-    timestamp: new Date().toISOString(),
-    client: auth$.client.value,
-  };
-  ws.send(JSON.stringify(wsm)); */
-	// TODO: Send action to match server
+	// TODO: Send action to match server via WebSocket
 }
 
 function handlePass() {
+	if (!props.isPlayerTurn) {
+		console.warn("[ActionBar] Cannot pass - not your turn");
+		return;
+	}
 	console.log("[ActionBar] Pass button clicked");
-	// TODO: Send pass action to match server
+	// TODO: Send pass action to match server via WebSocket
 }
 
 function emitLeaveMatch() {
@@ -162,6 +171,7 @@ function handleKeyPress(event: KeyboardEvent) {
 
 	// Check if key is 1-8
 	if (key >= "1" && key <= "8") {
+		// Turn validation happens inside handleActionClick
 		const slotIndex = parseInt(key) - 1;
 		const slot = actionSlots.value[slotIndex];
 
