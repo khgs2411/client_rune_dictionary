@@ -1,8 +1,10 @@
 import type { I_SceneContext } from "@/game/common/scenes.types";
 import { ComponentPriority, GameComponent } from "@/game/GameComponent";
 import { E_SceneState } from "@/game/services/SceneStateService";
+import { UnitsComponent } from "../entities/UnitsComponent";
+import { HoverComponent } from "../interactions/HoverComponent";
 import { InteractionComponent } from "../interactions/InteractionComponent";
-import { UnitsComponent } from "../systems/UnitsComponent";
+import { MeshComponent } from "../rendering/MeshComponent";
 
 /**
  * Arena configuration for match environment
@@ -16,6 +18,8 @@ export interface I_ArenaConfig {
 export interface I_MatchComponentConfig {
 	interactionRange?: number;
 	arenaConfig?: Partial<I_ArenaConfig>;
+	glowColor?: number;
+	glowIntensity?: number;
 }
 
 /**
@@ -26,8 +30,10 @@ export interface I_MatchComponentConfig {
  *
  * Responsibilities:
  * - Listen to 'doubleclick' event from InteractionComponent
+ * - Listen to 'hover' events from HoverComponent
  * - Validate scene state (must be OVERWORLD)
  * - Check player is within interaction range (via UnitsComponent)
+ * - Show combat glow when hovering in range (via VFXService)
  * - Trigger MATCH_REQUEST state (MatchModule handles the rest)
  * - Hold arena configuration for match environment
  *
@@ -38,15 +44,19 @@ export interface I_MatchComponentConfig {
  *
  * Dependencies:
  * - Requires InteractionComponent (for doubleclick event)
+ * - Requires HoverComponent (for hover events)
  * - Requires UnitsComponent (for range checking)
+ * - Requires MeshComponent (for glow effects)
  *
  * Usage:
  * ```typescript
  * const npc = new GameObject({ id: 'training-dummy' })
  *   .addComponent(new TransformComponent({ position: [0, 0, 0] }))
+ *   .addComponent(new MeshComponent())
  *   .addComponent(new UnitsComponent())
  *   .addComponent(new InteractionComponent())
- *   .addComponent(new MatchComponent({ interactionRange: 10 }));
+ *   .addComponent(new HoverComponent())
+ *   .addComponent(new MatchComponent({ interactionRange: 10, glowColor: 0xff0000 }));
  * ```
  *
  * Priority: INTERACTION (300) - Runs after InteractionComponent
@@ -56,9 +66,15 @@ export class MatchComponent extends GameComponent {
 
 	/** Default interaction range in units */
 	private static readonly DEFAULT_INTERACTION_RANGE = 10;
+	private static readonly DEFAULT_GLOW_COLOR = 0xff4444; // Combat red
+	private static readonly DEFAULT_GLOW_INTENSITY = 0.4;
 
 	/** Interaction range - player must be within this distance to start match */
 	public readonly interactionRange: number;
+
+	/** Glow color when hovering in range */
+	private readonly glowColor: number;
+	private readonly glowIntensity: number;
 
 	/**
 	 * Arena configuration - read by MatchModule when spawning arena
@@ -67,10 +83,14 @@ export class MatchComponent extends GameComponent {
 	public readonly arenaConfig: I_ArenaConfig;
 
 	private unitsComponent!: UnitsComponent;
+	private meshComponent!: MeshComponent;
+	private context!: I_SceneContext;
 
 	constructor(config: I_MatchComponentConfig = {}) {
 		super();
 		this.interactionRange = config.interactionRange ?? MatchComponent.DEFAULT_INTERACTION_RANGE;
+		this.glowColor = config.glowColor ?? MatchComponent.DEFAULT_GLOW_COLOR;
+		this.glowIntensity = config.glowIntensity ?? MatchComponent.DEFAULT_GLOW_INTENSITY;
 		this.arenaConfig = {
 			width: config.arenaConfig?.width ?? 40,
 			depth: config.arenaConfig?.depth ?? 25,
@@ -79,8 +99,11 @@ export class MatchComponent extends GameComponent {
 	}
 
 	async init(context: I_SceneContext): Promise<void> {
+		this.context = context;
 		this.unitsComponent = this.requireComponent(UnitsComponent);
+		this.meshComponent = this.requireComponent(MeshComponent);
 		this.setupInteractionListener(context);
+		this.setupHoverListener();
 	}
 
 	private setupInteractionListener(context: I_SceneContext): void {
@@ -90,6 +113,31 @@ export class MatchComponent extends GameComponent {
 			console.log(`⚔️ [MatchComponent] Double-click detected on ${this.gameObject.id}`);
 			this.requestMatch(context);
 		});
+	}
+
+	private setupHoverListener(): void {
+		const hover = this.getComponent(HoverComponent);
+		if (!hover) return;
+
+		hover.on("start", () => {
+			if (this.isWithinInteractionRange()) {
+				this.showCombatGlow();
+			}
+		});
+
+		hover.on("end", () => {
+			this.hideCombatGlow();
+		});
+	}
+
+	private showCombatGlow(): void {
+		const vfx = this.context.getService("vfx");
+		vfx.applyEmissive(this.meshComponent.mesh, this.glowColor, this.glowIntensity);
+	}
+
+	private hideCombatGlow(): void {
+		const vfx = this.context.getService("vfx");
+		vfx.restoreEmissive(this.meshComponent.mesh);
 	}
 
 	/**

@@ -1,11 +1,11 @@
 import type { Vector3Like } from "three";
 import { GameObject } from "../GameObject";
+import { TrajectoryComponent } from "../components/entities/TrajectoryComponent";
+import { TransformComponent } from "../components/entities/TransformComponent";
 import { CollisionComponent } from "../components/interactions/CollisionComponent";
 import { GeometryComponent } from "../components/rendering/GeometryComponent";
 import { MaterialComponent } from "../components/rendering/MaterialComponent";
 import { MeshComponent } from "../components/rendering/MeshComponent";
-import { TransformComponent } from "../components/rendering/TransformComponent";
-import { TrajectoryComponent } from "../components/systems/TrajectoryComponent";
 
 export interface I_FireballConfig {
 	id?: string;

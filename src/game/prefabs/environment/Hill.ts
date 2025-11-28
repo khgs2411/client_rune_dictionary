@@ -1,9 +1,9 @@
 import { GameObject } from "@/game/GameObject";
+import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { CollisionComponent } from "@/game/components/interactions/CollisionComponent";
 import { GeometryComponent } from "@/game/components/rendering/GeometryComponent";
 import { MaterialComponent } from "@/game/components/rendering/MaterialComponent";
 import { MeshComponent } from "@/game/components/rendering/MeshComponent";
-import { TransformComponent } from "@/game/components/rendering/TransformComponent";
 
 interface HillConfig {
 	position: [number, number, number];

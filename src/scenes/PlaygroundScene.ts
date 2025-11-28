@@ -8,6 +8,7 @@ import { watch } from "vue";
 import { I_SceneConfig } from "../game/common/scenes.types";
 
 import { GameObject } from "@/game/GameObject";
+import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { ClickVFXComponent } from "@/game/components/interactions/ClickVFXComponent";
 import { CollisionComponent } from "@/game/components/interactions/CollisionComponent";
 import { DragComponent } from "@/game/components/interactions/DragComponent";
@@ -17,7 +18,6 @@ import { GeometryComponent } from "@/game/components/rendering/GeometryComponent
 import { InstancedMeshComponent } from "@/game/components/rendering/InstancedMeshComponent";
 import { MaterialComponent } from "@/game/components/rendering/MaterialComponent";
 import { MeshComponent } from "@/game/components/rendering/MeshComponent";
-import { TransformComponent } from "@/game/components/rendering/TransformComponent";
 import { MultiplayerModule } from "@/game/modules/networking/MultiplayerModule";
 import { Fireball } from "@/game/prefabs/Fireball";
 import { Ground } from "@/game/prefabs/Ground";

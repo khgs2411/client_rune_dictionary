@@ -1,5 +1,5 @@
 import type { I_SceneContext } from "@/game/common/scenes.types";
-import { TransformComponent } from "@/game/components/rendering/TransformComponent";
+import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { ComponentPriority, GameComponent } from "@/game/GameComponent";
 import type { GameObject } from "@/game/GameObject";
 import type { Vector3Like } from "three";

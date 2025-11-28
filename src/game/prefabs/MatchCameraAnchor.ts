@@ -1,5 +1,5 @@
 import { GameObject } from "../GameObject";
-import { TransformComponent } from "../components/rendering/TransformComponent";
+import { TransformComponent } from "../components/entities/TransformComponent";
 
 export interface I_MatchCameraAnchorConfig {
 	id: string;

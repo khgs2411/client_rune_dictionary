@@ -1,10 +1,10 @@
 import { Vec3 } from "@/common/types";
 import type { I_CharacterControls } from "@/composables/composables.types";
+import { KinematicCollisionComponent } from "@/game/components/entities/KinematicCollisionComponent";
+import { KinematicMovementComponent } from "@/game/components/entities/KinematicMovementComponent";
+import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { SyncMovementComponent } from "@/game/components/multiplayer/SyncMovementComponent";
 import { CharacterMeshComponent } from "@/game/components/rendering/CharacterMeshComponent";
-import { TransformComponent } from "@/game/components/rendering/TransformComponent";
-import { KinematicCollisionComponent } from "@/game/components/systems/KinematicCollisionComponent";
-import { KinematicMovementComponent } from "@/game/components/systems/KinematicMovementComponent";
 import { GameObject } from "@/game/GameObject";
 import { createPlayer } from "./createPlayer";
 

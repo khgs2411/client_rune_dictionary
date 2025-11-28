@@ -1,13 +1,14 @@
 import { GameObject } from "@/game/GameObject";
 import { I_GameObjectConfig } from "@/game/common/gameobject.types";
+import { TransformComponent } from "@/game/components/entities/TransformComponent";
+import { UnitsComponent } from "@/game/components/entities/UnitsComponent";
 import { CollisionComponent } from "@/game/components/interactions/CollisionComponent";
+import { HoverComponent } from "@/game/components/interactions/HoverComponent";
 import { InteractionComponent } from "@/game/components/interactions/InteractionComponent";
 import { MatchComponent } from "@/game/components/match/MatchComponent";
 import { GeometryComponent } from "@/game/components/rendering/GeometryComponent";
 import { MaterialComponent } from "@/game/components/rendering/MaterialComponent";
 import { MeshComponent } from "@/game/components/rendering/MeshComponent";
-import { TransformComponent } from "@/game/components/rendering/TransformComponent";
-import { UnitsComponent } from "@/game/components/systems/UnitsComponent";
 
 export interface I_TrainingDummyConfig extends I_GameObjectConfig {
 	id: string;
@@ -27,7 +28,8 @@ export interface I_TrainingDummyConfig extends I_GameObjectConfig {
  * - MeshComponent: Visual mesh
  * - UnitsComponent: Distance measurement
  * - InteractionComponent: Click/double-click events
- * - MatchComponent: Match creation logic (with range checking)
+ * - HoverComponent: Hover detection events
+ * - MatchComponent: Match creation logic (range checking + combat glow)
  *
  * Usage:
  * ```typescript
@@ -77,7 +79,8 @@ export class TrainingDummy extends GameObject {
 
 			// Interaction components (order matters for dependencies)
 			.addComponent(new InteractionComponent()) // Provides click/doubleclick events
-			.addComponent(new MatchComponent()) // Listens to doubleclick, creates match (checks range via UnitsComponent)
+			.addComponent(new HoverComponent()) // Provides hover events
+			.addComponent(new MatchComponent()) // Orchestrates: hover glow when in range, doubleclick to start match
 			.addComponent(new CollisionComponent());
 	}
 }

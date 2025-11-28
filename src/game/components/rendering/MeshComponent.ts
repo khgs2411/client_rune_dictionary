@@ -2,8 +2,8 @@ import { I_SceneContext } from "@/game/common/scenes.types";
 import { Mesh } from "three";
 import type { I_MaterialProvider, I_MeshProvider } from "../../common/mesh.types";
 import { ComponentPriority, GameComponent, TRAIT } from "../../GameComponent";
+import { TransformComponent } from "../entities/TransformComponent";
 import { GeometryComponent } from "./GeometryComponent";
-import { TransformComponent } from "./TransformComponent";
 
 export interface I_MeshConfig {
 	castShadow?: boolean;

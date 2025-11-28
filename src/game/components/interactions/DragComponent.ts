@@ -2,8 +2,8 @@ import type { I_SceneContext } from "@/game/common/scenes.types";
 import { ComponentPriority, GameComponent } from "@/game/GameComponent";
 import { useGameConfigStore } from "@/stores/config.store";
 import type { Vector3 } from "three";
+import { TransformComponent } from "../entities/TransformComponent";
 import { MeshComponent } from "../rendering/MeshComponent";
-import { TransformComponent } from "../rendering/TransformComponent";
 
 export interface I_DragConfig {
 	lockAxis?: ("x" | "y" | "z")[]; // Lock specific axes from dragging

@@ -2,7 +2,7 @@ import { CollisionComponent } from "@/game/components/interactions/CollisionComp
 import { BufferGeometry, Line, LineBasicMaterial, Vector3 } from "three";
 import { GameObject } from "../GameObject";
 import { I_SceneContext } from "../common/scenes.types";
-import { TransformComponent } from "../components/rendering/TransformComponent";
+import { TransformComponent } from "../components/entities/TransformComponent";
 
 export interface I_MatchAreaWallsConfig {
 	id: string;

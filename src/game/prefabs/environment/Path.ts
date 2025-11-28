@@ -1,8 +1,8 @@
+import { TransformComponent } from "../../components/entities/TransformComponent";
 import { GeometryComponent } from "../../components/rendering/GeometryComponent";
 import { MaterialComponent } from "../../components/rendering/MaterialComponent";
 import { MeshComponent } from "../../components/rendering/MeshComponent";
 import { ToonMaterialComponent } from "../../components/rendering/ToonMaterialComponent";
-import { TransformComponent } from "../../components/rendering/TransformComponent";
 import { GameObject } from "../../GameObject";
 
 export interface I_PathSegment {

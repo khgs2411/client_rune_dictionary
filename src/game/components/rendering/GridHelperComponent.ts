@@ -1,7 +1,7 @@
-import { GridHelper } from "three";
-import { GameComponent, ComponentPriority } from "../../GameComponent";
 import { I_SceneContext } from "@/game/common/scenes.types";
-import { TransformComponent } from "./TransformComponent";
+import { GridHelper } from "three";
+import { ComponentPriority, GameComponent } from "../../GameComponent";
+import { TransformComponent } from "../entities/TransformComponent";
 
 export interface I_GridHelperConfig {
 	size?: number;

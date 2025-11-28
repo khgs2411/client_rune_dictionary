@@ -1,5 +1,5 @@
 import { I_SceneContext } from "@/game/common/scenes.types";
-import { TransformComponent } from "@/game/components/rendering/TransformComponent";
+import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { ComponentPriority, GameComponent } from "../../GameComponent";
 import { InstancedMeshComponent } from "../rendering/InstancedMeshComponent";
 import { MeshComponent } from "../rendering/MeshComponent";

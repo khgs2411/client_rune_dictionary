@@ -1,10 +1,10 @@
 import { CollisionComponent } from "@/game/components/interactions/CollisionComponent";
 import { GameObject } from "../GameObject";
 import { I_SceneContext } from "../common/scenes.types";
+import { TransformComponent } from "../components/entities/TransformComponent";
 import { GeometryComponent } from "../components/rendering/GeometryComponent";
 import { MaterialComponent } from "../components/rendering/MaterialComponent";
 import { MeshComponent } from "../components/rendering/MeshComponent";
-import { TransformComponent } from "../components/rendering/TransformComponent";
 
 export interface I_MatchAreaDomeConfig {
 	id: string;

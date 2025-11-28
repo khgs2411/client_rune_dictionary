@@ -1,5 +1,5 @@
 import type { GameComponent } from "@/game/GameComponent";
-import { TransformComponent } from "@/game/components/rendering/TransformComponent";
+import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { CharacterMeshComponent } from "@/game/components/rendering/CharacterMeshComponent";
 
 /**

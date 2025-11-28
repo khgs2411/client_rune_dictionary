@@ -4,7 +4,7 @@ import { useSettingsStore } from "@/stores/settings.store";
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial } from "three";
 import type { I_MeshProvider } from "../../common/mesh.types";
 import { ComponentPriority, GameComponent } from "../../GameComponent";
-import { TransformComponent } from "./TransformComponent";
+import { TransformComponent } from "../entities/TransformComponent";
 
 export interface I_CharacterMeshConfig {
 	bodyRadius?: number; // Default: 0.5

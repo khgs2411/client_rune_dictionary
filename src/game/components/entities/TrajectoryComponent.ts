@@ -1,6 +1,6 @@
 import { ComponentPriority, GameComponent } from "@/game/GameComponent";
 import type { I_SceneContext } from "@/game/common/scenes.types";
-import { TransformComponent } from "@/game/components/rendering/TransformComponent";
+import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { Vector3 } from "three";
 
 export interface I_TrajectoryConfig {

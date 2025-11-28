@@ -3,8 +3,8 @@ import { I_SceneContext } from "@/game/common/scenes.types";
 import { ComponentPriority, GameComponent } from "@/game/GameComponent";
 import { E_SceneState, type StateChangeCallback } from "@/game/services/SceneStateService";
 import { useGameConfigStore } from "@/stores/config.store";
-import { TransformComponent } from "../rendering/TransformComponent";
 import { KinematicCollisionComponent } from "./KinematicCollisionComponent";
+import { TransformComponent } from "./TransformComponent";
 
 export interface I_KinematicMovementConfig {
 	characterController: I_CharacterControls; // Scene-owned controller (handles input)

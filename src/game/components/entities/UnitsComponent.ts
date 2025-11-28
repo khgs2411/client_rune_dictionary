@@ -1,7 +1,7 @@
+import { I_SceneContext } from "@/game/common/scenes.types";
 import { Vector3 } from "three";
 import { GameComponent } from "../../GameComponent";
-import { TransformComponent } from "../rendering/TransformComponent";
-import { I_SceneContext } from "@/game/common/scenes.types";
+import { TransformComponent } from "./TransformComponent";
 
 export interface I_UnitsConfig {
 	unitScale?: number;

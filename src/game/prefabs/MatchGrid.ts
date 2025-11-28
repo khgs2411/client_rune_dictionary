@@ -1,6 +1,6 @@
 import { GameObject } from "../GameObject";
+import { TransformComponent } from "../components/entities/TransformComponent";
 import { GridHelperComponent } from "../components/rendering/GridHelperComponent";
-import { TransformComponent } from "../components/rendering/TransformComponent";
 
 export interface I_MatchGridConfig {
 	id: string;
