@@ -382,23 +382,23 @@ Added circuit breaker to PLAN.md V2 scope with reasoning and implementation note
 **Implementation Notes**:
 
 - Created `src/integrations/stripe/ErrorMapper.ts` (98 lines)
-  - Comprehensive mapping of all Stripe error codes
-  - Includes error code reference documentation
+    - Comprehensive mapping of all Stripe error codes
+    - Includes error code reference documentation
 - Created `src/integrations/stripe/RetryPolicy.ts` (76 lines)
-  - Exponential backoff algorithm implementation
-  - Configurable via STRIPE_MAX_RETRIES and STRIPE_RETRY_BASE_DELAY_MS env vars
+    - Exponential backoff algorithm implementation
+    - Configurable via STRIPE_MAX_RETRIES and STRIPE_RETRY_BASE_DELAY_MS env vars
 - Updated `src/integrations/stripe/StripeClient.ts` to use ErrorMapper and RetryPolicy
-  - All API calls wrapped with retry logic
-  - Errors mapped before thrown to service layer
+    - All API calls wrapped with retry logic
+    - Errors mapped before thrown to service layer
 - Created `src/errors/payment/` directory with domain error classes
-  - PaymentDeclinedError
-  - PaymentProcessingError
-  - PaymentConfigurationError
-  - PaymentValidationError
-  - PaymentAuthenticationError
+    - PaymentDeclinedError
+    - PaymentProcessingError
+    - PaymentConfigurationError
+    - PaymentValidationError
+    - PaymentAuthenticationError
 - Added structured logging to all error paths
-  - Using existing logger with additional context fields
-  - Sensitive data redaction working correctly
+    - Using existing logger with additional context fields
+    - Sensitive data redaction working correctly
 - Discovered: Stripe SDK throws different error types for network vs API errors, needed special handling
 
 **Files Modified**:
@@ -413,9 +413,9 @@ Added circuit breaker to PLAN.md V2 scope with reasoning and implementation note
 - `src/errors/payment/PaymentAuthenticationError.ts` - Created (18 lines)
 - `src/errors/payment/index.ts` - Barrel export (8 lines)
 - `scripts/error-handling.scripts.ts` - Created test file (156 lines)
-  - Tests all error mapping scenarios
-  - Tests retry logic with simulated failures
-  - Tests exhausted retry scenarios
+    - Tests all error mapping scenarios
+    - Tests retry logic with simulated failures
+    - Tests exhausted retry scenarios
 
 **Verification** (In Progress):
 

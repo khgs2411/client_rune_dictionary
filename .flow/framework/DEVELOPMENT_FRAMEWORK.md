@@ -105,15 +105,15 @@ PHASE → TASK → ITERATION → BRAINSTORM → IMPLEMENTATION → COMPLETE
 **Structure**:
 
 - **PHASE**: High-level milestone (e.g., "Core Implementation", "Testing")
-  - Lives in: DASHBOARD.md (overview) + `phase-N/` directory
+    - Lives in: DASHBOARD.md (overview) + `phase-N/` directory
 - **TASK**: Feature/component to build (e.g., "Database Schema", "API Endpoints")
-  - Lives in: `phase-N/task-N.md` file
+    - Lives in: `phase-N/task-N.md` file
 - **ITERATION**: Incremental buildout (e.g., "V1: Basic validation", "V2: Advanced rules")
-  - Lives in: Inside task file (`phase-N/task-N.md`)
+    - Lives in: Inside task file (`phase-N/task-N.md`)
 - **BRAINSTORM**: Design before code (subjects → decisions → action items)
-  - Lives in: Inside iteration section of task file
+    - Lives in: Inside iteration section of task file
 - **IMPLEMENTATION**: Execute action items from brainstorming
-  - Lives in: Inside iteration section of task file
+    - Lives in: Inside iteration section of task file
 
 **Golden Rule**: Brainstorm → Pre-Tasks → Implementation (never skip brainstorming for complex work)
 
@@ -181,8 +181,8 @@ PHASE → TASK → ITERATION → BRAINSTORM → IMPLEMENTATION → COMPLETE
 - ✅ COMPLETE items are verified & frozen (skip re-verification)
 - ❌ CANCELLED and 🔮 DEFERRED must document reason
 - Status appears in BOTH:
-  - DASHBOARD.md (for overview)
-  - Task file header (phase-N/task-M.md)
+    - DASHBOARD.md (for overview)
+    - Task file header (phase-N/task-M.md)
 
 **Status Lifecycle**:
 
@@ -278,11 +278,11 @@ When brainstorming (inside task file), every resolved subject falls into ONE of 
 **Decision Flow**:
 
 1. Does subject require code changes?
-   - **NO** → Type B (Documentation) or Type C (Auto-resolved)
-   - **YES** → Continue to #2
+    - **NO** → Type B (Documentation) or Type C (Auto-resolved)
+    - **YES** → Continue to #2
 2. Is it small quick task (< 30 min)?
-   - **YES** → Type A (Pre-task)
-   - **NO** → Type D (Resolution Items → Action Items)
+    - **YES** → Type A (Pre-task)
+    - **NO** → Type D (Resolution Items → Action Items)
 
 **Where They Live**:
 
@@ -470,28 +470,28 @@ When brainstorming (inside task file), every resolved subject falls into ONE of 
 
 1. **Start**: `/flow-brainstorm-start`
 
-   - Adds brainstorming section to current iteration
-   - Creates "Subjects to Discuss" list
+    - Adds brainstorming section to current iteration
+    - Creates "Subjects to Discuss" list
 
 2. **Resolve**: `/flow-next-subject`
 
-   - Picks next ⏳ subject
-   - Discuss with user
-   - Document decision + choose Type A/B/C/D
-   - Add action items if needed
+    - Picks next ⏳ subject
+    - Discuss with user
+    - Document decision + choose Type A/B/C/D
+    - Add action items if needed
 
 3. **Review**: `/flow-brainstorm-review` (CRITICAL STEP!)
 
-   - After all subjects resolved
-   - AI analyzes all decisions
-   - Suggests if more iterations needed
-   - Identifies pre-implementation tasks
-   - **Always suggest this BEFORE /flow-brainstorm-complete**
+    - After all subjects resolved
+    - AI analyzes all decisions
+    - Suggests if more iterations needed
+    - Identifies pre-implementation tasks
+    - **Always suggest this BEFORE /flow-brainstorm-complete**
 
 4. **Complete**: `/flow-brainstorm-complete`
-   - Marks brainstorming ✅ COMPLETE
-   - Changes iteration status to 🎨 READY
-   - Only call AFTER completing pre-tasks
+    - Marks brainstorming ✅ COMPLETE
+    - Changes iteration status to 🎨 READY
+    - Only call AFTER completing pre-tasks
 
 ---
 
@@ -571,78 +571,78 @@ These tasks MUST be completed BEFORE starting main implementation of this iterat
 
 - Lines 601-850: **Framework Philosophy & Principles**
 
-  - Domain-Driven Design approach
-  - Agile iterative philosophy
-  - When to use Flow
+    - Domain-Driven Design approach
+    - Agile iterative philosophy
+    - When to use Flow
 
 - Lines 851-1100: **Multi-File Architecture Deep Dive**
 
-  - File responsibilities in detail
-  - Cross-file references
-  - Directory structure rules
-  - File naming conventions
+    - File responsibilities in detail
+    - Cross-file references
+    - Directory structure rules
+    - File naming conventions
 
 - Lines 1101-1550: **Task Structure Rules (Complete Guide)**
 
-  - Iterations-only architecture
-  - When to split tasks
-  - Task size guidelines
-  - Nested iteration patterns
-  - **Markdown heading structure rules** (5-level hierarchy for perfect folding)
+    - Iterations-only architecture
+    - When to split tasks
+    - Task size guidelines
+    - Nested iteration patterns
+    - **Markdown heading structure rules** (5-level hierarchy for perfect folding)
 
 - Lines 1401-1700: **Brainstorming Pattern (Complete Guide)**
 
-  - Full brainstorming workflow
-  - Subject resolution types deep dive
-  - Pre-implementation task patterns
-  - Bugs discovered pattern
+    - Full brainstorming workflow
+    - Subject resolution types deep dive
+    - Pre-implementation task patterns
+    - Bugs discovered pattern
 
 - Lines 1701-1900: **Implementation Pattern (Complete Guide)**
 
-  - Implementation structure
-  - Notes and discoveries
-  - Verification checklist
-  - When to mark complete
+    - Implementation structure
+    - Notes and discoveries
+    - Verification checklist
+    - When to mark complete
 
 - Lines 1901-2100: **Status Management**
 
-  - Status marker lifecycle
-  - State transitions
-  - Common pitfalls
-  - Recovery from incorrect states
+    - Status marker lifecycle
+    - State transitions
+    - Common pitfalls
+    - Recovery from incorrect states
 
 - Lines 2101-2600: **File Templates**
 
-  - DASHBOARD.md template (complete)
-  - PLAN.md template (complete)
-  - task-N.md template (complete)
-  - Copy-paste ready templates
+    - DASHBOARD.md template (complete)
+    - PLAN.md template (complete)
+    - task-N.md template (complete)
+    - Copy-paste ready templates
 
 - Lines 2601-2900: **Command Patterns**
 
-  - Dashboard-first navigation (detailed)
-  - Structure creation pattern
-  - Full traversal pattern
-  - Cross-file search pattern
+    - Dashboard-first navigation (detailed)
+    - Structure creation pattern
+    - Full traversal pattern
+    - Cross-file search pattern
 
 - Lines 2901-3200: **Complete Workflow Examples**
 
-  - Full feature implementation walkthrough
-  - File updates at each step
-  - Real-world example with payment gateway
+    - Full feature implementation walkthrough
+    - File updates at each step
+    - Real-world example with payment gateway
 
 - Lines 3201-3500: **Backlog Management**
 
-  - BACKLOG.md structure
-  - Moving tasks to backlog
-  - Pulling tasks back
-  - Archiving with /flow-plan-split
+    - BACKLOG.md structure
+    - Moving tasks to backlog
+    - Pulling tasks back
+    - Archiving with /flow-plan-split
 
 - Lines 3501-3800: **Best Practices & Pitfalls**
-  - Common mistakes
-  - How to recover
-  - Performance tips
-  - Multi-developer workflows
+    - Common mistakes
+    - How to recover
+    - Performance tips
+    - Multi-developer workflows
 
 ---
 
@@ -666,26 +666,26 @@ Flow is a **specification-driven iterative development methodology** that combin
 
 - **Skeleton**: Basic structure and foundation
 
-  - Minimal working version
-  - Core data models
-  - Basic happy path
+    - Minimal working version
+    - Core data models
+    - Basic happy path
 
 - **Veins**: Core data flow and connections
 
-  - Main feature workflows
-  - Critical integration points
-  - Error handling basics
+    - Main feature workflows
+    - Critical integration points
+    - Error handling basics
 
 - **Flesh**: Incremental complexity
 
-  - Additional features
-  - Edge cases
-  - Performance optimization
+    - Additional features
+    - Edge cases
+    - Performance optimization
 
 - **Fibers**: Refinement and optimization
-  - Polish and UX improvements
-  - Advanced edge cases
-  - Production hardening
+    - Polish and UX improvements
+    - Advanced edge cases
+    - Production hardening
 
 ### Multi-File Architecture Philosophy
 
@@ -2526,10 +2526,10 @@ Before marking iteration complete, verify:
 **Tasks**:
 
 - [Status Emoji] **Task 1**: [Name] ([X/Y iterations])
-  - [Status Emoji] Iteration 1: [Name]
-  - [Status Emoji] Iteration 2: [Name]
+    - [Status Emoji] Iteration 1: [Name]
+    - [Status Emoji] Iteration 2: [Name]
 - [Status Emoji] **Task 2**: [Name] ([X/Y iterations])
-  - [Status Emoji] Iteration 1: [Name]
+    - [Status Emoji] Iteration 1: [Name]
 
 ### Phase 2: [Name] [Status Emoji]
 
@@ -2539,9 +2539,9 @@ Before marking iteration complete, verify:
 **Tasks**:
 
 - [Status Emoji] **Task 1**: [Name] ([X/Y iterations])
-  - [Status Emoji] Iteration 1: [Name]
-  - 🚧 Iteration 2: [Name] ← **CURRENT**
-  - ⏳ Iteration 3: [Name]
+    - [Status Emoji] Iteration 1: [Name]
+    - 🚧 Iteration 2: [Name] ← **CURRENT**
+    - ⏳ Iteration 3: [Name]
 
 ---
 
@@ -3400,17 +3400,17 @@ AI: Iteration 1 complete! ✅
 
 1. **DASHBOARD.md**:
 
-   - Phase 1 status: ⏳ → 🚧
-   - Task 1 status: ⏳ → 🚧 → ✅
-   - Current work pointer updated throughout
-   - Progress percentages updated
+    - Phase 1 status: ⏳ → 🚧
+    - Task 1 status: ⏳ → 🚧 → ✅
+    - Current work pointer updated throughout
+    - Progress percentages updated
 
 2. **phase-1/task-1.md**:
-   - Task status: ⏳ → 🚧
-   - Iteration 1 added
-   - Brainstorming section filled
-   - Implementation notes added
-   - Status: 🚧 → ✅
+    - Task status: ⏳ → 🚧
+    - Iteration 1 added
+    - Brainstorming section filled
+    - Implementation notes added
+    - Status: 🚧 → ✅
 
 ---
 
@@ -4111,20 +4111,20 @@ Phase 2: Core Implementation
 
 1. **Use /flow-plan-split regularly**:
 
-   - Archives completed work
-   - Keeps active plan small
-   - Old work still accessible in ARCHIVE.md
+    - Archives completed work
+    - Keeps active plan small
+    - Old work still accessible in ARCHIVE.md
 
 2. **Leverage DASHBOARD.md**:
 
-   - Dashboard has jump links
-   - Don't read all task files, just current one
-   - Use Grep to search across files when needed
+    - Dashboard has jump links
+    - Don't read all task files, just current one
+    - Use Grep to search across files when needed
 
 3. **Keep task files focused**:
-   - One task per file
-   - Don't let iterations grow too large
-   - Split task if > 7-8 iterations
+    - One task per file
+    - Don't let iterations grow too large
+    - Split task if > 7-8 iterations
 
 ---
 

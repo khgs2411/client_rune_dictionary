@@ -1,6 +1,6 @@
 # Combat System Reimplementation - Dashboard
 
-**Last Updated**: 2025-11-27 (Match Instantiation Flow Refactoring Complete)
+**Last Updated**: 2025-11-28 (Iteration 2.5 Brainstorming Complete - Ready for Implementation)
 
 **Project**: Vue 3 + Three.js combat system with match mode, camera controls, and arena boundaries
 **Status**: Phase 2 in progress - Focus on match lifecycle and state transitions
@@ -12,8 +12,8 @@
 
 - **Phase**: Phase 2 - Combat System Reimplementation
 - **Task**: Task 2 - WebSocket Match Events & Match Loop System
-- **Iteration**: Iteration 3 - Action System & Turn Integration ⏳ PENDING (ready to start)
-- **Next**: Begin action system integration with turn state controls
+- **Iteration**: Iteration 2.5 - InteractionComponent Range Extension & HoverComponent Refactor 🚧 BRAINSTORMING
+- **Focus**: Designing component architecture for range-based interactions
 
 ---
 
@@ -27,19 +27,20 @@
 **Tasks**:
 
 - ✅ **Task 1**: Match UI Components (2/2 iterations) - COMPLETE
-  - ✅ Iteration 0: Game Mode Controls & Visibility Management
-  - ✅ Iteration 1: Match HUD Elements
-  - ❌ Iteration 2: Character Status Display (CANCELLED - consolidated into Iteration 1)
-  - ❌ Iteration 3: Combat Actions UI (CANCELLED - consolidated into Iteration 1)
+    - ✅ Iteration 0: Game Mode Controls & Visibility Management
+    - ✅ Iteration 1: Match HUD Elements
+    - ❌ Iteration 2: Character Status Display (CANCELLED - consolidated into Iteration 1)
+    - ❌ Iteration 3: Combat Actions UI (CANCELLED - consolidated into Iteration 1)
 - ✅ **Task 1.5**: Match Instantiation Flow Refactoring (1/1 iterations) - COMPLETE
-  - ✅ Iteration 1: Match Lifecycle State Management & Arena Spawning
-- 🚧 **Task 2**: WebSocket Match Events & Match Loop System (3/4 iterations) ← **CURRENT**
-  - ✅ Iteration 1: WebSocket Event Integration (COMPLETE)
-  - ✅ Iteration 1.5: MatchHUD Components UI Adjustment (COMPLETE)
-  - ✅ Iteration 2: ATB System Implementation (COMPLETE - server-driven with client prediction)
-  - ⏳ Iteration 3: Action System & Turn Integration ← **NEXT** (consolidated iterations 2 & 4)
+    - ✅ Iteration 1: Match Lifecycle State Management & Arena Spawning
+- 🚧 **Task 2**: WebSocket Match Events & Match Loop System (5/5 iterations) ← **CURRENT**
+    - ✅ Iteration 1: WebSocket Event Integration (COMPLETE)
+    - ✅ Iteration 1.5: MatchHUD Components UI Adjustment (COMPLETE)
+    - ✅ Iteration 2: ATB System Implementation (COMPLETE - server-driven with client prediction)
+    - ✅ Iteration 2.5: InteractionComponent Range Extension & HoverComponent Refactor ← **CURRENT** (brainstorming complete - ready for implementation)
+    - ⏳ Iteration 3: Action System & Turn Integration (consolidated iterations 2 & 4)
 - ⏳ **Task 3**: Grid System for Distance-Based Skills (0/1 iterations)
-  - ⏳ Iteration 1: [TBD]
+    - ⏳ Iteration 1: [TBD]
 
 ---
 
@@ -71,32 +72,32 @@
 **Recent Completions**:
 
 - **2025-11-27**: ✅ Iteration 2 Complete - ATB System Implementation
-  - **Status**: Server-driven architecture with client-side 60fps prediction
-  - Implemented `useATBPrediction` composable for smooth bar fills between server updates
-  - ATB readiness updates correctly from `match.atb.readiness.update` events
-  - ATB bars pause during turn phases (mutual exclusivity with turn timer)
-  - Fill rate calculation handles variable character speed/tempo stats
-  - **Result**: ATB bars now visually reach 100% smoothly without server latency jitter
+    - **Status**: Server-driven architecture with client-side 60fps prediction
+    - Implemented `useATBPrediction` composable for smooth bar fills between server updates
+    - ATB readiness updates correctly from `match.atb.readiness.update` events
+    - ATB bars pause during turn phases (mutual exclusivity with turn timer)
+    - Fill rate calculation handles variable character speed/tempo stats
+    - **Result**: ATB bars now visually reach 100% smoothly without server latency jitter
 - **2025-11-27**: ✅ Task 1.5 Complete - Match Instantiation Flow Refactoring (1/1 iterations)
-  - **Iteration 1**: Complete refactor of match lifecycle and arena spawning
-  - Refactored MatchModule with clean internal API sections (LIFECYCLE, STATE HANDLER, MATCH LIFECYCLE, ARENA MANAGEMENT, CAMERA CONTROL)
-  - Established state flow: `OVERWORLD → MATCH_REQUEST → PVE_MATCH → OVERWORLD`
-  - Double-click NPC triggers match creation via API
-  - Arena spawns at midpoint between player and NPC
-  - Camera transitions to match view (ready for improvements in Phase 3)
-  - Action bar and HUD appear automatically
-  - Match exit functionality working end-to-end
-  - Files refactored: SceneStateService, MatchComponent, MatchModule, InteractionComponent, KinematicMovementComponent, MatchAreaWalls, MatchAreaDome
+    - **Iteration 1**: Complete refactor of match lifecycle and arena spawning
+    - Refactored MatchModule with clean internal API sections (LIFECYCLE, STATE HANDLER, MATCH LIFECYCLE, ARENA MANAGEMENT, CAMERA CONTROL)
+    - Established state flow: `OVERWORLD → MATCH_REQUEST → PVE_MATCH → OVERWORLD`
+    - Double-click NPC triggers match creation via API
+    - Arena spawns at midpoint between player and NPC
+    - Camera transitions to match view (ready for improvements in Phase 3)
+    - Action bar and HUD appear automatically
+    - Match exit functionality working end-to-end
+    - Files refactored: SceneStateService, MatchComponent, MatchModule, InteractionComponent, KinematicMovementComponent, MatchAreaWalls, MatchAreaDome
 - **2025-11-02**: ✅ Iteration 1 & 1.5 Complete - WebSocket Integration + UI Improvements
-  - **Iteration 1**: Created useMatchState composable with 10 event handlers, WebSocket routing, type-safe event interfaces
-  - **Iteration 1.5**: Fixed turn timer blinking with throttling (500ms) and smoother transitions
-  - Implemented client-side ATB prediction (60fps RAF, reaches 100% smoothly)
-  - Added local turn timer countdown with intelligent drift correction
-  - Created reusable progress bar color composable
-  - **Critical bug fix**: ATB/Turn Timer mutual exclusivity (pause ATB during turns)
+    - **Iteration 1**: Created useMatchState composable with 10 event handlers, WebSocket routing, type-safe event interfaces
+    - **Iteration 1.5**: Fixed turn timer blinking with throttling (500ms) and smoother transitions
+    - Implemented client-side ATB prediction (60fps RAF, reaches 100% smoothly)
+    - Added local turn timer countdown with intelligent drift correction
+    - Created reusable progress bar color composable
+    - **Critical bug fix**: ATB/Turn Timer mutual exclusivity (pause ATB during turns)
 - **2025-10-31**: ✅ Task 1 Complete - Match UI Components (2/2 iterations complete)
-  - ✅ Iteration 0: Game Mode Controls & Visibility Management
-  - ✅ Iteration 1: Match HUD Elements (Pokemon-inspired three-corner layout with TurnTimer, StatusPanel, ActionBar)
+    - ✅ Iteration 0: Game Mode Controls & Visibility Management
+    - ✅ Iteration 1: Match HUD Elements (Pokemon-inspired three-corner layout with TurnTimer, StatusPanel, ActionBar)
 
 **Pending Decisions**:
 None currently

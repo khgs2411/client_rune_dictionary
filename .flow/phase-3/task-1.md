@@ -35,9 +35,9 @@ After a certain period of time (or after leaving and rejoining a match), match-r
 - [ ] Restart backend server with added logging (channel membership + broadcast member count)
 - [ ] Reproduce bug: leave match → start new match
 - [ ] Analyze server logs to identify root cause:
-  - Is client added to new channel successfully?
-  - Does channel have correct member count when broadcasting?
-  - Are broadcasts being called with correct channel ID?
+    - Is client added to new channel successfully?
+    - Does channel have correct member count when broadcasting?
+    - Are broadcasts being called with correct channel ID?
 - [ ] Implement fix based on findings
 - [ ] Verify fix: repeat leave/rejoin cycle, confirm events arrive
 - [ ] Document root cause and solution
@@ -53,11 +53,11 @@ After a certain period of time (or after leaving and rejoining a match), match-r
 **References**:
 
 - Server logging added:
-  - `server_rune_matchmaking/src/components/match/match.service.ts:133-138` (channel membership logging)
-  - `server_rune_matchmaking/src/domains/match/match.broadcaster.ts:28` (broadcast with member count)
+    - `server_rune_matchmaking/src/components/match/match.service.ts:133-138` (channel membership logging)
+    - `server_rune_matchmaking/src/domains/match/match.broadcaster.ts:28` (broadcast with member count)
 - Related files:
-  - `server_rune_matchmaking/src/facades/channel.manager.ts` (channel management)
-  - `server_rune_matchmaking/src/websocket/relay.ts` (WebSocket relay)
+    - `server_rune_matchmaking/src/facades/channel.manager.ts` (channel management)
+    - `server_rune_matchmaking/src/websocket/relay.ts` (WebSocket relay)
 - Phase 2 Task 2 pre-implementation task documenting this issue
 
 ---
@@ -69,9 +69,9 @@ After a certain period of time (or after leaving and rejoining a match), match-r
 - **Symptom**: After a certain period of time (or after leaving and rejoining a match), match-related events are NOT being SENT from backend to client
 - **Evidence**: Chrome DevTools shows events ARE NOT arriving at client (backend not sending)
 - **Important Notes**:
-  - WebSocket connection IS alive (ping/pong works, `client.leave.channel` events work)
-  - Non-match events ARE being sent successfully
-  - Only match-specific events (`match.atb.readiness.update`, `match.turn.start`, etc.) stop being sent
+    - WebSocket connection IS alive (ping/pong works, `client.leave.channel` events work)
+    - Non-match events ARE being sent successfully
+    - Only match-specific events (`match.atb.readiness.update`, `match.turn.start`, etc.) stop being sent
 
 **Server-Side Components**:
 

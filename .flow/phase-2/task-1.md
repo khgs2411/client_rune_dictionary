@@ -262,32 +262,32 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **Implementation Notes**:
 
 - Created `MatchAreaWalls` prefab with 4 invisible collision walls
-  - Uses CollisionComponent with explicit shapeParams (half-extents)
-  - Creates 4 border lines (Three.js Line) at ground level
-  - Manual cleanup in destroy() to remove lines from scene
+    - Uses CollisionComponent with explicit shapeParams (half-extents)
+    - Creates 4 border lines (Three.js Line) at ground level
+    - Manual cleanup in destroy() to remove lines from scene
 - Updated `CollisionComponent` to support mesh-less collision
-  - Checks for shape + shapeParams before requiring mesh
-  - Converts half-extents to full dimensions for physics registration
-  - Uses TransformComponent.getPositionArray() / getRotationArray()
+    - Checks for shape + shapeParams before requiring mesh
+    - Converts half-extents to full dimensions for physics registration
+    - Uses TransformComponent.getPositionArray() / getRotationArray()
 - Added `freezeReactiveUpdates` flag to camera system
-  - Stops watchEffect in useCamera when frozen
-  - Prevents camera from following player during matches
-  - Skip camera.update() in GameScene.update() when frozen
+    - Stops watchEffect in useCamera when frozen
+    - Prevents camera from following player during matches
+    - Skip camera.update() in GameScene.update() when frozen
 - Disabled mouse controls during match
-  - mouseRotationEnabled = false disables rotation
-  - Zoom check in useCameraMouseInput checks enabled flag
+    - mouseRotationEnabled = false disables rotation
+    - Zoom check in useCameraMouseInput checks enabled flag
 - Fixed camera positioning
-  - Manual position.set() and lookAt() instead of changeTarget()
-  - Camera at [centerX, 18, centerZ + 18]
-  - LookAt [centerX, 2, centerZ]
+    - Manual position.set() and lookAt() instead of changeTarget()
+    - Camera at [centerX, 18, centerZ + 18]
+    - LookAt [centerX, 2, centerZ]
 - Arena architecture changed from circular to rectangular
-  - Initial circular design had gaps between segments
-  - Simplified to 4 rectangular walls (North, South, East, West)
-  - Dimensions: 40 width x 25 depth (fits camera viewport)
+    - Initial circular design had gaps between segments
+    - Simplified to 4 rectangular walls (North, South, East, West)
+    - Dimensions: 40 width x 25 depth (fits camera viewport)
 - Border line cleanup issue discovered and fixed
-  - Lines registered with scene CleanupRegistry persisted after GameObject destroy
-  - Added manual removal in MatchAreaWalls.destroy()
-  - Dispose geometry and material to prevent memory leaks
+    - Lines registered with scene CleanupRegistry persisted after GameObject destroy
+    - Added manual removal in MatchAreaWalls.destroy()
+    - Dispose geometry and material to prevent memory leaks
 
 **Files Modified**:
 
@@ -388,9 +388,9 @@ These tasks were completed BEFORE starting main implementation of this iteration
 - Pokemon battle UI is proven, clean, and instantly understandable
 - Simple and clean design keeps center screen clear for gameplay
 - Three-corner layout creates natural visual balance:
-  - **Bottom-left**: Player health bar (like Pokemon's player status)
-  - **Top-right**: Enemy health bar (symmetric opposite)
-  - **Bottom-right**: Action buttons (clear call-to-action positioning)
+    - **Bottom-left**: Player health bar (like Pokemon's player status)
+    - **Top-right**: Enemy health bar (symmetric opposite)
+    - **Bottom-right**: Action buttons (clear call-to-action positioning)
 - Keeps gameplay center unobstructed
 - Natural reading flow (left = player, right = enemy/actions)
 - Mobile-friendly corner anchoring
@@ -406,14 +406,14 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **ATB System Integration**:
 
 - **ATB Bar** (per-character): Shows "waiting for turn" progress, attached to each character's status panel
-  - Fills gradually as character waits their turn
-  - Visual indicator of turn order
-  - Located within player (bottom-left) and enemy (top-right) status panels
+    - Fills gradually as character waits their turn
+    - Visual indicator of turn order
+    - Located within player (bottom-left) and enemy (top-right) status panels
 - **Turn Timer Bar** (shared/global): Shows active turn time limit, positioned top-center
-  - Only visible during active turn (player's or enemy's)
-  - Counts down from max turn time to zero
-  - Should share visual similarities with ATB bar (same style/theme)
-  - Clearly indicates whose turn it is (player vs enemy color coding)
+    - Only visible during active turn (player's or enemy's)
+    - Counts down from max turn time to zero
+    - Should share visual similarities with ATB bar (same style/theme)
+    - Clearly indicates whose turn it is (player vs enemy color coding)
 
 **Action Items**:
 
@@ -607,13 +607,13 @@ These tasks were completed BEFORE starting main implementation of this iteration
 **Action Bar Structure**:
 
 - **8 ability slots** (horizontal row):
-  - Mapped to keyboard keys 1-8
-  - Clickable/tappable for mouse/touch
-  - All show "Attack" initially (skills not yet implemented)
-  - Each slot shows: ability icon, name, keybind number
+    - Mapped to keyboard keys 1-8
+    - Clickable/tappable for mouse/touch
+    - All show "Attack" initially (skills not yet implemented)
+    - Each slot shows: ability icon, name, keybind number
 - **2 utility actions** (positioned above action bar):
-  - **"Run"** button: Uses existing "Leave Match" logic from current MatchHUD
-  - **"Pass"** button: Sends pass action to skip turn
+    - **"Run"** button: Uses existing "Leave Match" logic from current MatchHUD
+    - **"Pass"** button: Sends pass action to skip turn
 - **Default position**: Bottom-right corner
 - **Draggable handle**: Click and drag to reposition entire action bar
 - **Position persistence**: Saved to localStorage via `useLocalStorage`

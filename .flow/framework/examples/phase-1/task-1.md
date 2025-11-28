@@ -43,8 +43,8 @@ Initialize the payment gateway project with proper directory structure, install 
 **Implementation Notes**:
 
 - Created feature-based directory structure (group by feature, not by type)
-  - Pattern: src/{feature}/{api|service|repository}/
-  - Rationale: Easier to navigate, better encapsulation
+    - Pattern: src/{feature}/{api|service|repository}/
+    - Rationale: Easier to navigate, better encapsulation
 - Stripe SDK v12 uses ESM modules, required updating tsconfig.json moduleResolution
 - Needed to add `@types/node` for TypeScript type definitions
 - TypeScript strict mode enabled to catch type errors early
@@ -89,7 +89,7 @@ Initialize the payment gateway project with proper directory structure, install 
 **Implementation Notes**:
 
 - Jest for unit tests, custom simulation scripts for integration tests
-  - Rationale: Jest for fast unit tests, simulation scripts for realistic E2E tests without hitting live API
+    - Rationale: Jest for fast unit tests, simulation scripts for realistic E2E tests without hitting live API
 - PostgreSQL connection pooling requires max 10 connections for local dev
 - Database migrations run successfully on all environments (local, staging)
 

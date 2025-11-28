@@ -110,9 +110,9 @@ Manual testing with live WebSocket connection required - connect to matchmaking 
 **Pattern**:
 
 ```ts
-if (message.type === 'match.turn.start') {
-  const payload = message as MatchTurnStartEvent;
-  updateTurnState(payload.content);
+if (message.type === "match.turn.start") {
+	const payload = message as MatchTurnStartEvent;
+	updateTurnState(payload.content);
 }
 ```
 
@@ -182,15 +182,15 @@ return { matchId, matchState, gameState }; // gameState is composable
 ```ts
 // Event interface matches server (type safety)
 interface MatchATBUpdateEvent {
-  content: {
-    atbData: { [entityId: string]: { readiness: number } };
-  };
+	content: {
+		atbData: { [entityId: string]: { readiness: number } };
+	};
 }
 
 // Composable transforms to UI-friendly structure
 function handleATBUpdate(content) {
-  player.value.readiness = content.atbData[player.value.entityId].readiness;
-  npc.value.readiness = content.atbData[npc.value.entityId].readiness;
+	player.value.readiness = content.atbData[player.value.entityId].readiness;
+	npc.value.readiness = content.atbData[npc.value.entityId].readiness;
 }
 
 // Component consumes clean structure
@@ -222,17 +222,17 @@ const playerReadiness = computed(() => matchStore.gameState.player.readiness);
 
 ```ts
 // match.store.ts - thin routing only
-websocket.register('match.store', {
-  data: async (_ws, message) => {
-    switch (message.type) {
-      case 'match.health.update':
-        gameState.handleHealthUpdate(message.content);
-        break;
-      case 'match.atb.readiness.update':
-        gameState.handleATBUpdate(message.content);
-        break;
-    }
-  },
+websocket.register("match.store", {
+	data: async (_ws, message) => {
+		switch (message.type) {
+			case "match.health.update":
+				gameState.handleHealthUpdate(message.content);
+				break;
+			case "match.atb.readiness.update":
+				gameState.handleATBUpdate(message.content);
+				break;
+		}
+	},
 });
 ```
 
@@ -610,10 +610,10 @@ Provided manually by the user:
 - ✅ Subject 4 complete: Integrated composable into StatusPanel for HP and Mana bars
 - Note: TurnTimer currently uses player/enemy color scheme (primary/destructive), gradient timer color available but commented out
 - **🐛 BUG FIX**: Discovered and fixed ATB/Turn Timer mutual exclusivity issue during implementation
-  - **Issue**: ATB prediction and turn timer were running in parallel (incorrect logic)
-  - **Fix**: Added `isTurnActive` prop to StatusPanel, pause/resume ATB prediction based on turn state
-  - **Result**: ATB phase (bars progress) and Turn phase (timer counts down) are now mutually exclusive
-  - Files modified: StatusPanel.vue, MatchHUD.vue
+    - **Issue**: ATB prediction and turn timer were running in parallel (incorrect logic)
+    - **Fix**: Added `isTurnActive` prop to StatusPanel, pause/resume ATB prediction based on turn state
+    - **Result**: ATB phase (bars progress) and Turn phase (timer counts down) are now mutually exclusive
+    - Files modified: StatusPanel.vue, MatchHUD.vue
 
 **Files Modified**:
 
@@ -854,6 +854,535 @@ Manual testing with live WebSocket connection required to verify:
 
 ---
 
+### ✅ Iteration 2.5: InteractionComponent Range Extension & HoverComponent Refactor
+
+**Goal**: Add interaction range checking to InteractionComponent and refactor HoverComponent to be range-aware
+
+**Status**: ✅ BRAINSTORMING COMPLETE (ready for implementation)
+
+**Context**:
+The user wants to add distance-based interaction checking to allow NPCs to only interact when players are within range. This involves:
+
+1. Creating UnitsComponent for distance measurement (new component)
+2. InteractionComponent stays pure - marks capability only, emits events
+3. HoverComponent stays pure - emits hover events only
+4. High-level components (MatchComponent, TradeComponent) orchestrate by listening to events and querying UnitsComponent
+5. Default interaction range: 10 units (overrideable per component)
+
+---
+
+#### Brainstorming Session - Interaction Range & Component Architecture
+
+**Focus**: Design distance-based interaction system and component responsibilities
+
+**Subjects to Discuss** (tackle one at a time):
+
+1. ✅ **InteractionComponent Responsibilities** - Should it only govern interaction logic or also measure distance?
+2. ⏳ **HoverComponent Distance Handling** - Should HoverComponent measure distance as well, or query InteractionComponent?
+3. ⏳ **DistanceComponent Consideration** - Should we create a separate 'DistanceComponent' to handle distance logic?
+4. ⏳ **Component Orchestration Pattern** - Should MatchComponent/TradeComponent orchestrate visual effects (red border, purple glow) based on object type and distance?
+5. ⏳ **Default Values & Configuration** - How should interactionRange be configurable (constructor, setter, both)?
+6. ⏳ **Event vs Getter Pattern** - Should components use `on('rangechange')` events or direct `isWithinRange` getter queries?
+
+**Resolved Subjects**:
+
+---
+
+##### ✅ Subject 1: InteractionComponent Responsibilities
+
+**Decision**: Philosophy B - Interaction is pure capability, distance is external concern
+
+**Rationale**:
+
+- **Separation of concerns**: InteractionComponent is responsible only for marking that an object CAN be interacted with (capability/intent)
+- **Distance as external condition**: "Is this object REACHABLE" is a separate concern from "can it be interacted with"
+- **Conceptual clarity**: A chest across the room CAN be interacted with (has InteractionComponent), but you can't interact until you walk over
+- **Composability**: Different consumers can apply different distance rules - some might allow 10 units, others 20
+- **Architecture benefit**: Cleaner separation enables DistanceComponent to work independently (Subject 3)
+
+**Pattern**:
+
+```ts
+// InteractionComponent: only marks capability
+class InteractionComponent {
+	isInteractable: true; // Can this be interacted with?
+}
+
+// Distance check is external (Subject 3 handles this)
+// Another system/component checks: Are you close enough?
+```
+
+**Resolution Type**: Type D - feeds into later subjects
+
+**Action Items**: None for this subject - decision informs Subject 2 (HoverComponent) and Subject 3 (DistanceComponent)
+
+---
+
+##### ✅ Subject 1.5: Behavior Logic Ownership Pattern
+
+**Decision**: Pattern B - High-level components own their behavior logic
+
+**Rationale**:
+
+- **Matches existing architecture**: MatchComponent already uses the `on()` event pattern to listen and react to changes
+- **No scale issues yet**: Current event frequency (~10-20/s) handles reactive updates without problems; can refactor to Service pattern later if needed
+- **Co-located logic**: Behavior logic stays with the component that cares about it, improving maintainability and reducing context switching
+- **Event-driven**: Components listen to events from other components and react via computed properties and watchers
+- **Simpler implementation**: Avoids unnecessary abstraction layers until there's a proven need
+
+**Pattern**:
+
+```ts
+// High-level component owns behavior logic
+export class MatchComponent extends GameComponent {
+	async init(context: I_SceneContext): Promise<void> {
+		const npc = this.requireComponent(NPCComponent);
+
+		// Listen to events and react locally
+		npc.on("healthChanged", (newHealth) => {
+			if (newHealth <= 0) {
+				this.playDeathAnimation();
+			}
+		});
+	}
+}
+
+// Not: Creating a centralized system that MatchComponent queries
+// Not: Pushing behavior down to NPCComponent (tight coupling)
+```
+
+**When to Refactor**: If we exceed ~50 events/sec or have 10+ components subscribing to same event, refactor to Service pattern (Pattern C) for better coordination.
+
+**Resolution Type**: Type D - Architectural guideline for Iteration 2.5+
+
+**Action Items**: None - this is a decision, not implementation work
+
+---
+
+##### ✅ Subject 2: HoverComponent & InteractionComponent Distance Handling
+
+**Decision**: Create NEW UnitsComponent - pure measurement utility
+
+**Rationale**:
+
+- **Separation of concerns**: HoverComponent and InteractionComponent stay pure capabilities (emit events only, no distance logic)
+- **No hidden behavior**: HoverComponent emits `hover` events; InteractionComponent emits `click`/`doubleclick` events - consumers decide what to do
+- **Reusable measurement**: UnitsComponent provides generic distance queries usable by any component/system
+- **High-level orchestration**: MatchComponent, TradeComponent, etc. listen to events and query UnitsComponent for distance - they own the "should this effect happen" logic
+- **Cleaner components**: Each component has single responsibility (hover emits, interact emits, units measures)
+- **Testable**: UnitsComponent can be tested independently from interaction logic
+
+**New Component Architecture**:
+
+```ts
+// UnitsComponent: pure measurement utility
+class UnitsComponent extends GameComponent {
+  distanceTo(target: Vector3 | GameObject): number { }
+  distanceToPlayer(): number { }  // convenience method
+}
+
+// HoverComponent: pure capability - stays as-is
+class HoverComponent extends GameComponent {
+  on('hover', (isHovering: boolean) => { })  // Emits events only
+}
+
+// InteractionComponent: pure capability - stays as-is
+class InteractionComponent extends GameComponent {
+  on('click', () => { })
+  on('doubleclick', () => { })  // Emits events only
+}
+
+// High-level component owns behavior (MatchComponent pattern from Subject 1.5)
+class NPCGameObject extends GameObject {
+  async init(context: I_SceneContext) {
+    const units = this.requireComponent(UnitsComponent);
+    const interaction = this.getComponent(InteractionComponent);
+    const hover = this.getComponent(HoverComponent);
+
+    // Orchestrate: listen to events, query for distance, decide behavior
+    interaction?.on('click', () => {
+      const distance = units.distanceToPlayer();
+      if (distance <= 10) {
+        // Open NPC dialog
+      } else {
+        // Show "too far away" message
+      }
+    });
+
+    hover?.on('hover', (isHovering) => {
+      const distance = units.distanceToPlayer();
+      if (isHovering && distance <= 10) {
+        // Show hover glow
+      }
+    });
+  }
+}
+```
+
+**UnitsComponent API**:
+
+```ts
+export class UnitsComponent extends GameComponent {
+	private playerRef?: GameObject; // Set by scene or MatchComponent
+
+	distanceTo(target: Vector3 | GameObject): number {
+		const targetPos = target instanceof GameObject ? target.getComponent(TransformComponent)?.position : target;
+		const ourPos = this.requireComponent(TransformComponent).position;
+		return ourPos.distanceTo(targetPos);
+	}
+
+	distanceToPlayer(): number {
+		if (!this.playerRef) return Infinity;
+		return this.distanceTo(this.playerRef);
+	}
+}
+```
+
+**When Used**:
+
+- Every GameObject that needs distance calculation has UnitsComponent
+- HoverComponent stays pure (emits `hover` event only)
+- InteractionComponent stays pure (emits `click`/`doubleclick` events only)
+- High-level components (MatchComponent, TradeComponent) orchestrate by listening to events and querying UnitsComponent
+
+**Resolution Type**: Type D - Architectural pattern
+
+**Action Items**: None - this is a design decision for future implementation phases
+
+---
+
+##### ✅ Subject 3: DistanceComponent Consideration
+
+**Decision**: No separate DistanceComponent needed - UnitsComponent handles all distance measurement
+
+**Rationale**:
+
+- **Single responsibility**: UnitsComponent is the unified measurement utility for all distance-based queries
+- **Resolved by Subject 2**: Subject 2's decision to create UnitsComponent already addresses this question
+- **No duplication**: Having both DistanceComponent and UnitsComponent would be redundant
+- **Clean API**: All distance queries flow through UnitsComponent (`distanceTo()`, `distanceToPlayer()`)
+- **Orchestration pattern**: High-level components (MatchComponent, NPCComponent, TradeComponent) use UnitsComponent for queries while listening to HoverComponent and InteractionComponent events
+
+**Pattern**:
+
+```ts
+// UnitsComponent provides all distance measurement
+class UnitsComponent extends GameComponent {
+	distanceTo(target: Vector3 | GameObject): number {}
+	distanceToPlayer(): number {}
+}
+
+// High-level components orchestrate behavior
+class MatchComponent extends GameComponent {
+	async init(context: I_SceneContext) {
+		const units = this.requireComponent(UnitsComponent);
+		const interaction = this.getComponent(InteractionComponent);
+
+		interaction?.on("click", () => {
+			const distance = units.distanceToPlayer();
+			// Decide behavior based on distance
+		});
+	}
+}
+```
+
+**Resolution Type**: Type D - Architectural decision
+
+**Action Items**: None - decision establishes that UnitsComponent (from Subject 2) is sufficient for all distance needs
+
+---
+
+##### ✅ Subject 4: Component Orchestration Pattern
+
+**Decision**: High-level components orchestrate low-level component events and queries
+
+**Rationale**:
+
+- **Matches existing architecture**: GameComponent events (HoverComponent.on('hover'), InteractionComponent.on('click')) already follow this pattern
+- **Separation of concerns**: Low-level components emit events/provide data, high-level components decide behavior
+- **MatchComponent pattern**: MatchComponent listens to InteractionComponent double-click, checks player turn state, coordinates match state changes
+- **Extensible**: Different components (TradeComponent, SkillComponent, QuestComponent) can listen to same events and implement different behaviors
+- **Single responsibility**: UnitsComponent measures, HoverComponent emits, InteractionComponent emits - MatchComponent orchestrates
+
+**Example Pattern**:
+
+```ts
+// MatchComponent orchestrates interactions and distance checks
+class MatchComponent extends GameComponent {
+	async init(context: I_SceneContext): Promise<void> {
+		const units = this.requireComponent(UnitsComponent);
+		const interaction = this.getComponent(InteractionComponent);
+		const hover = this.getComponent(HoverComponent);
+
+		// Listen to interaction events, query distance, coordinate behavior
+		interaction?.on("doubleclick", () => {
+			const distance = units.distanceToPlayer();
+			if (distance <= 10) {
+				// Trigger match creation
+			} else {
+				// Show feedback: "Too far away"
+			}
+		});
+
+		// Listen to hover events, query distance, show visual feedback
+		hover?.on("hover", (isHovering) => {
+			const distance = units.distanceToPlayer();
+			if (isHovering && distance <= 10) {
+				// Show interactive glow
+			} else if (isHovering && distance > 10) {
+				// Show red outline (out of range)
+			}
+		});
+	}
+}
+```
+
+**Other Components Use Same Pattern**:
+
+- **TradeComponent**: Listens to click, queries distance, shows trade UI if in range
+- **SkillComponent**: Listens to click, queries distance, shows skill tooltip or "out of range" message
+- **NPCComponent**: Orchestrates health updates, skill effects, death animations
+
+**Resolution Type**: Type D - Architectural pattern for Iteration 2.5 and beyond
+
+**Action Items**: None - decision establishes orchestration pattern for implementation
+
+---
+
+##### ✅ Subject 5: Default Values & Configuration
+
+**Decision**: Default interaction range is 10 units
+
+**Rationale**:
+
+- **Reasonable spatial scale**: Arena is 40x25 units, so 10 units is ~25% of arena width (feels appropriate for "in conversation range")
+- **Simple numeric**: Easy to reason about and test (no magic constants)
+- **Overrideable**: High-level components can pass different range values when needed (trade: 15 units, zone/aura skills: 20 units)
+- **Sensible default**: Matches game design feel for interactive NPCs
+- **Test-friendly**: Clear cutoff point for range checks
+
+**Where Default is Used**:
+
+- UnitsComponent: `distanceToPlayer()` returns distance, consumers compare against their desired range
+- Orchestration: MatchComponent uses `if (distance <= 10) { /* match */ }`
+- Future components: TradeComponent could use `if (distance <= 15)`, SkillComponent could use variable ranges
+
+**Configurable Approach**:
+
+```ts
+// No fixed constant in components - each orchestrator decides
+class MatchComponent extends GameComponent {
+	private MATCH_RANGE = 10; // Default for NPC interactions
+
+	async init(context: I_SceneContext): Promise<void> {
+		const units = this.requireComponent(UnitsComponent);
+		const interaction = this.getComponent(InteractionComponent);
+
+		interaction?.on("click", () => {
+			const distance = units.distanceToPlayer();
+			if (distance <= this.MATCH_RANGE) {
+				// Trigger match
+			}
+		});
+	}
+}
+
+// Other components use their own ranges as needed
+class TradeComponent extends GameComponent {
+	private TRADE_RANGE = 15;
+	// ...
+}
+```
+
+**Resolution Type**: Type D - Implementation guideline
+
+**Action Items**: None - decision establishes default is 10 units, overrideable per component
+
+---
+
+##### ✅ Subject 6: Event vs Getter Pattern
+
+**Decision**: Events for state changes (HoverComponent/InteractionComponent), Getters for queries (UnitsComponent)
+
+**Rationale**:
+
+- **Events for "something happened"**: HoverComponent.on('hover'), InteractionComponent.on('click'), InteractionComponent.on('doubleclick') notify when user action occurs
+- **Getters for "what's the current state"**: UnitsComponent.distanceTo(), distanceToPlayer() return data on demand
+- **Semantic accuracy**: Events are notifications ("the user hovered"), getters are queries ("how far away is the player")
+- **Consumer pattern**: Orchestrators (MatchComponent) listen to events and query distance synchronously in event handler
+- **Testability**: Events can be fired in tests, getters return predictable values
+- **Loose coupling**: Components don't need to know about each other's internal state
+
+**Pattern**:
+
+```ts
+// HoverComponent uses events (something happened)
+class HoverComponent extends GameComponent {
+	on(event: "hover", listener: (isHovering: boolean) => void): void {}
+}
+
+// InteractionComponent uses events (something happened)
+class InteractionComponent extends GameComponent {
+	on(event: "click" | "doubleclick", listener: () => void): void {}
+}
+
+// UnitsComponent uses getters (query current state)
+class UnitsComponent extends GameComponent {
+	distanceTo(target: Vector3 | GameObject): number {}
+	distanceToPlayer(): number {}
+}
+
+// Orchestrator combines both patterns
+class MatchComponent extends GameComponent {
+	async init(context: I_SceneContext): Promise<void> {
+		const units = this.requireComponent(UnitsComponent);
+		const interaction = this.getComponent(InteractionComponent);
+
+		// Listen to event, then query getter
+		interaction?.on("doubleclick", () => {
+			const distance = units.distanceToPlayer(); // Getter
+			if (distance <= 10) {
+				// Trigger match
+			}
+		});
+	}
+}
+```
+
+**Why Not Emit Events From UnitsComponent?**
+
+- Event overhead for every frame distance calculations (no need)
+- Getters are simpler and more direct for queries
+- Events are for user actions or state changes that others need to react to
+
+**Resolution Type**: Type D - Architectural pattern
+
+**Action Items**: None - decision establishes event/getter pattern for Iteration 2.5+
+
+---
+
+---
+
+## Brainstorming Summary - Iteration 2.5
+
+**Session Status**: COMPLETE
+
+**Total Subjects Resolved**: 6
+
+### Resolved Subjects Overview:
+
+1. **Subject 1 - InteractionComponent Responsibilities**
+
+    - Decision: InteractionComponent marks capability only, distance is external concern
+    - Implications: Cleaner separation, enables DistanceComponent pattern
+
+2. **Subject 1.5 - Behavior Logic Ownership Pattern**
+
+    - Decision: High-level components own their behavior logic (Pattern B)
+    - Implications: MatchComponent listens to events and reacts via computed/watchers
+
+3. **Subject 2 - HoverComponent Distance Handling**
+
+    - Decision: Create UnitsComponent for pure distance measurement
+    - Implications: New component type (UnitsComponent), HoverComponent stays pure (emits only)
+
+4. **Subject 3 - DistanceComponent Consideration**
+
+    - Decision: No separate DistanceComponent - UnitsComponent handles all measurement
+    - Implications: Unified distance API via UnitsComponent
+
+5. **Subject 4 - Component Orchestration Pattern**
+
+    - Decision: High-level components orchestrate low-level component events and queries
+    - Implications: MatchComponent pattern becomes standard for all feature components
+
+6. **Subject 5 - Default Values & Configuration**
+
+    - Decision: Default interaction range is 10 units, overrideable per component
+    - Implications: Sensible default that matches game design feel
+
+7. **Subject 6 - Event vs Getter Pattern**
+    - Decision: Events for state changes, getters for queries
+    - Implications: HoverComponent/InteractionComponent emit events, UnitsComponent provides getters
+
+### Architecture Summary:
+
+**Component Hierarchy**:
+
+- **Low-level components** (UnitsComponent, HoverComponent, InteractionComponent)
+- **Mid-level components** (MatchComponent, TradeComponent, SkillComponent)
+- **High-level coordination** (Orchestration via event listeners + getter queries)
+
+**Data Flow**:
+
+1. User action → HoverComponent.emit('hover') or InteractionComponent.emit('click')
+2. High-level component listener fires
+3. Query UnitsComponent.distanceToPlayer()
+4. Decide behavior based on distance
+5. Coordinate other components (visual effects, state changes, API calls)
+
+**Reuse Potential**:
+
+- UnitsComponent: Any component needing distance checks
+- HoverComponent: Any component needing hover feedback
+- InteractionComponent: Any component needing click/doubleclick feedback
+- Orchestration pattern: Applicable to all feature components
+
+---
+
+#### Implementation Action Items - Iteration 2.5
+
+**Phase 1: UnitsComponent Implementation**
+
+- [ ] Create `src/game/components/interactions/UnitsComponent.ts`
+- [ ] Implement `distanceTo(target: Vector3 | GameObject): number` method
+- [ ] Implement `distanceToPlayer(): number` convenience method
+- [ ] Add `playerRef` property (set by orchestrating components)
+- [ ] Add tests for distance calculation (unit tests)
+
+**Phase 2: Integration with Existing Components**
+
+- [ ] Update MatchComponent to use UnitsComponent pattern
+- [ ] Add UnitsComponent to NPC GameObjects (via prefab or factory)
+- [ ] Wire up player reference in scene initialization
+- [ ] Verify HoverComponent remains pure (emits events only)
+- [ ] Verify InteractionComponent remains pure (emits events only)
+
+**Phase 3: MatchComponent Range Checking**
+
+- [ ] Add private `MATCH_RANGE = 10` constant to MatchComponent
+- [ ] Modify `doubleclick` handler to check distance before triggering match
+- [ ] Add visual feedback for "too far away" scenario (optional: show message)
+- [ ] Test interaction at various distances (5, 10, 15, 20 units)
+
+**Phase 4: HoverComponent Range Checking (Optional for 2.5)**
+
+- [ ] Add hover distance checking to MatchComponent (listen to hover events, query distance)
+- [ ] Show red outline for out-of-range hover (vs. interactive glow for in-range)
+- [ ] Test hover feedback at various distances
+
+**Testing Requirements**
+
+- [ ] Unit test: UnitsComponent.distanceTo() with known positions
+- [ ] Unit test: UnitsComponent.distanceToPlayer() with mocked player ref
+- [ ] Integration test: MatchComponent blocks click when out of range
+- [ ] Integration test: MatchComponent allows click when in range
+- [ ] Manual test: Double-click NPC at 5 units (should trigger match)
+- [ ] Manual test: Double-click NPC at 15 units (should show "too far away")
+- [ ] Manual test: Hover feedback changes based on distance
+
+**Files to Create**:
+
+- `src/game/components/interactions/UnitsComponent.ts`
+
+**Files to Modify**:
+
+- `src/scenes/match/MatchComponent.ts` (add range checking logic)
+- NPC prefab factory (add UnitsComponent to all NPCs)
+- Scene initialization (wire up player reference)
+
+---
+
 ### ⏳ Iteration 3: Action System & Turn Integration
 
 **Goal**: Integrate ActionBar with turn state and implement action submission to server
@@ -863,6 +1392,7 @@ Manual testing with live WebSocket connection required to verify:
 **Consolidation Rationale**:
 
 This iteration consolidates Iterations 2 & 4 from original plan because:
+
 - Both iterations depend on turn state awareness in ActionBar
 - Turn validation and action submission are interdependent features
 - Turn timeout handling relates to action fallback behavior
@@ -873,6 +1403,7 @@ This iteration consolidates Iterations 2 & 4 from original plan because:
 #### Implementation Dependencies
 
 **Already Complete**:
+
 - ✅ Turn start/end events tracked (`handleTurnStart`, `handleTurnEnd` in `useMatchState.ts`)
 - ✅ TurnTimer countdown with local prediction & drift correction
 - ✅ `turn.isPlayerTurn` tracked in state
@@ -884,6 +1415,7 @@ This iteration consolidates Iterations 2 & 4 from original plan because:
 - ✅ Damage dealt event logging
 
 **Still Needed**:
+
 - [ ] Add `isPlayerTurn` prop to ActionBar component
 - [ ] Disable action buttons when `isPlayerTurn` is false
 - [ ] Implement `sendAction()` WebSocket message to server

@@ -1,15 +1,15 @@
-import { WebsocketStructuredMessage } from 'topsyde-utils';
+import { WebsocketStructuredMessage } from "topsyde-utils";
 
 /**
  * Event: match.state.change
  * Emitted when match transitions between states (READY → STARTING → IN_PROGRESS → ENDING → FINISHED)
  */
 export type MatchStateChangeEvent = WebsocketStructuredMessage<{
-  matchId: string;
-  previousState: string;
-  currentState: string;
-  reason: string;
-  timestamp: string;
+	matchId: string;
+	previousState: string;
+	currentState: string;
+	reason: string;
+	timestamp: string;
 }>;
 
 /**
@@ -17,8 +17,8 @@ export type MatchStateChangeEvent = WebsocketStructuredMessage<{
  * Emitted when a match is successfully created
  */
 export type MatchCreatedEvent = WebsocketStructuredMessage<{
-  matchId: string;
-  channelName: string;
+	matchId: string;
+	channelName: string;
 }>;
 
 /**
@@ -26,13 +26,13 @@ export type MatchCreatedEvent = WebsocketStructuredMessage<{
  * Emitted periodically (every 250ms) with ATB readiness for all entities
  */
 export type MatchATBReadinessUpdateEvent = WebsocketStructuredMessage<{
-  matchId: string;
-  atbData: {
-    [entityId: string]: {
-      readiness: number;
-    };
-  };
-  timestamp: string;
+	matchId: string;
+	atbData: {
+		[entityId: string]: {
+			readiness: number;
+		};
+	};
+	timestamp: string;
 }>;
 
 /**
@@ -40,21 +40,21 @@ export type MatchATBReadinessUpdateEvent = WebsocketStructuredMessage<{
  * Emitted periodically with full game state (turn, timer, etc.)
  */
 export type MatchStateUpdateEvent = WebsocketStructuredMessage<{
-  matchId: string;
-  gameState: {
-    currentTurnEntityId: string;
-    turnCounter: number;
-    timer: {
-      active: boolean;
-      remaining: number;
-      elapsed: number;
-      percentage: number;
-      duration: number;
-      warningThreshold: number;
-      fallbackAction: 'pass' | 'skip';
-    };
-  };
-  timestamp: string;
+	matchId: string;
+	gameState: {
+		currentTurnEntityId: string;
+		turnCounter: number;
+		timer: {
+			active: boolean;
+			remaining: number;
+			elapsed: number;
+			percentage: number;
+			duration: number;
+			warningThreshold: number;
+			fallbackAction: "pass" | "skip";
+		};
+	};
+	timestamp: string;
 }>;
 
 /**
@@ -62,10 +62,10 @@ export type MatchStateUpdateEvent = WebsocketStructuredMessage<{
  * Emitted when a new turn begins for an entity
  */
 export type MatchTurnStartEvent = WebsocketStructuredMessage<{
-  matchId: string;
-  entityId: string;
-  turnNumber: number;
-  timestamp: string;
+	matchId: string;
+	entityId: string;
+	turnNumber: number;
+	timestamp: string;
 }>;
 
 /**
@@ -73,10 +73,10 @@ export type MatchTurnStartEvent = WebsocketStructuredMessage<{
  * Emitted when a turn ends for an entity
  */
 export type MatchTurnEndEvent = WebsocketStructuredMessage<{
-  matchId: string;
-  entityId: string;
-  turnNumber: number;
-  timestamp: string;
+	matchId: string;
+	entityId: string;
+	turnNumber: number;
+	timestamp: string;
 }>;
 
 /**
@@ -84,12 +84,12 @@ export type MatchTurnEndEvent = WebsocketStructuredMessage<{
  * Emitted when damage is dealt to an entity
  */
 export type MatchDamageDealtEvent = WebsocketStructuredMessage<{
-  matchId: string;
-  attackerId: string;
-  targetId: string;
-  damage: number;
-  message: string;
-  timestamp: string;
+	matchId: string;
+	attackerId: string;
+	targetId: string;
+	damage: number;
+	message: string;
+	timestamp: string;
 }>;
 
 /**
@@ -97,11 +97,11 @@ export type MatchDamageDealtEvent = WebsocketStructuredMessage<{
  * Emitted when an entity's health changes
  */
 export type MatchHealthUpdateEvent = WebsocketStructuredMessage<{
-  matchId: string;
-  entityId: string;
-  health: number;
-  maxHealth: number;
-  timestamp: string;
+	matchId: string;
+	entityId: string;
+	health: number;
+	maxHealth: number;
+	timestamp: string;
 }>;
 
 /**
@@ -109,12 +109,12 @@ export type MatchHealthUpdateEvent = WebsocketStructuredMessage<{
  * Emitted to each participant with their result (victory or defeat)
  */
 export type MatchVictoryEvent = WebsocketStructuredMessage<{
-  matchId: string;
-  result: 'victory' | 'defeat';
-  winnerId: string;
-  entityId: string;
-  message: string;
-  timestamp: string;
+	matchId: string;
+	result: "victory" | "defeat";
+	winnerId: string;
+	entityId: string;
+	message: string;
+	timestamp: string;
 }>;
 
 /**
@@ -122,22 +122,22 @@ export type MatchVictoryEvent = WebsocketStructuredMessage<{
  * Emitted when the match officially ends
  */
 export type MatchEndEvent = WebsocketStructuredMessage<{
-  matchId: string;
-  winnerId: string;
-  timestamp: string;
+	matchId: string;
+	winnerId: string;
+	timestamp: string;
 }>;
 
 /**
  * Discriminated union of all match event types for type-safe routing
  */
 export type MatchEvent =
-  | MatchStateChangeEvent
-  | MatchCreatedEvent
-  | MatchATBReadinessUpdateEvent
-  | MatchStateUpdateEvent
-  | MatchTurnStartEvent
-  | MatchTurnEndEvent
-  | MatchDamageDealtEvent
-  | MatchHealthUpdateEvent
-  | MatchVictoryEvent
-  | MatchEndEvent;
+	| MatchStateChangeEvent
+	| MatchCreatedEvent
+	| MatchATBReadinessUpdateEvent
+	| MatchStateUpdateEvent
+	| MatchTurnStartEvent
+	| MatchTurnEndEvent
+	| MatchDamageDealtEvent
+	| MatchHealthUpdateEvent
+	| MatchVictoryEvent
+	| MatchEndEvent;
