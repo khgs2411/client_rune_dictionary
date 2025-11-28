@@ -45,7 +45,7 @@ export type NetworkEventHandlers = Partial<Record<E_NetworkEventCategory, Networ
  * });
  * ```
  */
-export default class NetworkingService extends SceneSystem implements I_SceneSystem {
+export default class NetworkingSystem extends SceneSystem implements I_SceneSystem {
 	private websocketManager: WebsocketManager;
 	private registry: Map<string, NetworkEventHandlers> = new Map();
 

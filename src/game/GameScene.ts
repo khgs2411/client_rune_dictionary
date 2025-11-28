@@ -18,7 +18,7 @@ import { SceneStore as ScenesManager } from "@/stores/scene.store";
 import type { ApplicationSettings } from "@/stores/settings.store";
 import { WebsocketManager } from "@/stores/websocket.store";
 import { useRxjs } from "topsyde-utils";
-import NetworkingService from "./systems/NetworkingService";
+import NetworkingSystem from "./systems/NetworkingSystem";
 
 /**
  * Base class for game scenes with typed module registry support
@@ -47,7 +47,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
 		interaction: new InteractionSystem(),
 		vfx: new VFXService(),
 		physics: new PhysicsService(),
-		networking: new NetworkingService(),
+		networking: new NetworkingSystem(),
 		gameObjectsManager: new GameObjectsManager(),
 		spawner: new Spawner(),
 		state: new SceneStateService(),
