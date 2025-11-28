@@ -148,6 +148,7 @@ export function useMatchState() {
 
 		// Server timer state
 		timer.value.active = false;
+		turn.value.isPlayerTurn = false;
 
 		// UI controls: hide turn timer, stop countdown, resume ATB
 		turnTimer.value.visible = false;
@@ -278,7 +279,7 @@ export function useMatchState() {
 			active: false,
 			remaining: 0,
 			elapsed: 0,
-			percentage: 0,
+			percentage: 100,
 		};
 
 		turnTimer.value = {

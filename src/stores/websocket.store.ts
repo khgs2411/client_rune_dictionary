@@ -8,7 +8,7 @@ export type WebSocketStatus = "disconnected" | "handshaking" | "connecting" | "c
 
 export type WebsocketManager = ReturnType<typeof useWebSocketStore>;
 
-export type WebsocketInstance = ReturnType<typeof useWebSocket<WebsocketStructuredMessage>> | null;
+export type WebsocketInstance<T extends boolean = false> = T extends false ? ReturnType<typeof useWebSocket<WebsocketStructuredMessage>> | null : ReturnType<typeof useWebSocket<WebsocketStructuredMessage>>;
 
 // const WS_HOST = import.meta.env.VITE_WS_HOST || 'wss://topsyde-gaming.duckdns.org:443';
 const WS_HOST = import.meta.env.VITE_WS_HOST || "wss://game.rcl-team.com:443";
@@ -77,11 +77,11 @@ export const useWebSocketStore = defineStore("websocket", () => {
 		});
 	}
 
-	function getWebSocketInstance(): WebsocketInstance {
+	function getWebSocketInstance<T extends boolean = false>(): WebsocketInstance<T> {
 		if (!_ws) {
 			throw new Error("WebSocket instance not initialized");
 		}
-		return _ws as WebsocketInstance;
+		return _ws as WebsocketInstance<T>;
 	}
 
 	function disconnect() {

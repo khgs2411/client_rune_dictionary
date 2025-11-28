@@ -77,8 +77,8 @@ const props = defineProps<{
 // Emits
 const emit = defineEmits<{
 	leaveMatch: [];
+	action: [number | string];
 }>();
-
 
 const container = ref<HTMLElement | null>(null);
 const handle = ref<HTMLElement | null>(null);
@@ -118,7 +118,6 @@ watchDebounced(
 	{ debounce: 300 },
 );
 
-
 const actionSlots = ref([
 	{ id: 1, name: "Attack", keybind: "1", isActive: false },
 	{ id: 2, name: "Attack", keybind: "2", isActive: false },
@@ -152,6 +151,7 @@ function handleActionClick(slotId: number) {
 		return;
 	}
 	console.log(`[ActionBar] Action ${slotId} clicked`);
+	emit("action", "attack");
 	// TODO: Send action to match server via WebSocket
 }
 
@@ -162,12 +162,12 @@ function handlePass() {
 	}
 	console.log("[ActionBar] Pass button clicked");
 	// TODO: Send pass action to match server via WebSocket
+	emit("action", "pass");
 }
 
 function emitLeaveMatch() {
 	emit("leaveMatch");
 }
-
 
 onMounted(() => {
 	window.addEventListener("keydown", handleKeyPress);

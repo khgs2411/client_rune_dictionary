@@ -26,15 +26,16 @@
 		</div>
 
 		<!-- Action bar (8 slots + Run/Pass) - Draggable, positioned by component -->
-		<ActionBar @leave-match="handleLeaveMatch" :is-leaving="isLeaving" :is-player-turn="isPlayerTurn" />
+		<ActionBar @leave-match="handleLeaveMatch" @action="handleAction" :is-leaving="isLeaving" :is-player-turn="isPlayerTurn" />
 	</div>
 </template>
 
 <script setup lang="ts">
 import MatchAPI from "@/api/match.api";
 import { E_SceneState } from "@/game/systems/SceneState";
-import { DataStore } from "@/stores/DataStore";
-import { useRxjs } from "topsyde-utils";
+import { useMatchStore } from "@/stores/match.store";
+import { useWebSocketStore } from "@/stores/websocket.store";
+import { useRxjs, WebsocketStructuredMessage } from "topsyde-utils";
 import { computed, ref, watch } from "vue";
 import ActionBar from "./ActionBar.vue";
 import StatusPanel from "./StatusPanel.vue";
@@ -43,8 +44,8 @@ import TurnTimer from "./TurnTimer.vue";
 const rxjs = useRxjs("scene:state");
 
 // Reactive stores
-const matchStore = DataStore.match;
-const websocketStore = DataStore.websocket;
+const matchStore = useMatchStore();
+const websocketStore = useWebSocketStore();
 
 // Computed visibility (show when in match)
 const isVisible = computed(() => {
@@ -81,6 +82,23 @@ const isAtbRunning = computed(() => matchStore.match.atb.running);
 
 // Turn state - is it currently the player's turn?
 const isPlayerTurn = computed(() => matchStore.match.turn.isPlayerTurn);
+
+async function handleAction(action: number | string) {
+	console.log("[MatchHUD] Action received from ActionBar:", action);
+	if (!matchStore.currentChannelId) throw new Error("No match channel ID");
+	if (!websocketStore.clientData) throw new Error("No client data available");
+
+	const ws = websocketStore.getWebSocketInstance<true>();
+	const wsm: WebsocketStructuredMessage = {
+		type: "match.action",
+		content: { actionType: action, matchId: matchStore.currentMatchId },
+		channel: matchStore.currentChannelId,
+		timestamp: new Date().toISOString(),
+		client: websocketStore.clientData,
+	};
+	console.log("[MatchHUD] Sending action WebSocket message:", wsm);
+	ws.send(JSON.stringify(wsm));
+}
 
 /**
  * Handle Leave Match button click
