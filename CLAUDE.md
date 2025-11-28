@@ -84,40 +84,40 @@ The game uses a **custom imperative architecture** with Three.js, not declarativ
 
 1. **Engine** (`src/game/Engine.ts`)
 
-   - Encapsulates Three.js `Scene`, `WebGLRenderer`, `Clock`, and `LoadingManager`
-   - Does NOT own the camera (each scene creates its own)
-   - Provides `render()`, `resize()`, and `cleanup()` methods
-   - Initialized once per game session in [Game.vue](src/views/Game.vue)
+    - Encapsulates Three.js `Scene`, `WebGLRenderer`, `Clock`, and `LoadingManager`
+    - Does NOT own the camera (each scene creates its own)
+    - Provides `render()`, `resize()`, and `cleanup()` methods
+    - Initialized once per game session in [Game.vue](src/views/Game.vue)
 
 2. **GameScene** (`src/game/GameScene.ts`)
 
-   - Abstract base class implementing the **Template Pattern**
-   - Manages scene lifecycle: `start()` → `update(delta)` → `destroy()`
-   - Contains typed module registry (`Partial<TModuleRegistry>`)
-   - Handles module loading progress via RxJS observables from `topsyde-utils`
-   - Owns high-level entity composables (`camera`, `character`, `settings`)
-   - Subclasses only override `registerModules()` and optionally customize lifecycle steps
+    - Abstract base class implementing the **Template Pattern**
+    - Manages scene lifecycle: `start()` → `update(delta)` → `destroy()`
+    - Contains typed module registry (`Partial<TModuleRegistry>`)
+    - Handles module loading progress via RxJS observables from `topsyde-utils`
+    - Owns high-level entity composables (`camera`, `character`, `settings`)
+    - Subclasses only override `registerModules()` and optionally customize lifecycle steps
 
 3. **SceneModule** (`src/game/SceneModule.ts`)
 
-   - Base class for **high-level scene infrastructure** (lighting, ground, objects, etc.)
-   - Lifecycle: `start(context)` → `update(delta)` → `destroy()`
-   - Emits loading events via RxJS for loading screen coordination
-   - Receives `I_ModuleContext` with `engine`, `scene`, `cleanupRegistry`, `settings`, `sceneName`, `services`
+    - Base class for **high-level scene infrastructure** (lighting, ground, objects, etc.)
+    - Lifecycle: `start(context)` → `update(delta)` → `destroy()`
+    - Emits loading events via RxJS for loading screen coordination
+    - Receives `I_ModuleContext` with `engine`, `scene`, `cleanupRegistry`, `settings`, `sceneName`, `services`
 
 4. **ModuleRegistry** (`src/game/ModuleRegistry.ts`)
 
-   - Utility class for type-safe module management
-   - Automatically tracks updateable modules for performance
-   - Manages initialization state and provides query methods
-   - Performance-optimized: no `filter()` calls in update loop
+    - Utility class for type-safe module management
+    - Automatically tracks updateable modules for performance
+    - Manages initialization state and provides query methods
+    - Performance-optimized: no `filter()` calls in update loop
 
 5. **CleanupRegistry** (`src/game/CleanupRegistry.ts`)
-   - Manages cleanup of Three.js objects, Vue watchers, and disposable resources
-   - Fluent API: `cleanupRegistry.registerObject(mesh).registerWatcher(watcher).registerDisposable(geometry)`
-   - Supports Object3D (with recursive traversal), raw disposables, and watchers
-   - Automatically disposes geometries/materials and stops watchers on cleanup
-   - Prevents memory leaks
+    - Manages cleanup of Three.js objects, Vue watchers, and disposable resources
+    - Fluent API: `cleanupRegistry.registerObject(mesh).registerWatcher(watcher).registerDisposable(geometry)`
+    - Supports Object3D (with recursive traversal), raw disposables, and watchers
+    - Automatically disposes geometries/materials and stops watchers on cleanup
+    - Prevents memory leaks
 
 #### System 2: GameObject/Component Architecture (Game Entities)
 
@@ -131,83 +131,83 @@ The game uses a **custom imperative architecture** with Three.js, not declarativ
 
 1. **GameObject** (`src/game/GameObject.ts`)
 
-   - Entity container that holds components
-   - Provides fluent API for component composition
-   - Manages component lifecycle (init, update, destroy)
-   - Components are initialized in priority order
-   - Automatically coordinates with services (physics, interaction, etc.)
-   - Example: `new GameObject({ id: 'box' }).addComponent(new GeometryComponent(...)).addComponent(new MeshComponent())`
+    - Entity container that holds components
+    - Provides fluent API for component composition
+    - Manages component lifecycle (init, update, destroy)
+    - Components are initialized in priority order
+    - Automatically coordinates with services (physics, interaction, etc.)
+    - Example: `new GameObject({ id: 'box' }).addComponent(new GeometryComponent(...)).addComponent(new MeshComponent())`
 
 2. **GameComponent** (`src/game/GameComponent.ts`)
 
-   - Base class for all game components
-   - Priority-based initialization (lower numbers initialize first)
-   - Can query sibling components: `this.getComponent()`, `this.requireComponent()`, `this.restrictComponent()`
-   - Lifecycle: `init(context)` → `update(delta)` → `destroy()`
-   - **Priority levels**: DEFAULT (1), RENDERING (100), PHYSICS (200), INTERACTION (300)
+    - Base class for all game components
+    - Priority-based initialization (lower numbers initialize first)
+    - Can query sibling components: `this.getComponent()`, `this.requireComponent()`, `this.restrictComponent()`
+    - Lifecycle: `init(context)` → `update(delta)` → `destroy()`
+    - **Priority levels**: DEFAULT (1), RENDERING (100), PHYSICS (200), INTERACTION (300)
 
 3. **GameObjectManager** (`src/game/services/GameObjectManager.ts`)
 
-   - SceneModule that manages all GameObjects in a scene
-   - Handles GameObject lifecycle coordination
-   - Provides collection management: `add()`, `remove()`, `get()`, `has()`, `getAll()`
-   - Add to scene like any other module: `this.addModule('gameObjects', new GameObjectManager())`
+    - SceneModule that manages all GameObjects in a scene
+    - Handles GameObject lifecycle coordination
+    - Provides collection management: `add()`, `remove()`, `get()`, `has()`, `getAll()`
+    - Add to scene like any other module: `this.addModule('gameObjects', new GameObjectManager())`
 
 4. **Prefabs** (`src/game/prefabs/`)
-   - Pre-configured GameObjects with common component combinations
-   - Example: `EditableBox` - draggable, physics-enabled, persistent box
-   - Create custom prefabs by extending GameObject and adding components in constructor
+    - Pre-configured GameObjects with common component combinations
+    - Example: `EditableBox` - draggable, physics-enabled, persistent box
+    - Create custom prefabs by extending GameObject and adding components in constructor
 
 **Available Components:**
 
 - **Rendering Components** (Priority: 1)
 
-  - `TransformComponent` - Position, rotation, scale
-  - `GeometryComponent` - Box, sphere, capsule, cylinder, cone, plane geometries
-  - `MaterialComponent` - Standard material with color, roughness, metalness
-  - `MeshComponent` - Combines geometry + material into Three.js Mesh (Priority: 100)
-  - `InstancedMeshComponent` - Instanced rendering for many identical objects
-  - `GridHelperComponent` - Debug grid visualization
+    - `TransformComponent` - Position, rotation, scale
+    - `GeometryComponent` - Box, sphere, capsule, cylinder, cone, plane geometries
+    - `MaterialComponent` - Standard material with color, roughness, metalness
+    - `MeshComponent` - Combines geometry + material into Three.js Mesh (Priority: 100)
+    - `InstancedMeshComponent` - Instanced rendering for many identical objects
+    - `GridHelperComponent` - Debug grid visualization
 
 - **Physics Components** (Priority: 200)
 
-  - `PhysicsComponent` - Registers with PhysicsService (static, kinematic, or dynamic bodies)
+    - `PhysicsComponent` - Registers with PhysicsService (static, kinematic, or dynamic bodies)
 
 - **Interaction Components** (Priority: 300)
 
-  - `HoverComponent` - Hover glow effect via InteractionService
-  - `ClickComponent` - Click VFX, camera shake, particles via InteractionService
-  - `DragComponent` - Drag objects on XZ plane with optional grid snapping (editor mode only)
+    - `HoverComponent` - Hover glow effect via InteractionService
+    - `ClickComponent` - Click VFX, camera shake, particles via InteractionService
+    - `DragComponent` - Drag objects on XZ plane with optional grid snapping (editor mode only)
 
 - **System Components** (Priority: 1)
-  - `PersistenceComponent` - Auto-save/load GameObject position to localStorage
+    - `PersistenceComponent` - Auto-save/load GameObject position to localStorage
 
 #### Example Scene Structure
 
 ```typescript
 // scenes/PlaygroundScene.ts
 interface PlaygroundModuleRegistry {
-  lighting: LightingModule;
-  ground: GroundModule;
-  sceneObjects: SceneObjectsModule;
-  characterMesh: CharacterModule;
+	lighting: LightingModule;
+	ground: GroundModule;
+	sceneObjects: SceneObjectsModule;
+	characterMesh: CharacterModule;
 }
 
 export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
-  readonly name = 'PlaygroundScene';
-  readonly engine: Engine;
+	readonly name = "PlaygroundScene";
+	readonly engine: Engine;
 
-  constructor(config: I_SceneConfig) {
-    super();
-    this.engine = config.engine;
-    this.start(); // Template method triggers full initialization
-  }
+	constructor(config: I_SceneConfig) {
+		super();
+		this.engine = config.engine;
+		this.start(); // Template method triggers full initialization
+	}
 
-  protected registerModules(): void {
-    this.addModule('lighting', new LightingModule());
-    this.addModule('ground', new GroundModule(this.settings));
-    // ... add more modules
-  }
+	protected registerModules(): void {
+		this.addModule("lighting", new LightingModule());
+		this.addModule("ground", new GroundModule(this.settings));
+		// ... add more modules
+	}
 }
 ```
 
@@ -262,19 +262,19 @@ public start(): void {
 
 ```typescript
 export class LightingModule extends SceneModule implements I_SceneModule {
-  async start(context: I_ModuleContext): Promise<void> {
-    const light = new DirectionalLight();
-    context.scene.add(light);
-    context.lifecycle.register(light); // Auto-cleanup
-    this.initialized(context.sceneName); // Notify loading complete
-  }
+	async start(context: I_ModuleContext): Promise<void> {
+		const light = new DirectionalLight();
+		context.scene.add(light);
+		context.lifecycle.register(light); // Auto-cleanup
+		this.initialized(context.sceneName); // Notify loading complete
+	}
 
-  update(delta: number): void {
-    /* animate lights */
-  }
-  async destroy(): Promise<void> {
-    /* cleanup */
-  }
+	update(delta: number): void {
+		/* animate lights */
+	}
+	async destroy(): Promise<void> {
+		/* cleanup */
+	}
 }
 ```
 
@@ -282,21 +282,21 @@ export class LightingModule extends SceneModule implements I_SceneModule {
 
 ```typescript
 export class SceneObjectsModule extends SceneModule {
-  async start(context: I_ModuleContext): Promise<void> {
-    // Create objects
-    const box = new Mesh(new BoxGeometry(), new MeshStandardMaterial());
-    context.scene.add(box);
-    context.lifecycle.register(box);
+	async start(context: I_ModuleContext): Promise<void> {
+		// Create objects
+		const box = new Mesh(new BoxGeometry(), new MeshStandardMaterial());
+		context.scene.add(box);
+		context.lifecycle.register(box);
 
-    // Register with interaction service (no boilerplate needed!)
-    context.services.interaction.register('box-1', box, {
-      hoverable: true,
-      clickable: true,
-      tooltip: { title: 'Mysterious Box' },
-    });
+		// Register with interaction service (no boilerplate needed!)
+		context.services.interaction.register("box-1", box, {
+			hoverable: true,
+			clickable: true,
+			tooltip: { title: "Mysterious Box" },
+		});
 
-    this.initialized(context.sceneName);
-  }
+		this.initialized(context.sceneName);
+	}
 }
 ```
 
@@ -320,27 +320,27 @@ async start(context: I_ModuleContext): Promise<void> {
 **Current Services:**
 
 - **InteractionService** - Centralized interaction detection and visual feedback
-  - Eliminates need for `I_InteractableModule` interface boilerplate
-  - Modules simply call `context.services.interaction.register()`
-  - Components use builder pattern: `context.services.interaction.register(id, mesh).withHoverGlow().withClickVFX()`
+    - Eliminates need for `I_InteractableModule` interface boilerplate
+    - Modules simply call `context.services.interaction.register()`
+    - Components use builder pattern: `context.services.interaction.register(id, mesh).withHoverGlow().withClickVFX()`
 - **PhysicsService** - Rapier-based physics engine wrapper (Rapier3D WASM)
-  - Simple facade over Rapier physics (single file, minimal API)
-  - Static bodies: `registerStatic()`, `registerStaticFromMesh()`, `registerInstancedStatic()`
-  - Kinematic characters: `registerKinematic()`, `registerKinematicFromMesh()`
-  - Movement: `moveKinematic()`, `isGrounded()`, `getPosition()`, `setPosition()`
-  - Debug wireframes with global toggle via gameConfig store
-  - Auto-cleanup via CleanupRegistry
+    - Simple facade over Rapier physics (single file, minimal API)
+    - Static bodies: `registerStatic()`, `registerStaticFromMesh()`, `registerInstancedStatic()`
+    - Kinematic characters: `registerKinematic()`, `registerKinematicFromMesh()`
+    - Movement: `moveKinematic()`, `isGrounded()`, `getPosition()`, `setPosition()`
+    - Debug wireframes with global toggle via gameConfig store
+    - Auto-cleanup via CleanupRegistry
 
 #### 4. Loading System
 
 Uses RxJS observables (`topsyde-utils`) for coordination:
 
 - **Scene-level events**: `scene:loading` channel
-  - `start`: Scene initialization begins (emits `totalAssets`)
-  - `loaded`: Module initialized (emits `loaded` count)
-  - `fail`: Module loading failed
+    - `start`: Scene initialization begins (emits `totalAssets`)
+    - `loaded`: Module initialized (emits `loaded` count)
+    - `fail`: Module loading failed
 - **Module-level events**: `module:loading` channel
-  - `loaded`: Module reports completion via `this.initialized(sceneName)`
+    - `loaded`: Module reports completion via `this.initialized(sceneName)`
 
 The [LoadingScreen.vue](src/components/LoadingScreen.vue) component subscribes to these events and shows progress.
 
@@ -349,16 +349,16 @@ The [LoadingScreen.vue](src/components/LoadingScreen.vue) component subscribes t
 ```typescript
 // High-level entity (owns Three.js instance)
 export function useCamera(): I_GameCamera {
-  const controller = useCameraController(); // Pure state logic
-  const instance = new PerspectiveCamera(); // Three.js instance
+	const controller = useCameraController(); // Pure state logic
+	const instance = new PerspectiveCamera(); // Three.js instance
 
-  function update(targetPosition: Vector3) {
-    controller.update(); // Update state
-    // Apply state to Three.js instance
-    instance.position.copy(controller.position);
-  }
+	function update(targetPosition: Vector3) {
+		controller.update(); // Update state
+		// Apply state to Three.js instance
+		instance.position.copy(controller.position);
+	}
 
-  return { controller, instance, update, start, destroy };
+	return { controller, instance, update, start, destroy };
 }
 ```
 
@@ -379,9 +379,9 @@ Reference `src_deprecated/stores/` for old WebSocket and match state patterns (b
 - **axios** for REST API calls ([auth.api.ts](src/api/auth.api.ts))
 - **topsyde-utils 1.0.210** - Custom package for WebSocket utilities, RxJS helpers, game logic
 - **Custom Vite Plugin** ([plugins/topsyde-utils-vite-plugin.ts](plugins/topsyde-utils-vite-plugin.ts))
-  - Provides Node.js module compatibility in browser
-  - Mocks `path`, `fs` modules for topsyde-utils
-  - Disables sourcemaps for topsyde-utils (prevents dev warnings)
+    - Provides Node.js module compatibility in browser
+    - Mocks `path`, `fs` modules for topsyde-utils
+    - Disables sourcemaps for topsyde-utils (prevents dev warnings)
 - **WebSocket Integration** - Real-time multiplayer via `websocket.store.ts` and `WebSocketManager.vue`
 
 ### Directory Structure
@@ -519,9 +519,9 @@ compose/                     # Deployment scripts
 
 1. Extend `SceneModule` base class
 2. Implement lifecycle methods:
-   - `async init(context)` - Initialize and add to scene (must call `super.init(context)` first!)
-   - `update(delta)` - Update each frame (optional)
-   - `async destroy()` - Cleanup (optional if using cleanupRegistry)
+    - `async init(context)` - Initialize and add to scene (must call `super.init(context)` first!)
+    - `update(delta)` - Update each frame (optional)
+    - `async destroy()` - Cleanup (optional if using cleanupRegistry)
 3. Register Three.js objects with `context.cleanupRegistry.registerObject(...objects)`
 4. Register disposables with `context.cleanupRegistry.registerDisposable(...geometries)`
 5. Add to scene via `scene.addModule('myModule', new MyModule())`
@@ -531,9 +531,9 @@ compose/                     # Deployment scripts
 1. Extend `GameComponent` base class
 2. Set priority if needed (default is ComponentPriority.DEFAULT)
 3. Implement lifecycle methods:
-   - `async init(context)` - Initialize (query sibling components here)
-   - `update(delta)` - Update each frame (optional)
-   - `destroy()` - Cleanup (optional)
+    - `async init(context)` - Initialize (query sibling components here)
+    - `update(delta)` - Update each frame (optional)
+    - `destroy()` - Cleanup (optional)
 4. Use `this.getComponent()`, `this.requireComponent()`, `this.restrictComponent()` to interact with siblings
 5. Add to GameObject: `gameObject.addComponent(new MyComponent())`
 
@@ -544,19 +544,19 @@ Instead of creating complex interfaces, use services via `context.services`:
 ```typescript
 // Old way (complex, lots of boilerplate)
 class MyModule extends SceneModule implements I_InteractableModule {
-  setInteractionSystem(system) {
-    /* ... */
-  }
-  clearInteractionSystem() {
-    /* ... */
-  }
+	setInteractionSystem(system) {
+		/* ... */
+	}
+	clearInteractionSystem() {
+		/* ... */
+	}
 }
 
 // New way (simple, clean)
 class MyModule extends SceneModule {
-  async start(context: I_ModuleContext) {
-    context.services.interaction.register('my-object', mesh, config);
-  }
+	async start(context: I_ModuleContext) {
+		context.services.interaction.register("my-object", mesh, config);
+	}
 }
 ```
 
@@ -634,22 +634,22 @@ The [src_deprecated/](src_deprecated/) folder contains the complete old PrimeVue
 ```typescript
 // 1. Create prefab class in src/game/prefabs/
 export class MyObject extends GameObject {
-  constructor(config: { id: string; position?: [number, number, number] }) {
-    super({ id: config.id });
+	constructor(config: { id: string; position?: [number, number, number] }) {
+		super({ id: config.id });
 
-    // Add components in fluent chain
-    this.addComponent(new TransformComponent({ position: config.position || [0, 0, 0] }))
-      .addComponent(new GeometryComponent({ type: 'box', params: [1, 1, 1] }))
-      .addComponent(new MaterialComponent({ color: 0xff1493 }))
-      .addComponent(new MeshComponent())
-      .addComponent(new PhysicsComponent({ type: 'static', shape: 'cuboid' }))
-      .addComponent(new HoverComponent({ glowColor: 0xff8c00 }));
-  }
+		// Add components in fluent chain
+		this.addComponent(new TransformComponent({ position: config.position || [0, 0, 0] }))
+			.addComponent(new GeometryComponent({ type: "box", params: [1, 1, 1] }))
+			.addComponent(new MaterialComponent({ color: 0xff1493 }))
+			.addComponent(new MeshComponent())
+			.addComponent(new PhysicsComponent({ type: "static", shape: "cuboid" }))
+			.addComponent(new HoverComponent({ glowColor: 0xff8c00 }));
+	}
 }
 
 // 2. Use in scene
-const gameObjects = this.getModule('gameObjects') as GameObjectManager;
-const myObj = new MyObject({ id: 'test-box', position: [0, 1, 0] });
+const gameObjects = this.getModule("gameObjects") as GameObjectManager;
+const myObj = new MyObject({ id: "test-box", position: [0, 1, 0] });
 gameObjects.add(myObj);
 ```
 
@@ -733,79 +733,75 @@ async start(context: I_ModuleContext) {
 ```typescript
 // 1. Create component in src/game/components/
 export class RotateComponent extends GameComponent {
-  // Set priority for initialization order
-  public readonly priority = ComponentPriority.DEFAULT;
+	// Set priority for initialization order
+	public readonly priority = ComponentPriority.DEFAULT;
 
-  private speed: number;
-  private axis: 'x' | 'y' | 'z';
+	private speed: number;
+	private axis: "x" | "y" | "z";
 
-  constructor(config: { speed: number; axis?: 'x' | 'y' | 'z' }) {
-    super();
-    this.speed = config.speed;
-    this.axis = config.axis || 'y';
-  }
+	constructor(config: { speed: number; axis?: "x" | "y" | "z" }) {
+		super();
+		this.speed = config.speed;
+		this.axis = config.axis || "y";
+	}
 
-  async init(context: I_SceneContext): Promise<void> {
-    // Query required sibling components
-    const mesh = this.requireComponent(MeshComponent);
-    console.log('RotateComponent initialized for', mesh.mesh.name);
-  }
+	async init(context: I_SceneContext): Promise<void> {
+		// Query required sibling components
+		const mesh = this.requireComponent(MeshComponent);
+		console.log("RotateComponent initialized for", mesh.mesh.name);
+	}
 
-  update(delta: number): void {
-    const mesh = this.getComponent(MeshComponent);
-    if (!mesh) return;
+	update(delta: number): void {
+		const mesh = this.getComponent(MeshComponent);
+		if (!mesh) return;
 
-    // Rotate mesh
-    mesh.mesh.rotation[this.axis] += this.speed * delta;
-  }
+		// Rotate mesh
+		mesh.mesh.rotation[this.axis] += this.speed * delta;
+	}
 
-  destroy(): void {
-    // Cleanup if needed
-  }
+	destroy(): void {
+		// Cleanup if needed
+	}
 }
 
 // 2. Use in GameObject
-const obj = new GameObject({ id: 'spinner' })
-  .addComponent(new GeometryComponent({ type: 'box', params: [1, 1, 1] }))
-  .addComponent(new MaterialComponent({ color: 0x00ff00 }))
-  .addComponent(new MeshComponent())
-  .addComponent(new RotateComponent({ speed: 1, axis: 'y' }));
+const obj = new GameObject({ id: "spinner" })
+	.addComponent(new GeometryComponent({ type: "box", params: [1, 1, 1] }))
+	.addComponent(new MaterialComponent({ color: 0x00ff00 }))
+	.addComponent(new MeshComponent())
+	.addComponent(new RotateComponent({ speed: 1, axis: "y" }));
 ```
 
 #### Using Physics in Components
 
 ```typescript
 export class PhysicsComponent extends GameComponent implements I_Interactable {
-  public readonly priority = ComponentPriority.PHYSICS;
+	public readonly priority = ComponentPriority.PHYSICS;
 
-  async init(context: I_SceneContext): Promise<void> {
-    // Require MeshComponent (initialized before us due to priority)
-    const mesh = this.requireComponent(MeshComponent);
+	async init(context: I_SceneContext): Promise<void> {
+		// Require MeshComponent (initialized before us due to priority)
+		const mesh = this.requireComponent(MeshComponent);
 
-    // Register with physics service
-    context.services.physics.registerStaticFromMesh(this.gameObject.id, mesh.mesh, {
-      showDebug: true,
-    });
-  }
+		// Register with physics service
+		context.services.physics.registerStaticFromMesh(this.gameObject.id, mesh.mesh, {
+			showDebug: true,
+		});
+	}
 
-  // Implement I_Interactable to add drag behavior
-  registerInteractions(builder: I_InteractionBuilder, context: I_SceneContext): void {
-    const dragConfig = this.config.drag;
-    if (dragConfig) {
-      builder.withDrag({
-        lockAxis: dragConfig.lockAxis,
-        snapToGrid: dragConfig.snapToGrid,
-        onEnd: (pos) => {
-          // Update physics body when dragged
-          context.services.physics.updateStaticBodyPosition(this.gameObject.id, [
-            pos.x,
-            pos.y,
-            pos.z,
-          ]);
-        },
-      });
-    }
-  }
+	// Implement I_Interactable to add drag behavior
+	registerInteractions(builder: I_InteractionBuilder, context: I_SceneContext): void {
+		const dragConfig = this.config.drag;
+		if (dragConfig) {
+			builder.withDrag({
+				lockAxis: dragConfig.lockAxis,
+				snapToGrid: dragConfig.snapToGrid,
+				onEnd: (pos) => {
+					// Update physics body when dragged
+					context.services.physics.updateStaticBodyPosition(this.gameObject.id, [pos.x, pos.y, pos.z]);
+				},
+			});
+		}
+	}
 }
 ```
 
@@ -813,22 +809,22 @@ export class PhysicsComponent extends GameComponent implements I_Interactable {
 
 ```typescript
 // In Game.vue
-import { useRafFn, useWindowSize, tryOnMounted, tryOnUnmounted } from '@vueuse/core';
+import { useRafFn, useWindowSize, tryOnMounted, tryOnUnmounted } from "@vueuse/core";
 
 // Auto-reactive window size
 const { width, height } = useWindowSize();
 watch([width, height], () => {
-  engine?.resize();
-  currentScene?.camera.instance.aspect = width.value / height.value;
-  currentScene?.camera.instance.updateProjectionMatrix();
+	engine?.resize();
+	currentScene?.camera.instance.aspect = width.value / height.value;
+	currentScene?.camera.instance.updateProjectionMatrix();
 });
 
 // Game loop with automatic cleanup
 const { pause, resume } = useRafFn(() => {
-  if (!engine || !currentScene) return;
-  const delta = engine.clock.getDelta();
-  currentScene.update(delta);
-  engine.render(currentScene.camera.instance);
+	if (!engine || !currentScene) return;
+	const delta = engine.clock.getDelta();
+	currentScene.update(delta);
+	engine.render(currentScene.camera.instance);
 });
 
 // Lifecycle hooks with safety
@@ -860,15 +856,15 @@ This codebase uses **two complementary patterns**:
 
 1. **SceneModule Pattern** - For scene infrastructure
 
-   - Examples: LightingModule, CharacterModule, PhysicsService
-   - One per scene, registered in scene's module registry
-   - Lifecycle: init() → update() → destroy()
+    - Examples: LightingModule, CharacterModule, PhysicsService
+    - One per scene, registered in scene's module registry
+    - Lifecycle: init() → update() → destroy()
 
 2. **GameObject/Component Pattern** - For game entities
-   - Examples: EditableBox, Ground, Trees (prefabs)
-   - Many instances per scene, managed by GameObjectManager
-   - Components: GeometryComponent, MaterialComponent, PhysicsComponent, HoverComponent, etc.
-   - Lifecycle: GameObject.init() → Component.init() → Component.update() → Component.destroy()
+    - Examples: EditableBox, Ground, Trees (prefabs)
+    - Many instances per scene, managed by GameObjectManager
+    - Components: GeometryComponent, MaterialComponent, PhysicsComponent, HoverComponent, etc.
+    - Lifecycle: GameObject.init() → Component.init() → Component.update() → Component.destroy()
 
 #### Key Design Patterns
 
@@ -908,8 +904,8 @@ This codebase uses **two complementary patterns**:
 
 - **InteractionService** - Centralized raycasting + visual feedback
 - **InteractableBuilder** - Fluent API for defining behaviors
-  - Hover: `.withHoverGlow(color, intensity)`, `.withTooltip(title, description)`
-  - Click: `.withClickVFX(text, color)`, `.withCameraShake(intensity, duration)`, `.withParticles(count, color)`
-  - Drag: `.withDrag({ lockAxis, snapToGrid, onEnd })` (editor mode only)
+    - Hover: `.withHoverGlow(color, intensity)`, `.withTooltip(title, description)`
+    - Click: `.withClickVFX(text, color)`, `.withCameraShake(intensity, duration)`, `.withParticles(count, color)`
+    - Drag: `.withDrag({ lockAxis, snapToGrid, onEnd })` (editor mode only)
 - Components implement `I_Interactable` interface to register with builder
 - GameObject coordinates registration via `registerInteractions()` lifecycle hook

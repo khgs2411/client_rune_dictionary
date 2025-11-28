@@ -1,27 +1,27 @@
-import type { GameComponent } from '@/game/GameComponent';
-import { TransformComponent } from '@/game/components/rendering/TransformComponent';
-import { CharacterMeshComponent } from '@/game/components/rendering/CharacterMeshComponent';
+import type { GameComponent } from "@/game/GameComponent";
+import { TransformComponent } from "@/game/components/rendering/TransformComponent";
+import { CharacterMeshComponent } from "@/game/components/rendering/CharacterMeshComponent";
 
 /**
  * Configuration for shared character components
  */
 export interface I_PlayerComponentsConfig {
-  /** Starting position [x, y, z] */
-  position: [number, number, number];
-  /** Body capsule radius (default: 0.5) */
-  bodyRadius?: number;
-  /** Body capsule height (default: 1) */
-  bodyHeight?: number;
-  /** Forward indicator cone radius (default: 0.2) */
-  coneRadius?: number;
-  /** Forward indicator cone height (default: 0.4) */
-  coneHeight?: number;
-  /** Forward indicator Z offset from body center (default: 0.7) */
-  coneOffset?: number;
-  /** Body color (hex). If not provided, uses theme primary */
-  bodyColor?: number;
-  /** Cone color (hex). If not provided, uses theme accent */
-  coneColor?: number;
+	/** Starting position [x, y, z] */
+	position: [number, number, number];
+	/** Body capsule radius (default: 0.5) */
+	bodyRadius?: number;
+	/** Body capsule height (default: 1) */
+	bodyHeight?: number;
+	/** Forward indicator cone radius (default: 0.2) */
+	coneRadius?: number;
+	/** Forward indicator cone height (default: 0.4) */
+	coneHeight?: number;
+	/** Forward indicator Z offset from body center (default: 0.7) */
+	coneOffset?: number;
+	/** Body color (hex). If not provided, uses theme primary */
+	bodyColor?: number;
+	/** Cone color (hex). If not provided, uses theme accent */
+	coneColor?: number;
 }
 
 /**
@@ -53,19 +53,19 @@ export interface I_PlayerComponentsConfig {
  * @returns Array of components ready to add to a GameObject
  */
 export function createPlayer(config: I_PlayerComponentsConfig): GameComponent[] {
-  return [
-    new TransformComponent({
-      position: config.position,
-    }),
-    new CharacterMeshComponent({
-      bodyRadius: config.bodyRadius ?? 0.5,
-      bodyHeight: config.bodyHeight ?? 1,
-      coneRadius: config.coneRadius ?? 0.2,
-      coneHeight: config.coneHeight ?? 0.4,
-      coneOffset: config.coneOffset ?? 0.7,
-      initialPosition: config.position,
-      bodyColor: config.bodyColor, // Pass through (undefined = use theme)
-      coneColor: config.coneColor, // Pass through (undefined = use theme)
-    }),
-  ];
+	return [
+		new TransformComponent({
+			position: config.position,
+		}),
+		new CharacterMeshComponent({
+			bodyRadius: config.bodyRadius ?? 0.5,
+			bodyHeight: config.bodyHeight ?? 1,
+			coneRadius: config.coneRadius ?? 0.2,
+			coneHeight: config.coneHeight ?? 0.4,
+			coneOffset: config.coneOffset ?? 0.7,
+			initialPosition: config.position,
+			bodyColor: config.bodyColor, // Pass through (undefined = use theme)
+			coneColor: config.coneColor, // Pass through (undefined = use theme)
+		}),
+	];
 }

@@ -1,6 +1,6 @@
-import { useRxjs } from 'topsyde-utils';
-import { I_SceneContext, I_SceneService } from '../common/scenes.types';
-import SceneService from './SceneService';
+import { useRxjs } from "topsyde-utils";
+import { I_SceneContext, I_SceneService } from "../common/scenes.types";
+import SceneService from "./SceneService";
 
 /**
  * Scene state enum for controlling game behavior
@@ -10,11 +10,11 @@ import SceneService from './SceneService';
  * - PVE_MATCH: Match active (different control scheme, limited interactions)
  */
 export enum E_SceneState {
-  OVERWORLD = 'OVERWORLD',
-  MATCH_REQUEST = 'MATCH_REQUEST',
-  PVE_MATCH = 'PVE_MATCH',
-  PVP_MATCH = 'PVP_MATCH',
-  MENU = 'MENU',
+	OVERWORLD = "OVERWORLD",
+	MATCH_REQUEST = "MATCH_REQUEST",
+	PVE_MATCH = "PVE_MATCH",
+	PVP_MATCH = "PVP_MATCH",
+	MENU = "MENU",
 }
 
 /**
@@ -58,126 +58,126 @@ export type StateChangeCallback = (newState: E_SceneState, oldState: E_SceneStat
  * ```
  */
 export default class SceneStateService extends SceneService implements I_SceneService {
-  private currentState: E_SceneState = E_SceneState.OVERWORLD;
-  private rxjs = useRxjs('scene:state', undefined, { static_instance: true });
-  private listeners: Set<StateChangeCallback> = new Set();
+	private currentState: E_SceneState = E_SceneState.OVERWORLD;
+	private rxjs = useRxjs("scene:state", undefined, { static_instance: true });
+	private listeners: Set<StateChangeCallback> = new Set();
 
-  /**
-   * Initialize the service with default OVERWORLD state
-   */
-  protected async init(context: I_SceneContext): Promise<void> {
-    this.currentState = E_SceneState.OVERWORLD;
-    this.rxjs.$subscribe({
-      onStateChange: this.onStateChange.bind(this),
-    });
-  }
+	/**
+	 * Initialize the service with default OVERWORLD state
+	 */
+	protected async init(context: I_SceneContext): Promise<void> {
+		this.currentState = E_SceneState.OVERWORLD;
+		this.rxjs.$subscribe({
+			onStateChange: this.onStateChange.bind(this),
+		});
+	}
 
-  private onStateChange(newState: E_SceneState) {
-    this.setState(newState);
-  }
+	private onStateChange(newState: E_SceneState) {
+		this.setState(newState);
+	}
 
-  /**
-   * Get the current scene state
-   *
-   * @returns Current scene state enum value
-   */
-  public getState(): E_SceneState {
-    return this.currentState;
-  }
+	/**
+	 * Get the current scene state
+	 *
+	 * @returns Current scene state enum value
+	 */
+	public getState(): E_SceneState {
+		return this.currentState;
+	}
 
-  /**
-   * Set the scene state and notify all registered listeners
-   *
-   * @param newState - New scene state to transition to
-   */
-  public setState(newState: E_SceneState): void {
-    const oldState = this.currentState;
-    this.currentState = newState;
+	/**
+	 * Set the scene state and notify all registered listeners
+	 *
+	 * @param newState - New scene state to transition to
+	 */
+	public setState(newState: E_SceneState): void {
+		const oldState = this.currentState;
+		this.currentState = newState;
 
-    // Notify all registered listeners
-    this.notifyListeners(newState, oldState);
-  }
+		// Notify all registered listeners
+		this.notifyListeners(newState, oldState);
+	}
 
-  /**
-   * Register a callback to be notified of state changes
-   *
-   * @param callback - Function to call when state changes
-   * @example
-   * ```typescript
-   * stateService.register((newState, oldState) => {
-   *   if (newState === E_SceneState.PVE_MATCH) {
-   *     // Match started - disable movement
-   *   }
-   * });
-   * ```
-   */
-  public register(callback: StateChangeCallback): void {
-    this.listeners.add(callback);
-  }
+	/**
+	 * Register a callback to be notified of state changes
+	 *
+	 * @param callback - Function to call when state changes
+	 * @example
+	 * ```typescript
+	 * stateService.register((newState, oldState) => {
+	 *   if (newState === E_SceneState.PVE_MATCH) {
+	 *     // Match started - disable movement
+	 *   }
+	 * });
+	 * ```
+	 */
+	public register(callback: StateChangeCallback): void {
+		this.listeners.add(callback);
+	}
 
-  /**
-   * Unregister a callback from state change notifications
-   *
-   * @param callback - The same function reference that was registered
-   */
-  public unregister(callback: StateChangeCallback): void {
-    const wasRemoved = this.listeners.delete(callback);
-    if (wasRemoved) {
-    }
-  }
+	/**
+	 * Unregister a callback from state change notifications
+	 *
+	 * @param callback - The same function reference that was registered
+	 */
+	public unregister(callback: StateChangeCallback): void {
+		const wasRemoved = this.listeners.delete(callback);
+		if (wasRemoved) {
+		}
+	}
 
-  /**
-   * Notify all registered listeners of a state change
-   *
-   * @param newState - The new state
-   * @param oldState - The previous state
-   */
-  private notifyListeners(newState: E_SceneState, oldState: E_SceneState): void {
-    if (this.listeners.size === 0) return;
+	/**
+	 * Notify all registered listeners of a state change
+	 *
+	 * @param newState - The new state
+	 * @param oldState - The previous state
+	 */
+	private notifyListeners(newState: E_SceneState, oldState: E_SceneState): void {
+		if (this.listeners.size === 0) return;
 
-    this.listeners.forEach((callback) => {
-      try {
-        callback(newState, oldState);
-      } catch (error) {
-        console.error('🎮 [SceneStateService] Error in listener callback:', error);
-      }
-    });
-  }
+		this.listeners.forEach((callback) => {
+			try {
+				callback(newState, oldState);
+			} catch (error) {
+				console.error("🎮 [SceneStateService] Error in listener callback:", error);
+			}
+		});
+	}
 
-  /**
-   * Check if currently in OVERWORLD state
-   */
-  public isOverworld(): boolean {
-    return this.currentState === E_SceneState.OVERWORLD;
-  }
+	/**
+	 * Check if currently in OVERWORLD state
+	 */
+	public isOverworld(): boolean {
+		return this.currentState === E_SceneState.OVERWORLD;
+	}
 
-  /**
-   * Check if a match has been requested (API call in progress)
-   */
-  public isMatchRequested(): boolean {
-    return this.currentState === E_SceneState.MATCH_REQUEST;
-  }
+	/**
+	 * Check if a match has been requested (API call in progress)
+	 */
+	public isMatchRequested(): boolean {
+		return this.currentState === E_SceneState.MATCH_REQUEST;
+	}
 
-  /**
-   * Check if currently in PVE match
-   */
-  public isPVEMatch(): boolean {
-    return this.currentState === E_SceneState.PVE_MATCH;
-  }
+	/**
+	 * Check if currently in PVE match
+	 */
+	public isPVEMatch(): boolean {
+		return this.currentState === E_SceneState.PVE_MATCH;
+	}
 
-  /**
-   * Reset state to OVERWORLD (useful for cleanup, scene transitions)
-   */
-  public reset(): void {
-    this.setState(E_SceneState.OVERWORLD);
-  }
+	/**
+	 * Reset state to OVERWORLD (useful for cleanup, scene transitions)
+	 */
+	public reset(): void {
+		this.setState(E_SceneState.OVERWORLD);
+	}
 
-  /**
-   * Cleanup service
-   */
-  public async destroy(): Promise<void> {
-    this.reset();
-    this.listeners.clear();
-    this.rxjs.$unsubscribe();
-  }
+	/**
+	 * Cleanup service
+	 */
+	public async destroy(): Promise<void> {
+		this.reset();
+		this.listeners.clear();
+		this.rxjs.$unsubscribe();
+	}
 }

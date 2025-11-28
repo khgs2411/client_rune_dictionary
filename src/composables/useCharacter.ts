@@ -1,43 +1,43 @@
-import { I_CharacterControlsOptions } from '@/common/types';
-import { useCharacterController } from './character/useCharacterController';
-import { I_GameCharacter } from './composables.types';
+import { I_CharacterControlsOptions } from "@/common/types";
+import { useCharacterController } from "./character/useCharacterController";
+import { I_GameCharacter } from "./composables.types";
 
 /**
  * High-level character entity composable
  * Wraps character controller and could handle Three.js mesh in the future
  */
 export function useCharacter(options: I_CharacterControlsOptions): I_GameCharacter {
-  // Initialize pure controller (state/input logic)
-  const controller = useCharacterController(options);
+	// Initialize pure controller (state/input logic)
+	const controller = useCharacterController(options);
 
-  /**
-   * Update character state (called every frame)
-   */
-  function update(delta: number) {
-    controller.update(delta);
-  }
+	/**
+	 * Update character state (called every frame)
+	 */
+	function update(delta: number) {
+		controller.update(delta);
+	}
 
-  /**
-   * Reset character to defaults
-   */
-  function reset() {
-    controller.reset();
-  }
+	/**
+	 * Reset character to defaults
+	 */
+	function reset() {
+		controller.reset();
+	}
 
-  /**
-   * Destroy character and cleanup
-   */
-  function destroy() {
-    controller.destroy();
-  }
+	/**
+	 * Destroy character and cleanup
+	 */
+	function destroy() {
+		controller.destroy();
+	}
 
-  return {
-    // Delegated controller state
-    controller,
+	return {
+		// Delegated controller state
+		controller,
 
-    // Methods
-    update,
-    reset,
-    destroy,
-  };
+		// Methods
+		update,
+		reset,
+		destroy,
+	};
 }

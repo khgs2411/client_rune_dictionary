@@ -1,13 +1,13 @@
-import { GameObject } from '../GameObject';
-import { GridHelperComponent } from '../components/rendering/GridHelperComponent';
-import { TransformComponent } from '../components/rendering/TransformComponent';
+import { GameObject } from "../GameObject";
+import { GridHelperComponent } from "../components/rendering/GridHelperComponent";
+import { TransformComponent } from "../components/rendering/TransformComponent";
 
 export interface I_MatchGridConfig {
-  id: string;
-  center: { x: number; y: number; z: number };
-  diameter: number;
-  cellSize?: number;
-  visible?: boolean;
+	id: string;
+	center: { x: number; y: number; z: number };
+	diameter: number;
+	cellSize?: number;
+	visible?: boolean;
 }
 
 /**
@@ -51,100 +51,96 @@ export interface I_MatchGridConfig {
  * ```
  */
 export class MatchGrid extends GameObject {
-  private centerX: number;
-  private centerZ: number;
-  private cellSize: number;
+	private centerX: number;
+	private centerZ: number;
+	private cellSize: number;
 
-  constructor(config: I_MatchGridConfig) {
-    super({ id: config.id });
+	constructor(config: I_MatchGridConfig) {
+		super({ id: config.id });
 
-    this.centerX = config.center.x;
-    this.centerZ = config.center.z;
-    this.cellSize = config.cellSize ?? 1;
+		this.centerX = config.center.x;
+		this.centerZ = config.center.z;
+		this.cellSize = config.cellSize ?? 1;
 
-    // Grid size (number of divisions = diameter / cellSize)
-    const divisions = Math.ceil(config.diameter / this.cellSize);
+		// Grid size (number of divisions = diameter / cellSize)
+		const divisions = Math.ceil(config.diameter / this.cellSize);
 
-    // Add components
-    this.addComponent(
-      new TransformComponent({
-        position: [config.center.x, config.center.y, config.center.z],
-      }),
-    ).addComponent(
-      new GridHelperComponent({
-        size: config.diameter,
-        divisions: divisions,
-        centerColor: 0x888888,
-        gridColor: 0x444444,
-        yOffset: 0.01,
-      }),
-    );
-  }
+		// Add components
+		this.addComponent(
+			new TransformComponent({
+				position: [config.center.x, config.center.y, config.center.z],
+			}),
+		).addComponent(
+			new GridHelperComponent({
+				size: config.diameter,
+				divisions: divisions,
+				centerColor: 0x888888,
+				gridColor: 0x444444,
+				yOffset: 0.01,
+			}),
+		);
+	}
 
-  /**
-   * Convert world position to grid coordinates
-   *
-   * @param worldX - World space X coordinate
-   * @param worldZ - World space Z coordinate
-   * @returns Grid coordinates { gridX, gridZ }
-   */
-  worldToGrid(worldX: number, worldZ: number): { gridX: number; gridZ: number } {
-    const gridX = Math.floor((worldX - this.centerX) / this.cellSize);
-    const gridZ = Math.floor((worldZ - this.centerZ) / this.cellSize);
-    return { gridX, gridZ };
-  }
+	/**
+	 * Convert world position to grid coordinates
+	 *
+	 * @param worldX - World space X coordinate
+	 * @param worldZ - World space Z coordinate
+	 * @returns Grid coordinates { gridX, gridZ }
+	 */
+	worldToGrid(worldX: number, worldZ: number): { gridX: number; gridZ: number } {
+		const gridX = Math.floor((worldX - this.centerX) / this.cellSize);
+		const gridZ = Math.floor((worldZ - this.centerZ) / this.cellSize);
+		return { gridX, gridZ };
+	}
 
-  /**
-   * Convert grid coordinates to world position
-   *
-   * @param gridX - Grid X coordinate
-   * @param gridZ - Grid Z coordinate
-   * @returns World position { worldX, worldZ } (cell center)
-   */
-  gridToWorld(gridX: number, gridZ: number): { worldX: number; worldZ: number } {
-    const worldX = gridX * this.cellSize + this.centerX + this.cellSize / 2;
-    const worldZ = gridZ * this.cellSize + this.centerZ + this.cellSize / 2;
-    return { worldX, worldZ };
-  }
+	/**
+	 * Convert grid coordinates to world position
+	 *
+	 * @param gridX - Grid X coordinate
+	 * @param gridZ - Grid Z coordinate
+	 * @returns World position { worldX, worldZ } (cell center)
+	 */
+	gridToWorld(gridX: number, gridZ: number): { worldX: number; worldZ: number } {
+		const worldX = gridX * this.cellSize + this.centerX + this.cellSize / 2;
+		const worldZ = gridZ * this.cellSize + this.centerZ + this.cellSize / 2;
+		return { worldX, worldZ };
+	}
 
-  /**
-   * Calculate grid distance between two positions (Manhattan distance)
-   *
-   * @param pos1 - First position { x, z } in world or grid coordinates
-   * @param pos2 - Second position { x, z } in world or grid coordinates
-   * @param isWorldCoords - If true, converts world coords to grid first
-   * @returns Manhattan distance in grid cells
-   */
-  getGridDistance(
-    pos1: { x: number; z: number },
-    pos2: { x: number; z: number },
-    isWorldCoords = true,
-  ): number {
-    let grid1, grid2;
+	/**
+	 * Calculate grid distance between two positions (Manhattan distance)
+	 *
+	 * @param pos1 - First position { x, z } in world or grid coordinates
+	 * @param pos2 - Second position { x, z } in world or grid coordinates
+	 * @param isWorldCoords - If true, converts world coords to grid first
+	 * @returns Manhattan distance in grid cells
+	 */
+	getGridDistance(pos1: { x: number; z: number }, pos2: { x: number; z: number }, isWorldCoords = true): number {
+		let grid1, grid2;
 
-    if (isWorldCoords) {
-      grid1 = this.worldToGrid(pos1.x, pos1.z);
-      grid2 = this.worldToGrid(pos2.x, pos2.z);
-    } else {
-      grid1 = { gridX: pos1.x, gridZ: pos1.z };
-      grid2 = { gridX: pos2.x, gridZ: pos2.z };
-    }
+		if (isWorldCoords) {
+			grid1 = this.worldToGrid(pos1.x, pos1.z);
+			grid2 = this.worldToGrid(pos2.x, pos2.z);
+		} else {
+			grid1 = { gridX: pos1.x, gridZ: pos1.z };
+			grid2 = { gridX: pos2.x, gridZ: pos2.z };
+		}
 
-    // Manhattan distance for tactical grid
-    return Math.abs(grid2.gridX - grid1.gridX) + Math.abs(grid2.gridZ - grid1.gridZ);
-  }
+		// Manhattan distance for tactical grid
+		return Math.abs(grid2.gridX - grid1.gridX) + Math.abs(grid2.gridZ - grid1.gridZ);
+	}
 
-  /**
-   * Get grid cell size
-   */
-  getCellSize(): number {
-    return this.cellSize;
-  }
+	/**
+	 * Get grid cell size
+	 */
+	getCellSize(): number {
+		return this.cellSize;
+	}
 
-  /**
-   * Get grid origin (center point in world coordinates)
-   */
-  getOrigin(): { x: number; z: number } {
-    return { x: this.centerX, z: this.centerZ };
-  }
+	/**
+	 * Get grid origin (center point in world coordinates)
+	 */
+	getOrigin(): { x: number; z: number } {
+		return { x: this.centerX, z: this.centerZ };
+	}
 }

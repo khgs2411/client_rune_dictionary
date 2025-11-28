@@ -1,9 +1,9 @@
-import { GameObject } from '../GameObject';
-import { TransformComponent } from '../components/rendering/TransformComponent';
+import { GameObject } from "../GameObject";
+import { TransformComponent } from "../components/rendering/TransformComponent";
 
 export interface I_MatchCameraAnchorConfig {
-  id: string;
-  position: { x: number; y: number; z: number };
+	id: string;
+	position: { x: number; y: number; z: number };
 }
 
 /**
@@ -43,18 +43,18 @@ export interface I_MatchCameraAnchorConfig {
  * ```
  */
 export class MatchCameraAnchor extends GameObject {
-  public position: { x: number; y: number; z: number };
+	public position: { x: number; y: number; z: number };
 
-  constructor(config: I_MatchCameraAnchorConfig) {
-    super({ id: config.id });
+	constructor(config: I_MatchCameraAnchorConfig) {
+		super({ id: config.id });
 
-    this.position = { ...config.position };
+		this.position = { ...config.position };
 
-    // Only needs transform (just a position marker, no visuals)
-    this.addComponent(
-      new TransformComponent({
-        position: [config.position.x, config.position.y, config.position.z],
-      }),
-    );
-  }
+		// Only needs transform (just a position marker, no visuals)
+		this.addComponent(
+			new TransformComponent({
+				position: [config.position.x, config.position.y, config.position.z],
+			}),
+		);
+	}
 }

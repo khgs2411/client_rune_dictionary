@@ -1,16 +1,16 @@
-import { CollisionComponent } from '@/game/components/interactions/CollisionComponent';
-import { GameObject } from '../GameObject';
-import { I_SceneContext } from '../common/scenes.types';
-import { GeometryComponent } from '../components/rendering/GeometryComponent';
-import { MaterialComponent } from '../components/rendering/MaterialComponent';
-import { MeshComponent } from '../components/rendering/MeshComponent';
-import { TransformComponent } from '../components/rendering/TransformComponent';
+import { CollisionComponent } from "@/game/components/interactions/CollisionComponent";
+import { GameObject } from "../GameObject";
+import { I_SceneContext } from "../common/scenes.types";
+import { GeometryComponent } from "../components/rendering/GeometryComponent";
+import { MaterialComponent } from "../components/rendering/MaterialComponent";
+import { MeshComponent } from "../components/rendering/MeshComponent";
+import { TransformComponent } from "../components/rendering/TransformComponent";
 
 export interface I_MatchAreaDomeConfig {
-  id: string;
-  center: { x: number; y: number; z: number };
-  radius: number;
-  showDebug?: boolean;
+	id: string;
+	center: { x: number; y: number; z: number };
+	radius: number;
+	showDebug?: boolean;
 }
 
 /**
@@ -44,65 +44,65 @@ export interface I_MatchAreaDomeConfig {
  * ```
  */
 export class MatchAreaDome extends GameObject {
-  private config: I_MatchAreaDomeConfig;
+	private config: I_MatchAreaDomeConfig;
 
-  constructor(config: I_MatchAreaDomeConfig) {
-    super({ id: config.id });
-    this.config = config;
+	constructor(config: I_MatchAreaDomeConfig) {
+		super({ id: config.id });
+		this.config = config;
 
-    // Add components in priority order
-    // Mesh is required for CollisionComponent, but we'll hide it if not debugging
-    this.addComponent(
-      new TransformComponent({
-        position: [config.center.x, config.center.y, config.center.z],
-      }),
-    )
-      .addComponent(
-        new GeometryComponent({
-          type: 'sphere',
-          params: [config.radius, 32, 32], // radius, widthSegments, heightSegments
-        }),
-      )
-      .addComponent(
-        new MaterialComponent({
-          color: config.showDebug ? 0xff00ff : 0x000000, // Magenta for debug, black otherwise
-          roughness: 1.0,
-          metalness: 0.0,
-        }),
-      )
-      .addComponent(new MeshComponent())
-      .addComponent(
-        new CollisionComponent({
-          type: 'static',
-          shape: 'sphere',
-          shapeParams: [config.radius],
-          showDebug: config.showDebug,
-        }),
-      );
-  }
+		// Add components in priority order
+		// Mesh is required for CollisionComponent, but we'll hide it if not debugging
+		this.addComponent(
+			new TransformComponent({
+				position: [config.center.x, config.center.y, config.center.z],
+			}),
+		)
+			.addComponent(
+				new GeometryComponent({
+					type: "sphere",
+					params: [config.radius, 32, 32], // radius, widthSegments, heightSegments
+				}),
+			)
+			.addComponent(
+				new MaterialComponent({
+					color: config.showDebug ? 0xff00ff : 0x000000, // Magenta for debug, black otherwise
+					roughness: 1.0,
+					metalness: 0.0,
+				}),
+			)
+			.addComponent(new MeshComponent())
+			.addComponent(
+				new CollisionComponent({
+					type: "static",
+					shape: "sphere",
+					shapeParams: [config.radius],
+					showDebug: config.showDebug,
+				}),
+			);
+	}
 
-  async init(context: I_SceneContext): Promise<void> {
-    // Initialize all components first
-    await super.init(context);
+	async init(context: I_SceneContext): Promise<void> {
+		// Initialize all components first
+		await super.init(context);
 
-    const meshComp = this.getComponent(MeshComponent);
-    if (!meshComp || !meshComp.mesh) return;
+		const meshComp = this.getComponent(MeshComponent);
+		if (!meshComp || !meshComp.mesh) return;
 
-    if (this.config.showDebug) {
-      // Show as wireframe in debug mode
-      const material = meshComp.mesh.material as any;
-      if (material) {
-        material.wireframe = true;
-        material.opacity = 0.3;
-        material.transparent = true;
-      }
-    } else {
-      // Hide mesh completely when not debugging
-      meshComp.mesh.visible = false;
-    }
-  }
+		if (this.config.showDebug) {
+			// Show as wireframe in debug mode
+			const material = meshComp.mesh.material as any;
+			if (material) {
+				material.wireframe = true;
+				material.opacity = 0.3;
+				material.transparent = true;
+			}
+		} else {
+			// Hide mesh completely when not debugging
+			meshComp.mesh.visible = false;
+		}
+	}
 
-  destroy(): void {
-    super.destroy();
-  }
+	destroy(): void {
+		super.destroy();
+	}
 }

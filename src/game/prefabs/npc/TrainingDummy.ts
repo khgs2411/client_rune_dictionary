@@ -1,17 +1,18 @@
-import { GameObject } from '@/game/GameObject';
-import { I_GameObjectConfig } from '@/game/common/gameobject.types';
-import { CollisionComponent } from '@/game/components/interactions/CollisionComponent';
-import { InteractionComponent } from '@/game/components/interactions/InteractionComponent';
-import { MatchComponent } from '@/game/components/match/MatchComponent';
-import { GeometryComponent } from '@/game/components/rendering/GeometryComponent';
-import { MaterialComponent } from '@/game/components/rendering/MaterialComponent';
-import { MeshComponent } from '@/game/components/rendering/MeshComponent';
-import { TransformComponent } from '@/game/components/rendering/TransformComponent';
+import { GameObject } from "@/game/GameObject";
+import { I_GameObjectConfig } from "@/game/common/gameobject.types";
+import { CollisionComponent } from "@/game/components/interactions/CollisionComponent";
+import { InteractionComponent } from "@/game/components/interactions/InteractionComponent";
+import { MatchComponent } from "@/game/components/match/MatchComponent";
+import { GeometryComponent } from "@/game/components/rendering/GeometryComponent";
+import { MaterialComponent } from "@/game/components/rendering/MaterialComponent";
+import { MeshComponent } from "@/game/components/rendering/MeshComponent";
+import { TransformComponent } from "@/game/components/rendering/TransformComponent";
+import { UnitsComponent } from "@/game/components/systems/UnitsComponent";
 
 export interface I_TrainingDummyConfig extends I_GameObjectConfig {
-  id: string;
-  position?: [number, number, number];
-  color?: number; // Hex color for material
+	id: string;
+	position?: [number, number, number];
+	color?: number; // Hex color for material
 }
 
 /**
@@ -24,8 +25,9 @@ export interface I_TrainingDummyConfig extends I_GameObjectConfig {
  * - GeometryComponent: Capsule shape (humanoid)
  * - MaterialComponent: Red color (indicates NPC/enemy)
  * - MeshComponent: Visual mesh
+ * - UnitsComponent: Distance measurement
  * - InteractionComponent: Click/double-click events
- * - MatchComponent: Match creation logic
+ * - MatchComponent: Match creation logic (with range checking)
  *
  * Usage:
  * ```typescript
@@ -48,31 +50,34 @@ export interface I_TrainingDummyConfig extends I_GameObjectConfig {
  * - NPCLabelComponent for name tag display
  */
 export class TrainingDummy extends GameObject {
-  constructor(config: I_TrainingDummyConfig) {
-    super({ id: config.id || 'training-dummy', type: config.type });
+	constructor(config: I_TrainingDummyConfig) {
+		super({ id: config.id || "training-dummy", type: config.type });
 
-    const position = config.position || [10, 0.9, 5]; // Default position (0.9 = half capsule height)
-    const color = config.color !== undefined ? config.color : 0xff0000; // Default red
-    // Visual components
-    this.addComponent(new TransformComponent({ position }))
-      .addComponent(
-        new GeometryComponent({
-          type: 'capsule',
-          params: [0.5, 1.8, 8, 16], // radius, height, capSegments, radialSegments
-        }),
-      )
-      .addComponent(
-        new MaterialComponent({
-          color,
-          roughness: 0.7,
-          metalness: 0.2,
-        }),
-      )
-      .addComponent(new MeshComponent())
+		const position = config.position || [10, 0.9, 5]; // Default position (0.9 = half capsule height)
+		const color = config.color !== undefined ? config.color : 0xff0000; // Default red
+		// Visual components
+		this.addComponent(new TransformComponent({ position }))
+			.addComponent(
+				new GeometryComponent({
+					type: "capsule",
+					params: [0.5, 1.8, 8, 16], // radius, height, capSegments, radialSegments
+				}),
+			)
+			.addComponent(
+				new MaterialComponent({
+					color,
+					roughness: 0.7,
+					metalness: 0.2,
+				}),
+			)
+			.addComponent(new MeshComponent())
 
-      // Interaction components (order matters for dependencies)
-      .addComponent(new InteractionComponent()) // Provides click/doubleclick events
-      .addComponent(new MatchComponent()) // Listens to doubleclick, creates match
-      .addComponent(new CollisionComponent());
-  }
+			// System components
+			.addComponent(new UnitsComponent()) // Distance measurement
+
+			// Interaction components (order matters for dependencies)
+			.addComponent(new InteractionComponent()) // Provides click/doubleclick events
+			.addComponent(new MatchComponent()) // Listens to doubleclick, creates match (checks range via UnitsComponent)
+			.addComponent(new CollisionComponent());
+	}
 }

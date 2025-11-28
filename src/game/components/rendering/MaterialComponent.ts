@@ -1,12 +1,12 @@
-import { MeshStandardMaterial } from 'three';
-import { BaseMaterialComponent, I_BaseMaterialConfig } from './BaseMaterialComponent';
-import { I_SceneContext } from '@/game/common/scenes.types';
+import { MeshStandardMaterial } from "three";
+import { BaseMaterialComponent, I_BaseMaterialConfig } from "./BaseMaterialComponent";
+import { I_SceneContext } from "@/game/common/scenes.types";
 
 export interface I_MaterialConfig extends I_BaseMaterialConfig {
-  roughness?: number;
-  metalness?: number;
-  transparent?: boolean;
-  opacity?: number;
+	roughness?: number;
+	metalness?: number;
+	transparent?: boolean;
+	opacity?: number;
 }
 
 /**
@@ -35,25 +35,22 @@ export interface I_MaterialConfig extends I_BaseMaterialConfig {
  * }));
  * ```
  */
-export class MaterialComponent extends BaseMaterialComponent<
-  MeshStandardMaterial,
-  I_MaterialConfig
-> {
-  public material!: MeshStandardMaterial;
+export class MaterialComponent extends BaseMaterialComponent<MeshStandardMaterial, I_MaterialConfig> {
+	public material!: MeshStandardMaterial;
 
-  constructor(config: I_MaterialConfig = {}) {
-    super(config);
-  }
+	constructor(config: I_MaterialConfig = {}) {
+		super(config);
+	}
 
-  protected createMaterial(color: number, context: I_SceneContext): MeshStandardMaterial {
-    return new MeshStandardMaterial({
-      color,
-      roughness: this.config.roughness ?? 0.8,
-      metalness: this.config.metalness ?? 0.0,
-      emissive: this.config.emissive ?? 0x000000,
-      emissiveIntensity: this.config.emissiveIntensity ?? 1.0,
-      transparent: this.config.transparent ?? false,
-      opacity: this.config.opacity ?? 1.0,
-    });
-  }
+	protected createMaterial(color: number, context: I_SceneContext): MeshStandardMaterial {
+		return new MeshStandardMaterial({
+			color,
+			roughness: this.config.roughness ?? 0.8,
+			metalness: this.config.metalness ?? 0.0,
+			emissive: this.config.emissive ?? 0x000000,
+			emissiveIntensity: this.config.emissiveIntensity ?? 1.0,
+			transparent: this.config.transparent ?? false,
+			opacity: this.config.opacity ?? 1.0,
+		});
+	}
 }

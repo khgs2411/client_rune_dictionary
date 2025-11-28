@@ -1,16 +1,16 @@
-import { CollisionComponent } from '@/game/components/interactions/CollisionComponent';
-import { BufferGeometry, Line, LineBasicMaterial, Vector3 } from 'three';
-import { GameObject } from '../GameObject';
-import { I_SceneContext } from '../common/scenes.types';
-import { TransformComponent } from '../components/rendering/TransformComponent';
+import { CollisionComponent } from "@/game/components/interactions/CollisionComponent";
+import { BufferGeometry, Line, LineBasicMaterial, Vector3 } from "three";
+import { GameObject } from "../GameObject";
+import { I_SceneContext } from "../common/scenes.types";
+import { TransformComponent } from "../components/rendering/TransformComponent";
 
 export interface I_MatchAreaWallsConfig {
-  id: string;
-  center: { x: number; y: number; z: number };
-  width: number; // Arena width (X axis)
-  depth: number; // Arena depth (Z axis)
-  height?: number; // Wall height (default: 20)
-  showDebug?: boolean;
+	id: string;
+	center: { x: number; y: number; z: number };
+	width: number; // Arena width (X axis)
+	depth: number; // Arena depth (Z axis)
+	height?: number; // Wall height (default: 20)
+	showDebug?: boolean;
 }
 
 /**
@@ -51,166 +51,166 @@ export interface I_MatchAreaWallsConfig {
  * ```
  */
 export class MatchAreaWalls extends GameObject {
-  private config: I_MatchAreaWallsConfig;
-  private wallSegments: GameObject[] = [];
-  private borderLines: Line[] = []; // Visual border indicators
+	private config: I_MatchAreaWallsConfig;
+	private wallSegments: GameObject[] = [];
+	private borderLines: Line[] = []; // Visual border indicators
 
-  constructor(config: I_MatchAreaWallsConfig) {
-    super({ id: config.id });
-    this.config = config;
+	constructor(config: I_MatchAreaWallsConfig) {
+		super({ id: config.id });
+		this.config = config;
 
-    const height = config.height ?? 20;
-    const width = config.width; // X axis
-    const depth = config.depth; // Z axis
-    const thickness = 0.5;
-    const halfWidth = width / 2;
-    const halfDepth = depth / 2;
+		const height = config.height ?? 20;
+		const width = config.width; // X axis
+		const depth = config.depth; // Z axis
+		const thickness = 0.5;
+		const halfWidth = width / 2;
+		const halfDepth = depth / 2;
 
-    // Create 4 walls forming a rectangle
-    const walls = [
-      // North wall (top, along X axis)
-      {
-        id: 'north',
-        position: [config.center.x, config.center.y + height / 2, config.center.z + halfDepth],
-        rotation: [0, 0, 0], // Facing along X axis
-        dimensions: [width, height, thickness], // wide along X, tall, thin along Z
-      },
-      // South wall (bottom, along X axis)
-      {
-        id: 'south',
-        position: [config.center.x, config.center.y + height / 2, config.center.z - halfDepth],
-        rotation: [0, 0, 0], // Facing along X axis
-        dimensions: [width, height, thickness],
-      },
-      // East wall (right, along Z axis)
-      {
-        id: 'east',
-        position: [config.center.x + halfWidth, config.center.y + height / 2, config.center.z],
-        rotation: [0, Math.PI / 2, 0], // Rotated 90° to face along Z axis
-        dimensions: [depth, height, thickness], // wide along Z, tall, thin along X
-      },
-      // West wall (left, along Z axis)
-      {
-        id: 'west',
-        position: [config.center.x - halfWidth, config.center.y + height / 2, config.center.z],
-        rotation: [0, Math.PI / 2, 0], // Rotated 90° to face along Z axis
-        dimensions: [depth, height, thickness], // wide along Z, tall, thin along X
-      },
-    ];
+		// Create 4 walls forming a rectangle
+		const walls = [
+			// North wall (top, along X axis)
+			{
+				id: "north",
+				position: [config.center.x, config.center.y + height / 2, config.center.z + halfDepth],
+				rotation: [0, 0, 0], // Facing along X axis
+				dimensions: [width, height, thickness], // wide along X, tall, thin along Z
+			},
+			// South wall (bottom, along X axis)
+			{
+				id: "south",
+				position: [config.center.x, config.center.y + height / 2, config.center.z - halfDepth],
+				rotation: [0, 0, 0], // Facing along X axis
+				dimensions: [width, height, thickness],
+			},
+			// East wall (right, along Z axis)
+			{
+				id: "east",
+				position: [config.center.x + halfWidth, config.center.y + height / 2, config.center.z],
+				rotation: [0, Math.PI / 2, 0], // Rotated 90° to face along Z axis
+				dimensions: [depth, height, thickness], // wide along Z, tall, thin along X
+			},
+			// West wall (left, along Z axis)
+			{
+				id: "west",
+				position: [config.center.x - halfWidth, config.center.y + height / 2, config.center.z],
+				rotation: [0, Math.PI / 2, 0], // Rotated 90° to face along Z axis
+				dimensions: [depth, height, thickness], // wide along Z, tall, thin along X
+			},
+		];
 
-    for (const wall of walls) {
-      const wallSegment = new GameObject({ id: `${config.id}-${wall.id}` });
+		for (const wall of walls) {
+			const wallSegment = new GameObject({ id: `${config.id}-${wall.id}` });
 
-      wallSegment
-        .addComponent(
-          new TransformComponent({
-            position: wall.position as [number, number, number],
-            rotation: wall.rotation as [number, number, number],
-          }),
-        )
-        // NO visual components - walls are invisible, collision only
-        // GeometryComponent, MaterialComponent, and MeshComponent removed
-        .addComponent(
-          new CollisionComponent({
-            type: 'static',
-            shape: 'cuboid',
-            shapeParams: [wall.dimensions[0] / 2, wall.dimensions[1] / 2, wall.dimensions[2] / 2], // Half-extents: [halfWidth, halfHeight, halfDepth]
-            showDebug: config.showDebug,
-          }),
-        );
+			wallSegment
+				.addComponent(
+					new TransformComponent({
+						position: wall.position as [number, number, number],
+						rotation: wall.rotation as [number, number, number],
+					}),
+				)
+				// NO visual components - walls are invisible, collision only
+				// GeometryComponent, MaterialComponent, and MeshComponent removed
+				.addComponent(
+					new CollisionComponent({
+						type: "static",
+						shape: "cuboid",
+						shapeParams: [wall.dimensions[0] / 2, wall.dimensions[1] / 2, wall.dimensions[2] / 2], // Half-extents: [halfWidth, halfHeight, halfDepth]
+						showDebug: config.showDebug,
+					}),
+				);
 
-      this.wallSegments.push(wallSegment);
-    }
-  }
+			this.wallSegments.push(wallSegment);
+		}
+	}
 
-  async init(context: I_SceneContext): Promise<void> {
-    await super.init(context);
+	async init(context: I_SceneContext): Promise<void> {
+		await super.init(context);
 
-    // Initialize all wall segments (collision only, no visual meshes)
-    const gameObjects = context.getService('gameObjectsManager');
-    for (const segment of this.wallSegments) {
-      gameObjects.register(segment);
-    }
+		// Initialize all wall segments (collision only, no visual meshes)
+		const gameObjects = context.getService("gameObjectsManager");
+		for (const segment of this.wallSegments) {
+			gameObjects.register(segment);
+		}
 
-    // Create visual border lines at ground level
-    this.createBorderLines(context);
-  }
+		// Create visual border lines at ground level
+		this.createBorderLines(context);
+	}
 
-  /**
-   * Create faint glowing lines at ground level to mark arena borders
-   */
-  private createBorderLines(context: I_SceneContext): void {
-    const { center, width, depth } = this.config;
-    const halfWidth = width / 2;
-    const halfDepth = depth / 2;
-    const groundY = center.y + 0.05; // Slightly above ground to prevent z-fighting
+	/**
+	 * Create faint glowing lines at ground level to mark arena borders
+	 */
+	private createBorderLines(context: I_SceneContext): void {
+		const { center, width, depth } = this.config;
+		const halfWidth = width / 2;
+		const halfDepth = depth / 2;
+		const groundY = center.y + 0.05; // Slightly above ground to prevent z-fighting
 
-    // Define the 4 border lines (rectangle at ground level)
-    const borders = [
-      // North border (top edge)
-      {
-        start: new Vector3(center.x - halfWidth, groundY, center.z + halfDepth),
-        end: new Vector3(center.x + halfWidth, groundY, center.z + halfDepth),
-      },
-      // South border (bottom edge)
-      {
-        start: new Vector3(center.x - halfWidth, groundY, center.z - halfDepth),
-        end: new Vector3(center.x + halfWidth, groundY, center.z - halfDepth),
-      },
-      // East border (right edge)
-      {
-        start: new Vector3(center.x + halfWidth, groundY, center.z - halfDepth),
-        end: new Vector3(center.x + halfWidth, groundY, center.z + halfDepth),
-      },
-      // West border (left edge)
-      {
-        start: new Vector3(center.x - halfWidth, groundY, center.z - halfDepth),
-        end: new Vector3(center.x - halfWidth, groundY, center.z + halfDepth),
-      },
-    ];
+		// Define the 4 border lines (rectangle at ground level)
+		const borders = [
+			// North border (top edge)
+			{
+				start: new Vector3(center.x - halfWidth, groundY, center.z + halfDepth),
+				end: new Vector3(center.x + halfWidth, groundY, center.z + halfDepth),
+			},
+			// South border (bottom edge)
+			{
+				start: new Vector3(center.x - halfWidth, groundY, center.z - halfDepth),
+				end: new Vector3(center.x + halfWidth, groundY, center.z - halfDepth),
+			},
+			// East border (right edge)
+			{
+				start: new Vector3(center.x + halfWidth, groundY, center.z - halfDepth),
+				end: new Vector3(center.x + halfWidth, groundY, center.z + halfDepth),
+			},
+			// West border (left edge)
+			{
+				start: new Vector3(center.x - halfWidth, groundY, center.z - halfDepth),
+				end: new Vector3(center.x - halfWidth, groundY, center.z + halfDepth),
+			},
+		];
 
-    // Create glowing line for each border
-    for (const border of borders) {
-      const points = [border.start, border.end];
-      const geometry = new BufferGeometry().setFromPoints(points);
+		// Create glowing line for each border
+		for (const border of borders) {
+			const points = [border.start, border.end];
+			const geometry = new BufferGeometry().setFromPoints(points);
 
-      // Faint glowing material
-      const material = new LineBasicMaterial({
-        color: 0xff6b35, // Warm orange glow
-        opacity: 0.4,
-        transparent: true,
-        linewidth: 2, // Note: linewidth > 1 only works with WebGLRenderer on Windows
-      });
+			// Faint glowing material
+			const material = new LineBasicMaterial({
+				color: 0xff6b35, // Warm orange glow
+				opacity: 0.4,
+				transparent: true,
+				linewidth: 2, // Note: linewidth > 1 only works with WebGLRenderer on Windows
+			});
 
-      const line = new Line(geometry, material);
-      context.scene.add(line);
-      // Lines are cleaned up manually in destroy() method, not via cleanupRegistry
-      this.borderLines.push(line);
-    }
-  }
+			const line = new Line(geometry, material);
+			context.scene.add(line);
+			// Lines are cleaned up manually in destroy() method, not via cleanupRegistry
+			this.borderLines.push(line);
+		}
+	}
 
-  destroy(): void {
-    // Destroy all wall segments
-    if (this.context) {
-      const gameObjects = this.context.getService('gameObjectsManager');
-      for (const segment of this.wallSegments) {
-        gameObjects.unregister(segment.id);
-      }
+	destroy(): void {
+		// Destroy all wall segments
+		if (this.context) {
+			const gameObjects = this.context.getService("gameObjectsManager");
+			for (const segment of this.wallSegments) {
+				gameObjects.unregister(segment.id);
+			}
 
-      // Manually remove and dispose border lines from scene
-      for (const line of this.borderLines) {
-        this.context.scene.remove(line);
-        line.geometry.dispose();
-        if (Array.isArray(line.material)) {
-          line.material.forEach((mat) => mat.dispose());
-        } else {
-          line.material.dispose();
-        }
-      }
-    }
+			// Manually remove and dispose border lines from scene
+			for (const line of this.borderLines) {
+				this.context.scene.remove(line);
+				line.geometry.dispose();
+				if (Array.isArray(line.material)) {
+					line.material.forEach((mat) => mat.dispose());
+				} else {
+					line.material.dispose();
+				}
+			}
+		}
 
-    this.wallSegments = [];
-    this.borderLines = [];
-    super.destroy();
-  }
+		this.wallSegments = [];
+		this.borderLines = [];
+		super.destroy();
+	}
 }

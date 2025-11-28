@@ -1,7 +1,7 @@
-import type { I_SceneContext } from '@/game/common/scenes.types';
-import { ComponentPriority, GameComponent } from '@/game/GameComponent';
-import type { Intersection } from 'three';
-import { MeshComponent } from '../rendering/MeshComponent';
+import type { I_SceneContext } from "@/game/common/scenes.types";
+import { ComponentPriority, GameComponent } from "@/game/GameComponent";
+import type { Intersection } from "three";
+import { MeshComponent } from "../rendering/MeshComponent";
 
 export type InteractionEventCallback = (intersection: Intersection) => void;
 
@@ -41,105 +41,98 @@ export type InteractionEventCallback = (intersection: Intersection) => void;
  * Priority: INTERACTION (300) - Runs after rendering and physics
  */
 export class InteractionComponent extends GameComponent {
-  public readonly priority = ComponentPriority.INTERACTION;
+	public readonly priority = ComponentPriority.INTERACTION;
 
-  // Event emitter
-  private events = new Map<string, InteractionEventCallback[]>();
+	// Event emitter
+	private events = new Map<string, InteractionEventCallback[]>();
 
-  // Double-click detection state
-  private lastClickTime = 0;
-  private readonly DOUBLE_CLICK_THRESHOLD = 300; // milliseconds
+	// Double-click detection state
+	private lastClickTime = 0;
+	private readonly DOUBLE_CLICK_THRESHOLD = 300; // milliseconds
 
-  // Unregister functions from InteractionService
-  private unregisterClick?: () => void;
-  private unregisterHover?: () => void;
+	// Unregister functions from InteractionService
+	private unregisterClick?: () => void;
+	private unregisterHover?: () => void;
 
-  public async init(context: I_SceneContext): Promise<void> {
-    this.registerInteractions(context);
-  }
+	public async init(context: I_SceneContext): Promise<void> {
+		this.registerInteractions(context);
+	}
 
-  /**
-   * Register event listener
-   *
-   * @param event - Event type ('click' or 'doubleclick')
-   * @param callback - Function to call when event fires
-   */
-  public on(event: 'click' | 'doubleclick', callback: InteractionEventCallback): void {
-    if (!this.events.has(event)) {
-      this.events.set(event, []);
-    }
-    this.events.get(event)!.push(callback);
-  }
+	/**
+	 * Register event listener
+	 *
+	 * @param event - Event type ('click' or 'doubleclick')
+	 * @param callback - Function to call when event fires
+	 */
+	public on(event: "click" | "doubleclick", callback: InteractionEventCallback): void {
+		if (!this.events.has(event)) {
+			this.events.set(event, []);
+		}
+		this.events.get(event)!.push(callback);
+	}
 
-  private registerInteractions(context: I_SceneContext): void {
-    // Require MeshComponent for raycasting
-    const meshComp = this.requireComponent(MeshComponent);
-    // Get InteractionService
-    const interaction = context.getService('interaction');
+	private registerInteractions(context: I_SceneContext): void {
+		// Require MeshComponent for raycasting
+		const meshComp = this.requireComponent(MeshComponent);
+		// Get InteractionService
+		const interaction = context.getService("interaction");
 
-    // Register click handler with requireHover
-    this.unregisterClick = interaction.registerMouseClick(
-      `${this.gameObject.id}-interaction-click`,
-      'left',
-      this.onClick.bind(this),
-      {
-        requireHover: true,
-        object3D: meshComp.mesh,
-        gameObject: this.gameObject, // Pass gameObject so it's saved to store on click
-      },
-    );
-  }
+		// Register click handler with requireHover
+		this.unregisterClick = interaction.registerMouseClick(`${this.gameObject.id}-interaction-click`, "left", this.onClick.bind(this), {
+			requireHover: true,
+			object3D: meshComp.mesh,
+			gameObject: this.gameObject, // Pass gameObject so it's saved to store on click
+		});
+	}
 
-  /**
-   * Emit event to all registered listeners
-   */
-  private emit(event: string, intersection: Intersection): void {
-    const callbacks = this.events.get(event);
-    if (callbacks) {
-      callbacks.forEach((cb) => cb(intersection));
-    }
-  }
+	/**
+	 * Emit event to all registered listeners
+	 */
+	private emit(event: string, intersection: Intersection): void {
+		const callbacks = this.events.get(event);
+		if (callbacks) {
+			callbacks.forEach((cb) => cb(intersection));
+		}
+	}
 
-  /**
-   * Handle click event from InteractionService
-   * @param _event
-   * @param intersection
-   * @returns void
-   */
-  private onClick(_event: MouseEvent, intersection: Intersection | undefined): void {
-    if (!intersection) return;
+	/**
+	 * Handle click event from InteractionService
+	 * @param _event
+	 * @param intersection
+	 * @returns void
+	 */
+	private onClick(_event: MouseEvent, intersection: Intersection | undefined): void {
+		if (!intersection) return;
 
-    // Always emit 'click' event
-    this.emit('click', intersection);
+		// Always emit 'click' event
+		this.emit("click", intersection);
 
-    // Double-click detection
-    const now = Date.now();
-    const timeSinceLastClick = now - this.lastClickTime;
+		// Double-click detection
+		const now = Date.now();
+		const timeSinceLastClick = now - this.lastClickTime;
 
-    if (timeSinceLastClick < this.DOUBLE_CLICK_THRESHOLD) {
-      // Double-click detected!
-      this.emit('doubleclick', intersection);
-      this.lastClickTime = 0; // Reset to prevent triple-click
-    } else {
-      // Single click (start timer for potential double-click)
-      this.lastClickTime = now;
-    }
-  }
+		if (timeSinceLastClick < this.DOUBLE_CLICK_THRESHOLD) {
+			// Double-click detected!
+			this.emit("doubleclick", intersection);
+			this.lastClickTime = 0; // Reset to prevent triple-click
+		} else {
+			// Single click (start timer for potential double-click)
+			this.lastClickTime = now;
+		}
+	}
 
-  public destroy(): void {
-    // Unregister from InteractionService
-    if (this.unregisterClick) {
-      this.unregisterClick();
-    }
-    if (this.unregisterHover) {
-      this.unregisterHover();
-    }
+	public destroy(): void {
+		// Unregister from InteractionService
+		if (this.unregisterClick) {
+			this.unregisterClick();
+		}
+		if (this.unregisterHover) {
+			this.unregisterHover();
+		}
 
-    // Clear all event listeners
-    this.events.clear();
+		// Clear all event listeners
+		this.events.clear();
 
-    console.log(
-      `👆 [InteractionComponent] Unregistered interaction events for GameObject "${this.gameObject.id}"`,
-    );
-  }
+		console.log(`👆 [InteractionComponent] Unregistered interaction events for GameObject "${this.gameObject.id}"`);
+	}
 }

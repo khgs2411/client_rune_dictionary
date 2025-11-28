@@ -1,88 +1,84 @@
-import { RGBColor } from '@/common/types';
-import { convert, OKLCH, sRGB } from '@texel/color';
-import { useColorMode } from '@vueuse/core';
-import { computed, ref } from 'vue';
+import { RGBColor } from "@/common/types";
+import { convert, OKLCH, sRGB } from "@texel/color";
+import { useColorMode } from "@vueuse/core";
+import { computed, ref } from "vue";
 
 /**
  * Theme colors interface
  * Represents the computed hex color values from the theme system
  */
 export interface I_ThemeColors {
-  primary: number;
-  primaryForeground: number;
-  accent: number;
-  accentForeground: number;
-  background: number;
-  foreground: number;
-  muted: number;
-  card: number;
-  border: number;
+	primary: number;
+	primaryForeground: number;
+	accent: number;
+	accentForeground: number;
+	background: number;
+	foreground: number;
+	muted: number;
+	card: number;
+	border: number;
 }
-export type ColorTheme = 'neutral' | 'dark' | 'rose' | 'blue' | 'purple' | 'green' | 'yellow';
+export type ColorTheme = "neutral" | "dark" | "rose" | "blue" | "purple" | "green" | "yellow";
 
 /**
  * Available theme options with preview colors
  */
 export const THEME_OPTIONS = [
-  { label: 'Neutral', value: 'neutral' as const, color: '#e5e5e5' },
-  { label: 'Dark', value: 'dark' as const, color: '#1f2937' },
-  { label: 'Rose', value: 'rose' as const, color: '#fda4af' },
-  { label: 'Blue', value: 'blue' as const, color: '#93c5fd' },
-  { label: 'Purple', value: 'purple' as const, color: '#d8b4fe' },
-  { label: 'Green', value: 'green' as const, color: '#86efac' },
-  { label: 'Yellow', value: 'yellow' as const, color: '#fde047' },
+	{ label: "Neutral", value: "neutral" as const, color: "#e5e5e5" },
+	{ label: "Dark", value: "dark" as const, color: "#1f2937" },
+	{ label: "Rose", value: "rose" as const, color: "#fda4af" },
+	{ label: "Blue", value: "blue" as const, color: "#93c5fd" },
+	{ label: "Purple", value: "purple" as const, color: "#d8b4fe" },
+	{ label: "Green", value: "green" as const, color: "#86efac" },
+	{ label: "Yellow", value: "yellow" as const, color: "#fde047" },
 ] as const;
 
 /**
  * Converts OKLCH CSS variable to Three.js RGB color array
  */
 function parseOklchColor(varName: string): RGBColor {
-  // Check if we're in a browser environment
-  if (typeof document === 'undefined' || typeof window === 'undefined') {
-    console.warn(`parseOklchColor called in non-browser environment for ${varName}`);
-    return [0.5, 0.5, 0.5];
-  }
+	// Check if we're in a browser environment
+	if (typeof document === "undefined" || typeof window === "undefined") {
+		console.warn(`parseOklchColor called in non-browser environment for ${varName}`);
+		return [0.5, 0.5, 0.5];
+	}
 
-  try {
-    const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+	try {
+		const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
 
-    if (!value) {
-      console.warn(`CSS variable ${varName} not found, using default gray`);
-      return [0.5, 0.5, 0.5];
-    }
+		if (!value) {
+			console.warn(`CSS variable ${varName} not found, using default gray`);
+			return [0.5, 0.5, 0.5];
+		}
 
-    // Strip oklch() wrapper if present
-    const colorValue = value.match(/oklch\((.*?)\)/)?.[1] || value;
+		// Strip oklch() wrapper if present
+		const colorValue = value.match(/oklch\((.*?)\)/)?.[1] || value;
 
-    // Parse L C H values (handle percentages)
-    const parts = colorValue.split(/\s+/);
-    const l = parts[0]?.endsWith('%') ? parseFloat(parts[0]) / 100 : parseFloat(parts[0]);
-    const c = parts[1]?.endsWith('%') ? parseFloat(parts[1]) / 100 : parseFloat(parts[1]);
-    const h = parts[2]?.endsWith('%') ? parseFloat(parts[2]) / 100 : parseFloat(parts[2]);
+		// Parse L C H values (handle percentages)
+		const parts = colorValue.split(/\s+/);
+		const l = parts[0]?.endsWith("%") ? parseFloat(parts[0]) / 100 : parseFloat(parts[0]);
+		const c = parts[1]?.endsWith("%") ? parseFloat(parts[1]) / 100 : parseFloat(parts[1]);
+		const h = parts[2]?.endsWith("%") ? parseFloat(parts[2]) / 100 : parseFloat(parts[2]);
 
-    if (isNaN(l) || isNaN(c) || isNaN(h)) {
-      console.warn(`Invalid OKLCH values for ${varName}: ${value}, using default gray`);
-      return [0.5, 0.5, 0.5];
-    }
+		if (isNaN(l) || isNaN(c) || isNaN(h)) {
+			console.warn(`Invalid OKLCH values for ${varName}: ${value}, using default gray`);
+			return [0.5, 0.5, 0.5];
+		}
 
-    // Validate OKLCH ranges (L: 0-1, C: 0-0.4, H: 0-360)
-    if (l < 0 || l > 1 || c < 0 || c > 0.4 || h < 0 || h > 360) {
-      console.warn(`OKLCH values out of range for ${varName}: L=${l}, C=${c}, H=${h}`);
-    }
+		// Validate OKLCH ranges (L: 0-1, C: 0-0.4, H: 0-360)
+		if (l < 0 || l > 1 || c < 0 || c > 0.4 || h < 0 || h > 360) {
+			console.warn(`OKLCH values out of range for ${varName}: L=${l}, C=${c}, H=${h}`);
+		}
 
-    // Convert to sRGB and return as tuple
-    const rgb = convert([l, c, h], OKLCH, sRGB) as RGBColor;
+		// Convert to sRGB and return as tuple
+		const rgb = convert([l, c, h], OKLCH, sRGB) as RGBColor;
 
-    // Clamp RGB values to 0-1 range (in case conversion produces out-of-gamut colors)
-    return [
-      Math.max(0, Math.min(1, rgb[0])),
-      Math.max(0, Math.min(1, rgb[1])),
-      Math.max(0, Math.min(1, rgb[2])),
-    ];
-  } catch (error) {
-    console.error(`Error parsing OKLCH color for ${varName}:`, error);
-    return [0.5, 0.5, 0.5];
-  }
+		// Clamp RGB values to 0-1 range (in case conversion produces out-of-gamut colors)
+		return [Math.max(0, Math.min(1, rgb[0])), Math.max(0, Math.min(1, rgb[1])), Math.max(0, Math.min(1, rgb[2]))];
+	} catch (error) {
+		console.error(`Error parsing OKLCH color for ${varName}:`, error);
+		return [0.5, 0.5, 0.5];
+	}
 }
 
 /**
@@ -91,10 +87,10 @@ function parseOklchColor(varName: string): RGBColor {
  * @returns Hex color number for Three.js
  */
 function rgbToHex(rgb: RGBColor): number {
-  const r = Math.round(rgb[0] * 255);
-  const g = Math.round(rgb[1] * 255);
-  const b = Math.round(rgb[2] * 255);
-  return (r << 16) | (g << 8) | b;
+	const r = Math.round(rgb[0] * 255);
+	const g = Math.round(rgb[1] * 255);
+	const b = Math.round(rgb[2] * 255);
+	return (r << 16) | (g << 8) | b;
 }
 
 /**
@@ -112,8 +108,8 @@ function rgbToHex(rgb: RGBColor): number {
  * hexStringToNumber("654321")  // 6636321
  */
 export function hexStringToNumber(hexString: string): number {
-  const cleaned = hexString.replace('#', '');
-  return parseInt(cleaned, 16);
+	const cleaned = hexString.replace("#", "");
+	return parseInt(cleaned, 16);
 }
 
 /**
@@ -125,7 +121,7 @@ export function hexStringToNumber(hexString: string): number {
  * hexNumberToString(6636321)  // "#654321"
  */
 export function hexNumberToString(hexNumber: number): string {
-  return '#' + hexNumber.toString(16).padStart(6, '0');
+	return "#" + hexNumber.toString(16).padStart(6, "0");
 }
 
 /**
@@ -136,10 +132,10 @@ export function hexNumberToString(hexNumber: number): string {
  * rgbToHexString([0.396, 0.263, 0.129]) // "#654321"
  */
 export function rgbToHexString(rgb: RGBColor): string {
-  const r = Math.round(rgb[0] * 255);
-  const g = Math.round(rgb[1] * 255);
-  const b = Math.round(rgb[2] * 255);
-  return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+	const r = Math.round(rgb[0] * 255);
+	const g = Math.round(rgb[1] * 255);
+	const b = Math.round(rgb[2] * 255);
+	return "#" + ((r << 16) | (g << 8) | b).toString(16).padStart(6, "0");
 }
 
 /**
@@ -150,11 +146,11 @@ export function rgbToHexString(rgb: RGBColor): string {
  * hexStringToRgb("#654321") // [0.396, 0.263, 0.129]
  */
 export function hexStringToRgb(hexString: string): RGBColor {
-  const hex = hexStringToNumber(hexString);
-  const r = ((hex >> 16) & 255) / 255;
-  const g = ((hex >> 8) & 255) / 255;
-  const b = (hex & 255) / 255;
-  return [r, g, b];
+	const hex = hexStringToNumber(hexString);
+	const r = ((hex >> 16) & 255) / 255;
+	const g = ((hex >> 8) & 255) / 255;
+	const b = (hex & 255) / 255;
+	return [r, g, b];
 }
 
 /**
@@ -165,10 +161,10 @@ export function hexStringToRgb(hexString: string): RGBColor {
  * hexNumberToRgb(0x654321) // [0.396, 0.263, 0.129]
  */
 export function hexNumberToRgb(hexNumber: number): RGBColor {
-  const r = ((hexNumber >> 16) & 255) / 255;
-  const g = ((hexNumber >> 8) & 255) / 255;
-  const b = (hexNumber & 255) / 255;
-  return [r, g, b];
+	const r = ((hexNumber >> 16) & 255) / 255;
+	const g = ((hexNumber >> 8) & 255) / 255;
+	const b = (hexNumber & 255) / 255;
+	return [r, g, b];
 }
 
 /**
@@ -181,7 +177,7 @@ export function hexNumberToRgb(hexNumber: number): RGBColor {
  * rgb255ToHex(101, 67, 33) // 6636321 (0x654321)
  */
 export function rgb255ToHex(r: number, g: number, b: number): number {
-  return (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b);
+	return (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b);
 }
 
 /**
@@ -194,126 +190,126 @@ export function rgb255ToHex(r: number, g: number, b: number): number {
  * rgb255ToHexString(101, 67, 33) // "#654321"
  */
 export function rgb255ToHexString(r: number, g: number, b: number): string {
-  return hexNumberToString(rgb255ToHex(r, g, b));
+	return hexNumberToString(rgb255ToHex(r, g, b));
 }
 
-const THEME_STORAGE_KEY = 'color-theme';
+const THEME_STORAGE_KEY = "color-theme";
 
 /**
  * Self-contained theme composable
  * Manages current theme, localStorage persistence, and provides reactive hex colors for Three.js
  */
 export function useTheme() {
-  const colorMode = useColorMode();
-  const currentTheme = ref<ColorTheme>('neutral');
+	const colorMode = useColorMode();
+	const currentTheme = ref<ColorTheme>("neutral");
 
-  // Reactive hex colors (re-compute when currentTheme changes)
-  const primary = computed(() => {
-    currentTheme.value; // Track dependency
-    colorMode.value;
-    return rgbToHex(parseOklchColor('--primary'));
-  });
+	// Reactive hex colors (re-compute when currentTheme changes)
+	const primary = computed(() => {
+		currentTheme.value; // Track dependency
+		colorMode.value;
+		return rgbToHex(parseOklchColor("--primary"));
+	});
 
-  const primaryForeground = computed(() => {
-    currentTheme.value;
-    colorMode.value;
-    return rgbToHex(parseOklchColor('--primary-foreground'));
-  });
+	const primaryForeground = computed(() => {
+		currentTheme.value;
+		colorMode.value;
+		return rgbToHex(parseOklchColor("--primary-foreground"));
+	});
 
-  const accent = computed(() => {
-    currentTheme.value;
-    colorMode.value;
-    return rgbToHex(parseOklchColor('--accent'));
-  });
+	const accent = computed(() => {
+		currentTheme.value;
+		colorMode.value;
+		return rgbToHex(parseOklchColor("--accent"));
+	});
 
-  const accentForeground = computed(() => {
-    currentTheme.value;
-    colorMode.value;
-    return rgbToHex(parseOklchColor('--accent-foreground'));
-  });
+	const accentForeground = computed(() => {
+		currentTheme.value;
+		colorMode.value;
+		return rgbToHex(parseOklchColor("--accent-foreground"));
+	});
 
-  const background = computed(() => {
-    currentTheme.value;
-    colorMode.value;
-    return rgbToHex(parseOklchColor('--background'));
-  });
+	const background = computed(() => {
+		currentTheme.value;
+		colorMode.value;
+		return rgbToHex(parseOklchColor("--background"));
+	});
 
-  const foreground = computed(() => {
-    currentTheme.value;
-    colorMode.value;
-    return rgbToHex(parseOklchColor('--foreground'));
-  });
+	const foreground = computed(() => {
+		currentTheme.value;
+		colorMode.value;
+		return rgbToHex(parseOklchColor("--foreground"));
+	});
 
-  const muted = computed(() => {
-    currentTheme.value;
-    colorMode.value;
-    return rgbToHex(parseOklchColor('--muted'));
-  });
+	const muted = computed(() => {
+		currentTheme.value;
+		colorMode.value;
+		return rgbToHex(parseOklchColor("--muted"));
+	});
 
-  const card = computed(() => {
-    currentTheme.value;
-    colorMode.value;
-    return rgbToHex(parseOklchColor('--card'));
-  });
+	const card = computed(() => {
+		currentTheme.value;
+		colorMode.value;
+		return rgbToHex(parseOklchColor("--card"));
+	});
 
-  const border = computed(() => {
-    currentTheme.value;
-    colorMode.value;
-    return rgbToHex(parseOklchColor('--border'));
-  });
+	const border = computed(() => {
+		currentTheme.value;
+		colorMode.value;
+		return rgbToHex(parseOklchColor("--border"));
+	});
 
-  function setTheme(theme: ColorTheme) {
-    currentTheme.value = theme;
-    document.documentElement.setAttribute('data-theme', theme);
+	function setTheme(theme: ColorTheme) {
+		currentTheme.value = theme;
+		document.documentElement.setAttribute("data-theme", theme);
 
-    // Persist to localStorage
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(THEME_STORAGE_KEY, theme);
-    }
-  }
+		// Persist to localStorage
+		if (typeof localStorage !== "undefined") {
+			localStorage.setItem(THEME_STORAGE_KEY, theme);
+		}
+	}
 
-  /**
-   * Hydrate theme from localStorage
-   * Call this on app initialization
-   */
-  function hydrate() {
-    if (typeof localStorage === 'undefined') return;
+	/**
+	 * Hydrate theme from localStorage
+	 * Call this on app initialization
+	 */
+	function hydrate() {
+		if (typeof localStorage === "undefined") return;
 
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as ColorTheme | null;
-    if (savedTheme && THEME_OPTIONS.some((opt) => opt.value === savedTheme)) {
-      setTheme(savedTheme);
-    }
-  }
+		const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as ColorTheme | null;
+		if (savedTheme && THEME_OPTIONS.some((opt) => opt.value === savedTheme)) {
+			setTheme(savedTheme);
+		}
+	}
 
-  // Palette: all available theme preview colors as a record for easy lookup
-  const palette = computed(() => {
-    const record: Record<ColorTheme, { label: string; color: string; hex: number }> = {} as any;
+	// Palette: all available theme preview colors as a record for easy lookup
+	const palette = computed(() => {
+		const record: Record<ColorTheme, { label: string; color: string; hex: number }> = {} as any;
 
-    THEME_OPTIONS.forEach((option) => {
-      record[option.value] = {
-        label: option.label,
-        color: option.color,
-        hex: parseInt(option.color.replace('#', ''), 16), // Convert to Three.js hex number
-      };
-    });
+		THEME_OPTIONS.forEach((option) => {
+			record[option.value] = {
+				label: option.label,
+				color: option.color,
+				hex: parseInt(option.color.replace("#", ""), 16), // Convert to Three.js hex number
+			};
+		});
 
-    return record;
-  });
+		return record;
+	});
 
-  return {
-    colorMode,
-    currentTheme,
-    primary,
-    primaryForeground,
-    accent,
-    accentForeground,
-    background,
-    foreground,
-    muted,
-    card,
-    border,
-    palette,
-    setTheme,
-    hydrate,
-  };
+	return {
+		colorMode,
+		currentTheme,
+		primary,
+		primaryForeground,
+		accent,
+		accentForeground,
+		background,
+		foreground,
+		muted,
+		card,
+		border,
+		palette,
+		setTheme,
+		hydrate,
+	};
 }

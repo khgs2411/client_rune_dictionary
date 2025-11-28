@@ -1,10 +1,10 @@
-import type { Material, Mesh } from 'three';
+import type { Material, Mesh } from "three";
 
 /**
  * Interface for components that provide mesh access for physics registration
  */
 export interface I_MeshProvider {
-  getMesh(): Mesh;
+	getMesh(): Mesh;
 }
 
 /**
@@ -12,5 +12,5 @@ export interface I_MeshProvider {
  * Implemented by MaterialComponent, ToonMaterialComponent, etc.
  */
 export interface I_MaterialProvider {
-  material: Material;
+	material: Material;
 }

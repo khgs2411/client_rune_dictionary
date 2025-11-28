@@ -1,10 +1,10 @@
-import type { I_SceneContext } from '@/game/common/scenes.types';
-import { ComponentPriority, GameComponent } from '@/game/GameComponent';
+import type { I_SceneContext } from "@/game/common/scenes.types";
+import { ComponentPriority, GameComponent } from "@/game/GameComponent";
 
 export interface I_HotkeyConfig {
-  key: string; // Key to listen for (e.g., '1', 'a', 'Escape')
-  modifiers?: { ctrl?: boolean; shift?: boolean; alt?: boolean }; // Optional modifier keys
-  onPress: (event: KeyboardEvent) => void; // Callback when key is pressed
+	key: string; // Key to listen for (e.g., '1', 'a', 'Escape')
+	modifiers?: { ctrl?: boolean; shift?: boolean; alt?: boolean }; // Optional modifier keys
+	onPress: (event: KeyboardEvent) => void; // Callback when key is pressed
 }
 
 /**
@@ -39,35 +39,35 @@ export interface I_HotkeyConfig {
  * Priority: INTERACTION (300) - Runs after physics/rendering
  */
 export class HotkeyComponent extends GameComponent {
-  public readonly priority = ComponentPriority.INTERACTION;
+	public readonly priority = ComponentPriority.INTERACTION;
 
-  private config: I_HotkeyConfig;
-  private unregister?: () => void;
+	private config: I_HotkeyConfig;
+	private unregister?: () => void;
 
-  constructor(config: I_HotkeyConfig) {
-    super();
-    this.config = config;
-  }
+	constructor(config: I_HotkeyConfig) {
+		super();
+		this.config = config;
+	}
 
-  async init(context: I_SceneContext): Promise<void> {
-    const interaction = context.getService('interaction');
+	async init(context: I_SceneContext): Promise<void> {
+		const interaction = context.getService("interaction");
 
-    // Register keyboard callback with InteractionService
-    this.unregister = interaction.registerKeyPress(
-      `${this.gameObject.id}-hotkey-${this.config.key}`,
-      this.config.key,
-      (event) => {
-        // Delegate to callback (component logic decided by user)
-        this.config.onPress(event);
-      },
-      this.config.modifiers,
-    );
-  }
+		// Register keyboard callback with InteractionService
+		this.unregister = interaction.registerKeyPress(
+			`${this.gameObject.id}-hotkey-${this.config.key}`,
+			this.config.key,
+			(event) => {
+				// Delegate to callback (component logic decided by user)
+				this.config.onPress(event);
+			},
+			this.config.modifiers,
+		);
+	}
 
-  destroy(): void {
-    // Unregister from InteractionService
-    if (this.unregister) {
-      this.unregister();
-    }
-  }
+	destroy(): void {
+		// Unregister from InteractionService
+		if (this.unregister) {
+			this.unregister();
+		}
+	}
 }

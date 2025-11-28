@@ -1,63 +1,63 @@
-import { I_SceneContext } from '@/game/common/scenes.types';
-import { useRxjs } from 'topsyde-utils';
+import { I_SceneContext } from "@/game/common/scenes.types";
+import { useRxjs } from "topsyde-utils";
 
 export default abstract class SceneModule {
-  public name: string = this.constructor.name;
-  protected rxjs = useRxjs('module:loading', undefined, { static_instance: true });
+	public name: string = this.constructor.name;
+	protected rxjs = useRxjs("module:loading", undefined, { static_instance: true });
 
-  protected id: string; // Will be set to module name for persistence
-  protected context!: I_SceneContext;
+	protected id: string; // Will be set to module name for persistence
+	protected context!: I_SceneContext;
 
-  constructor(
-    moduleName?: string,
-    private autoInitialize: boolean = true,
-  ) {
-    if (moduleName) {
-      this.name = moduleName;
-    }
-    // Use module name as ID for deterministic object IDs (important for save/load)
-    this.id = this.name;
-  }
+	constructor(
+		moduleName?: string,
+		private autoInitialize: boolean = true,
+	) {
+		if (moduleName) {
+			this.name = moduleName;
+		}
+		// Use module name as ID for deterministic object IDs (important for save/load)
+		this.id = this.name;
+	}
 
-  /**
-   * Initializes the module with the provided context.
-   * This method must be implemented by subclasses to perform any setup or initialization logic required for the module.
-   * It can be asynchronous if needed.
-   *
-   * @param context - The context object containing information and dependencies required by the module.
-   * @returns A void or a Promise that resolves when initialization is complete.
-   */
-  protected abstract init(context: I_SceneContext): void | Promise<void>;
+	/**
+	 * Initializes the module with the provided context.
+	 * This method must be implemented by subclasses to perform any setup or initialization logic required for the module.
+	 * It can be asynchronous if needed.
+	 *
+	 * @param context - The context object containing information and dependencies required by the module.
+	 * @returns A void or a Promise that resolves when initialization is complete.
+	 */
+	protected abstract init(context: I_SceneContext): void | Promise<void>;
 
-  /**
-   * Initialize the module
-   * @param context Module Context
-   */
-  public async start(context: I_SceneContext): Promise<void> {
-    this.context = context;
-    await this.init(context);
-    // Emit loading complete event
-    if (this.autoInitialize) this.initialized(context.sceneName);
-  }
+	/**
+	 * Initialize the module
+	 * @param context Module Context
+	 */
+	public async start(context: I_SceneContext): Promise<void> {
+		this.context = context;
+		await this.init(context);
+		// Emit loading complete event
+		if (this.autoInitialize) this.initialized(context.sceneName);
+	}
 
-  /**
-   * Set module name (called by GameScene.addModule)
-   */
-  public setName(name: string): void {
-    this.name = name;
-    this.id = name; // Keep ID in sync with name for persistence
-  }
+	/**
+	 * Set module name (called by GameScene.addModule)
+	 */
+	public setName(name: string): void {
+		this.name = name;
+		this.id = name; // Keep ID in sync with name for persistence
+	}
 
-  protected initialized(sceneName: string) {
-    setTimeout(() => {
-      this.rxjs.$next('loaded', {
-        moduleName: this.name,
-        sceneName: sceneName,
-      });
-    }, Math.random() * 333); // Simulated delay
-  }
+	protected initialized(sceneName: string) {
+		setTimeout(() => {
+			this.rxjs.$next("loaded", {
+				moduleName: this.name,
+				sceneName: sceneName,
+			});
+		}, Math.random() * 333); // Simulated delay
+	}
 
-  public close() {
-    this.rxjs.$unsubscribe();
-  }
+	public close() {
+		this.rxjs.$unsubscribe();
+	}
 }
