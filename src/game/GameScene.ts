@@ -7,7 +7,7 @@ import { I_SceneContext, I_SceneModule, I_SceneSystems } from "@/game/common/sce
 import type { Engine } from "@/game/Engine";
 import { ModuleRegistry } from "@/game/ModuleRegistry";
 import { GameObjectsManager } from "@/game/services/GameObjectsManager";
-import { InteractionSystem } from "@/game/services/InteractionService";
+import { InteractionSystem } from "@/game/services/InteractionSystem";
 import { PhysicsService } from "@/game/services/PhysicsService";
 import SceneStateService from "@/game/services/SceneStateService";
 import { Spawner } from "@/game/services/Spawner";
