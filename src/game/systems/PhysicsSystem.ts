@@ -91,6 +91,11 @@ export class PhysicsSystem extends SceneSystem {
 	private world!: RAPIER_TYPE.World;
 	private RAPIER!: typeof RAPIER_TYPE;
 	private isInitialized = false;
+	private loadError: Error | null = null;
+
+	// Fixed timestep accumulator for consistent physics across all framerates
+	private accumulator = 0;
+	private readonly FIXED_TIMESTEP = 1 / 60; // 60 Hz physics
 
 	// Tracking maps
 	private bodies = new Map<string, RAPIER_TYPE.RigidBody>();
@@ -102,8 +107,9 @@ export class PhysicsSystem extends SceneSystem {
 	private activeCollisions = new Map<string, Set<string>>(); // id -> Set of colliding ids
 	private colliderToId = new Map<number, string>(); // Rapier collider handle -> GameObject id
 
-	// Debug wireframes
-	private debugWireframes = new Map<string, LineSegments>();
+	// Debug wireframes (separated by body type for performance)
+	private staticDebugWireframes = new Map<string, LineSegments>();
+	private kinematicDebugWireframes = new Map<string, LineSegments>();
 	private debugMaterial = new LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
 
 	// ============================================================================
@@ -111,14 +117,21 @@ export class PhysicsSystem extends SceneSystem {
 	// ============================================================================
 
 	protected async init(context: I_SceneContext): Promise<void> {
-		// Load Rapier WASM module
-		this.RAPIER = await RAPIER;
+		try {
+			// Load Rapier WASM module
+			this.RAPIER = await RAPIER;
 
-		// Create physics world with gravity
-		const gravity = { x: 0.0, y: -9.81, z: 0.0 };
-		this.world = new this.RAPIER.World(gravity);
+			// Create physics world with gravity
+			const gravity = { x: 0.0, y: -9.81, z: 0.0 };
+			this.world = new this.RAPIER.World(gravity);
 
-		this.isInitialized = true;
+			this.isInitialized = true;
+			console.log("🎮 [PhysicsSystem] Initialized successfully");
+		} catch (error) {
+			this.loadError = error as Error;
+			console.error("🎮 [PhysicsSystem] Failed to initialize Rapier:", error);
+			throw error; // Re-throw to let caller handle
+		}
 
 		// Register debug material for disposal
 		context.cleanupRegistry.registerDisposable(this.debugMaterial);
@@ -143,13 +156,20 @@ export class PhysicsSystem extends SceneSystem {
 
 	public update(delta: number): void {
 		if (!this.isInitialized) return;
-		this.world.step();
+
+		// Fixed timestep accumulator pattern for consistent physics across all framerates
+		// Prevents physics from running faster/slower based on render framerate
+		this.accumulator += delta;
+		while (this.accumulator >= this.FIXED_TIMESTEP) {
+			this.world.step();
+			this.accumulator -= this.FIXED_TIMESTEP;
+		}
 
 		// Check for collisions
 		this.detectCollisions();
 
-		// Update debug wireframes if any exist
-		if (this.debugWireframes.size > 0) {
+		// Update debug wireframes for kinematic bodies only (static bodies don't move)
+		if (this.kinematicDebugWireframes.size > 0) {
 			this.updateDebugWireframes();
 		}
 	}
@@ -171,7 +191,11 @@ export class PhysicsSystem extends SceneSystem {
 	}
 
 	public isReady(): boolean {
-		return this.isInitialized;
+		return this.isInitialized && !this.loadError;
+	}
+
+	public getLoadError(): Error | null {
+		return this.loadError;
 	}
 
 	// ============================================================================
@@ -181,13 +205,17 @@ export class PhysicsSystem extends SceneSystem {
 	/**
 	 * Detect collisions and invoke callbacks
 	 * Called every frame in update()
+	 * Performance: Only checks objects that have registered collision callbacks
 	 */
 	private detectCollisions(): void {
+		// Early exit if no collision handlers registered
+		if (this.collisionHandlers.size === 0) return;
+
 		const currentFrameCollisions = new Map<string, Set<string>>();
 
-		// Iterate through all tracked colliders and check their contact pairs
-		for (const [handle, id1] of this.colliderToId) {
-			const collider1 = this.world.getCollider(handle);
+		// Only check objects that have registered collision callbacks
+		for (const [id1] of this.collisionHandlers) {
+			const collider1 = this.colliders.get(id1);
 			if (!collider1) continue;
 
 			// Check all colliders in contact with this one
@@ -425,12 +453,18 @@ export class PhysicsSystem extends SceneSystem {
 		// Remove collision tracking
 		this.unregisterCollisionCallbacks(id);
 
-		// Remove debug wireframe if exists
+		// Remove debug wireframe if exists (check both static and kinematic maps)
 		// Note: Geometry disposal is handled by lifecycle.registerDisposable()
-		const wireframe = this.debugWireframes.get(id);
-		if (wireframe) {
-			this.context?.scene.remove(wireframe);
-			this.debugWireframes.delete(id);
+		const staticWireframe = this.staticDebugWireframes.get(id);
+		if (staticWireframe) {
+			this.context?.scene.remove(staticWireframe);
+			this.staticDebugWireframes.delete(id);
+		}
+
+		const kinematicWireframe = this.kinematicDebugWireframes.get(id);
+		if (kinematicWireframe) {
+			this.context?.scene.remove(kinematicWireframe);
+			this.kinematicDebugWireframes.delete(id);
 		}
 	}
 
@@ -785,20 +819,22 @@ export class PhysicsSystem extends SceneSystem {
 		// Track collider handle for collision detection
 		this.colliderToId.set(collider.handle, id);
 
+		const isKinematic = controller !== null;
 		if (controller) {
 			this.kinematicControllers.set(id, controller);
 		}
 
 		// Create debug wireframe if requested
 		if (showDebug && this.context) {
-			this.createDebugWireframe(id, collider, body);
+			this.createDebugWireframe(id, collider, body, isKinematic);
 		}
 	}
 
 	/**
 	 * Create debug wireframe for a collider
+	 * @param isKinematic - If true, wireframe position will be updated each frame
 	 */
-	private createDebugWireframe(id: string, collider: RAPIER_TYPE.Collider, body: RAPIER_TYPE.RigidBody): void {
+	private createDebugWireframe(id: string, collider: RAPIER_TYPE.Collider, body: RAPIER_TYPE.RigidBody, isKinematic: boolean = false): void {
 		// Get collider shape from the actual collider (not descriptor)
 		const shapeType = collider.shapeType();
 
@@ -831,7 +867,7 @@ export class PhysicsSystem extends SceneSystem {
 			geometry = new CylinderGeometry(radius, radius, halfHeight * 2, 16);
 		} else {
 			// Default to box for unknown types
-			console.warn(`[PhysicsService] Unknown shape type ${shapeType} for ${id}, using default box`);
+			console.warn(`[PhysicsSystem] Unknown shape type ${shapeType} for ${id}, using default box`);
 			geometry = new BoxGeometry(1, 1, 1);
 		}
 
@@ -852,25 +888,33 @@ export class PhysicsSystem extends SceneSystem {
 		this.context.cleanupRegistry.registerDisposable(edges); // EdgesGeometry
 		this.context.cleanupRegistry.registerObject(wireframe); // LineSegments (Object3D)
 
-		// Add to scene and track
+		// Add to scene and track in appropriate map
 		this.context.scene.add(wireframe);
-		this.debugWireframes.set(id, wireframe);
+		if (isKinematic) {
+			this.kinematicDebugWireframes.set(id, wireframe);
+		} else {
+			this.staticDebugWireframes.set(id, wireframe);
+		}
 	}
 
 	/**
 	 * Toggle debug wireframes on/off globally
 	 */
 	public setDebugWireframesVisible(visible: boolean): void {
-		this.debugWireframes.forEach((wireframe) => {
+		this.staticDebugWireframes.forEach((wireframe) => {
+			wireframe.visible = visible;
+		});
+		this.kinematicDebugWireframes.forEach((wireframe) => {
 			wireframe.visible = visible;
 		});
 	}
 
 	/**
-	 * Update debug wireframe positions (call in update loop if bodies move)
+	 * Update debug wireframe positions for kinematic bodies only
+	 * Static bodies don't move, so their wireframes don't need updating
 	 */
 	private updateDebugWireframes(): void {
-		this.debugWireframes.forEach((wireframe, id) => {
+		this.kinematicDebugWireframes.forEach((wireframe, id) => {
 			const body = this.bodies.get(id);
 			if (body) {
 				const pos = body.translation();
