@@ -1,15 +1,6 @@
 import type * as RAPIER_TYPE from "@dimforge/rapier3d";
 import { ShapeType } from "@dimforge/rapier3d";
-import {
-	BoxGeometry,
-	CapsuleGeometry,
-	CylinderGeometry,
-	EdgesGeometry,
-	LineBasicMaterial,
-	LineSegments,
-	Scene,
-	SphereGeometry,
-} from "three";
+import { BoxGeometry, CapsuleGeometry, CylinderGeometry, EdgesGeometry, LineBasicMaterial, LineSegments, Scene, SphereGeometry } from "three";
 import { DataStore } from "@/stores/DataStore";
 import { CleanupRegistry } from "@/game/CleanupRegistry";
 

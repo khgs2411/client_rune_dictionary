@@ -854,11 +854,11 @@ Manual testing with live WebSocket connection required to verify:
 
 ---
 
-### ✅ Iteration 2.5: InteractionComponent Range Extension & HoverComponent Refactor
+### 🚧 Iteration 2.5: InteractionComponent Range Extension & HoverComponent Refactor
 
 **Goal**: Add interaction range checking to InteractionComponent and refactor HoverComponent to be range-aware
 
-**Status**: ✅ BRAINSTORMING COMPLETE (ready for implementation)
+**Status**: 🚧 IMPLEMENTING (brainstorming complete)
 
 **Context**:
 The user wants to add distance-based interaction checking to allow NPCs to only interact when players are within range. This involves:
@@ -1334,32 +1334,32 @@ class MatchComponent extends GameComponent {
 
 **Phase 1: UnitsComponent Implementation**
 
-- [ ] Create `src/game/components/interactions/UnitsComponent.ts`
-- [ ] Implement `distanceTo(target: Vector3 | GameObject): number` method
-- [ ] Implement `distanceToPlayer(): number` convenience method
-- [ ] Add `playerRef` property (set by orchestrating components)
-- [ ] Add tests for distance calculation (unit tests)
+- [x] Create `src/game/components/interactions/UnitsComponent.ts` (101 lines, located in `/src/game/components/entities/`)
+- [x] Implement `distanceTo(target: Vector3 | GameObject): number` method
+- [x] Implement `distanceToPlayer(): number` convenience method (uses `context.character` for player ref)
+- [x] Add `playerRef` property (implemented via `context.character` dependency injection)
+- [ ] Add tests for distance calculation (unit tests) - NOT VERIFIED
 
 **Phase 2: Integration with Existing Components**
 
-- [ ] Update MatchComponent to use UnitsComponent pattern
-- [ ] Add UnitsComponent to NPC GameObjects (via prefab or factory)
-- [ ] Wire up player reference in scene initialization
-- [ ] Verify HoverComponent remains pure (emits events only)
-- [ ] Verify InteractionComponent remains pure (emits events only)
+- [x] Update MatchComponent to use UnitsComponent pattern (uses `this.requireComponent(UnitsComponent)` at line 103)
+- [x] Add UnitsComponent to NPC GameObjects (TrainingDummy prefab includes it at line 78)
+- [x] Wire up player reference in scene initialization (via `context.character` - no manual setup needed)
+- [x] Verify HoverComponent remains pure (emits events only) - CONFIRMED PURE
+- [x] Verify InteractionComponent remains pure (emits events only) - CONFIRMED PURE
 
 **Phase 3: MatchComponent Range Checking**
 
-- [ ] Add private `MATCH_RANGE = 10` constant to MatchComponent
-- [ ] Modify `doubleclick` handler to check distance before triggering match
-- [ ] Add visual feedback for "too far away" scenario (optional: show message)
-- [ ] Test interaction at various distances (5, 10, 15, 20 units)
+- [x] Add private `DEFAULT_INTERACTION_RANGE = 10` constant to MatchComponent (line 68)
+- [x] Modify `doubleclick` handler to check distance before triggering match (lines 162-167)
+- [x] Add visual feedback for "too far away" scenario (console log: "Cannot start match - player too far")
+- [ ] Test interaction at various distances (5, 10, 15, 20 units) - NOT VERIFIED
 
 **Phase 4: HoverComponent Range Checking (Optional for 2.5)**
 
-- [ ] Add hover distance checking to MatchComponent (listen to hover events, query distance)
-- [ ] Show red outline for out-of-range hover (vs. interactive glow for in-range)
-- [ ] Test hover feedback at various distances
+- [x] Add hover distance checking to MatchComponent (listen to hover events, query distance via `setupHoverListener()` at lines 118-131)
+- [x] Show red outline for out-of-range hover (vs. interactive glow for in-range) (implemented at lines 123-125)
+- [ ] Test hover feedback at various distances - NOT VERIFIED
 
 **Testing Requirements**
 
@@ -1371,15 +1371,15 @@ class MatchComponent extends GameComponent {
 - [ ] Manual test: Double-click NPC at 15 units (should show "too far away")
 - [ ] Manual test: Hover feedback changes based on distance
 
-**Files to Create**:
+**Files Created**:
 
-- `src/game/components/interactions/UnitsComponent.ts`
+- [x] `src/game/components/entities/UnitsComponent.ts` (COMPLETE)
 
-**Files to Modify**:
+**Files Modified**:
 
-- `src/scenes/match/MatchComponent.ts` (add range checking logic)
-- NPC prefab factory (add UnitsComponent to all NPCs)
-- Scene initialization (wire up player reference)
+- [x] `src/game/components/match/MatchComponent.ts` (added range checking logic)
+- [x] `src/game/prefabs/npc/TrainingDummy.ts` (includes UnitsComponent)
+- [x] Scene integration (player reference via `context.character`)
 
 ---
 
@@ -1404,38 +1404,40 @@ This iteration consolidates Iterations 2 & 4 from original plan because:
 
 **Already Complete**:
 
-- ✅ Turn start/end events tracked (`handleTurnStart`, `handleTurnEnd` in `useMatchState.ts`)
+- ✅ Turn start/end events tracked (`handleTurnStart` at line 131, `handleTurnEnd` in `useMatchState.ts`)
+- ✅ `isPlayerTurn` determined by comparing player entityId with `turn.currentEntityId` (`useMatchState.ts` line 36)
 - ✅ TurnTimer countdown with local prediction & drift correction
-- ✅ `turn.isPlayerTurn` tracked in state
-- ✅ Turn timer visibility/running controls
+- ✅ `turn.isPlayerTurn` updated in `handleTurnStart` (line 131) and `handleStateUpdate` (line 168)
+- ✅ ATB pauses during turns - `atb.value.running` controlled by turn state
+- ✅ Turn timer visibility/running controls integrated with ATB pause/resume
 - ✅ ActionBar UI with 8 slots + Pass/Run buttons
-- ✅ Keyboard bindings (1-8) for action selection
-- ✅ Leave match handler
-- ✅ Health updates reflected in StatusPanel
-- ✅ Damage dealt event logging
+- ✅ Keyboard bindings (1-8) for action selection (ActionBar.vue lines 160-173)
+- ✅ Leave match handler (`handleLeaveChannel`)
+- ✅ Health updates reflected in StatusPanel via `match.health.update` events
+- ✅ Damage dealt event logging via `match.damage.dealt` events
+- ✅ Turn timeout handling - **CANCELLED** - Server automatically handles via `fallbackAction: 'pass'` in timer config
 
 **Still Needed**:
 
-- [ ] Add `isPlayerTurn` prop to ActionBar component
-- [ ] Disable action buttons when `isPlayerTurn` is false
-- [ ] Implement `sendAction()` WebSocket message to server
-- [ ] Implement `sendPass()` WebSocket message to server (fallback action)
-- [ ] Add turn validation before allowing action submission
-- [ ] Handle action response events from server
-- [ ] Implement turn timeout handling (auto-pass at 0 using `fallbackAction: 'pass'`)
+- [ ] Pass `isPlayerTurn` prop from MatchHUD.vue to ActionBar.vue
+- [ ] Add visual disabled state to action buttons when `isPlayerTurn` is false
+- [ ] Create `sendAction(actionId)` WebSocket method (send to server)
+- [ ] Create `sendPass()` WebSocket method (fallback action)
+- [ ] Add turn validation - prevent action submission when not player's turn
+- [ ] Wire ActionBar button clicks to send WebSocket messages
 
 #### Action Items
 
-- [ ] Update ActionBar.vue to accept `isPlayerTurn` prop from parent
-- [ ] Add visual disabled state styling to ActionBar buttons when not player's turn
-- [ ] Create action submission methods in WebSocket store (`sendAction(actionId)`, `sendPass()`)
-- [ ] Add turn validation: throw error if trying to submit action when `isPlayerTurn` is false
-- [ ] Integrate action keyboard bindings (1-8) with validation
-- [ ] Create event handler for `match.action.executed` or similar response event
-- [ ] Implement turn timeout handler - call `sendPass()` when timer reaches 0 on player turn
-- [ ] Test action submission end-to-end (player turn → select action → server receives → action executes)
-- [ ] Test turn timeout behavior (player turn expires → auto-pass fires → enemy turn begins)
-- [ ] Verify action buttons are disabled during enemy turn
+- [ ] Add `isPlayerTurn` prop to ActionBar.vue component signature
+- [ ] Pass `isPlayerTurn` from MatchHUD.vue down to ActionBar (get from `matchStore.gameState.turn?.isPlayerTurn`)
+- [ ] Update action button styling: add `disabled:opacity-50 disabled:cursor-not-allowed` when `!isPlayerTurn`
+- [ ] Update Pass button styling: add `disabled:opacity-50 disabled:cursor-not-allowed` when `!isPlayerTurn`
+- [ ] Create `sendAction(actionId: string)` method in websocket store or match store
+- [ ] Create `sendPass()` method in websocket store or match store
+- [ ] Wire ActionBar action button clicks (1-8) to call `sendAction()` with turn validation
+- [ ] Wire ActionBar Pass button click to call `sendPass()` with turn validation
+- [ ] Add console warning if user attempts action during enemy turn
+- [ ] Test end-to-end: player turn → click action button → server receives message → action executes → turn ends
 
 ---
 

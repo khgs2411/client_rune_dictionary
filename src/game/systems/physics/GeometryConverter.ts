@@ -1,16 +1,5 @@
 import type * as RAPIER_TYPE from "@dimforge/rapier3d";
-import {
-	BoxGeometry,
-	CapsuleGeometry,
-	ConeGeometry,
-	CylinderGeometry,
-	InstancedMesh,
-	Mesh,
-	Object3D,
-	PlaneGeometry,
-	SphereGeometry,
-	Vector3,
-} from "three";
+import { BoxGeometry, CapsuleGeometry, ConeGeometry, CylinderGeometry, InstancedMesh, Mesh, Object3D, PlaneGeometry, SphereGeometry, Vector3 } from "three";
 import type { KinematicConfig, StaticBodyConfig, Vector3Like } from "./physics.types";
 
 const PLANE_THICKNESS = 0.1;
