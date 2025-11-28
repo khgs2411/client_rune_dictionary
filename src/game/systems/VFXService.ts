@@ -18,7 +18,7 @@ import {
 	Vector3,
 } from "three";
 import { Text } from "troika-three-text";
-import SceneSystem from "./SceneService";
+import SceneSystem from "./SceneSystem";
 
 /**
  * Text Sprite - Flyweight pattern for reusable text effects

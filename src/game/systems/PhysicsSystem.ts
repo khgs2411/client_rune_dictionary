@@ -21,7 +21,7 @@ import {
 	Vector3,
 } from "three";
 import { watch } from "vue";
-import SceneSystem from "./SceneService";
+import SceneSystem from "./SceneSystem";
 
 // Dynamic WASM import (loaded at runtime)
 const RAPIER = import("@dimforge/rapier3d") as any;

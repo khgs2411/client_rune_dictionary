@@ -5,7 +5,7 @@ import { Raycast } from "@/game/utils/Raycast";
 import { useGameConfigStore } from "@/stores/config.store";
 import { DataStore } from "@/stores/DataStore";
 import { GridHelper, Intersection, Mesh, Object3D, Plane, Vector3 } from "three";
-import SceneSystem from "./SceneService";
+import SceneSystem from "./SceneSystem";
 
 /**
  * Callback types for interaction events

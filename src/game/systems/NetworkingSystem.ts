@@ -1,7 +1,7 @@
 import { useWebSocketStore, WebsocketManager } from "@/stores/websocket.store";
 import { WebsocketStructuredMessage } from "topsyde-utils";
 import { I_SceneContext, I_SceneSystem } from "../common/scenes.types";
-import SceneSystem from "./SceneService";
+import SceneSystem from "./SceneSystem";
 
 /**
  * Network event categories that can be subscribed to

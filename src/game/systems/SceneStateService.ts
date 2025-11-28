@@ -1,6 +1,6 @@
 import { useRxjs } from "topsyde-utils";
 import { I_SceneContext, I_SceneSystem } from "../common/scenes.types";
-import SceneSystem from "./SceneService";
+import SceneSystem from "./SceneSystem";
 
 /**
  * Scene state enum for controlling game behavior
