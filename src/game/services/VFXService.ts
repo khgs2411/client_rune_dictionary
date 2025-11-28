@@ -18,7 +18,7 @@ import {
 	Vector3,
 } from "three";
 import { Text } from "troika-three-text";
-import SceneService from "./SceneService";
+import SceneSystem from "./SceneService";
 
 /**
  * Text Sprite - Flyweight pattern for reusable text effects
@@ -338,7 +338,7 @@ class ParticleSystem {
  * VFX Module - Visual Effects with Object Pooling
  * Handles text sprites, tooltips, particle effects, etc.
  */
-export class VFXService extends SceneService {
+export class VFXService extends SceneSystem {
 	// Pool size constants
 	private static readonly POOL_SIZES = {
 		TEXT_SPRITES: 10, // POW!/BAM! text effects

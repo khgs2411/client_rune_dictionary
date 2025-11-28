@@ -21,7 +21,7 @@ import {
 	Vector3,
 } from "three";
 import { watch } from "vue";
-import SceneService from "./SceneService";
+import SceneSystem from "./SceneService";
 
 // Dynamic WASM import (loaded at runtime)
 const RAPIER = import("@dimforge/rapier3d") as any;
@@ -87,7 +87,7 @@ interface MovementResult {
  * - isGrounded(): Check if kinematic is on ground
  * - remove(): Clean up physics body
  */
-export class PhysicsService extends SceneService {
+export class PhysicsService extends SceneSystem {
 	private world!: RAPIER_TYPE.World;
 	private RAPIER!: typeof RAPIER_TYPE;
 	private isInitialized = false;

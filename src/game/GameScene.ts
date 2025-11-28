@@ -7,7 +7,7 @@ import { I_SceneContext, I_SceneModule, I_SceneSystems } from "@/game/common/sce
 import type { Engine } from "@/game/Engine";
 import { ModuleRegistry } from "@/game/ModuleRegistry";
 import { GameObjectsManager } from "@/game/services/GameObjectsManager";
-import { InteractionService } from "@/game/services/InteractionService";
+import { InteractionSystem } from "@/game/services/InteractionService";
 import { PhysicsService } from "@/game/services/PhysicsService";
 import SceneStateService from "@/game/services/SceneStateService";
 import { Spawner } from "@/game/services/Spawner";
@@ -44,7 +44,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
 
 	// Services (shared across modules)
 	protected services: I_SceneSystems = {
-		interaction: new InteractionService(),
+		interaction: new InteractionSystem(),
 		vfx: new VFXService(),
 		physics: new PhysicsService(),
 		networking: new NetworkingService(),

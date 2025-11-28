@@ -5,7 +5,7 @@ import { Raycast } from "@/game/utils/Raycast";
 import { useGameConfigStore } from "@/stores/config.store";
 import { DataStore } from "@/stores/DataStore";
 import { GridHelper, Intersection, Mesh, Object3D, Plane, Vector3 } from "three";
-import SceneService from "./SceneService";
+import SceneSystem from "./SceneService";
 
 /**
  * Callback types for interaction events
@@ -74,7 +74,7 @@ interface DragHandler {
  * - registerDrag() - Register drag callbacks with plane intersection
  * - unregister() - Clean up registered handler
  */
-export class InteractionService extends SceneService implements I_SceneSystem {
+export class InteractionSystem extends SceneSystem implements I_SceneSystem {
 	// Utilities
 	private raycast = new Raycast();
 	private mouse!: Mouse;

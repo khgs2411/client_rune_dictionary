@@ -1107,14 +1107,14 @@ This codebase uses **two complementary patterns**:
 - **HoverComponent** - Pure hover detection (emits 'start'/'end' events)
 - **MatchComponent** - Orchestrator example (listens to events, checks range, triggers state)
 - **UnitsComponent** - Pure distance measurement (no events, just data)
-- **VFXService** - Visual effects (emissive glow, particles, camera shake)
+- **VFXSystem** - Visual effects (emissive glow, particles, camera shake)
 
 **Pattern B Flow Example:**
 ```
 User hovers over NPC
   → HoverComponent emits 'start'
   → MatchComponent listens, checks UnitsComponent.isPlayerWithinRange()
-  → If in range: VFXService.applyEmissive() shows combat glow
+  → If in range: VFXSystem.applyEmissive() shows combat glow
 
 User double-clicks NPC
   → InteractionComponent emits 'doubleclick'

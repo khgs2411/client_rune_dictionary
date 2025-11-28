@@ -1,6 +1,6 @@
 import { I_SceneContext } from "../common/scenes.types";
 
-export default abstract class SceneService {
+export default abstract class SceneSystem {
 	protected context!: I_SceneContext;
 	/**
 	 * Initializes the module with the provided context.

@@ -5,7 +5,7 @@ import { I_ThemeColors } from "@/composables/useTheme";
 import { CleanupRegistry } from "@/game/CleanupRegistry";
 import { Engine } from "@/game/Engine";
 import { GameObjectsManager } from "@/game/services/GameObjectsManager";
-import type { InteractionService } from "@/game/services/InteractionService";
+import type { InteractionSystem } from "@/game/services/InteractionService";
 import { PhysicsService } from "@/game/services/PhysicsService";
 import SceneStateService from "@/game/services/SceneStateService";
 import { Spawner } from "@/game/services/Spawner";
@@ -80,7 +80,7 @@ export interface I_SceneModule {
  * This is how cross-cutting concerns (interaction, audio, etc.) are shared
  */
 export interface I_SceneSystems {
-	interaction: InteractionService;
+	interaction: InteractionSystem;
 	vfx: VFXService;
 	physics: PhysicsService;
 	networking: NetworkingService;

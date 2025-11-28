@@ -1,6 +1,6 @@
 import { I_ThemeColors } from "@/composables/useTheme";
 import type { I_SceneContext, I_SceneSystem } from "@/game/common/scenes.types";
-import SceneService from "@/game/services/SceneService";
+import SceneSystem from "@/game/services/SceneService";
 import { I_GameComponent } from "../GameComponent";
 import { GameObject } from "../GameObject";
 
@@ -13,7 +13,7 @@ import { GameObject } from "../GameObject";
  * - Collection management
  * - Context passing to components
  */
-export class GameObjectsManager extends SceneService implements I_SceneSystem {
+export class GameObjectsManager extends SceneSystem implements I_SceneSystem {
 	private gameObjects = new Map<string, GameObject>();
 
 	/**
