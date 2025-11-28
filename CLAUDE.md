@@ -366,31 +366,27 @@ export class SceneObjectsModule extends SceneModule {
 }
 ```
 
-#### 3. Service Layer Pattern
+#### 3. Systems Layer Pattern
 
-GameScene provides shared services via the `services` property in `I_ModuleContext`:
+GameScene provides shared **systems** (game-wide subsystems) via the context. Systems are distinct from components - they provide scene-wide functionality that multiple GameObjects/Components can use.
 
 ```typescript
-// GameScene initialization
-protected services = {
-  interaction: new InteractionService(),
-};
-
-// Modules access services via context
-async start(context: I_ModuleContext): Promise<void> {
-  // Register interactable objects
-  context.services.interaction.register('my-object', mesh, config);
+// Components access systems via context.getService()
+async init(context: I_SceneContext): Promise<void> {
+  const interaction = context.getService("interaction");
+  const vfx = context.getService("vfx");
+  const state = context.getService("state");
 }
 ```
 
-**Current Services:**
+**Current Systems** (`src/game/services/`):
 
-- **InteractionService** - Centralized interaction detection and visual feedback
-    - Eliminates need for `I_InteractableModule` interface boilerplate
-    - Modules simply call `context.services.interaction.register()`
-    - Components use builder pattern: `context.services.interaction.register(id, mesh).withHoverGlow().withClickVFX()`
+- **InteractionSystem** - Centralized interaction detection and event handling
+    - Registers hover/click handlers for meshes
+    - Components use: `interaction.registerHover()`, `interaction.registerMouseClick()`
+    - Handles raycasting and event dispatch
 
-- **PhysicsService** - Rapier-based physics engine wrapper (Rapier3D WASM)
+- **PhysicsSystem** - Rapier-based physics engine wrapper (Rapier3D WASM)
     - Simple facade over Rapier physics (single file, minimal API)
     - Static bodies: `registerStatic()`, `registerStaticFromMesh()`, `registerInstancedStatic()`
     - Kinematic characters: `registerKinematic()`, `registerKinematicFromMesh()`
@@ -398,7 +394,7 @@ async start(context: I_ModuleContext): Promise<void> {
     - Debug wireframes with global toggle via gameConfig store
     - Auto-cleanup via CleanupRegistry
 
-- **VFXService** - Visual effects with object pooling
+- **VFXSystem** - Visual effects with object pooling
     - **Emissive glow**: `applyEmissive(mesh, color, intensity)`, `restoreEmissive(mesh)`
       - Caches original material values for restoration
       - Used by MatchComponent for combat hover glow
@@ -409,10 +405,18 @@ async start(context: I_ModuleContext): Promise<void> {
     - **Camera shake**: `shakeCamera(intensity, duration)` - Screen feedback
     - Pre-allocated pools for performance (TextSprites: 10, Tooltips: 3, Particles: 5)
 
-- **SceneStateService** - Scene state machine
+- **SceneStateSystem** - Scene state machine
     - States: `OVERWORLD`, `MATCH_REQUEST`, `MATCH`, etc.
     - Components query state: `stateService.isOverworld()`
     - Components trigger transitions: `stateService.setState(E_SceneState.MATCH_REQUEST)`
+
+- **GameObjectsManager** - Manages all GameObjects in scene
+    - Collection management: `add()`, `remove()`, `get()`, `has()`, `getAll()`
+    - Coordinates GameObject lifecycle
+
+- **NetworkingSystem** - WebSocket communication for multiplayer
+
+- **Spawner** - Entity spawning utilities
 
 #### 4. Loading System
 
@@ -538,13 +542,15 @@ src/
 │   │   ├── MatchAreaWalls.ts
 │   │   ├── MatchAreaDome.ts
 │   │   └── MatchCameraAnchor.ts
-│   ├── services/           # Scene services
-│   │   ├── InteractionService.ts
-│   │   ├── PhysicsService.ts
+│   ├── services/           # Game systems (scene-wide subsystems)
+│   │   ├── InteractionService.ts   # Interaction detection + event handling
+│   │   ├── PhysicsService.ts       # Rapier3D physics wrapper
 │   │   ├── VFXService.ts           # Visual effects (emissive, particles, tooltips)
-│   │   ├── GameObjectManager.ts
+│   │   ├── GameObjectsManager.ts   # GameObject lifecycle management
 │   │   ├── SceneStateService.ts    # Scene state machine (OVERWORLD, MATCH_REQUEST, etc.)
-│   │   └── InteractableBuilder.ts
+│   │   ├── NetworkingService.ts    # WebSocket multiplayer communication
+│   │   ├── SceneService.ts         # Base class for systems
+│   │   └── Spawner.ts              # Entity spawning utilities
 │   ├── common/             # Types and interfaces
 │   │   ├── scenes.types.ts
 │   │   ├── gameobject.types.ts

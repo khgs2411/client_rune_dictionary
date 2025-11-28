@@ -1,4 +1,4 @@
-import type { I_SceneContext, I_SceneService } from "@/game/common/scenes.types";
+import type { I_SceneContext, I_SceneSystem } from "@/game/common/scenes.types";
 import { GameObject } from "@/game/GameObject";
 import SceneService from "@/game/services/SceneService";
 import { FactoryFunction, ObjectPool } from "@/game/utils/ObjectPool";
@@ -43,7 +43,7 @@ export interface I_FactoryConfig {
  * spawnModule.despawn(fireball.id);
  * ```
  */
-export class Spawner extends SceneService implements I_SceneService {
+export class Spawner extends SceneService implements I_SceneSystem {
 	private pools = new Map<string, ObjectPool<GameObject>>();
 	private factories = new Map<string, FactoryFunction>();
 	private factoryConfigs = new Map<string, I_FactoryConfig>(); // type → config

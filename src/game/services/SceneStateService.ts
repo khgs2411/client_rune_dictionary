@@ -1,5 +1,5 @@
 import { useRxjs } from "topsyde-utils";
-import { I_SceneContext, I_SceneService } from "../common/scenes.types";
+import { I_SceneContext, I_SceneSystem } from "../common/scenes.types";
 import SceneService from "./SceneService";
 
 /**
@@ -57,7 +57,7 @@ export type StateChangeCallback = (newState: E_SceneState, oldState: E_SceneStat
  * stateService.unregister(callback);
  * ```
  */
-export default class SceneStateService extends SceneService implements I_SceneService {
+export default class SceneStateService extends SceneService implements I_SceneSystem {
 	private currentState: E_SceneState = E_SceneState.OVERWORLD;
 	private rxjs = useRxjs("scene:state", undefined, { static_instance: true });
 	private listeners: Set<StateChangeCallback> = new Set();

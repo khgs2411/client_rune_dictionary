@@ -34,7 +34,7 @@ export interface I_GameScene {
 	destroy(): void;
 }
 
-export interface I_SceneService {
+export interface I_SceneSystem {
 	start(ctx: I_SceneContext): Promise<void> | void;
 	update?(delta: number): void;
 	destroy(): Promise<void> | void;

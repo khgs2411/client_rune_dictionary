@@ -1,4 +1,4 @@
-import type { I_SceneContext, I_SceneService } from "@/game/common/scenes.types";
+import type { I_SceneContext, I_SceneSystem } from "@/game/common/scenes.types";
 import { GameObject } from "@/game/GameObject";
 import { Mouse } from "@/game/utils/Mouse";
 import { Raycast } from "@/game/utils/Raycast";
@@ -74,7 +74,7 @@ interface DragHandler {
  * - registerDrag() - Register drag callbacks with plane intersection
  * - unregister() - Clean up registered handler
  */
-export class InteractionService extends SceneService implements I_SceneService {
+export class InteractionService extends SceneService implements I_SceneSystem {
 	// Utilities
 	private raycast = new Raycast();
 	private mouse!: Mouse;

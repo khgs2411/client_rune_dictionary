@@ -1,6 +1,6 @@
 import { useWebSocketStore, WebsocketManager } from "@/stores/websocket.store";
 import { WebsocketStructuredMessage } from "topsyde-utils";
-import { I_SceneContext, I_SceneService } from "../common/scenes.types";
+import { I_SceneContext, I_SceneSystem } from "../common/scenes.types";
 import SceneService from "./SceneService";
 
 /**
@@ -45,7 +45,7 @@ export type NetworkEventHandlers = Partial<Record<E_NetworkEventCategory, Networ
  * });
  * ```
  */
-export default class NetworkingService extends SceneService implements I_SceneService {
+export default class NetworkingService extends SceneService implements I_SceneSystem {
 	private websocketManager: WebsocketManager;
 	private registry: Map<string, NetworkEventHandlers> = new Map();
 
