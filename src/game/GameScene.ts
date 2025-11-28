@@ -3,7 +3,7 @@ import { I_ConnectedClientData } from "@/common/types";
 import { useCamera } from "@/composables/useCamera";
 import { useCharacter } from "@/composables/useCharacter";
 import { CleanupRegistry } from "@/game/CleanupRegistry";
-import { I_SceneContext, I_SceneModule, I_SceneServices } from "@/game/common/scenes.types";
+import { I_SceneContext, I_SceneModule, I_SceneSystems } from "@/game/common/scenes.types";
 import type { Engine } from "@/game/Engine";
 import { ModuleRegistry } from "@/game/ModuleRegistry";
 import { GameObjectsManager } from "@/game/services/GameObjectsManager";
@@ -43,7 +43,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
 	private registry = new ModuleRegistry<TModuleRegistry>();
 
 	// Services (shared across modules)
-	protected services: I_SceneServices = {
+	protected services: I_SceneSystems = {
 		interaction: new InteractionService(),
 		vfx: new VFXService(),
 		physics: new PhysicsService(),
@@ -150,7 +150,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
 		this.registry.forEach(callback);
 	}
 
-	public getService<T extends keyof I_SceneServices>(serviceName: T): I_SceneServices[T] {
+	public getService<T extends keyof I_SceneSystems>(serviceName: T): I_SceneSystems[T] {
 		return this.services[serviceName];
 	}
 

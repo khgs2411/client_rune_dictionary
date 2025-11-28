@@ -819,17 +819,17 @@ protected registerModules(): void {
 }
 ```
 
-#### Adding a New Service
+#### Adding a New System
 
 ```typescript
-// 1. Create service class in src/game/services/
-export class MyService implements I_SceneService {
-  async start(ctx: I_ModuleContext): Promise<void> {
-    // Initialize service
+// 1. Create system class in src/game/services/
+export class MySystem extends SceneService {
+  protected async init(context: I_SceneContext): Promise<void> {
+    // Initialize system
   }
 
   update(delta: number): void {
-    // Optional: update logic
+    // Optional: per-frame update logic
   }
 
   async destroy(): Promise<void> {
@@ -837,15 +837,13 @@ export class MyService implements I_SceneService {
   }
 }
 
-// 2. Add to GameScene services
-protected services = {
-  interaction: new InteractionService(),
-  myService: new MyService(), // Add here
-};
+// 2. Register system in GameScene
+// (Systems are registered via the scene's service registry)
 
-// 3. Use in modules via context
-async start(context: I_ModuleContext) {
-  context.services.myService.doSomething();
+// 3. Use in components via context.getService()
+async init(context: I_SceneContext): Promise<void> {
+  const mySystem = context.getService("mySystem");
+  mySystem.doSomething();
 }
 ```
 
@@ -1033,9 +1031,9 @@ tryOnUnmounted(() => destroy());
 - **Use GameObject/Component pattern for game entities** - SceneModules are for scene infrastructure only
 - **Always call `super.init(context)` first** in SceneModule init() method to store context reference
 - **Use RxJS from topsyde-utils** for event coordination (`useRxjs(channel)`)
-- **Prefer Services over Interfaces** - Use `context.services.X` instead of creating complex interfaces
-- **VFXService for visual effects** - Use `applyEmissive()`, `spawnParticles()`, `shakeCamera()` instead of custom effects
-- **Physics via Rapier3D** - Use PhysicsService facade, not raw Rapier API
+- **Prefer Systems over Interfaces** - Use `context.getService("x")` instead of creating complex interfaces
+- **VFXSystem for visual effects** - Use `applyEmissive()`, `spawnParticles()`, `shakeCamera()` instead of custom effects
+- **Physics via Rapier3D** - Use PhysicsSystem facade, not raw Rapier API
 - **ModuleRegistry handles tracking** - Don't manually manage module collections
 
 ### Quick Reference: Architecture Decisions
@@ -1064,10 +1062,10 @@ This codebase uses **two complementary patterns**:
   - Module Layer: MatchModule (handles side effects - API calls, arena spawning)
 - **Template Pattern** - GameScene provides lifecycle framework, subclasses override registerModules()
 - **Builder Pattern** - InteractableBuilder for fluent interaction configuration
-- **Facade Pattern** - PhysicsService wraps Rapier3D, VFXService wraps effect systems
+- **Facade Pattern** - PhysicsSystem wraps Rapier3D, VFXSystem wraps effect subsystems
 - **Registry Pattern** - ModuleRegistry for type-safe module tracking, GameObjectManager for entity tracking
 - **Priority Pattern** - Components initialize in priority order (rendering → physics → interaction)
-- **Service Locator** - Services available via context.getService() (interaction, physics, vfx, state)
+- **Service Locator** - Systems available via context.getService() (interaction, physics, vfx, state)
 - **Trait Pattern** - Interface-based component lookup via TRAIT symbols
 
 #### Component Priority Order

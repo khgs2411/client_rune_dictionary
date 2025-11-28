@@ -79,7 +79,7 @@ export interface I_SceneModule {
  * Services available to modules via context
  * This is how cross-cutting concerns (interaction, audio, etc.) are shared
  */
-export interface I_SceneServices {
+export interface I_SceneSystems {
 	interaction: InteractionService;
 	vfx: VFXService;
 	physics: PhysicsService;
@@ -101,8 +101,8 @@ export interface I_SceneContext {
 	/**
 	 * @deprecated Use getService instead
 	 */
-	services: I_SceneServices;
-	getService<K extends keyof I_SceneServices>(serviceName: K): I_SceneServices[K];
+	services: I_SceneSystems;
+	getService<K extends keyof I_SceneSystems>(serviceName: K): I_SceneSystems[K];
 	clientData: Partial<I_ConnectedClientData>;
 	camera?: ReturnType<typeof useCamera>; // Optional: for modules that need camera
 	character?: ReturnType<typeof useCharacter>; // Optional: for modules that need character
