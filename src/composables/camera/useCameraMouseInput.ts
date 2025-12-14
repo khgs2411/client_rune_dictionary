@@ -1,6 +1,6 @@
 import { Mouse, type I_MouseEvent, type I_MouseScrollEvent } from "@/game/utils/Mouse";
 import { useSettingsStore } from "@/stores/settings.store";
-import { onUnmounted, ref, type Ref } from "vue";
+import { onUnmounted, ref, type Ref, watch } from "vue";
 import type { CameraRotation } from "./useCameraRotation";
 import type { CameraZoom } from "./useCameraZoom";
 
@@ -47,9 +47,29 @@ export function useCameraMouseInput(rotation: CameraRotation, zoom: CameraZoom, 
 		}
 	});
 
+	// Watch enabled state to force exit drag if disabled mid-interaction
+	if (enabled) {
+		watch(
+			enabled,
+			(isEnabled: boolean) => {
+				if (!isEnabled && isDragging.value) {
+					isDragging.value = false;
+					mouse.exitPointerLock();
+					if (settings.debug.enableConsoleLog) {
+						console.log("🔒 [CameraMouseInput] Force exiting drag due to state change");
+					}
+				}
+			},
+			{ flush: "sync" },
+		);
+	}
+
 	// Handle mouse move - update camera rotation when dragging
 	mouse.on("move", (event: I_MouseEvent) => {
 		if (!isDragging.value) return;
+
+		// Double check enabled state (redundant safety)
+		if (enabled && !enabled.value) return;
 
 		// Use delta from mouse utility (works with pointer lock)
 		rotation.update(event.delta.x, event.delta.y);

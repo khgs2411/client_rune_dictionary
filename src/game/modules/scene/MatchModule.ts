@@ -307,9 +307,11 @@ export class MatchModule extends SceneModule implements I_SceneModule {
 		camera.controller.freezeReactiveUpdates.value = false;
 
 		// Animate back to player
-		camera.changeTarget(character.controller.getPosition(), CAMERA_PRESET_OVERWORLD, 1000);
-
-		// Re-enable mouse control
-		camera.controller.mouseRotationEnabled.value = true;
+		camera
+			.changeTarget(character.controller.getPosition(), CAMERA_PRESET_OVERWORLD, 1000)
+			.then(() => {
+				// Re-enable mouse control only after transition completes
+				camera.controller.mouseRotationEnabled.value = true;
+			});
 	}
 }
