@@ -434,4 +434,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 			console.log("🎮 [PlaygroundScene] Auto-match triggered successfully");
 		}, 1000);
 	}
+
+	
 }
