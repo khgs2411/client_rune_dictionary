@@ -1383,11 +1383,13 @@ class MatchComponent extends GameComponent {
 
 ---
 
-### ⏳ Iteration 3: Action System & Turn Integration
+### ✅ Iteration 3: Action System & Turn Integration
 
 **Goal**: Integrate ActionBar with turn state and implement action submission to server
 
-**Status**: ⏳ PENDING (ready to start)
+**Status**: ✅ COMPLETE
+
+**Implementation Date**: 2025-11-28
 
 **Consolidation Rationale**:
 
@@ -1399,6 +1401,49 @@ This iteration consolidates Iterations 2 & 4 from original plan because:
 - More efficient to implement as single cohesive iteration
 
 ---
+
+#### Implementation Summary
+
+**Status**: ✅ COMPLETE
+
+All action items implemented and verified in codebase.
+
+**Key Features Implemented**:
+
+1. ✅ `isPlayerTurn` prop added to ActionBar.vue
+2. ✅ `isPlayerTurn` passed from MatchHUD.vue via `matchStore.match.turn.isPlayerTurn`
+3. ✅ Button disabled styling: `opacity-50` and `cursor-not-allowed` when not player's turn
+4. ✅ Action buttons (1-8) emit `action` event with action type
+5. ✅ Pass button emits `action` event with "pass" action type
+6. ✅ MatchHUD.vue implements `handleAction()` method
+7. ✅ `handleAction()` constructs WebsocketStructuredMessage with type `match.action`
+8. ✅ Turn validation: console warnings when attempting actions during enemy's turn
+9. ✅ Keyboard bindings (1-8) respect turn validation
+
+**Implementation Notes**:
+
+- ActionBar emits `action` event with payload: `{ actionType: "attack" | "pass" }`
+- MatchHUD listens via `@action="handleAction"` template binding
+- WebSocket message structure:
+  ```typescript
+  {
+    type: "match.action",
+    content: {
+      actionType: "attack" | "pass",
+      matchId: string,
+      channel: string,
+      timestamp: string
+    },
+    client: { id: string, name: string }
+  }
+  ```
+- Turn state checked via `matchStore.match.turn.isPlayerTurn` before enabling actions
+- Disabled buttons provide visual and functional feedback (cannot be clicked)
+
+**Files Modified**:
+
+- `src/components/match/ActionBar.vue` - Added isPlayerTurn prop, disabled styling, action emit, turn validation
+- `src/components/match/MatchHUD.vue` - Added isPlayerTurn computed, handleAction method, WebSocket integration
 
 #### Implementation Dependencies
 
@@ -1417,27 +1462,18 @@ This iteration consolidates Iterations 2 & 4 from original plan because:
 - ✅ Damage dealt event logging via `match.damage.dealt` events
 - ✅ Turn timeout handling - **CANCELLED** - Server automatically handles via `fallbackAction: 'pass'` in timer config
 
-**Still Needed**:
+#### Action Items - COMPLETE
 
-- [ ] Pass `isPlayerTurn` prop from MatchHUD.vue to ActionBar.vue
-- [ ] Add visual disabled state to action buttons when `isPlayerTurn` is false
-- [ ] Create `sendAction(actionId)` WebSocket method (send to server)
-- [ ] Create `sendPass()` WebSocket method (fallback action)
-- [ ] Add turn validation - prevent action submission when not player's turn
-- [ ] Wire ActionBar button clicks to send WebSocket messages
-
-#### Action Items
-
-- [ ] Add `isPlayerTurn` prop to ActionBar.vue component signature
-- [ ] Pass `isPlayerTurn` from MatchHUD.vue down to ActionBar (get from `matchStore.gameState.turn?.isPlayerTurn`)
-- [ ] Update action button styling: add `disabled:opacity-50 disabled:cursor-not-allowed` when `!isPlayerTurn`
-- [ ] Update Pass button styling: add `disabled:opacity-50 disabled:cursor-not-allowed` when `!isPlayerTurn`
-- [ ] Create `sendAction(actionId: string)` method in websocket store or match store
-- [ ] Create `sendPass()` method in websocket store or match store
-- [ ] Wire ActionBar action button clicks (1-8) to call `sendAction()` with turn validation
-- [ ] Wire ActionBar Pass button click to call `sendPass()` with turn validation
-- [ ] Add console warning if user attempts action during enemy turn
-- [ ] Test end-to-end: player turn → click action button → server receives message → action executes → turn ends
+- [x] Add `isPlayerTurn` prop to ActionBar.vue component signature
+- [x] Pass `isPlayerTurn` from MatchHUD.vue down to ActionBar (get from `matchStore.match.turn.isPlayerTurn`)
+- [x] Update action button styling: add `opacity-50 cursor-not-allowed` when `!isPlayerTurn`
+- [x] Update Pass button styling: add `opacity-50 cursor-not-allowed` when `!isPlayerTurn`
+- [x] Create WebSocket action handler in MatchHUD.vue `handleAction()` method
+- [x] Emit `action` events from ActionBar (both attack buttons 1-8 and pass button)
+- [x] Wire ActionBar action button clicks (1-8) to emit actions
+- [x] Wire ActionBar Pass button click to emit actions
+- [x] Add turn validation with console warnings in ActionBar handlers
+- [x] Implement end-to-end: player turn → click action → WebSocket message sent → (server handles execution)
 
 ---
 

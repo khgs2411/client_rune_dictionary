@@ -1,6 +1,6 @@
 # Combat System Reimplementation - Dashboard
 
-**Last Updated**: 2025-11-28 (Iteration 2.5 Complete - Action Items Verified)
+**Last Updated**: 2025-11-28 (Task 2 Complete - Iteration 3 Action System Implemented)
 
 **Project**: Vue 3 + Three.js combat system with match mode, camera controls, and arena boundaries
 **Status**: Phase 2 in progress - Focus on match lifecycle and state transitions
@@ -11,11 +11,11 @@
 ## 📍 Current Work
 
 - **Phase**: [Phase 2 - Combat System Reimplementation](phase-2/PHASE.md)
-- **Task**: [Task 2 - WebSocket Match Events & Match Loop System](phase-2/task-2.md)
-- **Iteration**: [Iteration 3 - Action System & Turn Integration](phase-2/task-2.md) ⏳ READY TO START
-- **Previous**: [Iteration 2.5 - InteractionComponent Range Extension & HoverComponent Refactor](phase-2/task-2.md) ✅ COMPLETE
-- **Focus**: Connect ActionBar to turn state, pass `isPlayerTurn` prop, implement WebSocket action submission
-- **Scope**: 6 core items (prop passing, button styling, 2 WebSocket methods, button wiring, validation)
+- **Task**: [Task 3 - Grid System for Distance-Based Skills](phase-2/task-3.md)
+- **Iteration**: [Iteration 1 - TBD](phase-2/task-3.md) ⏳ READY TO PLAN
+- **Previous**: [Iteration 3 - Action System & Turn Integration](phase-2/task-2.md) ✅ COMPLETE
+- **Focus**: TBD - design and implement grid-based skill targeting system
+- **Scope**: TBD
 - **Architecture**: See [PLAN.md](PLAN.md) for design patterns and guidelines
 
 ---
@@ -25,7 +25,7 @@
 ### Phase 2: Combat System Reimplementation 🚧 IN PROGRESS
 
 **Goal**: Build match environment with camera controls, arena boundaries, and visual feedback
-**Status**: 60% complete (2/4 tasks complete, 7/8 iterations complete in Task 2)
+**Status**: 65% complete (3/4 tasks complete, Task 3 ready to start)
 **Reference**: [Phase 2 Details](phase-2/PHASE.md)
 
 **Tasks**:
@@ -37,13 +37,13 @@
     - ❌ Iteration 3: Combat Actions UI (CANCELLED - consolidated into Iteration 1)
 - ✅ [**Task 1.5**: Match Instantiation Flow Refactoring](phase-2/task-1-5.md) (1/1 iterations) - COMPLETE
     - ✅ Iteration 1: Match Lifecycle State Management & Arena Spawning
-- 🚧 [**Task 2**: WebSocket Match Events & Match Loop System](phase-2/task-2.md) (5/5 iterations) ← **CURRENT**
+- ✅ [**Task 2**: WebSocket Match Events & Match Loop System](phase-2/task-2.md) (5/5 iterations) - COMPLETE
     - ✅ Iteration 1: WebSocket Event Integration (COMPLETE)
     - ✅ Iteration 1.5: MatchHUD Components UI Adjustment (COMPLETE)
     - ✅ Iteration 2: ATB System Implementation (COMPLETE - server-driven with client prediction)
     - ✅ Iteration 2.5: InteractionComponent Range Extension & HoverComponent Refactor (COMPLETE)
-    - ⏳ Iteration 3: Action System & Turn Integration ← **NEXT** (consolidated iterations 2 & 4)
-- ⏳ [**Task 3**: Grid System for Distance-Based Skills](phase-2/task-3.md) (0/1 iterations)
+    - ✅ Iteration 3: Action System & Turn Integration (COMPLETE)
+- ⏳ [**Task 3**: Grid System for Distance-Based Skills](phase-2/task-3.md) (0/1 iterations) ← **NEXT**
     - ⏳ Iteration 1: [TBD]
 
 ---
@@ -84,6 +84,18 @@ Currently none - all architectural direction established in [PLAN.md](PLAN.md).
 - **2025-10-30**: Wall Visibility - Implemented invisible collision-only walls with faint orange glowing border lines at ground level for visual indication
 
 ### Recent Completions
+
+**2025-11-28**: ✅ Task 2 Complete - WebSocket Match Events & Match Loop System (all 5 iterations complete)
+
+- **Status**: All match loop infrastructure fully functional
+- **Iteration 3**: Action System & Turn Integration implemented
+  - ActionBar integrated with turn state via `isPlayerTurn` prop
+  - Disabled button styling shows when it's enemy's turn (opacity-50, cursor-not-allowed)
+  - Action buttons (1-8) and Pass button emit `action` events
+  - MatchHUD.vue implements `handleAction()` to send WebSocket `match.action` messages
+  - Turn validation prevents actions during enemy turns (console warnings)
+  - Keyboard bindings (1-8) respect turn state
+- **Summary**: Complete match loop with ATB system, turn tracking, action submission, and full HUD synchronization
 
 **2025-11-28**: ✅ Iteration 2.5 Complete - InteractionComponent Range Extension & HoverComponent Refactor
 
