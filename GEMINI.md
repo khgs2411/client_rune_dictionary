@@ -1,4 +1,4 @@
-# CLAUDE.md
+# GEMINI.md
 
 ## Development Commands
 
@@ -182,7 +182,7 @@ export class RotateComponent extends GameComponent {
 
 	update(delta: number): void {
 		const mesh = this.getComponent(MeshComponent);
-		if (mesh) mesh.mesh.rotation.y += delta;
+if (mesh) mesh.mesh.rotation.y += delta;
 	}
 }
 ```
