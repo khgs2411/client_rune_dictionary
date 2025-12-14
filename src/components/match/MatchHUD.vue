@@ -33,6 +33,7 @@
 <script setup lang="ts">
 import MatchAPI from "@/api/match.api";
 import { E_SceneState } from "@/game/systems/SceneState";
+import { useMatchActions } from "@/composables/useMatchActions";
 import { useMatchStore } from "@/stores/match.store";
 import { useWebSocketStore } from "@/stores/websocket.store";
 import { useRxjs, WebsocketStructuredMessage } from "topsyde-utils";
@@ -46,6 +47,7 @@ const rxjs = useRxjs("scene:state");
 // Reactive stores
 const matchStore = useMatchStore();
 const websocketStore = useWebSocketStore();
+const actions = useMatchActions();
 
 // Computed visibility (show when in match)
 const isVisible = computed(() => {
@@ -85,19 +87,21 @@ const isPlayerTurn = computed(() => matchStore.match.turn.isPlayerTurn);
 
 async function handleAction(action: number | string) {
 	console.log("[MatchHUD] Action received from ActionBar:", action);
-	if (!matchStore.currentChannelId) throw new Error("No match channel ID");
-	if (!websocketStore.clientData) throw new Error("No client data available");
-
-	const ws = websocketStore.getWebSocketInstance<true>();
-	const wsm: WebsocketStructuredMessage = {
-		type: "match.action",
-		content: { actionType: action, matchId: matchStore.currentMatchId },
-		channel: matchStore.currentChannelId,
-		timestamp: new Date().toISOString(),
-		client: websocketStore.clientData,
-	};
-	console.log("[MatchHUD] Sending action WebSocket message:", wsm);
-	ws.send(JSON.stringify(wsm));
+	
+	switch (action) {
+		case "attack":
+			actions.attack();
+			break;
+		case "pass":
+			actions.pass();
+			break;
+		case "run":
+			actions.run();
+			break;
+		default:
+			// Fallback for numeric IDs or other actions
+			actions.sendAction(action.toString());
+	}
 }
 
 /**

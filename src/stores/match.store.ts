@@ -10,6 +10,7 @@ import type {
 	MatchTurnStartEvent,
 	MatchVictoryEvent,
 } from "@/common/match-events.types";
+import { E_MatchEventType } from "@/common/match.enums";
 import { I_GameState, I_MatchResult, MatchState } from "@/common/match.types";
 import { useMatchState } from "@/composables/useMatchState";
 import { useWebSocketStore } from "@/stores/websocket.store";
@@ -132,45 +133,45 @@ export const useMatchStore = defineStore("match", () => {
 			data: async (_ws: WebSocket, message: WebsocketStructuredMessage) => {
 				// Route match events to gameState composable handlers
 				switch (message.type) {
-					case "match.created":
+					case E_MatchEventType.CREATED:
 						match.handleMatchCreated(message as MatchCreatedEvent);
 						break;
 
-					case "match.state.change":
+					case E_MatchEventType.STATE_CHANGE:
 						const event = message as MatchStateChangeEvent;
 						if (event.content.currentState === "COMPLETED") matchState.value = "FINISHED";
 						match.handleMatchStateChange(event);
 						break;
 
-					case "match.health.update":
+					case E_MatchEventType.HEALTH_UPDATE:
 						match.handleHealthUpdate(message as MatchHealthUpdateEvent);
 						break;
 
-					case "match.atb.readiness.update":
+					case E_MatchEventType.ATB_READINESS_UPDATE:
 						match.handleATBUpdate(message as MatchATBReadinessUpdateEvent);
 						break;
 
-					case "match.turn.start":
+					case E_MatchEventType.TURN_START:
 						match.handleTurnStart(message as MatchTurnStartEvent);
 						break;
 
-					case "match.turn.end":
+					case E_MatchEventType.TURN_END:
 						match.handleTurnEnd(message as MatchTurnEndEvent);
 						break;
 
-					case "match.state.update":
+					case E_MatchEventType.STATE_UPDATE:
 						match.handleStateUpdate(message as MatchStateUpdateEvent);
 						break;
 
-					case "match.damage.dealt":
+					case E_MatchEventType.DAMAGE_DEALT:
 						match.handleDamageDealt(message as MatchDamageDealtEvent);
 						break;
 
-					case "match.victory":
+					case E_MatchEventType.VICTORY:
 						match.handleMatchVictory(message as MatchVictoryEvent);
 						break;
 
-					case "match.end":
+					case E_MatchEventType.END:
 						match.handleMatchEnd(message as MatchEndEvent);
 						break;
 
