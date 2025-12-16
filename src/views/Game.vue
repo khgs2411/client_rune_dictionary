@@ -12,11 +12,10 @@
 		<MatchHUD v-if="websocketManager.isConnected" />
 	</div>
 </template>
-
 <script lang="ts" setup>
 import DebugConsole from "@/components/DebugConsole.vue";
-import MatchHUD from "@/components/match/MatchHUD.vue";
 import WebSocketManager from "@/components/WebSocketManager.vue";
+import MatchHUD from "@/components/match/MatchHUD.vue";
 import { useAuthStore } from "@/stores/auth.store";
 import { useWebSocketStore } from "@/stores/websocket.store";
 import { watch } from "vue";
