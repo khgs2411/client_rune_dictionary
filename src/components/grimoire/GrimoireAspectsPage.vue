@@ -51,13 +51,14 @@
 			<form @submit.prevent="handleSubmit" class="space-y-4">
 				<!-- Core Info -->
 				<div class="space-y-2">
-					<Label for="hash">Hash (Unique ID)</Label>
-					<Input id="hash" v-model="form.hash" placeholder="ASPECT_FIRE_DMG" />
+					<Label for="hash">Hash (Unique ID) <span class="text-destructive">*</span></Label>
+					<Input id="hash" v-model="form.hash" placeholder="ASPECT_FIRE_DMG" :class="{ 'border-destructive': validationErrors.hash }" />
+					<p v-if="validationErrors.hash" class="text-xs text-destructive">{{ validationErrors.hash }}</p>
 				</div>
 
 				<div class="grid grid-cols-3 gap-2">
 					<div class="space-y-2">
-						<Label for="tier">Tier</Label>
+						<Label for="tier">Tier <span class="text-destructive">*</span></Label>
 						<Select v-model="formTier">
 							<SelectTrigger>
 								<SelectValue placeholder="Tier" />
@@ -68,8 +69,9 @@
 						</Select>
 					</div>
 					<div class="space-y-2">
-						<Label for="weight">Weight</Label>
-						<Input id="weight" v-model.number="form.weight" type="number" />
+						<Label for="weight">Weight <span class="text-destructive">*</span></Label>
+						<Input id="weight" v-model.number="form.weight" type="number" :class="{ 'border-destructive': validationErrors.weight }" />
+						<p v-if="validationErrors.weight" class="text-xs text-destructive">{{ validationErrors.weight }}</p>
 					</div>
 					<div class="space-y-2">
 						<Label for="potency">Potency</Label>
@@ -100,7 +102,7 @@
 
 				<div class="flex justify-end gap-2">
 					<Button variant="outline" type="button" @click="resetForm">Cancel</Button>
-					<Button type="submit" :disabled="saving">
+					<Button type="submit" :disabled="saving || !isFormValid">
 						{{ saving ? "Saving..." : "Save" }}
 					</Button>
 				</div>
@@ -187,6 +189,26 @@ const formTier = computed({
 });
 
 const isEditing = computed(() => selectedId.value !== null);
+
+// Validation
+const validationErrors = computed(() => {
+	const errors: { hash?: string; weight?: string } = {};
+	if (!form.value.hash || form.value.hash.trim().length === 0) {
+		errors.hash = "Hash is required";
+	} else if (form.value.hash.trim().length < 3) {
+		errors.hash = "Hash must be at least 3 characters";
+	} else if (!/^[A-Z_]+$/i.test(form.value.hash)) {
+		errors.hash = "Hash should use UPPER_SNAKE_CASE";
+	}
+	if (form.value.weight === undefined || form.value.weight === null) {
+		errors.weight = "Weight is required";
+	} else if (form.value.weight <= 0) {
+		errors.weight = "Weight must be greater than 0";
+	}
+	return errors;
+});
+
+const isFormValid = computed(() => Object.keys(validationErrors.value).length === 0);
 
 // Format property key for display
 function formatKey(key: string): string {

@@ -50,13 +50,15 @@
 
 			<form @submit.prevent="handleSubmit" class="space-y-4">
 				<div class="space-y-2">
-					<Label for="name">Name</Label>
-					<Input id="name" v-model="form.name" placeholder="e.g. Fire" />
+					<Label for="name">Name <span class="text-destructive">*</span></Label>
+					<Input id="name" v-model="form.name" placeholder="e.g. Fire" :class="{ 'border-destructive': validationErrors.name }" />
+					<p v-if="validationErrors.name" class="text-xs text-destructive">{{ validationErrors.name }}</p>
 				</div>
 
 				<div class="space-y-2">
-					<Label for="weight">Weight</Label>
-					<Input id="weight" v-model.number="form.weight" type="number" placeholder="100" />
+					<Label for="weight">Weight <span class="text-destructive">*</span></Label>
+					<Input id="weight" v-model.number="form.weight" type="number" placeholder="100" :class="{ 'border-destructive': validationErrors.weight }" />
+					<p v-if="validationErrors.weight" class="text-xs text-destructive">{{ validationErrors.weight }}</p>
 				</div>
 
 				<div class="space-y-2">
@@ -66,9 +68,9 @@
 							<SelectValue placeholder="Select type" />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="1">Elemental</SelectItem>
-							<SelectItem value="2">Physical</SelectItem>
-							<SelectItem value="3">Arcane</SelectItem>
+							<SelectItem v-for="(label, typeVal) in RUNE_TYPE_LABELS" :key="typeVal" :value="String(typeVal)">
+								{{ label }}
+							</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
@@ -77,7 +79,7 @@
 
 				<div class="flex justify-end gap-2">
 					<Button variant="outline" type="button" @click="resetForm">Cancel</Button>
-					<Button type="submit" :disabled="saving">
+					<Button type="submit" :disabled="saving || !isFormValid">
 						{{ saving ? "Saving..." : "Save" }}
 					</Button>
 				</div>
@@ -96,7 +98,7 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableEmpty, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { RunesAPI } from "@/api/runes.api";
-import { RuneModel, RuneCreationData } from "@/common/rune.types";
+import { RuneModel, RuneCreationData, E_RuneType, RUNE_TYPE_LABELS } from "@/common/rune.types";
 
 const api = new RunesAPI();
 
@@ -123,6 +125,24 @@ const formType = computed({
 });
 
 const isEditing = computed(() => selectedId.value !== null);
+
+// Validation
+const validationErrors = computed(() => {
+	const errors: { name?: string; weight?: string } = {};
+	if (!form.value.name || form.value.name.trim().length === 0) {
+		errors.name = "Name is required";
+	} else if (form.value.name.trim().length < 2) {
+		errors.name = "Name must be at least 2 characters";
+	}
+	if (form.value.weight === undefined || form.value.weight === null) {
+		errors.weight = "Weight is required";
+	} else if (form.value.weight <= 0) {
+		errors.weight = "Weight must be greater than 0";
+	}
+	return errors;
+});
+
+const isFormValid = computed(() => Object.keys(validationErrors.value).length === 0);
 
 // Load runes
 async function loadRunes() {
