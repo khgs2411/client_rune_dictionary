@@ -5,6 +5,8 @@
 			<DebugConsole />
 			<!-- WebSocket Manager with Connect Modal -->
 			<WebSocketManager v-if="auth.isAuthenticated" :auto-connect="autoConnect" />
+			<!-- Grimoire Overlay -->
+			<GrimoireOverlay />
 		</template>
 		<!-- Scene Component (only shows when connected) -->
 		<Scene v-if="websocketManager.isConnected" />
@@ -12,11 +14,11 @@
 		<MatchHUD v-if="websocketManager.isConnected" />
 	</div>
 </template>
-
 <script lang="ts" setup>
 import DebugConsole from "@/components/DebugConsole.vue";
-import MatchHUD from "@/components/match/MatchHUD.vue";
 import WebSocketManager from "@/components/WebSocketManager.vue";
+import MatchHUD from "@/components/match/MatchHUD.vue";
+import GrimoireOverlay from "@/components/grimoire/GrimoireOverlay.vue";
 import { useAuthStore } from "@/stores/auth.store";
 import { useWebSocketStore } from "@/stores/websocket.store";
 import { watch } from "vue";

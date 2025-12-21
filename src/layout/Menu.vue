@@ -26,6 +26,18 @@
 						</p>
 					</TooltipContent>
 				</Tooltip>
+				<Tooltip>
+					<TooltipTrigger as-child>
+						<Button variant="ghost" size="icon" class="h-8 w-8" @click="toggleGrimoire">
+							<Icon icon="game-icons:spell-book" class="h-4 w-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent>
+						<p>
+							{{ settings.debug.showGrimoire ? "Close Grimoire" : "Open Grimoire" }}
+						</p>
+					</TooltipContent>
+				</Tooltip>
 			</TooltipProvider>
 			<GameSettings />
 		</template>
@@ -52,5 +64,9 @@ function toggleDebugger() {
 
 function toggleEditor() {
 	config.editor.enabled = !config.editor.enabled;
+}
+
+function toggleGrimoire() {
+	settings.debug.showGrimoire = !settings.debug.showGrimoire;
 }
 </script>

@@ -16,6 +16,7 @@ export interface I_DebugSettings {
 	showStats: boolean; // Show/hide Three.js stats panel
 	showWebSocketDebugger: boolean; // Show/hide WebSocket event debugger
 	showPhysicsDebug: boolean; // Show/hide physics collider wireframes
+	showGrimoire: boolean; // Show/hide Grimoire overlay
 }
 
 export const useSettingsStore = defineStore(
@@ -41,6 +42,7 @@ export const useSettingsStore = defineStore(
 			showStats: true, // Default: enabled
 			showWebSocketDebugger: true, // Default: enabled
 			showPhysicsDebug: false, // Default: disabled
+			showGrimoire: false, // Default: disabled
 		});
 
 		// Toggle dark/light mode
