@@ -1,3 +1,4 @@
+import { OcclusionComponent } from "@/game/components/rendering/OcclusionComponent";
 import { TransformComponent } from "../../components/entities/TransformComponent";
 import { CollisionComponent } from "../../components/interactions/CollisionComponent";
 import { GeometryComponent } from "../../components/rendering/GeometryComponent";
@@ -5,17 +6,14 @@ import { MaterialComponent } from "../../components/rendering/MaterialComponent"
 import { MeshComponent } from "../../components/rendering/MeshComponent";
 import { ToonMaterialComponent } from "../../components/rendering/ToonMaterialComponent";
 import { GameObject } from "../../GameObject";
+import { I_BasePrefabConfig } from "../prefab.types";
 
-export interface I_HouseConfig {
-	id?: string;
+export interface I_HouseConfig extends I_BasePrefabConfig {
 	position?: [number, number, number];
 	rotation?: [number, number, number];
 	scale?: number; // Uniform scale multiplier (default: 1)
 	wallColor?: number; // Wall color (default: 0xdeb887 - burlywood)
 	roofColor?: number; // Roof color (default: 0x8b4513 - saddle brown)
-	useToonShading?: boolean; // Use cel-shaded materials (default: false)
-	vibrant?: boolean; // Boost saturation (default: false)
-	enablePhysics?: boolean; // Enable collision (default: true)
 }
 
 /**
@@ -100,7 +98,8 @@ export class House {
 					castShadow: true,
 					receiveShadow: true,
 				}),
-			);
+			)
+			.addComponent(new OcclusionComponent());
 
 		if (enablePhysics) {
 			walls.addComponent(
@@ -132,7 +131,8 @@ export class House {
 					castShadow: true,
 					receiveShadow: true,
 				}),
-			);
+			)
+			.addComponent(new OcclusionComponent());;
 
 		// Rotate roof 45 degrees to align with walls
 		const roofTransform = roof.getComponent(TransformComponent);

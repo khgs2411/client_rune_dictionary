@@ -4,6 +4,7 @@ import { MaterialComponent } from "../../components/rendering/MaterialComponent"
 import { MeshComponent } from "../../components/rendering/MeshComponent";
 import { ToonMaterialComponent } from "../../components/rendering/ToonMaterialComponent";
 import { GameObject } from "../../GameObject";
+import { I_BasePrefabConfig } from "../prefab.types";
 
 export interface I_PathSegment {
 	x: number;
@@ -13,15 +14,12 @@ export interface I_PathSegment {
 	rotation?: number; // Y rotation in radians (default: 0)
 }
 
-export interface I_PathConfig {
-	id?: string; // Base ID for path segments (default: 'path')
+export interface I_PathConfig extends I_BasePrefabConfig {
 	segments: I_PathSegment[];
 	width?: number; // Default path width (default: 4)
 	length?: number; // Default segment length (default: 8)
 	color?: number; // Path color (default: 0xc2b280 - sand/dirt)
 	yOffset?: number; // Height offset to prevent z-fighting (default: 0.02)
-	useToonShading?: boolean; // Use cel-shaded materials (default: false)
-	vibrant?: boolean; // Boost saturation (default: false)
 }
 
 /**

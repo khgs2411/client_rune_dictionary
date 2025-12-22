@@ -70,7 +70,7 @@ export class OcclusionComponent extends GameComponent {
 	private playerPosition = new Vector3();
 	private direction = new Vector3();
 
-	constructor(config: I_OcclusionConfig = {}) {
+	constructor(config: I_OcclusionConfig = { occludedOpacity: 0.3, fadeSpeed: 8 }) {
 		super();
 		this.config = config;
 	}
@@ -87,9 +87,7 @@ export class OcclusionComponent extends GameComponent {
 		} else if (instancedMeshComp) {
 			this.targetMesh = instancedMeshComp.instancedMesh;
 		} else {
-			throw new Error(
-				`[OcclusionComponent] GameObject "${this.gameObject.id}" requires MeshComponent or InstancedMeshComponent`,
-			);
+			throw new Error(`[OcclusionComponent] GameObject "${this.gameObject.id}" requires MeshComponent or InstancedMeshComponent`);
 		}
 
 		// Get material for opacity changes

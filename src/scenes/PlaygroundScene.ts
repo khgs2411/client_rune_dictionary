@@ -331,7 +331,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		// ROCKS (scattered around)
 		// ========================================
 
-		const rocks = Rocks.create({
+		const rocks = new Rocks({
 			positions: [
 				// Near forest
 				{ x: -22, y: 0, z: 5, scale: 1.2 },

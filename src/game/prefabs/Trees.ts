@@ -5,6 +5,7 @@ import { MaterialComponent } from "../components/rendering/MaterialComponent";
 import { OcclusionComponent } from "../components/rendering/OcclusionComponent";
 import { ToonMaterialComponent } from "../components/rendering/ToonMaterialComponent";
 import { GameObject } from "../GameObject";
+import { I_BasePrefabConfig } from "./prefab.types";
 
 export interface I_TreePosition {
 	x: number;
@@ -12,8 +13,7 @@ export interface I_TreePosition {
 	z: number;
 }
 
-export interface I_TreesConfig {
-	id?: string; // Base ID for tree GameObjects (default: 'trees')
+export interface I_TreesConfig extends I_BasePrefabConfig {
 	positions: I_TreePosition[]; // Base positions for trees
 	trunkHeight?: number; // Height of trunk (default: 1.5)
 	trunkRadius?: number; // Radius of trunk (default: 0.15-0.2)
@@ -21,9 +21,6 @@ export interface I_TreesConfig {
 	leavesRadius?: number; // Radius of leaves cone (default: 0.8)
 	trunkColor?: number; // Trunk color (default: 0x654321 - brown)
 	leavesColor?: number; // Leaves color (default: 0x228b22 - green)
-	enablePhysics?: boolean; // Enable physics for trunks (default: true)
-	useToonShading?: boolean; // Use cel-shaded materials (default: false)
-	vibrant?: boolean; // Boost color saturation for Genshin-style vibrancy (default: false)
 }
 
 /**
@@ -122,7 +119,7 @@ export class Trees {
 					receiveShadow: true,
 				}),
 			)
-			.addComponent(new OcclusionComponent({ occludedOpacity: 0.3, fadeSpeed: 8 }));
+			.addComponent(new OcclusionComponent());
 
 		// Add physics to trunks
 		if (enablePhysics) {
@@ -150,7 +147,7 @@ export class Trees {
 					receiveShadow: true,
 				}),
 			)
-			.addComponent(new OcclusionComponent({ occludedOpacity: 0.3, fadeSpeed: 8 }));
+			.addComponent(new OcclusionComponent());
 
 		return [trunks, leaves];
 	}

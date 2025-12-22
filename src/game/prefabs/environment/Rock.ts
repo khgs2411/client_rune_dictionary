@@ -4,6 +4,7 @@ import { I_InstanceTransform, InstancedMeshComponent } from "../../components/re
 import { MaterialComponent } from "../../components/rendering/MaterialComponent";
 import { ToonMaterialComponent } from "../../components/rendering/ToonMaterialComponent";
 import { GameObject } from "../../GameObject";
+import { I_BasePrefabConfig } from "../prefab.types";
 
 export interface I_RockPosition {
 	x: number;
@@ -13,13 +14,10 @@ export interface I_RockPosition {
 	rotationY?: number; // Y rotation for variety (default: random)
 }
 
-export interface I_RocksConfig {
+export interface I_RocksConfig extends I_BasePrefabConfig {
 	positions: I_RockPosition[];
 	baseScale?: number; // Base scale multiplier (default: 1)
 	color?: number; // Rock color (default: 0x708090 - slate gray)
-	useToonShading?: boolean; // Use cel-shaded materials (default: false)
-	vibrant?: boolean; // Boost saturation (default: false)
-	enablePhysics?: boolean; // Enable collision (default: true)
 }
 
 /**
@@ -30,7 +28,7 @@ export interface I_RocksConfig {
  *
  * Usage:
  * ```typescript
- * const rocks = Rocks.create({
+ * const rocks = new Rocks({
  *   positions: [
  *     { x: 5, y: 0, z: 5 },
  *     { x: 7, y: 0, z: 3, scale: 1.5 },
@@ -41,8 +39,10 @@ export interface I_RocksConfig {
  * });
  * ```
  */
-export class Rocks {
-	static create(config: I_RocksConfig): GameObject {
+export class Rocks extends GameObject {
+	constructor(config: I_RocksConfig) {
+		super({ id: config.id ?? "rocks" });
+
 		const baseScale = config.baseScale ?? 2;
 		const color = config.color ?? 0x708090; // Slate gray
 		const useToonShading = config.useToonShading ?? false;
@@ -61,29 +61,18 @@ export class Rocks {
 			};
 		});
 
-		// Material factory
-		const createMaterial = () =>
-			useToonShading
-				? new ToonMaterialComponent({
-						color,
-						gradientSteps: 3,
-						vibrant,
-					})
-				: new MaterialComponent({
-						color,
-						roughness: 0.95,
-						metalness: 0,
-					});
-
-		// Rocks GameObject using icosahedron for chunky low-poly look
-		const rocks = new GameObject({ id: "rocks" })
+		// Add components
+		this.addComponent(
+			new GeometryComponent({
+				type: "sphere", // Will use low segments for rock-like appearance
+				params: [1, 6, 4], // radius, widthSegments, heightSegments (low = chunky)
+			}),
+		)
 			.addComponent(
-				new GeometryComponent({
-					type: "sphere", // Will use low segments for rock-like appearance
-					params: [1, 6, 4], // radius, widthSegments, heightSegments (low = chunky)
-				}),
+				useToonShading
+					? new ToonMaterialComponent({ color, gradientSteps: 3, vibrant })
+					: new MaterialComponent({ color, roughness: 0.95, metalness: 0 }),
 			)
-			.addComponent(createMaterial())
 			.addComponent(
 				new InstancedMeshComponent({
 					instances,
@@ -93,14 +82,12 @@ export class Rocks {
 			);
 
 		if (enablePhysics) {
-			rocks.addComponent(
+			this.addComponent(
 				new CollisionComponent({
 					type: "static",
-					shape: "ball", // Approximate with sphere collision
+					shape: "sphere", // Approximate with sphere collision
 				}),
 			);
 		}
-
-		return rocks;
 	}
 }
