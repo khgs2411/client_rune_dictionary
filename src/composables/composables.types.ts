@@ -43,23 +43,6 @@ export interface I_CameraPerspective {
 	fov: number;
 }
 
-export const CAMERA_PRESET_OVERWORLD: I_CameraPerspective = {
-	angle: {
-		horizontal: 0,
-		vertical: Math.PI / 6, // 30 degrees
-	},
-	distance: 10,
-	fov: 75,
-};
-
-export const CAMERA_PRESET_MATCH_SPECTATE: I_CameraPerspective = {
-	angle: {
-		horizontal: 0,
-		vertical: Math.PI / 3, // 60 degrees (steeper overhead view)
-	},
-	distance: 15,
-	fov: 75,
-};
 
 export interface I_CameraControls extends I_GameComposable {
 	angle: {

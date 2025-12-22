@@ -1,12 +1,20 @@
 import { useGameConfigStore } from "@/stores/config.store";
 import { Vector3 } from "three";
 import { reactive, ref, watchEffect } from "vue";
-import { I_CameraControls } from "../composables.types";
+import { I_CameraControls, I_CameraPerspective } from "../composables.types";
 import { useCameraMouseInput } from "./useCameraMouseInput";
 import { useCameraRotation } from "./useCameraRotation";
 import { useCameraTouchInput } from "./useCameraTouchInput";
 import { useCameraZoom } from "./useCameraZoom";
 
+export const CAMERA_OVERWORLD_PERSPECTIVE: I_CameraPerspective = {
+	angle: {
+		horizontal: 0,
+		vertical: 0.76, // ~43° - matches combat camera (y:18, lookAt y:2, z:18)
+	},
+	distance: 18, // Default distance (closer to player)
+	fov: 75,
+};
 /**
  * Main camera controls composable
  * Orchestrates rotation, zoom, mouse, and touch composables
@@ -15,16 +23,16 @@ export function useCameraController(): I_CameraControls {
 	const config = useGameConfigStore();
 
 	const target = reactive({ x: 0, z: 0, y: 0 });
-	const mouseRotationEnabled = ref(true); // Controlled by scene state
+	const mouseRotationEnabled = ref(false); // Disabled - isometric camera has fixed angle
 	const freezeReactiveUpdates = ref(false); // Freeze camera position updates (for fixed camera in matches)
 
 	// Optional follow target override (for match camera)
 	let followTarget: Vector3 | null = null;
 
-	// Camera state from config
-	const cameraDistance = ref(config.camera.initialDistance);
-	const cameraAngleH = ref(config.camera.initialAngleH);
-	const cameraAngleV = ref(config.camera.initialAngleV);
+	// Camera state - use preset values directly (matches combat camera)
+	const cameraDistance = ref(CAMERA_OVERWORLD_PERSPECTIVE.distance);
+	const cameraAngleH = ref(CAMERA_OVERWORLD_PERSPECTIVE.angle.horizontal);
+	const cameraAngleV = ref(CAMERA_OVERWORLD_PERSPECTIVE.angle.vertical);
 
 	// Compose smaller, focused composables (pass config sensitivity/limits)
 	const rotation = useCameraRotation(cameraAngleH, cameraAngleV, {
@@ -36,7 +44,7 @@ export function useCameraController(): I_CameraControls {
 		max: config.camera.zoomMax,
 	});
 	const mouse = useCameraMouseInput(rotation, zoom, mouseRotationEnabled);
-	useCameraTouchInput(rotation, zoom); // Side effects only
+	useCameraTouchInput(zoom); // Pinch zoom only (rotation disabled for isometric view)
 
 	// Auto-update camera position when angles/distance/target change
 	watchEffect(() => {
@@ -49,9 +57,9 @@ export function useCameraController(): I_CameraControls {
 	 * Reset camera to defaults
 	 */
 	function reset() {
-		cameraDistance.value = config.camera.initialDistance;
-		cameraAngleH.value = config.camera.initialAngleH;
-		cameraAngleV.value = config.camera.initialAngleV;
+		cameraDistance.value = CAMERA_OVERWORLD_PERSPECTIVE.distance;
+		cameraAngleH.value = CAMERA_OVERWORLD_PERSPECTIVE.angle.horizontal;
+		cameraAngleV.value = CAMERA_OVERWORLD_PERSPECTIVE.angle.vertical;
 	}
 
 	/**

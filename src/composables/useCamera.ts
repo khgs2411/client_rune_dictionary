@@ -35,17 +35,18 @@ export function useCamera(): I_GameCamera {
 	 * Initialize camera - set lookAt and update matrices
 	 */
 	function start() {
-		instance.lookAt(new Vector3(0, 1, 0));
+		instance.lookAt(new Vector3(0, 2, 0)); // y=2 to match combat camera
 		instance.updateMatrixWorld(true);
 	}
 
 	/**
 	 * Update camera target (what to look at)
+	 * Uses fixed Y=2 for lookAt to match combat camera perspective
 	 */
 	function update(lookAtVector: Vector3) {
 		controller.target.x = lookAtVector.x;
 		controller.target.z = lookAtVector.z;
-		instance.lookAt(lookAtVector);
+		instance.lookAt(new Vector3(lookAtVector.x, 2, lookAtVector.z));
 	}
 
 	/**
@@ -106,8 +107,8 @@ export function useCamera(): I_GameCamera {
 				instance.fov = MathUtils.lerp(startFov, perspective.fov, t);
 				instance.updateProjectionMatrix();
 
-				// Update lookAt
-				instance.lookAt(new Vector3(controller.target.x, 1, controller.target.z));
+				// Update lookAt (y=2 to match combat camera)
+				instance.lookAt(new Vector3(controller.target.x, 2, controller.target.z));
 
 				// Check if complete
 				if (progress >= 1.0 && !isComplete.value) {
