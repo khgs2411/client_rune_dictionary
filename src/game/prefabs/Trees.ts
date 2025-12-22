@@ -2,6 +2,7 @@ import { CollisionComponent } from "../components/interactions/CollisionComponen
 import { GeometryComponent } from "../components/rendering/GeometryComponent";
 import { I_InstanceTransform, InstancedMeshComponent } from "../components/rendering/InstancedMeshComponent";
 import { MaterialComponent } from "../components/rendering/MaterialComponent";
+import { OcclusionComponent } from "../components/rendering/OcclusionComponent";
 import { ToonMaterialComponent } from "../components/rendering/ToonMaterialComponent";
 import { GameObject } from "../GameObject";
 
@@ -53,7 +54,7 @@ export class Trees {
 	 */
 	static create(config: I_TreesConfig): [GameObject, GameObject] {
 		const id = config.id ?? "trees";
-		const SIZE_MULTIPLIER = 8.0;
+		const SIZE_MULTIPLIER = 3.0;
 		const trunkHeight = config.trunkHeight ?? 1.5 * SIZE_MULTIPLIER;
 		const trunkRadius = config.trunkRadius ?? 0.15 * SIZE_MULTIPLIER;
 		const leavesHeight = config.leavesHeight ?? 1.5 * SIZE_MULTIPLIER;
@@ -120,7 +121,8 @@ export class Trees {
 					castShadow: true,
 					receiveShadow: true,
 				}),
-			);
+			)
+			.addComponent(new OcclusionComponent({ occludedOpacity: 0.3, fadeSpeed: 8 }));
 
 		// Add physics to trunks
 		if (enablePhysics) {
@@ -147,7 +149,8 @@ export class Trees {
 					castShadow: true,
 					receiveShadow: true,
 				}),
-			);
+			)
+			.addComponent(new OcclusionComponent({ occludedOpacity: 0.3, fadeSpeed: 8 }));
 
 		return [trunks, leaves];
 	}

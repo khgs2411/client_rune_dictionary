@@ -270,12 +270,34 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 				{ x: -28, y: 0, z: 15 },
 				{ x: -35, y: 0, z: 12 },
 				{ x: -32, y: 0, z: 5 },
+			],
+			useToonShading: true,
+			vibrant: true,
+			leavesColor: 0x228b22, // Forest green
+			trunkColor: 0x8b4513, // Saddle brown
+		});
+		gom.register(forestTrunks);
+		gom.register(forestLeaves);
+		const [forestTrunks2, forestLeaves2] = Trees.create({
+			id: "forest-trees-2",
+			positions: [
 				// Forest cluster 2
 				{ x: -40, y: 0, z: -5 },
 				{ x: -45, y: 0, z: -8 },
 				{ x: -42, y: 0, z: 0 },
 				{ x: -38, y: 0, z: -12 },
 				{ x: -50, y: 0, z: -3 },
+			],
+			useToonShading: true,
+			vibrant: true,
+			leavesColor: 0x228b22, // Forest green
+			trunkColor: 0x8b4513, // Saddle brown
+		});
+		gom.register(forestTrunks2);
+		gom.register(forestLeaves2);
+		const [forestTrunks3, forestLeaves3] = Trees.create({
+			id: "forest-trees-3",
+			positions: [
 				// Scattered trees
 				{ x: -20, y: 0, z: -15 },
 				{ x: -55, y: 0, z: 10 },
@@ -286,8 +308,8 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 			leavesColor: 0x228b22, // Forest green
 			trunkColor: 0x8b4513, // Saddle brown
 		});
-		gom.register(forestTrunks);
-		gom.register(forestLeaves);
+		gom.register(forestTrunks3);
+		gom.register(forestLeaves3);
 
 		// Trees near town (sparser)
 		const [townTrunks, townLeaves] = Trees.create({
@@ -434,6 +456,4 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 			console.log("🎮 [PlaygroundScene] Auto-match triggered successfully");
 		}, 1000);
 	}
-
-	
 }

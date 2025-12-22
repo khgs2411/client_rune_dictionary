@@ -247,19 +247,19 @@ export const useGameConfigStore = defineStore(
 		});
 
 		const camera = reactive({
-			// Initial camera position
-			initialDistance: 10, // Distance from target
-			initialAngleH: 0, // Initial horizontal angle (radians)
-			initialAngleV: 0.4, // Initial vertical angle (radians)
+			// Initial camera position (matches combat camera exactly)
+			initialDistance: 25, // Matches combat camera
+			initialAngleH: 0, // Horizontal angle (radians) - fixed for isometric
+			initialAngleV: 0.76, // ~43° - matches combat camera
 
-			// Camera rotation sensitivity
+			// Camera rotation sensitivity (rotation disabled for isometric view)
 			mouseSensitivityH: 0.005, // Horizontal mouse sensitivity
 			mouseSensitivityV: 0.005, // Vertical mouse sensitivity
 			touchSensitivityMultiplier: 2, // Touch sensitivity multiplier (compared to mouse)
 
 			// Camera zoom limits
-			zoomMin: 5, // Minimum zoom distance
-			zoomMax: 20, // Maximum zoom distance
+			zoomMin: 10, // Minimum zoom distance (zoomed in)
+			zoomMax: 25, // Maximum zoom distance (zoomed out)
 
 			// Camera angle limits
 			angleVMin: 0.1, // Minimum vertical angle (prevent looking straight down)

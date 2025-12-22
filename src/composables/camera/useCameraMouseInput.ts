@@ -85,15 +85,8 @@ export function useCameraMouseInput(rotation: CameraRotation, zoom: CameraZoom, 
 		}
 	});
 
-	// Handle scroll - zoom camera (use rawDelta for smooth incremental zoom)
+	// Handle scroll - zoom camera (always enabled, independent of rotation)
 	mouse.on("scroll", (event: I_MouseScrollEvent) => {
-		// Check if mouse input is enabled (zoom disabled when rotation disabled)
-		if (enabled && !enabled.value) {
-			if (settings.debug.enableConsoleLog) {
-				console.log("🔒 [CameraMouseInput] Zoom disabled by state");
-			}
-			return;
-		}
 		zoom.update(event.rawDelta);
 	});
 

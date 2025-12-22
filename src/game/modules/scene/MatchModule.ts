@@ -1,6 +1,6 @@
 import MatchAPI from "@/api/match.api";
 import { I_CreatePveMatchRequest } from "@/common/match.types";
-import { CAMERA_PRESET_OVERWORLD } from "@/composables/composables.types";
+import { CAMERA_OVERWORLD_PERSPECTIVE } from "@/composables/camera/useCameraController";
 import { I_SceneContext, I_SceneModule } from "@/game/common/scenes.types";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { I_ArenaConfig, MatchComponent } from "@/game/components/match/MatchComponent";
@@ -255,7 +255,7 @@ export class MatchModule extends SceneModule implements I_SceneModule {
 	}
 
 	/**
-	 * Transition camera to fixed match view
+	 * Instantly set camera to fixed match view (no animation - isometric angle already matches)
 	 */
 	private transitionToMatchCamera(center: Vector3): void {
 		const camera = this.context?.camera;
@@ -267,27 +267,11 @@ export class MatchModule extends SceneModule implements I_SceneModule {
 		const cameraPos = this.calculateCameraPosition(center);
 		const lookAt = new Vector3(center.x, 2, center.z);
 
-		// Disable mouse control immediately
-		camera.controller.mouseRotationEnabled.value = false;
-
-		// Animate to match position
-		camera
-			.changeTarget(
-				lookAt,
-				{
-					angle: { horizontal: 0, vertical: Math.PI / 3 },
-					distance: new Vector3(cameraPos.x, cameraPos.y, cameraPos.z).distanceTo(lookAt),
-					fov: 75,
-				},
-				1000,
-			)
-			.then(() => {
-				// Lock camera at exact position
-				camera.instance.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
-				camera.instance.lookAt(lookAt);
-				camera.instance.updateMatrixWorld(true);
-				camera.controller.freezeReactiveUpdates.value = true;
-			});
+		// Instant snap to match position (no animation needed - angle already matches)
+		camera.instance.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
+		camera.instance.lookAt(lookAt);
+		camera.instance.updateMatrixWorld(true);
+		camera.controller.freezeReactiveUpdates.value = true;
 	}
 
 	/**
@@ -302,16 +286,13 @@ export class MatchModule extends SceneModule implements I_SceneModule {
 			return;
 		}
 
-		// Unfreeze and reset
+		// Reset controller angles to preset values (no animation - avoids rotation effect)
+		camera.controller.angle.horizontal.value = CAMERA_OVERWORLD_PERSPECTIVE.angle.horizontal;
+		camera.controller.angle.vertical.value = CAMERA_OVERWORLD_PERSPECTIVE.angle.vertical;
+		camera.controller.distance.value = CAMERA_OVERWORLD_PERSPECTIVE.distance;
+
+		// Unfreeze to resume following player
 		camera.controller.followTarget = null;
 		camera.controller.freezeReactiveUpdates.value = false;
-
-		// Animate back to player
-		camera
-			.changeTarget(character.controller.getPosition(), CAMERA_PRESET_OVERWORLD, 1000)
-			.then(() => {
-				// Re-enable mouse control only after transition completes
-				camera.controller.mouseRotationEnabled.value = true;
-			});
 	}
 }

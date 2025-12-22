@@ -34,12 +34,6 @@ export interface I_MatchCameraAnchorConfig {
  *   position: { x: centerX, y: 10, z: centerZ + 15 }
  * });
  *
- * // Use with camera.changeTarget()
- * camera.changeTarget(
- *   new Vector3(anchor.position.x, anchor.position.y, anchor.position.z),
- *   CAMERA_PRESET_MATCH_SPECTATE,
- *   1000
- * );
  * ```
  */
 export class MatchCameraAnchor extends GameObject {
