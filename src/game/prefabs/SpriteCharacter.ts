@@ -1,10 +1,9 @@
+import type { BillboardMode, I_AnimationDefinition } from "../common/sprite.types";
 import { TransformComponent } from "../components/entities/TransformComponent";
 import { BillboardComponent } from "../components/rendering/BillboardComponent";
 import { SpriteAnimationComponent } from "../components/rendering/SpriteAnimationComponent";
 import { SpriteComponent } from "../components/rendering/SpriteComponent";
 import { GameObject } from "../GameObject";
-import type { BillboardMode, I_AnimationDefinition } from "../common/sprite.types";
-import { OcclusionComponent } from "../components/rendering/OcclusionComponent";
 
 /**
  * Configuration for SpriteCharacter prefab
@@ -99,7 +98,6 @@ export class SpriteCharacter extends GameObject {
 		);
 
 		// this.addComponent(new OcclusionComponent())
-
 
 		// Animation (optional)
 		if (config.animations && config.animations.length > 0) {

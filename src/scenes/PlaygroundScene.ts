@@ -30,6 +30,7 @@ import { Path } from "@/game/prefabs/environment/Path";
 import { Rocks } from "@/game/prefabs/environment/Rock";
 import { TrainingDummy } from "@/game/prefabs/npc/TrainingDummy";
 import { SpriteCharacter } from "@/game/prefabs/SpriteCharacter";
+import { OcclusionComponent } from "@/game/components/rendering/OcclusionComponent";
 
 /**
  * Module Registry for PlaygroundScene
@@ -396,7 +397,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 				texture: tree.texture,
 				size: tree.size,
 				billboardMode: "cylindrical",
-			});
+			}).addComponent(new OcclusionComponent());
 			gom.register(spriteTree);
 		}
 

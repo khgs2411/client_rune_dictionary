@@ -19,6 +19,7 @@ import { MeshComponent } from "./MeshComponent";
  * - Proper transparency handling with alpha test
  * - Integrates with TransformComponent for positioning
  * - Implements I_MeshProvider for InteractionSystem compatibility
+ * - Early warning for known-bad texture paths (cached from previous load failures)
  *
  * Usage:
  * ```typescript
@@ -34,6 +35,10 @@ import { MeshComponent } from "./MeshComponent";
  */
 export class SpriteComponent extends GameComponent implements I_MeshProvider {
 	public readonly priority = ComponentPriority.RENDERING;
+
+	// Static texture validation cache (shared across all instances)
+	private static verifiedTextures = new Set<string>();
+	private static invalidTextures = new Set<string>();
 
 	private config: I_SpriteComponentConfig;
 	private mesh!: Mesh;
@@ -52,6 +57,49 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 		super();
 		this.config = config;
 		this.registerTrait(TRAIT.MESH_PROVIDER);
+
+		// Early validation: warn if texture is already known to be invalid
+		this.validateTexturePath(config.texture);
+	}
+
+	/**
+	 * Validate texture path against known good/bad cache
+	 * Warns immediately if texture has previously failed to load
+	 */
+	private validateTexturePath(path: string): void {
+		// Check if already known to be invalid
+		if (SpriteComponent.invalidTextures.has(path)) {
+			console.warn(`[SpriteComponent] Texture "${path}" has previously failed to load. Sprite will be invisible.`);
+			return;
+		}
+
+		// Basic path format validation
+		if (!path || typeof path !== "string") {
+			console.warn(`[SpriteComponent] Invalid texture path: ${path}`);
+			SpriteComponent.invalidTextures.add(path);
+			return;
+		}
+
+		// Check for common path issues (optional, helps catch typos early)
+		if (!path.startsWith("/") && !path.startsWith("http")) {
+			console.warn(`[SpriteComponent] Texture path "${path}" should start with "/" for public assets or "http" for external URLs`);
+		}
+	}
+
+	/**
+	 * Mark a texture as verified (successfully loaded)
+	 */
+	private static markTextureVerified(path: string): void {
+		SpriteComponent.verifiedTextures.add(path);
+		SpriteComponent.invalidTextures.delete(path); // Remove from invalid if it was there
+	}
+
+	/**
+	 * Mark a texture as invalid (failed to load)
+	 */
+	private static markTextureInvalid(path: string): void {
+		SpriteComponent.invalidTextures.add(path);
+		SpriteComponent.verifiedTextures.delete(path);
 	}
 
 	async init(context: I_SceneContext): Promise<void> {
@@ -133,8 +181,13 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 			}
 
 			this.loaded = true;
+
+			// Mark texture as verified for future instances
+			SpriteComponent.markTextureVerified(this.config.texture);
 		} catch (error) {
-			console.error(`[SpriteComponent] Failed to load texture for "${this.gameObject.id}":`, error);
+			// Mark texture as invalid so future instances warn immediately
+			SpriteComponent.markTextureInvalid(this.config.texture);
+			console.error(`[SpriteComponent] Failed to load texture "${this.config.texture}" for "${this.gameObject.id}":`, error);
 		}
 	}
 
@@ -285,6 +338,9 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 			this.mesh.parent.remove(this.mesh);
 		}
 
-		super.destroy(this.context?.scene);
+		// Only call super.destroy if context was initialized
+		if (this.context?.scene) {
+			super.destroy(this.context.scene);
+		}
 	}
 }

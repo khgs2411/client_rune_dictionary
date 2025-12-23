@@ -1,9 +1,9 @@
+import type { I_MeshProvider } from "../../common/mesh.types";
+import { isOpacityMaterial } from "../../common/mesh.types";
 import { I_SceneContext } from "@/game/common/scenes.types";
 import { ComponentPriority, GameComponent, TRAIT } from "@/game/GameComponent";
-import { Material, MeshStandardMaterial, MeshToonMaterial, Object3D, Raycaster, Vector3 } from "three";
-import type { I_MaterialProvider } from "../../common/mesh.types";
+import { Material, Mesh, Object3D, Raycaster, Vector3 } from "three";
 import { InstancedMeshComponent } from "./InstancedMeshComponent";
-import { MeshComponent } from "./MeshComponent";
 
 export interface I_OcclusionConfig {
 	/** Target opacity when occluding (0-1). Default: 0.3 */
@@ -26,13 +26,16 @@ export interface I_OcclusionConfig {
  *   it smoothly fades to semi-transparent
  * - When no longer blocking, it smoothly fades back to opaque
  *
- * Supports both:
- * - MeshComponent (single mesh)
+ * Supports:
+ * - MeshComponent (single 3D mesh)
+ * - SpriteComponent (billboard sprites)
  * - InstancedMeshComponent (multiple instances - fades entire group if any blocks)
  *
  * Requires:
- * - MeshComponent OR InstancedMeshComponent
- * - Any I_MaterialProvider (MaterialComponent, ToonMaterialComponent, etc.)
+ * - I_MeshProvider (MeshComponent, SpriteComponent) OR InstancedMeshComponent
+ *
+ * Note: Material is obtained directly from the mesh, so no separate MaterialComponent
+ * is required when using SpriteComponent.
  *
  * Usage:
  * ```typescript
@@ -78,33 +81,40 @@ export class OcclusionComponent extends GameComponent {
 	async init(context: I_SceneContext): Promise<void> {
 		this.context = context;
 
-		// Try to get MeshComponent first, then InstancedMeshComponent
-		const meshComp = this.getComponent(MeshComponent);
+		// Try to get mesh from any provider (MeshComponent or SpriteComponent)
+		const meshProvider = this.findByTrait<I_MeshProvider>(TRAIT.MESH_PROVIDER);
 		const instancedMeshComp = this.getComponent(InstancedMeshComponent);
 
-		if (meshComp) {
-			this.targetMesh = meshComp.mesh;
+		if (meshProvider) {
+			this.targetMesh = meshProvider.getMesh();
 		} else if (instancedMeshComp) {
 			this.targetMesh = instancedMeshComp.instancedMesh;
 		} else {
-			throw new Error(`[OcclusionComponent] GameObject "${this.gameObject.id}" requires MeshComponent or InstancedMeshComponent`);
+			throw new Error(`[OcclusionComponent] GameObject "${this.gameObject.id}" requires I_MeshProvider or InstancedMeshComponent`);
 		}
 
-		// Get material for opacity changes
-		const materialProvider = this.requireByTrait<I_MaterialProvider>(TRAIT.MATERIAL_PROVIDER);
-		this.material = materialProvider.material;
+		// Get material directly from the mesh
+		// This works for both:
+		// - MeshComponent: material comes from MaterialComponent, stored on mesh
+		// - SpriteComponent: material is created internally, stored on mesh
+		const meshWithMaterial = this.targetMesh as Mesh;
+		const meshMaterial = meshWithMaterial.material;
+
+		if (Array.isArray(meshMaterial)) {
+			// Multi-material mesh - use first material
+			this.material = meshMaterial[0];
+		} else {
+			this.material = meshMaterial;
+		}
 
 		// Store original material state
-		if (this.isSupportedMaterial(this.material)) {
+		if (isOpacityMaterial(this.material)) {
 			this.originalOpacity = this.material.opacity;
 			this.originalTransparent = this.material.transparent;
 			this.currentOpacity = this.originalOpacity;
 		}
 	}
 
-	private isSupportedMaterial(mat: Material): mat is MeshStandardMaterial | MeshToonMaterial {
-		return mat instanceof MeshStandardMaterial || mat instanceof MeshToonMaterial;
-	}
 
 	update(delta: number): void {
 		// Need both camera and character to check occlusion
@@ -165,7 +175,7 @@ export class OcclusionComponent extends GameComponent {
 	 * Apply opacity to the material
 	 */
 	private applyOpacity(opacity: number): void {
-		if (this.isSupportedMaterial(this.material)) {
+		if (isOpacityMaterial(this.material)) {
 			// Enable transparency if fading
 			if (opacity < 1) {
 				this.material.transparent = true;
@@ -185,7 +195,7 @@ export class OcclusionComponent extends GameComponent {
 	 * Restore material to original state on destroy
 	 */
 	destroy(): void {
-		if (this.isSupportedMaterial(this.material)) {
+		if (isOpacityMaterial(this.material)) {
 			this.material.opacity = this.originalOpacity;
 			this.material.transparent = this.originalTransparent;
 			this.material.needsUpdate = true;
