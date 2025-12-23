@@ -95,6 +95,7 @@ const partyMembersWithSprites = computed(() => [
 		name: matchStore.match.player?.name ?? "Player",
 		spriteUrl: "/sprites/knight_00.png", // TODO: Get from player data
 		animationState: playerAnimationState.value,
+		flipX: false, // Knight natively faces right (toward enemy)
 	},
 ]);
 
@@ -104,6 +105,7 @@ const enemiesWithSprites = computed(() => [
 		name: matchStore.match.npc?.name ?? "Enemy",
 		spriteUrl: "/sprites/goblin_00.png", // TODO: Get from NPC data
 		animationState: enemyAnimationState.value,
+		flipX: false, // Goblin natively faces left (toward player)
 	},
 ]);
 

@@ -24,7 +24,7 @@
 					:sprite-url="member.spriteUrl"
 					:name="member.name"
 					:state="member.animationState"
-					facing="right"
+					:flip-x="member.flipX"
 					:scale="spriteScale"
 				/>
 			</div>
@@ -42,7 +42,7 @@
 					:sprite-url="enemy.spriteUrl"
 					:name="enemy.name"
 					:state="enemy.animationState"
-					facing="left"
+					:flip-x="enemy.flipX"
 					:scale="spriteScale"
 				/>
 			</div>
@@ -60,6 +60,7 @@ interface Combatant {
 	name: string;
 	spriteUrl: string;
 	animationState: "idle" | "attack" | "hurt" | "victory" | "defeat";
+	flipX?: boolean;
 }
 
 defineProps<{

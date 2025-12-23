@@ -1,18 +1,23 @@
 <template>
-	<div
-		class="battle-sprite"
-		:class="[`facing-${facing}`, `state-${state}`, { 'reduce-motion': prefersReducedMotion }]"
-		:style="{ transform: `scale(${scale})` }"
-	>
-		<img
-			v-if="isLoaded"
-			:src="spriteUrl"
-			:alt="name"
-			class="sprite-image pixelated select-none"
-			draggable="false"
-		/>
-		<!-- Loading placeholder -->
-		<div v-else class="w-24 h-32 bg-muted/50 rounded animate-pulse" />
+	<!-- Outer wrapper for scaling (won't be affected by animations) -->
+	<div class="sprite-scale-wrapper" :style="{ transform: `scale(${props.scale})` }">
+		<!-- Flip wrapper (separate from animations to avoid transform conflicts) -->
+		<div :style="{ transform: props.flipX ? 'scaleX(-1)' : 'none' }">
+			<div
+				class="battle-sprite"
+				:class="[`state-${props.state}`, { 'reduce-motion': prefersReducedMotion }]"
+			>
+				<img
+					v-if="isLoaded"
+					:src="props.spriteUrl"
+					:alt="props.name"
+					class="sprite-image pixelated select-none h-20"
+					draggable="false"
+				/>
+				<!-- Loading placeholder -->
+				<div v-else class="w-20 h-24 bg-muted/50 rounded animate-pulse" />
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -25,12 +30,12 @@ const props = withDefaults(
 		spriteUrl: string;
 		name: string;
 		state?: "idle" | "attack" | "hurt" | "victory" | "defeat";
-		facing?: "left" | "right";
+		flipX?: boolean;
 		scale?: number;
 	}>(),
 	{
 		state: "idle",
-		facing: "right",
+		flipX: false,
 		scale: 1,
 	},
 );
@@ -49,9 +54,6 @@ const prefersReducedMotion = usePreferredReducedMotion();
 	image-rendering: crisp-edges;
 }
 
-.facing-left {
-	transform: scaleX(-1);
-}
 
 /* Animation states */
 .state-idle:not(.reduce-motion) {
