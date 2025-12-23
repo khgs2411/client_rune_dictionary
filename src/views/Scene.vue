@@ -48,6 +48,7 @@ function start() {
 		engine = new Engine(canvasRef.value);
 		console.log("   ↳ Scene UUID:", engine.scene.uuid);
 
+		loadSceneAssets();
 		// Create and load playground scene
 		// LoadingScreen.vue (mounted first) listens to events emitted by the scene
 		setCurrentScene();
@@ -97,6 +98,10 @@ async function cleanupGame() {
 		engine.cleanup();
 		engine = null;
 	}
+}
+
+function loadSceneAssets() {
+	
 }
 
 function setCurrentScene() {
