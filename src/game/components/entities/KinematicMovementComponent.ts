@@ -78,10 +78,10 @@ export class KinematicMovementComponent extends GameComponent {
 	/**
 	 * React to scene state changes - control movement and jumping based on state
 	 *
-	 * State-based movement rules (from Subject 1):
+	 * State-based movement rules:
 	 * - OVERWORLD: enableMovement=true, enableJumping=true
 	 * - MATCH_REQUEST: enableMovement=false, enableJumping=false
-	 * - PVE_MATCH: enableMovement=true, enableJumping=false
+	 * - PVE_MATCH/PVP_MATCH: enableMovement=false, enableJumping=false (combat overlay handles visuals)
 	 * - MENU: enableMovement=false, enableJumping=false
 	 */
 	private onStateChange(newState: E_SceneState, oldState: E_SceneState): void {
@@ -99,9 +99,9 @@ export class KinematicMovementComponent extends GameComponent {
 				break;
 			case E_SceneState.PVE_MATCH:
 			case E_SceneState.PVP_MATCH:
-				this.enableMovement = true;
+				this.enableMovement = false;
 				this.enableJumping = false;
-				console.log("🏃 [KinematicMovementComponent] Movement: ✅ | Jumping: 🚫");
+				console.log("🏃 [KinematicMovementComponent] Movement: 🚫 | Jumping: 🚫");
 				break;
 
 			case E_SceneState.MENU:
