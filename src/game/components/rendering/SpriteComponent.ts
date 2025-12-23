@@ -5,7 +5,6 @@ import type { I_SpriteComponentConfig } from "../../common/sprite.types";
 import { ComponentPriority, GameComponent, TRAIT } from "../../GameComponent";
 import { TextureCache } from "../../utils/TextureCache";
 import { TransformComponent } from "../entities/TransformComponent";
-import { MeshComponent } from "./MeshComponent";
 
 /**
  * SpriteComponent - Renders a textured plane as a 2D sprite in 3D space
@@ -105,8 +104,8 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 	async init(context: I_SceneContext): Promise<void> {
 		this.context = context;
 
-		// Restrict: cannot use with MeshComponent
-		this.restrictComponent(MeshComponent, "Use SpriteComponent OR MeshComponent, not both.");
+		// Restrict: only one mesh provider allowed per GameObject
+		this.restrictByTrait(TRAIT.MESH_PROVIDER, "Use only one of: MeshComponent, InstancedMeshComponent, or SpriteComponent");
 
 		// Extract config with defaults
 		const size = this.config.size ?? [1, 1];

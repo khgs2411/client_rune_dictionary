@@ -1,11 +1,10 @@
+import type { I_MeshProvider } from "@/game/common/mesh.types";
 import type { I_SceneContext } from "@/game/common/scenes.types";
 import { ComponentPriority, GameComponent, TRAIT } from "@/game/GameComponent";
 import { E_SceneState } from "@/game/systems/SceneState";
 import { UnitsComponent } from "../entities/UnitsComponent";
 import { HoverComponent } from "../interactions/HoverComponent";
 import { InteractionComponent } from "../interactions/InteractionComponent";
-import { MeshComponent } from "../rendering/MeshComponent";
-import { I_MeshProvider } from "@/game/common/mesh.types";
 
 /**
  * Arena configuration for match environment
@@ -47,13 +46,13 @@ export interface I_MatchComponentConfig {
  * - Requires InteractionComponent (for doubleclick event)
  * - Requires HoverComponent (for hover events)
  * - Requires UnitsComponent (for range checking)
- * - Requires MeshComponent (for glow effects)
+ * - Requires I_MeshProvider (MeshComponent or SpriteComponent, for glow effects)
  *
  * Usage:
  * ```typescript
  * const npc = new GameObject({ id: 'training-dummy' })
  *   .addComponent(new TransformComponent({ position: [0, 0, 0] }))
- *   .addComponent(new MeshComponent())
+ *   .addComponent(new SpriteComponent({ texture: '/sprites/goblin.png' }))
  *   .addComponent(new UnitsComponent())
  *   .addComponent(new InteractionComponent())
  *   .addComponent(new HoverComponent())
