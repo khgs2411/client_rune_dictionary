@@ -1,8 +1,8 @@
+import type { I_MeshProvider } from "@/game/common/mesh.types";
 import { I_SceneContext } from "@/game/common/scenes.types";
 import { GameObject } from "@/game/GameObject";
 import { Intersection } from "three";
-import { ComponentPriority, GameComponent } from "../../GameComponent";
-import { MeshComponent } from "../rendering/MeshComponent";
+import { ComponentPriority, GameComponent, TRAIT } from "../../GameComponent";
 
 export type HoverEventCallback = (target: GameObject, intersection?: Intersection) => void;
 
@@ -13,7 +13,7 @@ export type HoverEventCallback = (target: GameObject, intersection?: Intersectio
  * It emits events that consumers (like MatchComponent) can listen to and react.
  *
  * Requires:
- * - MeshComponent (for raycasting target)
+ * - I_MeshProvider (MeshComponent, SpriteComponent, etc.) for raycasting target
  *
  * Events:
  * - 'start': Fired when hover begins (with intersection)
@@ -49,10 +49,10 @@ export class HoverComponent extends GameComponent {
 	private isHovered = false;
 
 	async init(context: I_SceneContext): Promise<void> {
-		const meshComp = this.requireComponent(MeshComponent);
+		const meshProvider = this.requireByTrait<I_MeshProvider>(TRAIT.MESH_PROVIDER);
 		const interaction = context.getService("interaction");
 
-		this.unregister = interaction.registerHover(`${this.gameObject.id}-hover`, meshComp.mesh, {
+		this.unregister = interaction.registerHover(`${this.gameObject.id}-hover`, meshProvider.getMesh(), {
 			onStart: (intersection: Intersection) => {
 				this.isHovered = true;
 				this.emit("start", intersection);

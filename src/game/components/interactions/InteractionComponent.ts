@@ -1,8 +1,8 @@
+import type { I_MeshProvider } from "@/game/common/mesh.types";
 import type { I_SceneContext } from "@/game/common/scenes.types";
-import { ComponentPriority, GameComponent } from "@/game/GameComponent";
+import { ComponentPriority, GameComponent, TRAIT } from "@/game/GameComponent";
 import { GameObject } from "@/game/GameObject";
 import type { Intersection } from "three";
-import { MeshComponent } from "../rendering/MeshComponent";
 
 export type InteractionEventCallback = (gameObject: GameObject, intersection: Intersection) => void;
 
@@ -34,7 +34,7 @@ export type InteractionEventCallback = (gameObject: GameObject, intersection: In
  * ```
  *
  * Architecture:
- * - Requires MeshComponent for raycasting
+ * - Requires I_MeshProvider (MeshComponent, SpriteComponent, etc.) for raycasting
  * - Registers with InteractionService
  * - Emits custom events to listeners
  * - Handles double-click detection internally
@@ -73,15 +73,15 @@ export class InteractionComponent extends GameComponent {
 	}
 
 	private registerInteractions(context: I_SceneContext): void {
-		// Require MeshComponent for raycasting
-		const meshComp = this.requireComponent(MeshComponent);
+		// Require any component that provides a mesh (MeshComponent, SpriteComponent, etc.)
+		const meshProvider = this.requireByTrait<I_MeshProvider>(TRAIT.MESH_PROVIDER);
 		// Get InteractionService
 		const interaction = context.getService("interaction");
 
 		// Register click handler with requireHover
 		this.unregisterClick = interaction.registerMouseClick(`${this.gameObject.id}-interaction-click`, "left", this.onClick.bind(this), {
 			requireHover: true,
-			object3D: meshComp.mesh,
+			object3D: meshProvider.getMesh(),
 			gameObject: this.gameObject, // Pass gameObject so it's saved to store on click
 		});
 	}

@@ -65,7 +65,7 @@ export class TrainingDummy extends GameObject {
 			)
 			.addComponent(
 				new BillboardComponent({
-					mode: 'spherical',
+					mode: "spherical", // Cylindrical keeps NPC upright while facing camera
 				}),
 			)
 
@@ -73,9 +73,9 @@ export class TrainingDummy extends GameObject {
 			.addComponent(new UnitsComponent()) // Distance measurement
 
 			// Interaction components (order matters for dependencies)
-			// .addComponent(new MatchComponent()) // Orchestrates: hover glow when in range, doubleclick to start match
-			// .addComponent(new HoverComponent()) // Provides hover events
-			// .addComponent(new InteractionComponent()) // Provides click/doubleclick events
-			// .addComponent(new CollisionComponent());
+			.addComponent(new InteractionComponent()) // Provides click/doubleclick events
+			.addComponent(new HoverComponent()) // Provides hover events
+			.addComponent(new CollisionComponent())
+			.addComponent(new MatchComponent()); // Orchestrates: hover glow when in range, doubleclick to start match
 	}
 }

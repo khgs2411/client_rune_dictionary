@@ -1,8 +1,8 @@
+import type { I_MeshProvider } from "@/game/common/mesh.types";
 import { I_SceneContext } from "@/game/common/scenes.types";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
-import { ComponentPriority, GameComponent } from "../../GameComponent";
+import { ComponentPriority, GameComponent, TRAIT } from "../../GameComponent";
 import { InstancedMeshComponent } from "../rendering/InstancedMeshComponent";
-import { MeshComponent } from "../rendering/MeshComponent";
 
 export interface I_CollisionConfig {
 	type: "static" | "dynamic" | "trigger";
@@ -51,8 +51,8 @@ export interface I_CollisionConfig {
  * ```
  *
  * Dependencies:
- * - Option 1: Provide shape + shapeParams (no mesh required, must NOT have MeshComponent)
- * - Option 2: Requires MeshComponent OR InstancedMeshComponent (derives shape from geometry)
+ * - Option 1: Provide shape + shapeParams (no mesh required, must NOT have I_MeshProvider)
+ * - Option 2: Requires I_MeshProvider (MeshComponent, SpriteComponent) OR InstancedMeshComponent
  *
  * IMPORTANT: shapeParams use HALF-EXTENTS convention (divide full dimensions by 2)
  */
@@ -79,14 +79,14 @@ export class CollisionComponent extends GameComponent {
 			return;
 		}
 
-		// Get mesh components (optional - can use explicit shape params instead)
-		const meshComp = this.getComponent(MeshComponent);
+		// Get mesh provider (optional - can use explicit shape params instead)
+		const meshProvider = this.findByTrait<I_MeshProvider>(TRAIT.MESH_PROVIDER);
 		const instancedMeshComp = this.getComponent(InstancedMeshComponent);
 		const TransformComponentClass = TransformComponent;
 		const transformComp = this.getComponent(TransformComponentClass);
 
 		// Register collider with physics service
-		if (this.config.shape && this.config.shapeParams && !meshComp && !instancedMeshComp) {
+		if (this.config.shape && this.config.shapeParams && !meshProvider && !instancedMeshComp) {
 			// Explicit shape registration (no mesh required)
 			// shapeParams are half-extents: [halfWidth, halfHeight, halfDepth]
 			// Convert to full dimensions for registerStatic
@@ -105,16 +105,16 @@ export class CollisionComponent extends GameComponent {
 				},
 				{ showDebug: this.config.showDebug },
 			);
-		} else if (meshComp) {
+		} else if (meshProvider) {
 			// Single mesh registration (derive collision from mesh geometry)
-			physics.registerStaticFromMesh(this.gameObject.id, meshComp.mesh, {
+			physics.registerStaticFromMesh(this.gameObject.id, meshProvider.getMesh(), {
 				showDebug: this.config.showDebug,
 			});
 		} else if (instancedMeshComp) {
 			// Instanced mesh registration (multiple static bodies)
 			this.instanceIds = physics.registerInstancedStatic(this.gameObject.id, instancedMeshComp.instancedMesh);
 		} else {
-			throw new Error(`[CollisionComponent] GameObject "${this.gameObject.id}" requires either: (1) shape + shapeParams config, or (2) MeshComponent/InstancedMeshComponent`);
+			throw new Error(`[CollisionComponent] GameObject "${this.gameObject.id}" requires either: (1) shape + shapeParams config, or (2) I_MeshProvider/InstancedMeshComponent`);
 		}
 
 		// Register collision callbacks if provided
