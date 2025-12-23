@@ -89,8 +89,8 @@ export class CollisionComponent extends GameComponent {
 		// Register collider with physics service using priority order:
 		// 1. Explicit shape + shapeParams
 		// 2. COLLISION_MESH_PROVIDER (CollisionProxyComponent)
-		// 3. MESH_PROVIDER (MeshComponent, SpriteComponent)
-		// 4. InstancedMeshComponent
+		// 3. InstancedMeshComponent (must check BEFORE meshProvider since it also registers MESH_PROVIDER)
+		// 4. MESH_PROVIDER (MeshComponent, SpriteComponent)
 		if (this.config.shape && this.config.shapeParams) {
 			// Explicit shape registration
 			// shapeParams are half-extents: [halfWidth, halfHeight, halfDepth]
@@ -118,14 +118,15 @@ export class CollisionComponent extends GameComponent {
 			physics.registerStaticFromMesh(this.gameObject.id, collisionMeshProvider.getCollisionMesh(), {
 				showDebug: this.config.showDebug,
 			});
+		} else if (instancedMeshComp) {
+			// Instanced mesh registration (multiple static bodies)
+			// Must check BEFORE meshProvider since InstancedMeshComponent also registers MESH_PROVIDER trait
+			this.instanceIds = physics.registerInstancedStatic(this.gameObject.id, instancedMeshComp.instancedMesh);
 		} else if (meshProvider) {
 			// Single mesh registration (derive collision from mesh geometry)
 			physics.registerStaticFromMesh(this.gameObject.id, meshProvider.getMesh(), {
 				showDebug: this.config.showDebug,
 			});
-		} else if (instancedMeshComp) {
-			// Instanced mesh registration (multiple static bodies)
-			this.instanceIds = physics.registerInstancedStatic(this.gameObject.id, instancedMeshComp.instancedMesh);
 		} else {
 			throw new Error(
 				`[CollisionComponent] GameObject "${this.gameObject.id}" requires one of: (1) shape + shapeParams, (2) CollisionProxyComponent, (3) MeshProvider, or (4) InstancedMeshComponent`,
@@ -136,7 +137,8 @@ export class CollisionComponent extends GameComponent {
 		this.registerCallbacks();
 
 		// Add debug label if global physics debug is enabled
-		if (DataStore.settings.debug.showPhysicsDebug) {
+		// Skip for instanced meshes - they have multiple collision bodies and wireframes already show positions
+		if (DataStore.settings.debug.showPhysicsDebug && !instancedMeshComp) {
 			const labelComp = new DebugLabelComponent({ text: this.gameObject.id });
 			this.gameObject.addComponent(labelComp);
 			await labelComp.init(context);
