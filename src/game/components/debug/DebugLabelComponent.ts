@@ -1,16 +1,29 @@
+import { DataStore } from "@/stores/DataStore";
 import { CanvasTexture, Sprite, SpriteMaterial } from "three";
 import type { I_SceneContext } from "../../common/scenes.types";
 import { ComponentPriority, GameComponent } from "../../GameComponent";
 import { TransformComponent } from "../entities/TransformComponent";
 
+export type DebugLabelVariant = "collision" | "primary" | "warning" | "info";
+
 export interface I_DebugLabelConfig {
 	text?: string; // Label text (default: gameObject.id)
 	yOffset?: number; // Height above transform (default: 2)
 	fontSize?: number; // Font size in pixels (default: 48)
-	backgroundColor?: string; // Background color (default: 'rgba(0, 0, 0, 0.7)')
-	textColor?: string; // Text color (default: '#00ff00')
 	padding?: number; // Padding in pixels (default: 10)
+	variant?: DebugLabelVariant; // Preset color scheme (default: 'collision')
+	// Custom colors (override variant)
+	backgroundColor?: string;
+	textColor?: string;
 }
+
+// Preset color schemes
+const LABEL_VARIANTS: Record<DebugLabelVariant, { bg: string; text: string }> = {
+	collision: { bg: "rgba(0, 0, 0, 0.7)", text: "#00ff00" }, // Green - physics debug
+	primary: { bg: "rgba(0, 0, 0, 0.8)", text: "#ff69b4" }, // Pink - general identification
+	warning: { bg: "rgba(80, 50, 0, 0.8)", text: "#ffaa00" }, // Orange - warnings
+	info: { bg: "rgba(0, 40, 80, 0.8)", text: "#00aaff" }, // Blue - info
+};
 
 /**
  * DebugLabelComponent - Floating text label for debugging
@@ -20,9 +33,23 @@ export interface I_DebugLabelConfig {
  *
  * Usage:
  * ```typescript
+ * // Collision debug (green) - used by physics system
+ * gameObject.addComponent(new DebugLabelComponent());
+ *
+ * // Manual identification (pink)
+ * gameObject.addComponent(new DebugLabelComponent({ variant: 'primary' }));
+ *
+ * // Custom text and variant
  * gameObject.addComponent(new DebugLabelComponent({
- *   text: 'My Label', // Optional, defaults to gameObject.id
+ *   text: 'My NPC',
+ *   variant: 'info',
  *   yOffset: 2.5,
+ * }));
+ *
+ * // Fully custom colors
+ * gameObject.addComponent(new DebugLabelComponent({
+ *   textColor: '#ff0000',
+ *   backgroundColor: 'rgba(255, 255, 255, 0.9)',
  * }));
  * ```
  */
@@ -46,9 +73,13 @@ export class DebugLabelComponent extends GameComponent {
 		const text = this.config.text ?? this.gameObject.id;
 		const yOffset = this.config.yOffset ?? 2;
 		const fontSize = this.config.fontSize ?? 48;
-		const backgroundColor = this.config.backgroundColor ?? "rgba(0, 0, 0, 0.7)";
-		const textColor = this.config.textColor ?? "#00ff00";
 		const padding = this.config.padding ?? 10;
+
+		// Resolve colors from variant (custom colors override variant)
+		const variant = this.config.variant ?? "primary";
+		const variantColors = LABEL_VARIANTS[variant];
+		const backgroundColor = this.config.backgroundColor ?? variantColors.bg;
+		const textColor = this.config.textColor ?? variantColors.text;
 
 		// Create canvas for text
 		const canvas = document.createElement("canvas");

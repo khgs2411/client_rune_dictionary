@@ -139,7 +139,7 @@ export class CollisionComponent extends GameComponent {
 		// Add debug label if global physics debug is enabled
 		// Skip for instanced meshes - they have multiple collision bodies and wireframes already show positions
 		if (DataStore.settings.debug.showPhysicsDebug && !instancedMeshComp) {
-			const labelComp = new DebugLabelComponent({ text: this.gameObject.id });
+			const labelComp = new DebugLabelComponent({ text: this.gameObject.id, variant: "collision" });
 			this.gameObject.addComponent(labelComp);
 			await labelComp.init(context);
 		}

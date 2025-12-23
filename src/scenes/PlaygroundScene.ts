@@ -318,7 +318,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		const [townTrunks, townLeaves] = Trees.create({
 			id: "town-trees",
 			positions: [
-				{ x: 20, y: 0, z: 20 },
+				{ x: 15, y: 0, z: 20 },
 				{ x: 55, y: 0, z: 25 },
 				{ x: 60, y: 0, z: -5 },
 				{ x: 25, y: 0, z: -20 },

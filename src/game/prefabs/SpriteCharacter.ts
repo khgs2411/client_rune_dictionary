@@ -1,4 +1,5 @@
 import type { BillboardMode, I_AnimationDefinition } from "../common/sprite.types";
+import { DebugLabelComponent } from "../components/debug/DebugLabelComponent";
 import { TransformComponent } from "../components/entities/TransformComponent";
 import { BillboardComponent } from "../components/rendering/BillboardComponent";
 import { SpriteAnimationComponent } from "../components/rendering/SpriteAnimationComponent";
@@ -96,6 +97,8 @@ export class SpriteCharacter extends GameObject {
 				mode: billboardMode,
 			}),
 		);
+
+		this.addComponent(new DebugLabelComponent());
 
 		// this.addComponent(new OcclusionComponent())
 

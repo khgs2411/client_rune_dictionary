@@ -111,7 +111,7 @@ export class KinematicCollisionComponent extends CollisionComponent {
 
 		// Add debug label if global physics debug is enabled
 		if (DataStore.settings.debug.showPhysicsDebug) {
-			const labelComp = new DebugLabelComponent({ text: this.gameObject.id });
+			const labelComp = new DebugLabelComponent({ text: this.gameObject.id, variant: "collision" });
 			this.gameObject.addComponent(labelComp);
 			await labelComp.init(context);
 		}
