@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import { useElementSize } from "@vueuse/core";
 import BattleSprite from "./BattleSprite.vue";
 
@@ -72,11 +72,7 @@ defineProps<{
 const stageRef = ref<HTMLElement | null>(null);
 const { width } = useElementSize(stageRef);
 
-// DEBUG: Log width changes
-watch(width, (w) => console.log("[BattleStage] width:", w), { immediate: true });
-
 const spriteScale = computed(() => {
-	console.log("[BattleStage] computing spriteScale, width:", width.value);
 	if (width.value < 480) return 1; // Mobile
 	if (width.value < 768) return 1.5; // Tablet
 	return 2; // Desktop (768+)

@@ -14,6 +14,7 @@ import { TransformComponent } from "../entities/TransformComponent";
  *
  * Features:
  * - Single texture or sprite sheet support
+ * - Runtime texture swapping (for multi-texture animations)
  * - Configurable anchor point (bottom-center default for standing sprites)
  * - Proper transparency handling with alpha test
  * - Integrates with TransformComponent for positioning
@@ -47,14 +48,21 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 	private loaded = false;
 	private context!: I_SceneContext;
 
-	// Sprite sheet state (for Phase 3)
+	// Current texture path (for multi-texture support)
+	private currentTexturePath: string;
+
+	// Sprite sheet state
 	private currentFrame = 0;
 	private frameColumns = 1;
 	private frameRows = 1;
 
+	// Preloaded textures cache (for multi-texture sprites)
+	private preloadedTextures: Map<string, Texture> = new Map();
+
 	constructor(config: I_SpriteComponentConfig) {
 		super();
 		this.config = config;
+		this.currentTexturePath = config.texture;
 		this.registerTrait(TRAIT.MESH_PROVIDER);
 
 		// Early validation: warn if texture is already known to be invalid
@@ -90,7 +98,7 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 	 */
 	private static markTextureVerified(path: string): void {
 		SpriteComponent.verifiedTextures.add(path);
-		SpriteComponent.invalidTextures.delete(path); // Remove from invalid if it was there
+		SpriteComponent.invalidTextures.delete(path);
 	}
 
 	/**
@@ -123,8 +131,6 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 		this.currentFrame = this.config.initialFrame ?? 0;
 
 		// Create geometry with anchor offset
-		// PlaneGeometry is centered by default, we need to offset based on anchor
-		// anchor [0.5, 0] = bottom-center means offset Y by +0.5 (half height up)
 		const offsetX = (0.5 - anchor[0]) * size[0];
 		const offsetY = (0.5 - anchor[1]) * size[1];
 
@@ -174,27 +180,159 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 			this.material.map = this.texture;
 			this.material.needsUpdate = true;
 
+			// Cache in preloaded map
+			this.preloadedTextures.set(this.config.texture, this.texture);
+
 			// Set initial UV for sprite sheet
 			if (this.config.spriteSheet) {
 				this.updateUVs();
 			}
 
 			this.loaded = true;
-
-			// Mark texture as verified for future instances
 			SpriteComponent.markTextureVerified(this.config.texture);
 		} catch (error) {
-			// Mark texture as invalid so future instances warn immediately
 			SpriteComponent.markTextureInvalid(this.config.texture);
 			console.error(`[SpriteComponent] Failed to load texture "${this.config.texture}" for "${this.gameObject.id}":`, error);
 		}
 	}
 
 	/**
+	 * Preload additional textures for multi-texture sprite sheets
+	 *
+	 * Call this during init to preload all textures for smooth animation switching.
+	 *
+	 * @param texturePaths - Array of texture paths to preload
+	 */
+	async preloadTextures(texturePaths: string[]): Promise<void> {
+		const cache = TextureCache.getInstance();
+
+		const loadPromises = texturePaths.map(async (path) => {
+			if (this.preloadedTextures.has(path)) return;
+
+			try {
+				const texture = await cache.load(path);
+				cache.retain(path);
+				this.preloadedTextures.set(path, texture);
+				SpriteComponent.markTextureVerified(path);
+			} catch (error) {
+				SpriteComponent.markTextureInvalid(path);
+				console.error(`[SpriteComponent] Failed to preload texture "${path}":`, error);
+			}
+		});
+
+		await Promise.all(loadPromises);
+	}
+
+	/**
+	 * Swap to a different texture
+	 *
+	 * For multi-texture sprite sheets where each animation is in a different file.
+	 * If the texture is preloaded, swap is instant. Otherwise loads async.
+	 *
+	 * @param texturePath - Path to the new texture
+	 * @param spriteSheet - Optional: new sprite sheet dimensions for this texture
+	 * @returns Promise that resolves when texture is swapped
+	 */
+	async swapTexture(
+		texturePath: string,
+		spriteSheet?: { columns: number; rows: number },
+	): Promise<void> {
+		// Skip if already using this texture
+		if (texturePath === this.currentTexturePath) return;
+
+		// Update sprite sheet dimensions if provided
+		if (spriteSheet) {
+			this.frameColumns = spriteSheet.columns;
+			this.frameRows = spriteSheet.rows;
+		}
+
+		// Check if texture is preloaded
+		const preloaded = this.preloadedTextures.get(texturePath);
+		if (preloaded) {
+			this.texture = preloaded;
+			this.material.map = preloaded;
+			this.material.needsUpdate = true;
+			this.currentTexturePath = texturePath;
+			this.updateUVs();
+			return;
+		}
+
+		// Load texture if not preloaded
+		try {
+			const cache = TextureCache.getInstance();
+			const newTexture = await cache.load(texturePath);
+			cache.retain(texturePath);
+
+			this.texture = newTexture;
+			this.material.map = newTexture;
+			this.material.needsUpdate = true;
+
+			// Cache for future use
+			this.preloadedTextures.set(texturePath, newTexture);
+			this.currentTexturePath = texturePath;
+
+			this.updateUVs();
+			SpriteComponent.markTextureVerified(texturePath);
+		} catch (error) {
+			SpriteComponent.markTextureInvalid(texturePath);
+			console.error(`[SpriteComponent] Failed to swap texture to "${texturePath}":`, error);
+		}
+	}
+
+	/**
+	 * Synchronously swap to a preloaded texture
+	 *
+	 * Only works if the texture was preloaded. Returns false if texture not found.
+	 *
+	 * @param texturePath - Path to the preloaded texture
+	 * @param spriteSheet - Optional: new sprite sheet dimensions
+	 * @returns true if swap succeeded, false if texture not preloaded
+	 */
+	swapTextureSync(
+		texturePath: string,
+		spriteSheet?: { columns: number; rows: number },
+	): boolean {
+		if (texturePath === this.currentTexturePath) return true;
+
+		const preloaded = this.preloadedTextures.get(texturePath);
+		if (!preloaded) {
+			console.warn(`[SpriteComponent] Texture "${texturePath}" not preloaded. Use preloadTextures() first.`);
+			return false;
+		}
+
+		if (spriteSheet) {
+			this.frameColumns = spriteSheet.columns;
+			this.frameRows = spriteSheet.rows;
+		}
+
+		this.texture = preloaded;
+		this.material.map = preloaded;
+		this.material.needsUpdate = true;
+		this.currentTexturePath = texturePath;
+		this.updateUVs();
+
+		return true;
+	}
+
+	/**
+	 * Get current texture path
+	 */
+	getCurrentTexturePath(): string {
+		return this.currentTexturePath;
+	}
+
+	/**
+	 * Check if a texture is preloaded
+	 */
+	isTexturePreloaded(texturePath: string): boolean {
+		return this.preloadedTextures.has(texturePath);
+	}
+
+	/**
 	 * Update UVs for current frame (sprite sheet support)
 	 */
 	private updateUVs(): void {
-		if (!this.texture || this.frameColumns <= 1 && this.frameRows <= 1) {
+		if (!this.texture || (this.frameColumns <= 1 && this.frameRows <= 1)) {
 			return;
 		}
 
@@ -208,10 +346,10 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 		// Row 0 is at top of texture, so we invert Y
 		const u0 = col * frameWidth;
 		const u1 = u0 + frameWidth;
-		const v0 = 1 - (row + 1) * frameHeight; // Bottom of frame
-		const v1 = 1 - row * frameHeight; // Top of frame
+		const v0 = 1 - (row + 1) * frameHeight;
+		const v1 = 1 - row * frameHeight;
 
-		// PlaneGeometry UV attribute order: [0,1], [1,1], [0,0], [1,0]
+		// PlaneGeometry UV attribute order
 		const uvs = this.geometry.attributes.uv;
 		uvs.setXY(0, u0, v1); // Top-left
 		uvs.setXY(1, u1, v1); // Top-right
@@ -222,13 +360,19 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 
 	/**
 	 * Sync mesh transform with TransformComponent
+	 * Preserves flip state (scale.x sign) when syncing scale
 	 */
 	private syncTransform(): void {
 		const transform = this.getComponent(TransformComponent);
 		if (transform && this.mesh) {
 			this.mesh.position.copy(transform.position);
 			this.mesh.rotation.copy(transform.rotation);
+			// Preserve flip state (negative scale.x) when syncing
+			const wasFlipped = this.mesh.scale.x < 0;
 			this.mesh.scale.copy(transform.scale);
+			if (wasFlipped) {
+				this.mesh.scale.x = -Math.abs(this.mesh.scale.x);
+			}
 		}
 	}
 
@@ -299,6 +443,26 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 	}
 
 	/**
+	 * Flip sprite horizontally
+	 *
+	 * Used by DirectionalSpriteAnimator for direction fallback
+	 * (e.g., using 'right' animation flipped for 'left' direction)
+	 *
+	 * @param flip - true to flip horizontally, false for normal
+	 */
+	setFlipX(flip: boolean): void {
+		if (!this.mesh) return;
+		this.mesh.scale.x = flip ? -Math.abs(this.mesh.scale.x) : Math.abs(this.mesh.scale.x);
+	}
+
+	/**
+	 * Check if sprite is flipped horizontally
+	 */
+	isFlippedX(): boolean {
+		return this.mesh?.scale.x < 0;
+	}
+
+	/**
 	 * Set sprite size (recreates geometry)
 	 */
 	setSize(width: number, height: number): void {
@@ -324,15 +488,18 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 	}
 
 	/**
-	 * Cleanup - release texture and remove mesh
+	 * Cleanup - release all textures and remove mesh
 	 */
 	destroy(): void {
-		// Release texture ref
-		if (this.texture) {
-			TextureCache.getInstance().release(this.config.texture);
-		}
+		const cache = TextureCache.getInstance();
 
-		// Manual mesh removal (like MeshComponent)
+		// Release all preloaded textures
+		for (const [path] of this.preloadedTextures) {
+			cache.release(path);
+		}
+		this.preloadedTextures.clear();
+
+		// Manual mesh removal
 		if (this.mesh?.parent) {
 			this.mesh.parent.remove(this.mesh);
 		}

@@ -6,8 +6,10 @@ import { TransformComponent } from "@/game/components/entities/TransformComponen
 import { SyncMovementComponent } from "@/game/components/multiplayer/SyncMovementComponent";
 import { CollisionProxyComponent } from "@/game/components/physics/CollisionProxyComponent";
 import { BillboardComponent } from "@/game/components/rendering/BillboardComponent";
+import { DirectionalSpriteAnimator } from "@/game/components/rendering/DirectionalSpriteAnimator";
 import { SpriteComponent } from "@/game/components/rendering/SpriteComponent";
 import { GameObject } from "@/game/GameObject";
+import { SpriteSheetRegistry } from "@/game/utils/SpriteSheetRegistry";
 
 /**
  * Configuration for LocalPlayer prefab
@@ -23,10 +25,11 @@ export interface I_LocalPlayerConfig {
  * LocalPlayer Prefab - Complete local player character GameObject
  *
  * This prefab represents the player controlled by this client.
- * Uses billboard sprite for visual representation.
+ * Uses billboard sprite with animated sprite sheet for visual representation.
  *
  * Visual:
- * - SpriteComponent: Knight sprite texture
+ * - SpriteComponent: Player sprite sheet from registry ('local-player')
+ * - DirectionalSpriteAnimator: Handles animation playback + movement-based animation switching
  * - BillboardComponent: Cylindrical billboarding (stays upright, faces camera)
  *
  * Behavior:
@@ -37,6 +40,9 @@ export interface I_LocalPlayerConfig {
  * The character controller (input handling) is owned by the scene and passed
  * to this GameObject. The controller holds DESIRED state from input, physics
  * computes ACTUAL state, and MovementComponent syncs them bidirectionally.
+ *
+ * Prerequisites:
+ * - Call `registerAllSpriteSheets()` before creating LocalPlayer
  *
  * Usage:
  * ```typescript
@@ -109,14 +115,37 @@ export class LocalPlayer extends GameObject {
 			}),
 		);
 
-		// Knight sprite
-		this.addComponent(
-			new SpriteComponent({
-				texture: "/sprites/knight_00.png",
-				size: [1.5, 2], // Width, Height in world units
-				anchor: [0.5, 0], // Bottom-center for standing character
-			}),
-		);
+		// Get sprite sheet config from registry
+		const registry = SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>();
+		const spriteConfig = registry.getSpriteConfig("local-player");
+
+		if (!spriteConfig) {
+			console.error("[LocalPlayer] Sprite sheet 'local-player' not found. Make sure to call registerAllSpriteSheets() first.");
+		} else {
+			// Add SpriteComponent with registry config
+			this.addComponent(
+				new SpriteComponent({
+					texture: spriteConfig.texture,
+					spriteSheet: spriteConfig.spriteSheet,
+					size: spriteConfig.size,
+					anchor: spriteConfig.anchor,
+				}),
+			);
+
+			// Add DirectionalSpriteAnimator with animations and movement tracking
+			const animations = registry.buildAnimations("local-player");
+			this.addComponent(
+				new DirectionalSpriteAnimator({
+					animations,
+					defaultAnimation: "idle",
+					// Movement tracking - auto-switches idle/walk and flips sprite
+					movementSource: this.characterController,
+					idleAnimation: "idle",
+					walkAnimation: "walk",
+					nativeFacing: "right", // Sprite sheet faces left natively
+				}),
+			);
+		}
 
 		// Billboard - cylindrical so sprite stays upright
 		this.addComponent(

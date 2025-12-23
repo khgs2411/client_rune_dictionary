@@ -16,6 +16,7 @@ import EditorPanel from "@/components/EditorPanel.vue";
 import LoadingScreen from "@/components/LoadingScreen.vue";
 import { I_GameScene, I_SceneConfig } from "@/game/common/scenes.types";
 import { Engine } from "@/game/Engine";
+import { registerAllSpriteSheets } from "@/game/utils/spriteSheets.config";
 import { PlaygroundScene } from "@/scenes/PlaygroundScene";
 import { useAuthStore } from "@/stores/auth.store";
 import { useSceneStore } from "@/stores/scene.store";
@@ -101,7 +102,7 @@ async function cleanupGame() {
 }
 
 function loadSceneAssets() {
-	
+	registerAllSpriteSheets()
 }
 
 function setCurrentScene() {
