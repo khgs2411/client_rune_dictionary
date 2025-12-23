@@ -1,6 +1,6 @@
 <template>
 	<!-- Outer wrapper for scaling (won't be affected by animations) -->
-	<div class="sprite-scale-wrapper" :style="{ transform: `scale(${props.scale})` }">
+	<div class="sprite-scale-wrapper" :style="scaleStyle">
 		<!-- Flip wrapper (separate from animations to avoid transform conflicts) -->
 		<div :style="{ transform: props.flipX ? 'scaleX(-1)' : 'none' }">
 			<div
@@ -46,6 +46,12 @@ const isLoaded = computed(() => !isLoading.value);
 
 // Accessibility: respect reduced motion preference
 const prefersReducedMotion = usePreferredReducedMotion();
+
+// Reactive scale style - scale from bottom center so sprites stay grounded
+const scaleStyle = computed(() => ({
+	transform: `scale(${props.scale})`,
+	transformOrigin: "bottom center",
+}));
 </script>
 
 <style scoped>

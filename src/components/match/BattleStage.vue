@@ -1,5 +1,5 @@
 <template>
-	<div ref="stageRef" class="battle-stage relative h-[50vh]">
+	<div ref="stageRef" class="battle-stage relative h-[50vh] overflow-hidden">
 		<!-- Stage Backdrop -->
 		<div class="absolute inset-0 stage-backdrop rounded-2xl overflow-hidden">
 			<!-- Gradient background -->
@@ -15,7 +15,7 @@
 		</div>
 
 		<!-- Combatants Container -->
-		<div class="relative z-10 flex justify-between items-end px-[10%] h-full pb-8">
+		<div class="relative z-10 flex justify-between items-end px-[10%] h-full pb-12">
 			<!-- Player Zone (Left) -->
 			<div class="combatant-zone flex flex-col items-center gap-4">
 				<BattleSprite
@@ -51,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useElementSize } from "@vueuse/core";
 import BattleSprite from "./BattleSprite.vue";
 
@@ -72,10 +72,14 @@ defineProps<{
 const stageRef = ref<HTMLElement | null>(null);
 const { width } = useElementSize(stageRef);
 
+// DEBUG: Log width changes
+watch(width, (w) => console.log("[BattleStage] width:", w), { immediate: true });
+
 const spriteScale = computed(() => {
-	if (width.value < 640) return 0.75; // Mobile
-	if (width.value < 1024) return 1; // Tablet
-	return 1.25; // Desktop
+	console.log("[BattleStage] computing spriteScale, width:", width.value);
+	if (width.value < 480) return 1; // Mobile
+	if (width.value < 768) return 1.5; // Tablet
+	return 2; // Desktop (768+)
 });
 </script>
 
