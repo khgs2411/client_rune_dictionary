@@ -6,6 +6,7 @@ import { CollisionComponent } from "@/game/components/interactions/CollisionComp
 import { HoverComponent } from "@/game/components/interactions/HoverComponent";
 import { InteractionComponent } from "@/game/components/interactions/InteractionComponent";
 import { MatchComponent } from "@/game/components/match/MatchComponent";
+import { CollisionProxyComponent } from "@/game/components/physics/CollisionProxyComponent";
 import { BillboardComponent } from "@/game/components/rendering/BillboardComponent";
 import { SpriteComponent } from "@/game/components/rendering/SpriteComponent";
 
@@ -18,15 +19,17 @@ export interface I_TrainingDummyConfig extends I_GameObjectConfig {
  * TrainingDummy - NPC prefab for match creation testing
  *
  * Represents a training dummy NPC that players can double-click to start a PvE match.
- * Uses a goblin sprite with cylindrical billboarding.
+ * Uses a goblin sprite with spherical billboarding.
  *
  * Components:
  * - TransformComponent: Position in world
  * - SpriteComponent: Goblin sprite texture
- * - BillboardComponent: Cylindrical billboarding (stays upright, faces camera)
+ * - BillboardComponent: Spherical billboarding (always faces camera)
+ * - CollisionProxyComponent: Invisible cylinder for physics collision
  * - UnitsComponent: Distance measurement
  * - InteractionComponent: Click/double-click events
  * - HoverComponent: Hover detection events
+ * - CollisionComponent: Static collision (uses CollisionProxyComponent)
  * - MatchComponent: Match creation logic (range checking + combat glow)
  *
  * Usage:
@@ -65,7 +68,18 @@ export class TrainingDummy extends GameObject {
 			)
 			.addComponent(
 				new BillboardComponent({
-					mode: "spherical", // Cylindrical keeps NPC upright while facing camera
+					mode: "spherical", // Spherical keeps NPC always facing camera
+				}),
+			)
+
+			// Collision proxy - invisible cylinder for physics
+			// Sprite handles rendering, this cylinder handles collision
+			.addComponent(
+				new CollisionProxyComponent({
+					shape: "cylinder",
+					radius: 0.4,
+					height: 2,
+					offset: [0, 0.6, 0], // Center cylinder vertically on sprite
 				}),
 			)
 
@@ -75,7 +89,7 @@ export class TrainingDummy extends GameObject {
 			// Interaction components (order matters for dependencies)
 			.addComponent(new InteractionComponent()) // Provides click/doubleclick events
 			.addComponent(new HoverComponent()) // Provides hover events
-			.addComponent(new CollisionComponent())
+			.addComponent(new CollisionComponent()) // Uses CollisionProxyComponent automatically via trait
 			.addComponent(new MatchComponent()); // Orchestrates: hover glow when in range, doubleclick to start match
 	}
 }

@@ -4,6 +4,7 @@ import { KinematicCollisionComponent } from "@/game/components/entities/Kinemati
 import { KinematicMovementComponent } from "@/game/components/entities/KinematicMovementComponent";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { SyncMovementComponent } from "@/game/components/multiplayer/SyncMovementComponent";
+import { CollisionProxyComponent } from "@/game/components/physics/CollisionProxyComponent";
 import { BillboardComponent } from "@/game/components/rendering/BillboardComponent";
 import { SpriteComponent } from "@/game/components/rendering/SpriteComponent";
 import { GameObject } from "@/game/GameObject";
@@ -72,10 +73,10 @@ export class LocalPlayer extends GameObject {
 	}
 
 	private addCharacterControllerComponents(startPos: Vec3, config: I_LocalPlayerConfig) {
+		// KinematicCollisionComponent automatically uses CollisionProxyComponent via trait
 		this.addComponent(
 			new KinematicCollisionComponent({
 				type: "static", // Required by base, but overridden for kinematic
-				getMesh: () => this.getComponent(SpriteComponent)!.getMesh(), // Polymorphic mesh getter
 				initialPosition: startPos, // Physics body starts at correct position
 				characterOptions: {
 					enableAutostep: true,
@@ -121,6 +122,17 @@ export class LocalPlayer extends GameObject {
 		this.addComponent(
 			new BillboardComponent({
 				mode: "cylindrical",
+			}),
+		);
+
+		// Collision proxy - invisible capsule for physics
+		// Sprite handles rendering, this capsule handles collision
+		this.addComponent(
+			new CollisionProxyComponent({
+				shape: "capsule",
+				radius: 0.3,
+				height: 1.5,
+				offset: [0, 0.75, 0], // Center capsule vertically on sprite
 			}),
 		);
 	}

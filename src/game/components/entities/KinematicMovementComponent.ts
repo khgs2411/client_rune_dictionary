@@ -121,16 +121,21 @@ export class KinematicMovementComponent extends GameComponent {
 		const currentPos = this.kinematicPhysics.getPosition();
 		if (!currentPos) return;
 
+		// Get collision offset (physics body center is at transform + offset)
+		const offset = this.kinematicPhysics.getCollisionOffset();
+
 		// Handle vertical velocity (gravity + jumping)
 		if (this.enableJumping) {
 			this.handleJumping(delta);
 		}
 
 		// Calculate desired horizontal movement (from character controller)
+		// Character controller is at transform level, currentPos is at physics body level
+		// So we need to add offset to get the desired physics body position
 		const desiredMovement = {
-			x: this.characterController.position.x.value - currentPos.x,
+			x: this.characterController.position.x.value + offset[0] - currentPos.x,
 			y: this.verticalVelocity * delta,
-			z: this.characterController.position.z.value - currentPos.z,
+			z: this.characterController.position.z.value + offset[2] - currentPos.z,
 		};
 
 		// Use KinematicCollisionComponent to compute collision-corrected movement
@@ -148,16 +153,18 @@ export class KinematicMovementComponent extends GameComponent {
 		this.kinematicPhysics.applyPosition(finalPosition);
 
 		// Update TransformComponent (source of truth for position)
+		// Subtract offset because physics body center is at transform + offset
 		const transform = this.getComponent(TransformComponent);
 		if (transform) {
-			transform.setPosition(finalPosition.x, finalPosition.y, finalPosition.z);
+			transform.setPosition(finalPosition.x - offset[0], finalPosition.y - offset[1], finalPosition.z - offset[2]);
 			transform.setRotation(0, this.characterController.rotation.value, 0);
 		}
 
-		// Sync physics position back to character controller (bidirectional!)
-		this.characterController.position.x.value = finalPosition.x;
-		this.characterController.position.y.value = finalPosition.y;
-		this.characterController.position.z.value = finalPosition.z;
+		// Sync transform position to character controller (bidirectional!)
+		// Use transform position (not physics body position)
+		this.characterController.position.x.value = finalPosition.x - offset[0];
+		this.characterController.position.y.value = finalPosition.y - offset[1];
+		this.characterController.position.z.value = finalPosition.z - offset[2];
 
 		// Handle grounded state
 		const isGrounded = this.kinematicPhysics.isGrounded();
@@ -165,8 +172,8 @@ export class KinematicMovementComponent extends GameComponent {
 			// Reset vertical velocity when grounded
 			this.verticalVelocity = 0;
 
-			// Update ground level for jump system
-			this.config.character.groundLevel = finalPosition.y;
+			// Update ground level for jump system (use transform Y, not physics body Y)
+			this.config.character.groundLevel = finalPosition.y - offset[1];
 
 			// Reset jump flag when landed
 			if (this.characterController.isJumping.value) {

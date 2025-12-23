@@ -404,7 +404,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		// Sprite NPC - Knight
 		const spriteKnight = new SpriteCharacter({
 			id: "sprite-knight",
-			position: [-8, 0, 8],
+			position: [-3, 0, 8],
 			texture: "/sprites/knight_00.png",
 			size: [1.5, 2],
 			billboardMode: "cylindrical",
