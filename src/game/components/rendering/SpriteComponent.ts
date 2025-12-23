@@ -1,0 +1,290 @@
+import { DoubleSide, Mesh, MeshBasicMaterial, PlaneGeometry, Texture } from "three";
+import type { I_MeshProvider } from "../../common/mesh.types";
+import type { I_SceneContext } from "../../common/scenes.types";
+import type { I_SpriteComponentConfig } from "../../common/sprite.types";
+import { ComponentPriority, GameComponent, TRAIT } from "../../GameComponent";
+import { TextureCache } from "../../utils/TextureCache";
+import { TransformComponent } from "../entities/TransformComponent";
+import { MeshComponent } from "./MeshComponent";
+
+/**
+ * SpriteComponent - Renders a textured plane as a 2D sprite in 3D space
+ *
+ * Uses PlaneGeometry (not THREE.Sprite) to support cylindrical billboarding.
+ * Works with BillboardComponent for camera-facing behavior.
+ *
+ * Features:
+ * - Single texture or sprite sheet support
+ * - Configurable anchor point (bottom-center default for standing sprites)
+ * - Proper transparency handling with alpha test
+ * - Integrates with TransformComponent for positioning
+ * - Implements I_MeshProvider for InteractionSystem compatibility
+ *
+ * Usage:
+ * ```typescript
+ * new GameObject({ id: 'tree' })
+ *   .addComponent(new TransformComponent({ position: [0, 0, 0] }))
+ *   .addComponent(new SpriteComponent({
+ *     texture: '/assets/sprites/tree.png',
+ *     size: [2, 3],
+ *     anchor: [0.5, 0]  // Bottom-center
+ *   }))
+ *   .addComponent(new BillboardComponent({ mode: 'cylindrical' }));
+ * ```
+ */
+export class SpriteComponent extends GameComponent implements I_MeshProvider {
+	public readonly priority = ComponentPriority.RENDERING;
+
+	private config: I_SpriteComponentConfig;
+	private mesh!: Mesh;
+	private geometry!: PlaneGeometry;
+	private material!: MeshBasicMaterial;
+	private texture: Texture | null = null;
+	private loaded = false;
+	private context!: I_SceneContext;
+
+	// Sprite sheet state (for Phase 3)
+	private currentFrame = 0;
+	private frameColumns = 1;
+	private frameRows = 1;
+
+	constructor(config: I_SpriteComponentConfig) {
+		super();
+		this.config = config;
+		this.registerTrait(TRAIT.MESH_PROVIDER);
+	}
+
+	async init(context: I_SceneContext): Promise<void> {
+		this.context = context;
+
+		// Restrict: cannot use with MeshComponent
+		this.restrictComponent(MeshComponent, "Use SpriteComponent OR MeshComponent, not both.");
+
+		// Extract config with defaults
+		const size = this.config.size ?? [1, 1];
+		const anchor = this.config.anchor ?? [0.5, 0]; // Bottom-center default
+		const opacity = this.config.opacity ?? 1;
+		const alphaTest = this.config.alphaTest ?? 0.1;
+		const depthWrite = this.config.depthWrite ?? false;
+		const renderOrder = this.config.renderOrder ?? 0;
+
+		// Store sprite sheet config
+		if (this.config.spriteSheet) {
+			this.frameColumns = this.config.spriteSheet.columns;
+			this.frameRows = this.config.spriteSheet.rows;
+		}
+		this.currentFrame = this.config.initialFrame ?? 0;
+
+		// Create geometry with anchor offset
+		// PlaneGeometry is centered by default, we need to offset based on anchor
+		// anchor [0.5, 0] = bottom-center means offset Y by +0.5 (half height up)
+		const offsetX = (0.5 - anchor[0]) * size[0];
+		const offsetY = (0.5 - anchor[1]) * size[1];
+
+		this.geometry = new PlaneGeometry(size[0], size[1]);
+		this.geometry.translate(offsetX, offsetY, 0);
+
+		// Create material (texture loaded async)
+		this.material = new MeshBasicMaterial({
+			transparent: true,
+			opacity,
+			alphaTest,
+			depthWrite,
+			side: DoubleSide,
+		});
+
+		// Create mesh
+		this.mesh = new Mesh(this.geometry, this.material);
+		this.mesh.name = `sprite-${this.gameObject.id}`;
+		this.mesh.renderOrder = renderOrder;
+		this.mesh.castShadow = this.config.castShadow ?? false;
+		this.mesh.receiveShadow = this.config.receiveShadow ?? false;
+
+		// Sync initial position from TransformComponent
+		this.syncTransform();
+
+		// Add to scene
+		context.scene.add(this.mesh);
+
+		// Register for cleanup
+		context.cleanupRegistry.registerObject(this.mesh);
+		context.cleanupRegistry.registerDisposable(this.geometry);
+		context.cleanupRegistry.registerDisposable(this.material);
+
+		// Load texture async
+		await this.loadTexture();
+	}
+
+	/**
+	 * Load texture and apply to material
+	 */
+	private async loadTexture(): Promise<void> {
+		try {
+			const cache = TextureCache.getInstance();
+			this.texture = await cache.load(this.config.texture);
+			cache.retain(this.config.texture);
+
+			this.material.map = this.texture;
+			this.material.needsUpdate = true;
+
+			// Set initial UV for sprite sheet
+			if (this.config.spriteSheet) {
+				this.updateUVs();
+			}
+
+			this.loaded = true;
+		} catch (error) {
+			console.error(`[SpriteComponent] Failed to load texture for "${this.gameObject.id}":`, error);
+		}
+	}
+
+	/**
+	 * Update UVs for current frame (sprite sheet support)
+	 */
+	private updateUVs(): void {
+		if (!this.texture || this.frameColumns <= 1 && this.frameRows <= 1) {
+			return;
+		}
+
+		const col = this.currentFrame % this.frameColumns;
+		const row = Math.floor(this.currentFrame / this.frameColumns);
+
+		const frameWidth = 1 / this.frameColumns;
+		const frameHeight = 1 / this.frameRows;
+
+		// UV coordinates (bottom-left origin in Three.js)
+		// Row 0 is at top of texture, so we invert Y
+		const u0 = col * frameWidth;
+		const u1 = u0 + frameWidth;
+		const v0 = 1 - (row + 1) * frameHeight; // Bottom of frame
+		const v1 = 1 - row * frameHeight; // Top of frame
+
+		// PlaneGeometry UV attribute order: [0,1], [1,1], [0,0], [1,0]
+		const uvs = this.geometry.attributes.uv;
+		uvs.setXY(0, u0, v1); // Top-left
+		uvs.setXY(1, u1, v1); // Top-right
+		uvs.setXY(2, u0, v0); // Bottom-left
+		uvs.setXY(3, u1, v0); // Bottom-right
+		uvs.needsUpdate = true;
+	}
+
+	/**
+	 * Sync mesh transform with TransformComponent
+	 */
+	private syncTransform(): void {
+		const transform = this.getComponent(TransformComponent);
+		if (transform && this.mesh) {
+			this.mesh.position.copy(transform.position);
+			this.mesh.rotation.copy(transform.rotation);
+			this.mesh.scale.copy(transform.scale);
+		}
+	}
+
+	/**
+	 * Update called every frame - syncs transform
+	 */
+	update(_delta: number): void {
+		this.syncTransform();
+	}
+
+	/**
+	 * Set the current frame by index
+	 */
+	setFrame(index: number): void {
+		const maxFrame = this.frameColumns * this.frameRows - 1;
+		this.currentFrame = Math.max(0, Math.min(index, maxFrame));
+		this.updateUVs();
+	}
+
+	/**
+	 * Set the current frame by column and row
+	 */
+	setFrameByPosition(column: number, row: number): void {
+		const index = row * this.frameColumns + column;
+		this.setFrame(index);
+	}
+
+	/**
+	 * Get current frame index
+	 */
+	getFrame(): number {
+		return this.currentFrame;
+	}
+
+	/**
+	 * Check if texture is loaded
+	 */
+	isLoaded(): boolean {
+		return this.loaded;
+	}
+
+	/**
+	 * Get the texture (may be null if not loaded)
+	 */
+	getTexture(): Texture | null {
+		return this.texture;
+	}
+
+	/**
+	 * Get the mesh (implements I_MeshProvider)
+	 */
+	getMesh(): Mesh {
+		return this.mesh;
+	}
+
+	/**
+	 * Set sprite opacity
+	 */
+	setOpacity(opacity: number): void {
+		this.material.opacity = Math.max(0, Math.min(1, opacity));
+	}
+
+	/**
+	 * Set sprite tint color
+	 */
+	setTint(color: number): void {
+		this.material.color.setHex(color);
+	}
+
+	/**
+	 * Set sprite size (recreates geometry)
+	 */
+	setSize(width: number, height: number): void {
+		const anchor = this.config.anchor ?? [0.5, 0];
+		const offsetX = (0.5 - anchor[0]) * width;
+		const offsetY = (0.5 - anchor[1]) * height;
+
+		// Dispose old geometry
+		this.geometry.dispose();
+
+		// Create new geometry
+		this.geometry = new PlaneGeometry(width, height);
+		this.geometry.translate(offsetX, offsetY, 0);
+		this.mesh.geometry = this.geometry;
+
+		// Re-apply UVs if sprite sheet
+		if (this.config.spriteSheet) {
+			this.updateUVs();
+		}
+
+		// Register new geometry for cleanup
+		this.context.cleanupRegistry.registerDisposable(this.geometry);
+	}
+
+	/**
+	 * Cleanup - release texture and remove mesh
+	 */
+	destroy(): void {
+		// Release texture ref
+		if (this.texture) {
+			TextureCache.getInstance().release(this.config.texture);
+		}
+
+		// Manual mesh removal (like MeshComponent)
+		if (this.mesh?.parent) {
+			this.mesh.parent.remove(this.mesh);
+		}
+
+		super.destroy(this.context?.scene);
+	}
+}

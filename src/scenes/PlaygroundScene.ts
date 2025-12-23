@@ -14,10 +14,12 @@ import { CollisionComponent } from "@/game/components/interactions/CollisionComp
 import { DragComponent } from "@/game/components/interactions/DragComponent";
 import { HoverGlowComponent } from "@/game/components/interactions/HoverGlowComponent";
 import { MatchComponent } from "@/game/components/match/MatchComponent";
+import { BillboardComponent } from "@/game/components/rendering/BillboardComponent";
 import { GeometryComponent } from "@/game/components/rendering/GeometryComponent";
 import { InstancedMeshComponent } from "@/game/components/rendering/InstancedMeshComponent";
 import { MaterialComponent } from "@/game/components/rendering/MaterialComponent";
 import { MeshComponent } from "@/game/components/rendering/MeshComponent";
+import { SpriteComponent } from "@/game/components/rendering/SpriteComponent";
 import { MultiplayerModule } from "@/game/modules/networking/MultiplayerModule";
 import { Fireball } from "@/game/prefabs/Fireball";
 import { Ground } from "@/game/prefabs/Ground";
@@ -27,6 +29,7 @@ import { House } from "@/game/prefabs/environment/House";
 import { Path } from "@/game/prefabs/environment/Path";
 import { Rocks } from "@/game/prefabs/environment/Rock";
 import { TrainingDummy } from "@/game/prefabs/npc/TrainingDummy";
+import { SpriteCharacter } from "@/game/prefabs/SpriteCharacter";
 
 /**
  * Module Registry for PlaygroundScene
@@ -66,12 +69,11 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		// Add environment objects
 		this.addEnvironmentObjects();
 
-		// Training Dummy NPC (for match creation testing)
+		// Training Dummy NPC (for match creation testing) - uses goblin sprite
 		const trainingDummy = new TrainingDummy({
 			id: "training-dummy-1",
 			type: "npc",
-			position: [-5, 1.25, 5], // Positioned away from other objects
-			color: 0xff0000, // Red (indicates enemy/NPC)
+			position: [-5, 0, 5], // Ground level for sprite
 		});
 		gom.register(trainingDummy);
 
@@ -374,6 +376,85 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 				}),
 			);
 		gom.register(bushes);
+
+		// ========================================
+		// BILLBOARD SPRITES
+		// ========================================
+
+		// Sprite Trees (cylindrical billboarding - stay upright)
+		const spriteTrees = [
+			{ id: "sprite-tree-0", position: [15, 0, 15] as [number, number, number], texture: "/sprites/tree_00.png", size: [4, 5] as [number, number] },
+			{ id: "sprite-tree-1", position: [18, 0, 12] as [number, number, number], texture: "/sprites/tree_01.png", size: [3.5, 4.5] as [number, number] },
+			{ id: "sprite-tree-2", position: [12, 0, 18] as [number, number, number], texture: "/sprites/tree_02.png", size: [3, 4] as [number, number] },
+			{ id: "sprite-tree-3", position: [20, 0, 20] as [number, number, number], texture: "/sprites/tree_03.png", size: [2.5, 3.5] as [number, number] },
+		];
+
+		for (const tree of spriteTrees) {
+			const spriteTree = new SpriteCharacter({
+				id: tree.id,
+				position: tree.position,
+				texture: tree.texture,
+				size: tree.size,
+				billboardMode: "cylindrical",
+			});
+			gom.register(spriteTree);
+		}
+
+		// Sprite NPC - Knight
+		const spriteKnight = new SpriteCharacter({
+			id: "sprite-knight",
+			position: [-8, 0, 8],
+			texture: "/sprites/knight_00.png",
+			size: [1.5, 2],
+			billboardMode: "cylindrical",
+		});
+		gom.register(spriteKnight);
+
+		// Sprite NPC - Goblin
+		const spriteGoblin = new SpriteCharacter({
+			id: "sprite-goblin",
+			position: [-12, 0, 5],
+			texture: "/sprites/goblin_00.png",
+			size: [1.2, 1.5],
+			billboardMode: "cylindrical",
+		});
+		gom.register(spriteGoblin);
+
+		// Sprite NPC - Mage (standalone GameObject without prefab - demonstrates raw component usage)
+		const standaloneMage = new GameObject({ id: "standalone-mage" })
+			.addComponent(new TransformComponent({ position: [-10, 0, 12] }))
+			.addComponent(
+				new SpriteComponent({
+					texture: "/sprites/mage_00.png",
+					size: [1.5, 2],
+					anchor: [0.5, 0], // Bottom-center for standing character
+				}),
+			)
+			.addComponent(
+				new BillboardComponent({
+					mode: "cylindrical",
+				}),
+			);
+		gom.register(standaloneMage);
+
+		// Sprite Buildings
+		const spriteHouse = new SpriteCharacter({
+			id: "sprite-house",
+			position: [25, 0, -10],
+			texture: "/sprites/house_00.png",
+			size: [6, 5],
+			billboardMode: "cylindrical",
+		});
+		gom.register(spriteHouse);
+
+		const spriteShop = new SpriteCharacter({
+			id: "sprite-shop",
+			position: [30, 0, -5],
+			texture: "/sprites/shop_01.png",
+			size: [5, 4.5],
+			billboardMode: "cylindrical",
+		});
+		gom.register(spriteShop);
 	}
 
 	/**

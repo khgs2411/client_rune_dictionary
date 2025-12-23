@@ -1,20 +1,15 @@
 import { useGameConfigStore } from "@/stores/config.store";
 import { Vector3 } from "three";
 import { reactive, ref, watchEffect } from "vue";
-import { I_CameraControls, I_CameraPerspective } from "../composables.types";
+import { I_CameraControls } from "../composables.types";
+import { CAMERA_OVERWORLD_PERSPECTIVE } from "./useCameraZoom";
+import { CAMERA_ZOOM_PRESET } from "./useCameraZoom";
 import { useCameraMouseInput } from "./useCameraMouseInput";
 import { useCameraRotation } from "./useCameraRotation";
 import { useCameraTouchInput } from "./useCameraTouchInput";
 import { useCameraZoom } from "./useCameraZoom";
 
-export const CAMERA_OVERWORLD_PERSPECTIVE: I_CameraPerspective = {
-	angle: {
-		horizontal: 0,
-		vertical: 0.76, // ~43° - matches combat camera (y:18, lookAt y:2, z:18)
-	},
-	distance: 18, // Default distance (closer to player)
-	fov: 75,
-};
+// Re-export for backwards compatibility
 /**
  * Main camera controls composable
  * Orchestrates rotation, zoom, mouse, and touch composables
@@ -29,8 +24,8 @@ export function useCameraController(): I_CameraControls {
 	// Optional follow target override (for match camera)
 	let followTarget: Vector3 | null = null;
 
-	// Camera state - use preset values directly (matches combat camera)
-	const cameraDistance = ref(CAMERA_OVERWORLD_PERSPECTIVE.distance);
+	// Camera state - use preset values directly (bypasses persistence issues)
+	const cameraDistance = ref(CAMERA_ZOOM_PRESET.default);
 	const cameraAngleH = ref(CAMERA_OVERWORLD_PERSPECTIVE.angle.horizontal);
 	const cameraAngleV = ref(CAMERA_OVERWORLD_PERSPECTIVE.angle.vertical);
 
@@ -39,9 +34,10 @@ export function useCameraController(): I_CameraControls {
 		h: config.camera.mouseSensitivityH,
 		v: config.camera.mouseSensitivityV,
 	});
+	// Use preset values directly for zoom limits (bypasses persistence issues)
 	const zoom = useCameraZoom(cameraDistance, {
-		min: config.camera.zoomMin,
-		max: config.camera.zoomMax,
+		min: CAMERA_ZOOM_PRESET.min,
+		max: CAMERA_ZOOM_PRESET.max,
 	});
 	const mouse = useCameraMouseInput(rotation, zoom, mouseRotationEnabled);
 	useCameraTouchInput(zoom); // Pinch zoom only (rotation disabled for isometric view)
@@ -57,7 +53,7 @@ export function useCameraController(): I_CameraControls {
 	 * Reset camera to defaults
 	 */
 	function reset() {
-		cameraDistance.value = CAMERA_OVERWORLD_PERSPECTIVE.distance;
+		cameraDistance.value = CAMERA_ZOOM_PRESET.default;
 		cameraAngleH.value = CAMERA_OVERWORLD_PERSPECTIVE.angle.horizontal;
 		cameraAngleV.value = CAMERA_OVERWORLD_PERSPECTIVE.angle.vertical;
 	}

@@ -4,9 +4,9 @@ import { KinematicCollisionComponent } from "@/game/components/entities/Kinemati
 import { KinematicMovementComponent } from "@/game/components/entities/KinematicMovementComponent";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { SyncMovementComponent } from "@/game/components/multiplayer/SyncMovementComponent";
-import { CharacterMeshComponent } from "@/game/components/rendering/CharacterMeshComponent";
+import { BillboardComponent } from "@/game/components/rendering/BillboardComponent";
+import { SpriteComponent } from "@/game/components/rendering/SpriteComponent";
 import { GameObject } from "@/game/GameObject";
-import { createPlayer } from "./createPlayer";
 
 /**
  * Configuration for LocalPlayer prefab
@@ -22,15 +22,15 @@ export interface I_LocalPlayerConfig {
  * LocalPlayer Prefab - Complete local player character GameObject
  *
  * This prefab represents the player controlled by this client.
- * Uses createCharacterVisual() factory for shared visual components, then adds
- * client-specific behavior components:
+ * Uses billboard sprite for visual representation.
  *
- * Visual (from factory):
- * - CharacterMeshComponent: Two-part visual (body + cone indicator, theme-aware)
+ * Visual:
+ * - SpriteComponent: Knight sprite texture
+ * - BillboardComponent: Cylindrical billboarding (stays upright, faces camera)
  *
- * Behavior (LocalPlayer-specific):
- * - KinematicPhysicsComponent: Kinematic character controller (collision, auto-step, ground detection)
- * - MovementComponent: Movement logic (controller → physics → sync back)
+ * Behavior:
+ * - KinematicCollisionComponent: Kinematic character controller (collision, auto-step, ground detection)
+ * - KinematicMovementComponent: Movement logic (controller → physics → sync back)
  * - SyncMovementComponent: Network position/rotation sync
  *
  * The character controller (input handling) is owned by the scene and passed
@@ -75,7 +75,7 @@ export class LocalPlayer extends GameObject {
 		this.addComponent(
 			new KinematicCollisionComponent({
 				type: "static", // Required by base, but overridden for kinematic
-				getMesh: () => this.getComponent(CharacterMeshComponent)!.getMesh(), // Polymorphic mesh getter
+				getMesh: () => this.getComponent(SpriteComponent)!.getMesh(), // Polymorphic mesh getter
 				initialPosition: startPos, // Physics body starts at correct position
 				characterOptions: {
 					enableAutostep: true,
@@ -101,15 +101,28 @@ export class LocalPlayer extends GameObject {
 	}
 
 	private addBaseComponents(startPos: Vec3) {
-		const sharedComponents = createPlayer({
-			position: startPos,
-			bodyRadius: 0.5,
-			bodyHeight: 1,
-			coneRadius: 0.2,
-			coneHeight: 0.4,
-			coneOffset: 0.7,
-		});
-		sharedComponents.forEach((comp) => this.addComponent(comp));
+		// Transform
+		this.addComponent(
+			new TransformComponent({
+				position: startPos,
+			}),
+		);
+
+		// Knight sprite
+		this.addComponent(
+			new SpriteComponent({
+				texture: "/sprites/knight_00.png",
+				size: [1.5, 2], // Width, Height in world units
+				anchor: [0.5, 0], // Bottom-center for standing character
+			}),
+		);
+
+		// Billboard - cylindrical so sprite stays upright
+		this.addComponent(
+			new BillboardComponent({
+				mode: "cylindrical",
+			}),
+		);
 	}
 
 	private getSpawnPosition(config: I_LocalPlayerConfig) {
@@ -162,7 +175,7 @@ export class LocalPlayer extends GameObject {
 			movementComp.resetVerticalVelocity();
 		}
 
-		// Note: CharacterMeshComponent will automatically sync from TransformComponent
+		// Note: SpriteComponent will automatically sync from TransformComponent
 	}
 
 	/**
