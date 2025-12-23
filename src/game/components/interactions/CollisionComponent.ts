@@ -1,7 +1,9 @@
 import type { I_CollisionMeshProvider, I_MeshProvider } from "@/game/common/mesh.types";
 import { I_SceneContext } from "@/game/common/scenes.types";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
+import { DataStore } from "@/stores/DataStore";
 import { ComponentPriority, GameComponent, TRAIT } from "../../GameComponent";
+import { DebugLabelComponent } from "../debug/DebugLabelComponent";
 import { InstancedMeshComponent } from "../rendering/InstancedMeshComponent";
 
 export interface I_CollisionConfig {
@@ -132,6 +134,13 @@ export class CollisionComponent extends GameComponent {
 
 		// Register collision callbacks if provided
 		this.registerCallbacks();
+
+		// Add debug label if global physics debug is enabled
+		if (DataStore.settings.debug.showPhysicsDebug) {
+			const labelComp = new DebugLabelComponent({ text: this.gameObject.id });
+			this.gameObject.addComponent(labelComp);
+			await labelComp.init(context);
+		}
 
 		this.isRegistered = true;
 	}

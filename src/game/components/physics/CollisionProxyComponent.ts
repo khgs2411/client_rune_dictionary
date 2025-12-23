@@ -1,7 +1,9 @@
+import { DataStore } from "@/stores/DataStore";
 import { BoxGeometry, BufferGeometry, CapsuleGeometry, CylinderGeometry, Mesh, MeshBasicMaterial, Vector3 } from "three";
 import type { I_CollisionMeshProvider } from "../../common/mesh.types";
 import type { I_SceneContext } from "../../common/scenes.types";
 import { ComponentPriority, GameComponent, TRAIT } from "../../GameComponent";
+import { DebugLabelComponent } from "../debug/DebugLabelComponent";
 import { TransformComponent } from "../entities/TransformComponent";
 
 export type CollisionProxyShape = "capsule" | "cylinder" | "cuboid";
@@ -97,6 +99,13 @@ export class CollisionProxyComponent extends GameComponent implements I_Collisio
 		context.cleanupRegistry.registerObject(this.mesh);
 		context.cleanupRegistry.registerDisposable(this.geometry);
 		context.cleanupRegistry.registerDisposable(this.material);
+
+		// Add debug label if global physics debug is enabled
+		if (DataStore.settings.debug.showPhysicsDebug) {
+			const labelComp = new DebugLabelComponent({ text: this.gameObject.id });
+			this.gameObject.addComponent(labelComp);
+			await labelComp.init(context);
+		}
 	}
 
 	/**

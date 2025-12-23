@@ -1,8 +1,10 @@
 import type { I_CollisionMeshProvider, I_MeshProvider } from "@/game/common/mesh.types";
 import type { I_SceneContext } from "@/game/common/scenes.types";
+import { DebugLabelComponent } from "@/game/components/debug/DebugLabelComponent";
 import { CollisionComponent, I_CollisionConfig } from "@/game/components/interactions/CollisionComponent";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { TRAIT } from "@/game/GameComponent";
+import { DataStore } from "@/stores/DataStore";
 import { type Mesh, type Object3D } from "three";
 
 export interface I_KinematicPhysicsConfig extends I_CollisionConfig {
@@ -106,6 +108,13 @@ export class KinematicCollisionComponent extends CollisionComponent {
 
 		// Register collision callbacks
 		this.registerCallbacks();
+
+		// Add debug label if global physics debug is enabled
+		if (DataStore.settings.debug.showPhysicsDebug) {
+			const labelComp = new DebugLabelComponent({ text: this.gameObject.id });
+			this.gameObject.addComponent(labelComp);
+			await labelComp.init(context);
+		}
 
 		this.isRegistered = true;
 	}
