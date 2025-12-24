@@ -76,7 +76,7 @@ interface PartyMember {
 	statusEffects: StatusEffect[];
 }
 
-const { variant } = withDefaults(
+withDefaults(
 	defineProps<{
 		partyMembers: PartyMember[];
 		variant?: "player" | "enemy";

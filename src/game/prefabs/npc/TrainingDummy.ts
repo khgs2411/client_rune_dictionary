@@ -9,6 +9,7 @@ import { MatchComponent } from "@/game/components/match/MatchComponent";
 import { CollisionProxyComponent } from "@/game/components/physics/CollisionProxyComponent";
 import { BillboardComponent } from "@/game/components/rendering/BillboardComponent";
 import { SpriteComponent } from "@/game/components/rendering/SpriteComponent";
+import { DirectionalSpriteAnimator, SpriteSheetRegistry } from "@/game/sprites";
 
 export interface I_TrainingDummyConfig extends I_GameObjectConfig {
 	id: string;
@@ -56,40 +57,55 @@ export class TrainingDummy extends GameObject {
 		super({ id: config.id || "training-dummy", type: config.type });
 
 		const position = config.position || [10, 0, 5]; // Default position (ground level for sprite)
+		const registry = SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>();
+		const spriteConfig = registry.getSpriteConfig("slime");
+		if (!spriteConfig) {
+			console.error("[LocalPlayer] Sprite sheet 'local-player' not found. Make sure to call registerAllSpriteSheets() first.");
+		} else {
+			const animations = registry.buildAnimations("local-player");
+			// Visual components
+			this.addComponent(new TransformComponent({ position }))
+				.addComponent(
+					new SpriteComponent({
+						texture: spriteConfig.texture,
+						spriteSheet: spriteConfig.spriteSheet,
+						size: spriteConfig.size,
+						anchor: spriteConfig.anchor,
+					}),
+				)
+				.addComponent(
+					new DirectionalSpriteAnimator({
+						animations,
+						defaultAnimation: "idle",
+						idleAnimation: "idle",
+						nativeFacing: "right", // Sprite sheet faces left natively
+					}),
+				)
+				.addComponent(
+					new BillboardComponent({
+						mode: "spherical", // Spherical keeps NPC always facing camera
+					}),
+				)
 
-		// Visual components
-		this.addComponent(new TransformComponent({ position }))
-			.addComponent(
-				new SpriteComponent({
-					texture: "/sprites/goblin_00.png",
-					size: [1.2, 1.5], // Width, Height in world units
-					anchor: [0.5, 0], // Bottom-center for standing character
-				}),
-			)
-			.addComponent(
-				new BillboardComponent({
-					mode: "spherical", // Spherical keeps NPC always facing camera
-				}),
-			)
+				// Collision proxy - invisible cylinder for physics
+				// Sprite handles rendering, this cylinder handles collision
+				.addComponent(
+					new CollisionProxyComponent({
+						shape: "cylinder",
+						radius: 0.4,
+						height: 2,
+						offset: [0, 0.6, 0], // Center cylinder vertically on sprite
+					}),
+				)
 
-			// Collision proxy - invisible cylinder for physics
-			// Sprite handles rendering, this cylinder handles collision
-			.addComponent(
-				new CollisionProxyComponent({
-					shape: "cylinder",
-					radius: 0.4,
-					height: 2,
-					offset: [0, 0.6, 0], // Center cylinder vertically on sprite
-				}),
-			)
+				// System components
+				.addComponent(new UnitsComponent()) // Distance measurement
 
-			// System components
-			.addComponent(new UnitsComponent()) // Distance measurement
-
-			// Interaction components (order matters for dependencies)
-			.addComponent(new InteractionComponent()) // Provides click/doubleclick events
-			.addComponent(new HoverComponent()) // Provides hover events
-			.addComponent(new CollisionComponent()) // Uses CollisionProxyComponent automatically via trait
-			.addComponent(new MatchComponent()); // Orchestrates: hover glow when in range, doubleclick to start match
+				// Interaction components (order matters for dependencies)
+				.addComponent(new InteractionComponent()) // Provides click/doubleclick events
+				.addComponent(new HoverComponent()) // Provides hover events
+				.addComponent(new CollisionComponent()) // Uses CollisionProxyComponent automatically via trait
+				.addComponent(new MatchComponent()); // Orchestrates: hover glow when in range, doubleclick to start match
+		}
 	}
 }

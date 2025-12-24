@@ -154,6 +154,20 @@ export function registerAllSpriteSheets(): void {
 		anchor: [0.5, .125], // Bottom-center for standing character
 	});
 
+	registerSpriteSheet({
+		id: "slime",
+		texture: "/sprites/enemies/slime.png",
+		framesPerRow: 7,
+		totalRows: 12, // Total rows in the sprite sheet
+		size: [3, 4],
+		directional: false, // Same animation for all directions
+		animations: [
+			{ name: "idle", row: 0, frameCount: 4, fps: 6 },
+		],
+		defaultAnimation: "idle",
+		anchor: [0.5, 0.125], // Bottom-center for standing character
+	});
+
 	// ===== ENVIRONMENT (Static, non-directional) =====
 
 	/**
