@@ -260,15 +260,15 @@ export interface I_ExtendedAnimationDefinition {
 /**
  * Helper to check if texture config is multi-texture
  */
-export function isMultiTexture(texture: TextureConfig): texture is I_TextureSource[] {
+export function IsMultiTexture(texture: TextureConfig): texture is I_TextureSource[] {
 	return Array.isArray(texture);
 }
 
 /**
  * Helper to get the first/default texture path
  */
-export function getDefaultTexturePath(texture: TextureConfig): string {
-	if (isMultiTexture(texture)) {
+export function GetDefaultTexturePath(texture: TextureConfig): string {
+	if (IsMultiTexture(texture)) {
 		return texture[0]?.src ?? "";
 	}
 	return texture;
@@ -277,8 +277,8 @@ export function getDefaultTexturePath(texture: TextureConfig): string {
 /**
  * Helper to get texture path by ID
  */
-export function getTexturePathById(texture: TextureConfig, id: string): string | undefined {
-	if (isMultiTexture(texture)) {
+export function GetTexturePathById(texture: TextureConfig, id: string): string | undefined {
+	if (IsMultiTexture(texture)) {
 		return texture.find((t) => t.id === id)?.src;
 	}
 	return texture;

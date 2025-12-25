@@ -1,4 +1,4 @@
-import { NearestFilter, Texture, TextureLoader, type MagnificationTextureFilter, type MinificationTextureFilter } from "three";
+import { NearestFilter, Texture, TextureLoader } from "three";
 import type { I_TextureOptions } from "../common/sprite.types";
 
 interface CachedTexture {

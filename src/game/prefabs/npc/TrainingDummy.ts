@@ -8,8 +8,9 @@ import { InteractionComponent } from "@/game/components/interactions/Interaction
 import { MatchComponent } from "@/game/components/match/MatchComponent";
 import { CollisionProxyComponent } from "@/game/components/physics/CollisionProxyComponent";
 import { BillboardComponent } from "@/game/components/rendering/BillboardComponent";
+import { DirectionalSpriteAnimator } from "@/game/components/rendering/DirectionalSpriteAnimator";
 import { SpriteComponent } from "@/game/components/rendering/SpriteComponent";
-import { DirectionalSpriteAnimator, SpriteSheetRegistry } from "@/game/sprites";
+import { SpriteSheetRegistry } from "@/game/utils/SpriteSheetRegistry";
 
 export interface I_TrainingDummyConfig extends I_GameObjectConfig {
 	id: string;

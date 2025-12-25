@@ -1,7 +1,7 @@
 import { Singleton } from "topsyde-utils";
 import type { I_AnimationDefinition } from "../common/sprite.types";
 import type { I_AnimationRowDefinition, I_ExtendedAnimationDefinition, I_QuickSpriteSheetConfig, I_SpriteSheetDefinition, I_TextureSource, SpriteDirection, TextureConfig } from "../common/spritesheet.types";
-import { getTexturePathById, isMultiTexture } from "../common/spritesheet.types";
+import { GetTexturePathById, IsMultiTexture } from "../common/spritesheet.types";
 
 /**
  * SpriteSheetRegistry - Singleton registry for sprite sheet definitions
@@ -124,7 +124,7 @@ export class SpriteSheetRegistry extends Singleton {
 	 */
 	isMultiTexture(id: string): boolean {
 		const def = this.definitions.get(id);
-		return def ? isMultiTexture(def.texture) : false;
+		return def ? IsMultiTexture(def.texture) : false;
 	}
 
 	/**
@@ -136,7 +136,7 @@ export class SpriteSheetRegistry extends Singleton {
 		const def = this.definitions.get(id);
 		if (!def) return [];
 
-		if (isMultiTexture(def.texture)) {
+		if (IsMultiTexture(def.texture)) {
 			return def.texture.map((t) => t.src);
 		}
 		return [def.texture];
@@ -147,7 +147,7 @@ export class SpriteSheetRegistry extends Singleton {
 	 */
 	getTextureSources(id: string): I_TextureSource[] | null {
 		const def = this.definitions.get(id);
-		if (!def || !isMultiTexture(def.texture)) return null;
+		if (!def || !IsMultiTexture(def.texture)) return null;
 		return def.texture;
 	}
 
@@ -201,7 +201,7 @@ export class SpriteSheetRegistry extends Singleton {
 
 		// For multi-texture, use first texture as default
 		let texturePath: string;
-		if (isMultiTexture(def.texture)) {
+		if (IsMultiTexture(def.texture)) {
 			texturePath = def.texture[0]?.src ?? "";
 		} else {
 			texturePath = def.texture;
@@ -227,7 +227,7 @@ export class SpriteSheetRegistry extends Singleton {
 	private expandQuickConfig(config: I_QuickSpriteSheetConfig): I_SpriteSheetDefinition {
 		const directions: SpriteDirection[] = config.directionOrder ?? ["down", "left", "right", "up"];
 		const animations: I_AnimationRowDefinition[] = [];
-		const isMulti = isMultiTexture(config.texture);
+		const isMulti = IsMultiTexture(config.texture);
 
 		// Check if any animation has explicit row mapping
 		const hasExplicitRows = config.animations.some((anim) => anim.row !== undefined);
@@ -390,8 +390,8 @@ export class SpriteSheetRegistry extends Singleton {
 			// Get texture path for this animation
 			let texturePath: string | undefined;
 			if (row.textureId) {
-				texturePath = getTexturePathById(texture, row.textureId);
-			} else if (!isMultiTexture(texture)) {
+				texturePath = GetTexturePathById(texture, row.textureId);
+			} else if (!IsMultiTexture(texture)) {
 				texturePath = texture;
 			}
 
