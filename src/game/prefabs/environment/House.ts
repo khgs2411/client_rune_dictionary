@@ -111,7 +111,7 @@ export class House {
 				position: [pos.x, pos.y, pos.z],
 				spriteSheetId,
 				size, // Only override if pos.size or scaled
-				billboardMode: "cylindrical",
+				billboardMode: "spherical",
 			}).addComponent(new OcclusionComponent());
 
 			return house;
