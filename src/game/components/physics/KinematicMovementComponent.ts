@@ -3,7 +3,7 @@ import { I_SceneContext } from "@/game/common/scenes.types";
 import { ComponentPriority, GameComponent } from "@/game/GameComponent";
 import { E_SceneState, type StateChangeCallback } from "@/game/systems/SceneState";
 import { useGameConfigStore } from "@/stores/config.store";
-import { KinematicCollisionComponent } from "./KinematicCollisionComponent";
+import { KinematicCollisionComponent } from "../physics/KinematicCollisionComponent";
 import { TransformComponent } from "./TransformComponent";
 
 export interface I_KinematicMovementConfig {

@@ -1,7 +1,6 @@
 import { Vec3 } from "@/common/types";
 import type { I_CharacterControls } from "@/composables/composables.types";
-import { KinematicCollisionComponent } from "@/game/components/entities/KinematicCollisionComponent";
-import { KinematicMovementComponent } from "@/game/components/entities/KinematicMovementComponent";
+import { KinematicCollisionComponent } from "@/game/components/physics/KinematicCollisionComponent";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { SyncMovementComponent } from "@/game/components/multiplayer/SyncMovementComponent";
 import { CollisionProxyComponent } from "@/game/components/physics/CollisionProxyComponent";
@@ -10,6 +9,7 @@ import { DirectionalSpriteAnimator } from "@/game/components/rendering/Direction
 import { SpriteComponent } from "@/game/components/rendering/SpriteComponent";
 import { GameObject } from "@/game/GameObject";
 import { SpriteSheetRegistry } from "@/game/SpriteSheetRegistry";
+import { KinematicMovementComponent } from "@/game/components/physics/KinematicMovementComponent";
 
 /**
  * Configuration for LocalPlayer prefab
