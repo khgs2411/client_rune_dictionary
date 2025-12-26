@@ -1,5 +1,5 @@
 import { DebugLabelComponent } from "../components/debug/DebugLabelComponent";
-import { CollisionComponent } from "../components/interactions/CollisionComponent";
+import { CollisionComponent } from "../components/physics/CollisionComponent";
 import { GeometryComponent } from "../components/rendering/GeometryComponent";
 import { I_InstanceTransform, InstancedMeshComponent } from "../components/rendering/InstancedMeshComponent";
 import { MaterialComponent } from "../components/rendering/MaterialComponent";

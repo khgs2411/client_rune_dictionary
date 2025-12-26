@@ -10,7 +10,7 @@ import { I_SceneConfig } from "../game/common/scenes.types";
 import { GameObject } from "@/game/GameObject";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { ClickVFXComponent } from "@/game/components/interactions/ClickVFXComponent";
-import { CollisionComponent } from "@/game/components/interactions/CollisionComponent";
+import { CollisionComponent } from "@/game/components/physics/CollisionComponent";
 import { DragComponent } from "@/game/components/interactions/DragComponent";
 import { HoverGlowComponent } from "@/game/components/interactions/HoverGlowComponent";
 import { MatchComponent } from "@/game/components/match/MatchComponent";

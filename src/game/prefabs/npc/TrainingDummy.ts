@@ -2,7 +2,7 @@ import { GameObject } from "@/game/GameObject";
 import { I_GameObjectConfig } from "@/game/common/gameobject.types";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { UnitsComponent } from "@/game/components/entities/UnitsComponent";
-import { CollisionComponent } from "@/game/components/interactions/CollisionComponent";
+import { CollisionComponent } from "@/game/components/physics/CollisionComponent";
 import { HoverComponent } from "@/game/components/interactions/HoverComponent";
 import { InteractionComponent } from "@/game/components/interactions/InteractionComponent";
 import { MatchComponent } from "@/game/components/match/MatchComponent";

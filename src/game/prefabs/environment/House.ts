@@ -1,6 +1,6 @@
 import { OcclusionComponent } from "@/game/components/rendering/OcclusionComponent";
 import { TransformComponent } from "../../components/entities/TransformComponent";
-import { CollisionComponent } from "../../components/interactions/CollisionComponent";
+import { CollisionComponent } from "../../components/physics/CollisionComponent";
 import { GeometryComponent } from "../../components/rendering/GeometryComponent";
 import { MaterialComponent } from "../../components/rendering/MaterialComponent";
 import { MeshComponent } from "../../components/rendering/MeshComponent";

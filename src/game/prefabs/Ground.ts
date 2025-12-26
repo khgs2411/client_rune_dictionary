@@ -1,5 +1,5 @@
 import { TransformComponent } from "../components/entities/TransformComponent";
-import { CollisionComponent } from "../components/interactions/CollisionComponent";
+import { CollisionComponent } from "../components/physics/CollisionComponent";
 import { GeometryComponent } from "../components/rendering/GeometryComponent";
 import { GridHelperComponent } from "../components/rendering/GridHelperComponent";
 import { MaterialComponent } from "../components/rendering/MaterialComponent";

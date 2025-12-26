@@ -1,4 +1,4 @@
-import { CollisionComponent } from "@/game/components/interactions/CollisionComponent";
+import { CollisionComponent } from "@/game/components/physics/CollisionComponent";
 import { BufferGeometry, Line, LineBasicMaterial, Vector3 } from "three";
 import { GameObject } from "../GameObject";
 import { I_SceneContext } from "../common/scenes.types";

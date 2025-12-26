@@ -1,7 +1,7 @@
 import type { I_CollisionMeshProvider, I_MeshProvider } from "@/game/common/mesh.types";
 import type { I_SceneContext } from "@/game/common/scenes.types";
 import { DebugLabelComponent } from "@/game/components/debug/DebugLabelComponent";
-import { CollisionComponent, I_CollisionConfig } from "@/game/components/interactions/CollisionComponent";
+import { CollisionComponent, I_CollisionConfig } from "@/game/components/physics/CollisionComponent";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { TRAIT } from "@/game/GameComponent";
 import { DataStore } from "@/stores/DataStore";
