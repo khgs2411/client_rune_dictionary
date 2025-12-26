@@ -1,5 +1,6 @@
 import { OcclusionComponent } from "../../components/rendering/OcclusionComponent";
 import { GameObject } from "../../GameObject";
+import { SpriteSheetRegistry } from "../../SpriteSheetRegistry";
 import { SpriteGameObject } from "../SpriteGameObject";
 import { I_BasePrefabConfig } from "../prefab.types";
 
@@ -8,22 +9,22 @@ export interface I_RockPosition {
 	y: number;
 	z: number;
 	scale?: number; // Scale multiplier for sprite size
-	/** Optional texture override for this rock */
-	texture?: string;
+	/** Optional spriteSheetId override for this rock */
+	spriteSheetId?: string;
 }
 
 export interface I_RocksConfig extends I_BasePrefabConfig {
 	positions: I_RockPosition[];
-	/** Default texture for all rocks (can be overridden per-position) */
-	texture?: string;
-	/** Default size [width, height] for all rocks (default: [2, 1.5]) */
+	/** Default spriteSheetId for all rocks (can be overridden per-position) */
+	spriteSheetId?: string;
+	/** Base size [width, height] before scaling (uses registry default if not specified) */
 	size?: [number, number];
-	/** Cycle through available rock textures */
+	/** Cycle through available rock variants */
 	cycleTextures?: boolean;
 }
 
-/** Available rock texture variants */
-const ROCK_TEXTURES = ["/sprites/rock_00.png", "/sprites/rock_01.png", "/sprites/rock_02.png"];
+/** Available rock sprite sheet IDs (registered in SpriteSheetRegistry) */
+const ROCK_SPRITE_IDS = ["rock-00", "rock-01", "rock-02"];
 
 /**
  * Rocks Helper - Creates sprite billboard rock GameObjects
@@ -53,27 +54,32 @@ export class Rocks {
 	 */
 	static create(config: I_RocksConfig): GameObject[] {
 		const id = config.id ?? "rocks";
-		const defaultTexture = config.texture ?? ROCK_TEXTURES[0];
-		const defaultSize = config.size ?? [2, 1.5];
+		const defaultSpriteId = config.spriteSheetId ?? ROCK_SPRITE_IDS[0];
 		const cycleTextures = config.cycleTextures ?? false;
 
+		// Get base size from config or registry
+		const registry = SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>();
+		const registryConfig = registry.getSpriteConfig(defaultSpriteId);
+		const baseSize = config.size ?? registryConfig?.size ?? [2, 1.5];
+
 		return config.positions.map((pos, index) => {
-			// Determine texture for this rock
-			let texture = pos.texture ?? defaultTexture;
-			if (cycleTextures && !pos.texture) {
-				texture = ROCK_TEXTURES[index % ROCK_TEXTURES.length];
+			// Determine spriteSheetId for this rock
+			const defaultSpriteId = config.spriteSheetId ?? ROCK_SPRITE_IDS[Math.floor(Math.random() * ROCK_SPRITE_IDS.length)];
+			let spriteSheetId = pos.spriteSheetId ?? defaultSpriteId;
+			if (cycleTextures && !pos.spriteSheetId) {
+				spriteSheetId = ROCK_SPRITE_IDS[index % ROCK_SPRITE_IDS.length];
 			}
 
 			// Apply scale to size
 			const scale = pos.scale ?? 1;
-			const size: [number, number] = [defaultSize[0] * scale, defaultSize[1] * scale];
+			const size: [number, number] = scale !== 1 ? [baseSize[0] * scale, baseSize[1] * scale] : undefined!;
 
 			// Create sprite rock with billboard and occlusion
 			const rock = new SpriteGameObject({
 				id: `${id}-${index}`,
 				position: [pos.x, pos.y, pos.z],
-				texture,
-				size,
+				spriteSheetId,
+				size: scale !== 1 ? size : undefined, // Only override if scaled
 				billboardMode: "cylindrical",
 			}).addComponent(new OcclusionComponent());
 

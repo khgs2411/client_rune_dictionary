@@ -1,5 +1,6 @@
 import { OcclusionComponent } from "@/game/components/rendering/OcclusionComponent";
 import { GameObject } from "../../GameObject";
+import { SpriteSheetRegistry } from "../../SpriteSheetRegistry";
 import { SpriteGameObject } from "../SpriteGameObject";
 import { I_BasePrefabConfig } from "../prefab.types";
 
@@ -8,8 +9,8 @@ export interface I_HousePosition {
 	y: number;
 	z: number;
 	scale?: number; // Scale multiplier for sprite size
-	/** Optional texture override for this house */
-	texture?: string;
+	/** Optional spriteSheetId override for this house */
+	spriteSheetId?: string;
 	/** Optional size override [width, height] */
 	size?: [number, number];
 }
@@ -19,18 +20,18 @@ export interface I_HouseConfig extends I_BasePrefabConfig {
 	position?: [number, number, number];
 	/** Multiple house positions (new API) */
 	positions?: I_HousePosition[];
-	/** Default texture for all houses (can be overridden per-position) */
-	texture?: string;
-	/** Default size [width, height] for all houses (default: [6, 5]) */
+	/** Default spriteSheetId for all houses (can be overridden per-position) */
+	spriteSheetId?: string;
+	/** Base size [width, height] before scaling (uses registry default if not specified) */
 	size?: [number, number];
-	/** Cycle through available house textures */
+	/** Cycle through available house variants */
 	cycleTextures?: boolean;
 	/** Scale multiplier (legacy API, for single house) */
 	scale?: number;
 }
 
-/** Available house texture variants */
-const HOUSE_TEXTURES = ["/sprites/house_00.png", "/sprites/shop_01.png"];
+/** Available house sprite sheet IDs (registered in SpriteSheetRegistry) */
+const HOUSE_SPRITE_IDS = ["house-00", "shop-01"];
 
 /**
  * House Helper - Creates sprite billboard house GameObjects
@@ -66,9 +67,13 @@ export class House {
 	 */
 	static create(config: I_HouseConfig = {}): GameObject[] {
 		const id = config.id ?? "house";
-		const defaultTexture = config.texture ?? HOUSE_TEXTURES[0];
-		const defaultSize = config.size ?? [6, 5];
+		const defaultSpriteId = config.spriteSheetId ?? HOUSE_SPRITE_IDS[0];
 		const cycleTextures = config.cycleTextures ?? false;
+
+		// Get base size from config or registry
+		const registry = SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>();
+		const registryConfig = registry.getSpriteConfig(defaultSpriteId);
+		const baseSize = config.size ?? registryConfig?.size ?? [6, 5];
 
 		// Support both new positions[] API and legacy position API
 		let positions: I_HousePosition[];
@@ -90,22 +95,22 @@ export class House {
 		}
 
 		return positions.map((pos, index) => {
-			// Determine texture for this house
-			let texture = pos.texture ?? defaultTexture;
-			if (cycleTextures && !pos.texture) {
-				texture = HOUSE_TEXTURES[index % HOUSE_TEXTURES.length];
+			// Determine spriteSheetId for this house
+			let spriteSheetId = pos.spriteSheetId ?? defaultSpriteId;
+			if (cycleTextures && !pos.spriteSheetId) {
+				spriteSheetId = HOUSE_SPRITE_IDS[index % HOUSE_SPRITE_IDS.length];
 			}
 
-			// Apply scale to size
+			// Apply scale to size (pos.size overrides scaling)
 			const scale = pos.scale ?? 1;
-			const size: [number, number] = pos.size ?? [defaultSize[0] * scale, defaultSize[1] * scale];
+			const size: [number, number] | undefined = pos.size ?? (scale !== 1 ? [baseSize[0] * scale, baseSize[1] * scale] : undefined);
 
 			// Create sprite house with billboard and occlusion
 			const house = new SpriteGameObject({
 				id: `${id}-${index}`,
 				position: [pos.x, pos.y, pos.z],
-				texture,
-				size,
+				spriteSheetId,
+				size, // Only override if pos.size or scaled
 				billboardMode: "cylindrical",
 			}).addComponent(new OcclusionComponent());
 

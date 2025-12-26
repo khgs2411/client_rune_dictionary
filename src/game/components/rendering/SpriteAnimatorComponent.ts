@@ -658,6 +658,42 @@ export class SpriteAnimatorComponent extends GameComponent {
 	// === Movement Tracking API ===
 
 	/**
+	 * Set movement source for auto idle/walk switching.
+	 * Call after construction if not provided in config.
+	 *
+	 * Enables:
+	 * - Automatic switching between idle/walk animations based on movement
+	 * - Automatic sprite flip based on movement direction
+	 *
+	 * @param source - Position provider to track (e.g., CharacterController)
+	 * @param options - Optional configuration overrides
+	 */
+	public setMovementSource(
+		source: I_PositionProvider,
+		options?: {
+			idleAnimation?: string;
+			walkAnimation?: string;
+			movementThreshold?: number;
+			nativeFacing?: "left" | "right";
+		},
+	): void {
+		this.movementSource = source;
+		const pos = source.getPosition();
+		this.lastPositionX = pos.x;
+		this.lastPositionZ = pos.z;
+
+		if (options?.idleAnimation) this.idleAnimation = options.idleAnimation;
+		if (options?.walkAnimation) this.walkAnimation = options.walkAnimation;
+		if (options?.movementThreshold) this.movementThreshold = options.movementThreshold;
+		if (options?.nativeFacing) this.nativeFacingLeft = options.nativeFacing === "left";
+
+		// Start with idle animation if not already playing something
+		if (!this.isPlaying) {
+			this.play(this.idleAnimation);
+		}
+	}
+
+	/**
 	 * Check if character is currently moving (only valid when movementSource is configured)
 	 */
 	getIsMoving(): boolean {

@@ -352,5 +352,99 @@ export class SpriteSheetRegistry extends Singleton {
 			defaultAnimation: "idle",
 			anchor: [0.5, 0.2],
 		});
+
+		// ========================================
+		// ENVIRONMENT SPRITES (Static)
+		// ========================================
+
+		// Trees (4 variants) - static, no animations
+		SpriteSheetRegistry.RegisterSpriteSheet({
+			id: "tree-00",
+			texture: "/sprites/objects/tree_00.png",
+			framesPerRow: 1,
+			totalRows: 1,
+			size: [4, 5],
+			directional: false,
+			animations: [],
+		});
+		SpriteSheetRegistry.RegisterSpriteSheet({
+			id: "tree-01",
+			texture: "/sprites/objects/tree_01.png",
+			framesPerRow: 1,
+			totalRows: 1,
+			size: [4, 5],
+			directional: false,
+			animations: [],
+		});
+		SpriteSheetRegistry.RegisterSpriteSheet({
+			id: "tree-02",
+			texture: "/sprites/objects/tree_02.png",
+			framesPerRow: 1,
+			totalRows: 1,
+			size: [4, 5],
+			directional: false,
+			animations: [],
+		});
+		SpriteSheetRegistry.RegisterSpriteSheet({
+			id: "tree-03",
+			texture: "/sprites/objects/tree_03.png",
+			framesPerRow: 1,
+			totalRows: 1,
+			size: [4, 5],
+			directional: false,
+			animations: [],
+		});
+
+		// Rocks (3 variants) - static, no animations
+		SpriteSheetRegistry.RegisterSpriteSheet({
+			id: "rock-00",
+			texture: "/sprites/objects/rocks.png",
+			framesPerRow: 3,
+			totalRows: 2,
+			size: [2, 1.5],
+			directional: false,
+			animations: [{ name: "idle", row: 1, frameCount: 1, fps: 6 }],
+
+		});
+		SpriteSheetRegistry.RegisterSpriteSheet({
+			id: "rock-01",
+			texture: "/sprites/objects/rocks.png",
+			framesPerRow: 3,
+			totalRows: 2,
+			size: [2, 1.5],
+			directional: false,
+			animations: [{ name: "idle", row: 2, frameCount: 1, fps: 6 }],
+
+		});
+		SpriteSheetRegistry.RegisterSpriteSheet({
+			id: "rock-02",
+			texture: "/sprites/objects/rocks.png",
+			framesPerRow: 3,
+			totalRows: 2,
+			size: [2, 1.5],
+			directional: false,
+			animations: [{ name: "idle", row: 1, frameCount: 1, fps: 6 }],
+
+		});
+
+		// Houses (2 variants) - static, no animations
+		SpriteSheetRegistry.RegisterSpriteSheet({
+			id: "house-00",
+			texture: "/sprites/house_00.png",
+			framesPerRow: 1,
+			totalRows: 1,
+			size: [6, 5],
+			directional: false,
+			animations: [],
+		});
+		SpriteSheetRegistry.RegisterSpriteSheet({
+			id: "shop-01",
+			texture: "/sprites/shop_01.png",
+			framesPerRow: 1,
+			totalRows: 1,
+			size: [6, 5],
+			directional: false,
+			animations: [],
+		});
 	}
 }
