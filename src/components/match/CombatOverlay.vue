@@ -206,7 +206,7 @@ watch(
 	async (state) => {
 		if (state === "FINISHED") {
 			// Determine winner and trigger victory/defeat animation
-			const isVictory = matchStore.matchResult?.outcome === "VICTORY";
+			const isVictory = matchStore.matchResult?.winner === "player";
 			playerAnimationState.value = isVictory ? "victory" : "defeat";
 			enemyAnimationState.value = isVictory ? "defeat" : "victory";
 
