@@ -35,5 +35,5 @@ export enum E_MatchEventType {
 	DAMAGE_DEALT = "match.damage.dealt",
 	VICTORY = "match.victory",
 	END = "match.end",
-    ACTION = "match.action"
+	ACTION = "match.action",
 }

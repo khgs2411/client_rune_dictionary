@@ -21,12 +21,12 @@ export interface I_TrainingDummyConfig extends I_GameObjectConfig {
  * TrainingDummy - NPC prefab for match creation testing
  *
  * Represents a training dummy NPC that players can double-click to start a PvE match.
- * Uses a goblin sprite with spherical billboarding.
+ * Uses a slime sprite with cylindrical billboarding.
  *
  * Components:
  * - TransformComponent: Position in world
- * - SpriteComponent: Goblin sprite texture
- * - BillboardComponent: Spherical billboarding (always faces camera)
+ * - SpriteComponent: Slime sprite texture
+ * - BillboardComponent: Cylindrical billboarding (stays upright, faces camera)
  * - CollisionProxyComponent: Invisible cylinder for physics collision
  * - UnitsComponent: Distance measurement
  * - InteractionComponent: Click/double-click events
@@ -84,18 +84,18 @@ export class TrainingDummy extends GameObject {
 				)
 				.addComponent(
 					new BillboardComponent({
-						mode: "spherical", // Spherical keeps NPC always facing camera
+						mode: "cylindrical", // Cylindrical stays upright while facing camera (like LocalPlayer)
 					}),
 				)
 
-				// Collision proxy - invisible cylinder for physics
-				// Sprite handles rendering, this cylinder handles collision
+				// Collision proxy - capsule sized to match slime graphic (not full sprite cell)
+				// Slime is a small, round creature in lower portion of sprite frame
 				.addComponent(
 					new CollisionProxyComponent({
-						shape: "cylinder",
-						radius: 0.5,
-						height: 1,
-						offset: [0, 0.5, 0], // Center on slime body (sprite size [1.5, 2] with anchor at bottom)
+						shape: "capsule",
+						radius: 0.6,
+						height: 1.2,
+						offset: [0, 0.6, 0], // Raise capsule to center on slime body
 					}),
 				)
 

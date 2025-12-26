@@ -50,6 +50,13 @@ export interface I_SpriteComponentConfig {
 	 */
 	anchor?: [number, number];
 
+	/**
+	 * Position offset in world units (default: [0, 0])
+	 * Intuitive: positive X = move right, positive Y = raise sprite
+	 * Use this to fine-tune sprite position relative to transform
+	 */
+	offset?: [number, number];
+
 	/** Opacity 0-1 (default: 1) */
 	opacity?: number;
 

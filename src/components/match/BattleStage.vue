@@ -7,7 +7,9 @@
 			<!-- Arena floor effect -->
 			<div class="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-amber-900/30 to-transparent" />
 			<!-- Decorative grid lines -->
-			<div class="absolute inset-0 opacity-10" style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 40px 40px;" />
+			<div
+				class="absolute inset-0 opacity-10"
+				style="background-image: linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px); background-size: 40px 40px" />
 			<!-- Vignette -->
 			<div class="absolute inset-0 bg-radial-gradient pointer-events-none" />
 			<!-- Border glow -->
@@ -18,33 +20,15 @@
 		<div class="relative z-10 flex justify-between items-end px-[10%] h-full pb-12">
 			<!-- Player Zone (Left) -->
 			<div class="combatant-zone flex flex-col items-center gap-4">
-				<BattleSprite
-					v-for="member in partyMembers"
-					:key="member.id"
-					:sprite-url="member.spriteUrl"
-					:name="member.name"
-					:state="member.animationState"
-					:flip-x="member.flipX"
-					:scale="spriteScale"
-				/>
+				<BattleSprite v-for="member in partyMembers" :key="member.id" :sprite-url="member.spriteUrl" :name="member.name" :state="member.animationState" :flip-x="member.flipX" :scale="spriteScale" />
 			</div>
 
 			<!-- VS Indicator -->
-			<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl font-bold text-primary/30 select-none">
-				VS
-			</div>
+			<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl font-bold text-primary/30 select-none">VS</div>
 
 			<!-- Enemy Zone (Right) -->
 			<div class="combatant-zone flex flex-col items-center gap-4">
-				<BattleSprite
-					v-for="enemy in enemies"
-					:key="enemy.id"
-					:sprite-url="enemy.spriteUrl"
-					:name="enemy.name"
-					:state="enemy.animationState"
-					:flip-x="enemy.flipX"
-					:scale="spriteScale"
-				/>
+				<BattleSprite v-for="enemy in enemies" :key="enemy.id" :sprite-url="enemy.spriteUrl" :name="enemy.name" :state="enemy.animationState" :flip-x="enemy.flipX" :scale="spriteScale" />
 			</div>
 		</div>
 	</div>

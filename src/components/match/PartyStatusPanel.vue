@@ -1,13 +1,6 @@
 <template>
 	<div class="flex flex-col gap-2">
-		<div
-			v-for="member in partyMembers"
-			:key="member.id"
-			:class="[
-				'bg-card/90 backdrop-blur-sm rounded-xl border-2 shadow-lg p-4 min-w-[280px]',
-				variant === 'enemy' ? 'border-destructive' : 'border-border',
-			]"
-		>
+		<div v-for="member in partyMembers" :key="member.id" :class="['bg-card/90 backdrop-blur-sm rounded-xl border-2 shadow-lg p-4 min-w-[280px]', variant === 'enemy' ? 'border-destructive' : 'border-border']">
 			<!-- Name -->
 			<div class="flex items-center justify-between mb-3">
 				<span class="text-base font-bold text-foreground">{{ member.name }}</span>

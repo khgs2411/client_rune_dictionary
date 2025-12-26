@@ -118,6 +118,7 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 		// Extract config with defaults
 		const size = this.config.size ?? [1, 1];
 		const anchor = this.config.anchor ?? [0.5, 0]; // Bottom-center default
+		const offset = this.config.offset ?? [0, 0]; // Position offset
 		const opacity = this.config.opacity ?? 1;
 		const alphaTest = this.config.alphaTest ?? 0.1;
 		const depthWrite = this.config.depthWrite ?? false;
@@ -130,12 +131,14 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 		}
 		this.currentFrame = this.config.initialFrame ?? 0;
 
-		// Create geometry with anchor offset
-		const offsetX = (0.5 - anchor[0]) * size[0];
-		const offsetY = (0.5 - anchor[1]) * size[1];
+		// Create geometry with anchor offset + position offset
+		// Anchor: pivot point (0.5 - anchor) centers the geometry
+		// Offset: intuitive position adjustment (positive Y = raise)
+		const anchorOffsetX = (0.5 - anchor[0]) * size[0];
+		const anchorOffsetY = (0.5 - anchor[1]) * size[1];
 
 		this.geometry = new PlaneGeometry(size[0], size[1]);
-		this.geometry.translate(offsetX, offsetY, 0);
+		this.geometry.translate(anchorOffsetX + offset[0], anchorOffsetY + offset[1], 0);
 
 		// Create material (texture loaded async)
 		this.material = new MeshBasicMaterial({
@@ -463,19 +466,30 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 	}
 
 	/**
+	 * Set sprite offset (recreates geometry)
+	 * Intuitive: positive X = move right, positive Y = raise sprite
+	 */
+	setOffset(x: number, y: number): void {
+		this.config.offset = [x, y];
+		const size = this.config.size ?? [1, 1];
+		this.setSize(size[0], size[1]); // Recreates geometry with new offset
+	}
+
+	/**
 	 * Set sprite size (recreates geometry)
 	 */
 	setSize(width: number, height: number): void {
 		const anchor = this.config.anchor ?? [0.5, 0];
-		const offsetX = (0.5 - anchor[0]) * width;
-		const offsetY = (0.5 - anchor[1]) * height;
+		const offset = this.config.offset ?? [0, 0];
+		const anchorOffsetX = (0.5 - anchor[0]) * width;
+		const anchorOffsetY = (0.5 - anchor[1]) * height;
 
 		// Dispose old geometry
 		this.geometry.dispose();
 
 		// Create new geometry
 		this.geometry = new PlaneGeometry(width, height);
-		this.geometry.translate(offsetX, offsetY, 0);
+		this.geometry.translate(anchorOffsetX + offset[0], anchorOffsetY + offset[1], 0);
 		this.mesh.geometry = this.geometry;
 
 		// Re-apply UVs if sprite sheet

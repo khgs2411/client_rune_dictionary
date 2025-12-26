@@ -21,6 +21,7 @@ The sprite system works. The goal is to reduce complexity without breaking funct
 ### 1.1 SpriteSheetRegistry.ts
 
 Remove unused methods:
+
 - `unregister(id: string)`
 - `clear()`
 - `getTextureSources(id: string)`
@@ -28,6 +29,7 @@ Remove unused methods:
 ### 1.2 spritesheet.types.ts
 
 Remove unused interfaces:
+
 - `I_DirectionalAnimationDef`
 - `I_SpriteState`
 
@@ -46,6 +48,7 @@ Add clarifying comment at top of movement tracking section:
 ```
 
 **Verification:**
+
 - [ ] `bun run dev` starts
 - [ ] Player animates idle/walk
 - [ ] Player flips when walking left
@@ -112,14 +115,14 @@ Add optional texture field to existing type:
 
 ```typescript
 interface I_AnimationDefinition {
-  name: string;
-  startFrame: number;
-  endFrame: number;
-  fps: number;
-  loop?: boolean;
-  onComplete?: () => void;
-  // Add for multi-texture:
-  texturePath?: string;
+	name: string;
+	startFrame: number;
+	endFrame: number;
+	fps: number;
+	loop?: boolean;
+	onComplete?: () => void;
+	// Add for multi-texture:
+	texturePath?: string;
 }
 ```
 
@@ -147,14 +150,14 @@ interface I_AnimationDefinition {
 
 **Result:**
 
-| Before | After |
-|--------|-------|
-| I_SimpleAnimationDef | I_SimpleAnimationDef (user input) |
-| I_AnimationRowDefinition | I_AnimationRowDefinition (internal) |
-| I_AnimationDefinition | I_AnimationDefinition (runtime, now with texturePath) |
-| I_ExtendedAnimationDefinition | (removed) |
-| I_DirectionalAnimationDef | (removed in Phase 1) |
-| I_SpriteState | (removed in Phase 1) |
+| Before                        | After                                                 |
+| ----------------------------- | ----------------------------------------------------- |
+| I_SimpleAnimationDef          | I_SimpleAnimationDef (user input)                     |
+| I_AnimationRowDefinition      | I_AnimationRowDefinition (internal)                   |
+| I_AnimationDefinition         | I_AnimationDefinition (runtime, now with texturePath) |
+| I_ExtendedAnimationDefinition | (removed)                                             |
+| I_DirectionalAnimationDef     | (removed in Phase 1)                                  |
+| I_SpriteState                 | (removed in Phase 1)                                  |
 
 **Verification:** Same as Phase 1.
 
@@ -222,23 +225,23 @@ It's set but never read. Remove from `I_SpriteSheetDefinition`.
 
 These items are noted for future consideration but **not part of this cleanup**:
 
-| Item | Reason to Defer |
-|------|-----------------|
+| Item                                  | Reason to Defer                 |
+| ------------------------------------- | ------------------------------- |
 | Compose with SpriteAnimationComponent | High risk, significant refactor |
-| Extract movement tracking | Working, just debugged |
-| Singleton pattern alignment | Cosmetic, low priority |
+| Extract movement tracking             | Working, just debugged          |
+| Singleton pattern alignment           | Cosmetic, low priority          |
 
 ---
 
 ## Summary
 
-| Phase | Risk | Effort | Lines Changed |
-|-------|------|--------|---------------|
-| 1. Dead Code Removal | Low | 1h | -115 |
-| 2. Explicit Flip State | Low | 30m | ~20 |
-| 3. Type Consolidation | Medium | 2h | ~-80 |
-| 4. Registry Extraction | Medium | 1.5h | ~+30 (but simpler) |
-| **Total** | | **5h** | **~-145** |
+| Phase                  | Risk   | Effort | Lines Changed      |
+| ---------------------- | ------ | ------ | ------------------ |
+| 1. Dead Code Removal   | Low    | 1h     | -115               |
+| 2. Explicit Flip State | Low    | 30m    | ~20                |
+| 3. Type Consolidation  | Medium | 2h     | ~-80               |
+| 4. Registry Extraction | Medium | 1.5h   | ~+30 (but simpler) |
+| **Total**              |        | **5h** | **~-145**          |
 
 ---
 
@@ -252,19 +255,19 @@ These items are noted for future consideration but **not part of this cleanup**:
 
 ## Files to Modify
 
-| Phase | File |
-|-------|------|
-| 1 | `src/game/utils/SpriteSheetRegistry.ts` |
-| 1 | `src/game/common/spritesheet.types.ts` |
-| 1 | `src/game/utils/spriteSheets.config.ts` |
-| 1 | `src/game/components/rendering/DirectionalSpriteAnimator.ts` |
-| 2 | `src/game/components/rendering/SpriteComponent.ts` |
-| 3 | `src/game/common/sprite.types.ts` |
-| 3 | `src/game/common/spritesheet.types.ts` |
-| 3 | `src/game/utils/SpriteSheetRegistry.ts` |
-| 3 | `src/game/components/rendering/DirectionalSpriteAnimator.ts` |
-| 3 | `src/game/prefabs/CharacterSprite.ts` |
-| 4 | `src/game/utils/SpriteSheetRegistry.ts` |
+| Phase | File                                                         |
+| ----- | ------------------------------------------------------------ |
+| 1     | `src/game/utils/SpriteSheetRegistry.ts`                      |
+| 1     | `src/game/common/spritesheet.types.ts`                       |
+| 1     | `src/game/utils/spriteSheets.config.ts`                      |
+| 1     | `src/game/components/rendering/DirectionalSpriteAnimator.ts` |
+| 2     | `src/game/components/rendering/SpriteComponent.ts`           |
+| 3     | `src/game/common/sprite.types.ts`                            |
+| 3     | `src/game/common/spritesheet.types.ts`                       |
+| 3     | `src/game/utils/SpriteSheetRegistry.ts`                      |
+| 3     | `src/game/components/rendering/DirectionalSpriteAnimator.ts` |
+| 3     | `src/game/prefabs/CharacterSprite.ts`                        |
+| 4     | `src/game/utils/SpriteSheetRegistry.ts`                      |
 
 ---
 

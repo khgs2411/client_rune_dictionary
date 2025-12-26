@@ -108,13 +108,18 @@ export class CollisionProxyComponent extends GameComponent implements I_Collisio
 	}
 
 	/**
-	 * Apply transform from TransformComponent
-	 * Offset is already baked into geometry, so mesh.position === transform.position
+	 * Apply transform from TransformComponent + offset
+	 * Offset is applied at mesh.position level so physics.getWorldPosition() includes it
 	 */
 	private syncTransform(): void {
 		const transform = this.getComponent(TransformComponent);
 		if (transform && this.mesh) {
-			this.mesh.position.copy(transform.position);
+			// Apply transform position + offset (so mesh.getWorldPosition() includes offset)
+			this.mesh.position.set(
+				transform.position.x + this.offset[0],
+				transform.position.y + this.offset[1],
+				transform.position.z + this.offset[2],
+			);
 			this.mesh.rotation.copy(transform.rotation);
 			this.mesh.scale.copy(transform.scale);
 		}
@@ -122,41 +127,28 @@ export class CollisionProxyComponent extends GameComponent implements I_Collisio
 
 	/**
 	 * Create geometry based on shape type
-	 * The offset is baked into the geometry (like SpriteComponent's anchor)
-	 * so mesh.position === TransformComponent.position
+	 * Offset is applied at mesh.position level (not geometry) so physics sees it
 	 */
 	private createGeometry(): BufferGeometry {
 		const { shape, radius = 0.3, height = 1.5, width = 1, depth = 1 } = this.config;
-		let geometry: BufferGeometry;
 
 		switch (shape) {
 			case "capsule":
 				// CapsuleGeometry(radius, length, capSegments, radialSegments)
 				// 'length' is the middle cylinder section, total height = length + radius*2
-				geometry = new CapsuleGeometry(radius, height - radius * 2, 8, 16);
-				break;
+				return new CapsuleGeometry(radius, height - radius * 2, 8, 16);
 
 			case "cylinder":
 				// CylinderGeometry(radiusTop, radiusBottom, height, radialSegments)
-				geometry = new CylinderGeometry(radius, radius, height, 16);
-				break;
+				return new CylinderGeometry(radius, radius, height, 16);
 
 			case "cuboid":
 				// BoxGeometry(width, height, depth)
-				geometry = new BoxGeometry(width, height, depth);
-				break;
+				return new BoxGeometry(width, height, depth);
 
 			default:
 				throw new Error(`[CollisionProxyComponent] Unsupported shape: ${shape}`);
 		}
-
-		// Bake offset into geometry (like SpriteComponent's anchor offset)
-		// This keeps mesh.position === TransformComponent.position
-		if (this.offset[0] !== 0 || this.offset[1] !== 0 || this.offset[2] !== 0) {
-			geometry.translate(this.offset[0], this.offset[1], this.offset[2]);
-		}
-
-		return geometry;
 	}
 
 	/**
@@ -168,14 +160,11 @@ export class CollisionProxyComponent extends GameComponent implements I_Collisio
 
 	/**
 	 * Get world position of collision mesh center (transform + offset)
-	 * Note: offset is baked into geometry, so this returns transform + offset
-	 * Useful for physics components or debug tools
+	 * Since offset is now applied at mesh.position level, this delegates to mesh.getWorldPosition()
 	 */
 	public getWorldPosition(): Vector3 {
-		const transform = this.getComponent(TransformComponent);
-		if (transform) {
-			// Offset is baked into geometry, so actual center is transform + offset
-			return new Vector3(transform.position.x + this.offset[0], transform.position.y + this.offset[1], transform.position.z + this.offset[2]);
+		if (this.mesh) {
+			return this.mesh.getWorldPosition(new Vector3());
 		}
 		return new Vector3();
 	}
@@ -197,7 +186,7 @@ export class CollisionProxyComponent extends GameComponent implements I_Collisio
 	}
 
 	/**
-	 * Get collision offset (baked into geometry at init, immutable)
+	 * Get collision offset from transform position
 	 */
 	public getOffset(): [number, number, number] {
 		return [...this.offset];

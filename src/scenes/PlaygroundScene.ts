@@ -17,7 +17,6 @@ import { HoverGlowComponent } from "@/game/components/interactions/HoverGlowComp
 import { MatchComponent } from "@/game/components/match/MatchComponent";
 import { BillboardComponent } from "@/game/components/rendering/BillboardComponent";
 import { GeometryComponent } from "@/game/components/rendering/GeometryComponent";
-import { InstancedMeshComponent } from "@/game/components/rendering/InstancedMeshComponent";
 import { MaterialComponent } from "@/game/components/rendering/MaterialComponent";
 import { MeshComponent } from "@/game/components/rendering/MeshComponent";
 import { SpriteComponent } from "@/game/components/rendering/SpriteComponent";
@@ -31,7 +30,6 @@ import { Path } from "@/game/prefabs/environment/Path";
 import { Rocks } from "@/game/prefabs/environment/Rock";
 import { TrainingDummy } from "@/game/prefabs/npc/TrainingDummy";
 import { SpriteCharacter } from "@/game/prefabs/SpriteCharacter";
-import { OcclusionComponent } from "@/game/components/rendering/OcclusionComponent";
 
 /**
  * Module Registry for PlaygroundScene
@@ -197,47 +195,19 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		gom.register(interactiveBox);
 
 		// ========================================
-		// SMALL TOWN (Toon Shading + Vibrant)
+		// SMALL TOWN (Sprite Houses)
 		// ========================================
 
-		// Town center house
-		const [townHouseWalls, townHouseRoof] = House.create({
-			id: "town-house-1",
-			position: [30, 0, 0],
-			useToonShading: true,
-			vibrant: true,
-			wallColor: 0xf5deb3, // Wheat
-			roofColor: 0x8b0000, // Dark red
+		const townHouses = House.create({
+			id: "town-houses",
+			positions: [
+				{ x: 30, y: 0, z: 0 },
+				{ x: 45, y: 0, z: -10, scale: 1.1 },
+				{ x: 50, y: 0, z: 15, scale: 0.8 },
+			],
+			cycleTextures: true,
 		});
-		gom.register(townHouseWalls);
-		gom.register(townHouseRoof);
-
-		// Second house
-		const [house2Walls, house2Roof] = House.create({
-			id: "town-house-2",
-			position: [45, 0, -10],
-			rotation: [0, Math.PI / 6, 0],
-			useToonShading: true,
-			vibrant: true,
-			wallColor: 0xffe4c4, // Bisque
-			roofColor: 0x2f4f4f, // Dark slate gray
-		});
-		gom.register(house2Walls);
-		gom.register(house2Roof);
-
-		// Third house
-		const [house3Walls, house3Roof] = House.create({
-			id: "town-house-3",
-			position: [50, 0, 15],
-			rotation: [0, -Math.PI / 4, 0],
-			scale: 0.8,
-			useToonShading: true,
-			vibrant: true,
-			wallColor: 0xfaebd7, // Antique white
-			roofColor: 0x556b2f, // Dark olive green
-		});
-		gom.register(house3Walls);
-		gom.register(house3Roof);
+		townHouses.forEach((house) => gom.register(house));
 
 		// Town paths
 		const townPaths = Path.createStraight({
@@ -262,11 +232,11 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		path2.forEach((segment) => gom.register(segment));
 
 		// ========================================
-		// FOREST (Toon Shading + Vibrant)
+		// FOREST (Sprite Trees)
 		// ========================================
 
 		// Dense forest area (negative X side)
-		const [forestTrunks, forestLeaves] = Trees.create({
+		const forestTrees = Trees.create({
 			id: "forest-trees",
 			positions: [
 				// Forest cluster 1
@@ -275,49 +245,23 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 				{ x: -28, y: 0, z: 15 },
 				{ x: -35, y: 0, z: 12 },
 				{ x: -32, y: 0, z: 5 },
-			],
-			useToonShading: true,
-			vibrant: true,
-			leavesColor: 0x228b22, // Forest green
-			trunkColor: 0x8b4513, // Saddle brown
-		});
-		gom.register(forestTrunks);
-		gom.register(forestLeaves);
-		const [forestTrunks2, forestLeaves2] = Trees.create({
-			id: "forest-trees-2",
-			positions: [
 				// Forest cluster 2
 				{ x: -40, y: 0, z: -5 },
 				{ x: -45, y: 0, z: -8 },
 				{ x: -42, y: 0, z: 0 },
 				{ x: -38, y: 0, z: -12 },
 				{ x: -50, y: 0, z: -3 },
-			],
-			useToonShading: true,
-			vibrant: true,
-			leavesColor: 0x228b22, // Forest green
-			trunkColor: 0x8b4513, // Saddle brown
-		});
-		gom.register(forestTrunks2);
-		gom.register(forestLeaves2);
-		const [forestTrunks3, forestLeaves3] = Trees.create({
-			id: "forest-trees-3",
-			positions: [
 				// Scattered trees
 				{ x: -20, y: 0, z: -15 },
 				{ x: -55, y: 0, z: 10 },
 				{ x: -48, y: 0, z: 18 },
 			],
-			useToonShading: true,
-			vibrant: true,
-			leavesColor: 0x228b22, // Forest green
-			trunkColor: 0x8b4513, // Saddle brown
+			cycleTextures: true, // Use different tree variants
 		});
-		gom.register(forestTrunks3);
-		gom.register(forestLeaves3);
+		forestTrees.forEach((tree) => gom.register(tree));
 
 		// Trees near town (sparser)
-		const [townTrunks, townLeaves] = Trees.create({
+		const townTrees = Trees.create({
 			id: "town-trees",
 			positions: [
 				{ x: 15, y: 0, z: 20 },
@@ -325,18 +269,16 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 				{ x: 60, y: 0, z: -5 },
 				{ x: 25, y: 0, z: -20 },
 			],
-			useToonShading: true,
-			vibrant: true,
-			leavesColor: 0x32cd32, // Lime green (variety)
+			cycleTextures: true,
 		});
-		gom.register(townTrunks);
-		gom.register(townLeaves);
+		townTrees.forEach((tree) => gom.register(tree));
 
 		// ========================================
 		// ROCKS (scattered around)
 		// ========================================
 
-		const rocks = new Rocks({
+		const rocks = Rocks.create({
+			id: "rocks",
 			positions: [
 				// Near forest
 				{ x: -22, y: 0, z: 5, scale: 1.2 },
@@ -349,59 +291,13 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 				{ x: 10, y: 0, z: -25, scale: 0.9 },
 				{ x: -10, y: 0, z: 25, scale: 1.1 },
 			],
-			useToonShading: true,
-			vibrant: true,
-			color: 0x696969, // Dim gray
+			cycleTextures: true,
 		});
-		gom.register(rocks);
+		rocks.forEach((rock) => gom.register(rock));
 
 		// ========================================
-		// BUSHES (using instanced mesh)
+		// SPRITE NPCs
 		// ========================================
-		const bushes = new GameObject({ id: "bushes" })
-			.addComponent(new GeometryComponent({ type: "sphere", params: [1.5, 6, 6] }))
-			.addComponent(new MaterialComponent({ color: 0x228b22, roughness: 1.0 }))
-			.addComponent(
-				new InstancedMeshComponent({
-					instances: [
-						// Near forest
-						{ position: [-26, 0.8, 6] },
-						{ position: [-33, 0.8, 10] },
-						{ position: [-41, 0.8, -2] },
-						// Near town
-						{ position: [28, 0.8, 5] },
-						{ position: [48, 0.8, -8] },
-						{ position: [38, 0.8, 18] },
-						// Near spawn
-						{ position: [8, 0.8, 8] },
-						{ position: [-5, 0.8, -8] },
-					],
-				}),
-			);
-		gom.register(bushes);
-
-		// ========================================
-		// BILLBOARD SPRITES
-		// ========================================
-
-		// Sprite Trees (cylindrical billboarding - stay upright)
-		const spriteTrees = [
-			{ id: "sprite-tree-0", position: [15, 0, 15] as [number, number, number], texture: "/sprites/tree_00.png", size: [4, 5] as [number, number] },
-			{ id: "sprite-tree-1", position: [18, 0, 12] as [number, number, number], texture: "/sprites/tree_01.png", size: [3.5, 4.5] as [number, number] },
-			{ id: "sprite-tree-2", position: [12, 0, 18] as [number, number, number], texture: "/sprites/tree_02.png", size: [3, 4] as [number, number] },
-			{ id: "sprite-tree-3", position: [20, 0, 20] as [number, number, number], texture: "/sprites/tree_03.png", size: [2.5, 3.5] as [number, number] },
-		];
-
-		for (const tree of spriteTrees) {
-			const spriteTree = new SpriteCharacter({
-				id: tree.id,
-				position: tree.position,
-				texture: tree.texture,
-				size: tree.size,
-				billboardMode: "cylindrical",
-			}).addComponent(new OcclusionComponent());
-			gom.register(spriteTree);
-		}
 
 		// Sprite NPC - Knight
 		const spriteKnight = new SpriteCharacter({
@@ -439,25 +335,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 				}),
 			);
 		gom.register(standaloneMage);
-
-		// Sprite Buildings
-		const spriteHouse = new SpriteCharacter({
-			id: "sprite-house",
-			position: [25, 0, -10],
-			texture: "/sprites/house_00.png",
-			size: [6, 5],
-			billboardMode: "cylindrical",
-		});
-		gom.register(spriteHouse);
-
-		const spriteShop = new SpriteCharacter({
-			id: "sprite-shop",
-			position: [30, 0, -5],
-			texture: "/sprites/shop_01.png",
-			size: [5, 4.5],
-			billboardMode: "cylindrical",
-		});
-		gom.register(spriteShop);
 	}
 
 	/**

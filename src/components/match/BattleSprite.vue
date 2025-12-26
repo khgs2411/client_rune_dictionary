@@ -3,17 +3,8 @@
 	<div class="sprite-scale-wrapper" :style="scaleStyle">
 		<!-- Flip wrapper (separate from animations to avoid transform conflicts) -->
 		<div :style="{ transform: props.flipX ? 'scaleX(-1)' : 'none' }">
-			<div
-				class="battle-sprite"
-				:class="[`state-${props.state}`, { 'reduce-motion': prefersReducedMotion }]"
-			>
-				<img
-					v-if="isLoaded"
-					:src="props.spriteUrl"
-					:alt="props.name"
-					class="sprite-image pixelated select-none h-20"
-					draggable="false"
-				/>
+			<div class="battle-sprite" :class="[`state-${props.state}`, { 'reduce-motion': prefersReducedMotion }]">
+				<img v-if="isLoaded" :src="props.spriteUrl" :alt="props.name" class="sprite-image pixelated select-none h-20" draggable="false" />
 				<!-- Loading placeholder -->
 				<div v-else class="w-20 h-24 bg-muted/50 rounded animate-pulse" />
 			</div>
@@ -59,7 +50,6 @@ const scaleStyle = computed(() => ({
 	image-rendering: pixelated;
 	image-rendering: crisp-edges;
 }
-
 
 /* Animation states */
 .state-idle:not(.reduce-motion) {

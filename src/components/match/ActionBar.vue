@@ -5,16 +5,14 @@
 			<button
 				@click="handlePass"
 				:disabled="!isPlayerTurn"
-				class="flex-1 px-3 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-md font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center gap-1"
-			>
+				class="flex-1 px-3 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-md font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center gap-1">
 				<Icon icon="lucide:skip-forward" class="w-4 h-4" />
 				Pass
 			</button>
 			<button
 				@click="emitLeaveMatch"
 				:disabled="isLeaving"
-				class="flex-1 px-3 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-md font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center gap-1"
-			>
+				class="flex-1 px-3 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-md font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center gap-1">
 				<Icon icon="lucide:log-out" class="w-4 h-4" />
 				{{ isLeaving ? "Leaving..." : "Run" }}
 			</button>
@@ -32,8 +30,7 @@
 								'relative aspect-square bg-secondary hover:bg-secondary/80 rounded-md transition-colors flex items-center justify-center p-1 min-h-[44px]',
 								slot.isActive && 'ring-2 ring-primary',
 								!isPlayerTurn && 'opacity-50 cursor-not-allowed',
-							]"
-						>
+							]">
 							<Icon :icon="slot.icon" class="w-6 h-6" />
 							<!-- Keybind indicator -->
 							<span class="absolute bottom-0.5 right-0.5 text-[10px] text-muted-foreground font-mono">

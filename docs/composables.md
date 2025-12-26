@@ -8,22 +8,22 @@ Composables are split into two categories for testability and separation of conc
 
 Own Three.js instances. Create and manage actual 3D objects.
 
-| Composable | Owns |
-|------------|------|
-| `useCamera` | PerspectiveCamera instance |
-| `useCharacter` | Character mesh, animations |
-| `useEnvironment` | Scene lighting, skybox |
+| Composable       | Owns                       |
+| ---------------- | -------------------------- |
+| `useCamera`      | PerspectiveCamera instance |
+| `useCharacter`   | Character mesh, animations |
+| `useEnvironment` | Scene lighting, skybox     |
 
 ```typescript
 // Entity composable - creates Three.js objects
 export function useCamera(scene: Scene) {
-  const camera = new PerspectiveCamera(75, aspect, 0.1, 1000);
-  
-  onUnmounted(() => {
-    // Cleanup
-  });
-  
-  return { camera };
+	const camera = new PerspectiveCamera(75, aspect, 0.1, 1000);
+
+	onUnmounted(() => {
+		// Cleanup
+	});
+
+	return { camera };
 }
 ```
 
@@ -31,27 +31,27 @@ export function useCamera(scene: Scene) {
 
 Pure state and logic. No Three.js dependencies.
 
-| Composable | Controls |
-|------------|----------|
-| `useCameraController` | Orbit, follow, zoom logic |
+| Composable               | Controls                       |
+| ------------------------ | ------------------------------ |
+| `useCameraController`    | Orbit, follow, zoom logic      |
 | `useCharacterController` | Movement state, input handling |
-| `useMatchController` | Combat flow, turn logic |
+| `useMatchController`     | Combat flow, turn logic        |
 
 ```typescript
 // Controller composable - pure logic
 export function useCameraController() {
-  const distance = ref(10);
-  const angle = ref(0);
-  
-  function orbit(delta: number) {
-    angle.value += delta;
-  }
-  
-  function zoom(amount: number) {
-    distance.value = clamp(distance.value + amount, 5, 20);
-  }
-  
-  return { distance, angle, orbit, zoom };
+	const distance = ref(10);
+	const angle = ref(0);
+
+	function orbit(delta: number) {
+		angle.value += delta;
+	}
+
+	function zoom(amount: number) {
+		distance.value = clamp(distance.value + amount, 5, 20);
+	}
+
+	return { distance, angle, orbit, zoom };
 }
 ```
 
@@ -81,14 +81,7 @@ lookAt(0, 0, 0);
 Orbital camera controls.
 
 ```typescript
-const { 
-  distance, 
-  azimuth, 
-  polar,
-  orbit,
-  zoom,
-  follow 
-} = useCameraController();
+const { distance, azimuth, polar, orbit, zoom, follow } = useCameraController();
 
 // In update loop
 orbit(mouseDelta);
@@ -100,14 +93,9 @@ follow(playerPosition);
 Player character mesh and animations.
 
 ```typescript
-const { 
-  mesh, 
-  playAnimation, 
-  setPosition,
-  getPosition 
-} = useCharacter(scene);
+const { mesh, playAnimation, setPosition, getPosition } = useCharacter(scene);
 
-playAnimation('walk');
+playAnimation("walk");
 setPosition(5, 0, 3);
 ```
 
@@ -116,17 +104,10 @@ setPosition(5, 0, 3);
 Movement input and state.
 
 ```typescript
-const {
-  velocity,
-  isMoving,
-  isJumping,
-  move,
-  jump,
-  stop
-} = useCharacterController();
+const { velocity, isMoving, isJumping, move, jump, stop } = useCharacterController();
 
 // In input handler
-if (keys.w) move('forward');
+if (keys.w) move("forward");
 if (keys.space) jump();
 ```
 
@@ -137,8 +118,8 @@ Light/dark mode integration with VueUse.
 ```typescript
 const { isDark, toggle, set } = useTheme();
 
-toggle();  // Switch theme
-set('dark');  // Force theme
+toggle(); // Switch theme
+set("dark"); // Force theme
 ```
 
 ---
@@ -151,14 +132,14 @@ Uses RxJS from topsyde-utils for async loading coordination.
 
 ```typescript
 // In GameScene
-this.loadingSubject.next({ type: 'start', totalAssets: 5 });
+this.loadingSubject.next({ type: "start", totalAssets: 5 });
 
 // As assets load
-this.loadingSubject.next({ type: 'loaded', count: 1 });
-this.loadingSubject.next({ type: 'loaded', count: 2 });
+this.loadingSubject.next({ type: "loaded", count: 1 });
+this.loadingSubject.next({ type: "loaded", count: 2 });
 
 // Module ready notification
-this.initialized('PlaygroundScene');
+this.initialized("PlaygroundScene");
 ```
 
 ### UI Side
@@ -174,12 +155,12 @@ const { progress, message, isLoading } = useLoading();
 
 ### Events
 
-| Event | Payload | When |
-|-------|---------|------|
-| `start` | `{ totalAssets }` | Loading begins |
-| `loaded` | `{ count }` | Asset finished loading |
-| `fail` | `{ error, asset }` | Asset failed to load |
-| `complete` | - | All assets loaded |
+| Event      | Payload            | When                   |
+| ---------- | ------------------ | ---------------------- |
+| `start`    | `{ totalAssets }`  | Loading begins         |
+| `loaded`   | `{ count }`        | Asset finished loading |
+| `fail`     | `{ error, asset }` | Asset failed to load   |
+| `complete` | -                  | All assets loaded      |
 
 ---
 
@@ -201,11 +182,11 @@ import { useWindowSize } from '@vueuse/core';
 
 ```typescript
 export function useMyComposable() {
-  const subscription = someObservable.subscribe();
-  
-  onUnmounted(() => {
-    subscription.unsubscribe();
-  });
+	const subscription = someObservable.subscribe();
+
+	onUnmounted(() => {
+		subscription.unsubscribe();
+	});
 }
 ```
 
@@ -213,7 +194,7 @@ export function useMyComposable() {
 
 ```typescript
 export function useMyComposable(context: I_SceneContext) {
-  // Type-safe access to scene, services, cleanup
+	// Type-safe access to scene, services, cleanup
 }
 ```
 
@@ -221,11 +202,11 @@ export function useMyComposable(context: I_SceneContext) {
 
 ```typescript
 export function useCounter() {
-  const count = ref(0);
-  
-  return {
-    count: readonly(count),  // External can't mutate
-    increment: () => count.value++,
-  };
+	const count = ref(0);
+
+	return {
+		count: readonly(count), // External can't mutate
+		increment: () => count.value++,
+	};
 }
 ```

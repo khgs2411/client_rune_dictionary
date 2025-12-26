@@ -57,31 +57,31 @@ src_deprecated/              # Old PrimeVue app - NEVER MODIFY
 
 ### Dual Pattern System
 
-| Pattern | Use When | Examples |
-|---------|----------|----------|
+| Pattern         | Use When                | Examples                        |
+| --------------- | ----------------------- | ------------------------------- |
 | **SceneModule** | Singular infrastructure | LightingModule, CharacterModule |
-| **GameObject** | Multiple instances | TrainingDummy, Rock, Trees |
+| **GameObject**  | Multiple instances      | TrainingDummy, Rock, Trees      |
 
 ### Core Classes
 
-| Class | Purpose |
-|-------|---------|
-| `Engine` | Three.js Scene, Renderer, Clock |
-| `GameScene` | Abstract base with lifecycle |
-| `SceneModule` | Scene infrastructure base |
-| `GameObject` | Entity with fluent component API |
-| `GameComponent` | Composable entity features |
-| `CleanupRegistry` | Memory leak prevention |
+| Class             | Purpose                          |
+| ----------------- | -------------------------------- |
+| `Engine`          | Three.js Scene, Renderer, Clock  |
+| `GameScene`       | Abstract base with lifecycle     |
+| `SceneModule`     | Scene infrastructure base        |
+| `GameObject`      | Entity with fluent component API |
+| `GameComponent`   | Composable entity features       |
+| `CleanupRegistry` | Memory leak prevention           |
 
 ### Systems (via `context.getService()`)
 
-| System | Purpose |
-|--------|---------|
-| `InteractionSystem` | Raycasting, hover/click |
-| `PhysicsSystem` | Rapier3D facade |
-| `VFXSystem` | Emissive, particles, shake |
-| `SceneState` | State machine |
-| `GameObjectsManager` | GameObject lifecycle |
+| System               | Purpose                    |
+| -------------------- | -------------------------- |
+| `InteractionSystem`  | Raycasting, hover/click    |
+| `PhysicsSystem`      | Rapier3D facade            |
+| `VFXSystem`          | Emissive, particles, shake |
+| `SceneState`         | State machine              |
+| `GameObjectsManager` | GameObject lifecycle       |
 
 See `docs/architecture.md` for Pattern B (layered components) and component priority details.
 
@@ -93,14 +93,14 @@ See `docs/architecture.md` for Pattern B (layered components) and component prio
 
 ```typescript
 export class MyObject extends GameObject {
-  constructor(config: { id: string; position?: [number, number, number] }) {
-    super({ id: config.id });
-    this.addComponent(new TransformComponent({ position: config.position || [0, 0, 0] }))
-      .addComponent(new GeometryComponent({ type: 'box', params: [1, 1, 1] }))
-      .addComponent(new MaterialComponent({ color: 0xff1493 }))
-      .addComponent(new MeshComponent())
-      .addComponent(new HoverComponent());
-  }
+	constructor(config: { id: string; position?: [number, number, number] }) {
+		super({ id: config.id });
+		this.addComponent(new TransformComponent({ position: config.position || [0, 0, 0] }))
+			.addComponent(new GeometryComponent({ type: "box", params: [1, 1, 1] }))
+			.addComponent(new MaterialComponent({ color: 0xff1493 }))
+			.addComponent(new MeshComponent())
+			.addComponent(new HoverComponent());
+	}
 }
 ```
 
@@ -108,15 +108,17 @@ export class MyObject extends GameObject {
 
 ```typescript
 export class MyModule extends SceneModule {
-  async init(context: I_ModuleContext): Promise<void> {
-    await super.init(context);  // REQUIRED first!
-    
-    const mesh = new Mesh(geometry, material);
-    context.scene.add(mesh);
-    context.cleanupRegistry.registerObject(mesh);
-  }
-  
-  update(delta: number): void { /* per-frame */ }
+	async init(context: I_ModuleContext): Promise<void> {
+		await super.init(context); // REQUIRED first!
+
+		const mesh = new Mesh(geometry, material);
+		context.scene.add(mesh);
+		context.cleanupRegistry.registerObject(mesh);
+	}
+
+	update(delta: number): void {
+		/* per-frame */
+	}
 }
 ```
 
@@ -124,20 +126,20 @@ export class MyModule extends SceneModule {
 
 ```typescript
 export class RotateComponent extends GameComponent {
-  public readonly priority = ComponentPriority.DEFAULT;
-  
-  update(delta: number): void {
-    const mesh = this.getComponent(MeshComponent);
-    if (mesh) mesh.mesh.rotation.y += delta;
-  }
+	public readonly priority = ComponentPriority.DEFAULT;
+
+	update(delta: number): void {
+		const mesh = this.getComponent(MeshComponent);
+		if (mesh) mesh.mesh.rotation.y += delta;
+	}
 }
 ```
 
 ### Using Services
 
 ```typescript
-const physics = context.getService('physics');
-const vfx = context.getService('vfx');
+const physics = context.getService("physics");
+const vfx = context.getService("vfx");
 
 physics.registerStaticFromMesh(this.gameObject.id, mesh, { showDebug: true });
 vfx.applyEmissive(mesh, 0xff0000, 0.5);
@@ -166,13 +168,13 @@ vfx.applyEmissive(mesh, 0xff0000, 0.5);
 
 ## Pinia Stores
 
-| Store | Purpose |
-|-------|---------|
-| `auth.store.ts` | Authentication |
-| `websocket.store.ts` | WebSocket connection |
-| `settings.store.ts` | User preferences (persisted) |
-| `gameConfig.store.ts` | Debug flags |
-| `scene.store.ts` | Scene state/switching |
+| Store                 | Purpose                      |
+| --------------------- | ---------------------------- |
+| `auth.store.ts`       | Authentication               |
+| `websocket.store.ts`  | WebSocket connection         |
+| `settings.store.ts`   | User preferences (persisted) |
+| `gameConfig.store.ts` | Debug flags                  |
+| `scene.store.ts`      | Scene state/switching        |
 
 ---
 
@@ -190,8 +192,8 @@ Build config: base path `/client_rune_dictionary/`, alias `@` → `./src`
 
 ## Additional Docs
 
-| Doc | When to read |
-|-----|--------------|
-| `docs/architecture.md` | Pattern B, component priorities, trait system |
-| `docs/composables.md` | Entity vs Controller composables, testing |
-| `docs/systems.md` | Deep-dive on Physics, VFX, Interaction systems |
+| Doc                    | When to read                                   |
+| ---------------------- | ---------------------------------------------- |
+| `docs/architecture.md` | Pattern B, component priorities, trait system  |
+| `docs/composables.md`  | Entity vs Controller composables, testing      |
+| `docs/systems.md`      | Deep-dive on Physics, VFX, Interaction systems |

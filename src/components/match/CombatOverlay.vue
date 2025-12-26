@@ -15,11 +15,7 @@
 
 				<!-- Center: Battle Stage (Vue-native sprites) -->
 				<div class="absolute inset-0 flex items-center justify-center pointer-events-none combat-fade-in">
-					<BattleStage
-						class="w-full max-w-4xl"
-						:party-members="partyMembersWithSprites"
-						:enemies="enemiesWithSprites"
-					/>
+					<BattleStage class="w-full max-w-4xl" :party-members="partyMembersWithSprites" :enemies="enemiesWithSprites" />
 				</div>
 
 				<!-- Bottom Left: Party Status (diagonal from enemy) -->
@@ -29,12 +25,7 @@
 
 				<!-- Bottom Right: Action Bar -->
 				<div class="absolute bottom-4 right-4 pointer-events-auto combat-slide-right">
-					<ActionBar
-						:is-player-turn="isPlayerTurn"
-						:is-leaving="isLeaving"
-						@action="handleAction"
-						@leave-match="handleLeaveMatch"
-					/>
+					<ActionBar :is-player-turn="isPlayerTurn" :is-leaving="isLeaving" @action="handleAction" @leave-match="handleLeaveMatch" />
 				</div>
 			</div>
 		</Transition>

@@ -47,12 +47,12 @@ The RUNE client uses a sophisticated Entity-Component System built on Three.js. 
 
 #### Core Classes
 
-| Class | Purpose | Location |
-|-------|---------|----------|
-| `GameObject` | Entity container with fluent component API | `src/game/GameObject.ts` |
-| `GameComponent` | Base class for all components with priority system | `src/game/GameComponent.ts` |
-| `CleanupRegistry` | Memory leak prevention for Three.js resources | `src/game/CleanupRegistry.ts` |
-| `GameScene` | Scene lifecycle management with module registry | `src/game/GameScene.ts` |
+| Class             | Purpose                                            | Location                      |
+| ----------------- | -------------------------------------------------- | ----------------------------- |
+| `GameObject`      | Entity container with fluent component API         | `src/game/GameObject.ts`      |
+| `GameComponent`   | Base class for all components with priority system | `src/game/GameComponent.ts`   |
+| `CleanupRegistry` | Memory leak prevention for Three.js resources      | `src/game/CleanupRegistry.ts` |
+| `GameScene`       | Scene lifecycle management with module registry    | `src/game/GameScene.ts`       |
 
 #### Existing Component Patterns
 
@@ -75,23 +75,25 @@ Components communicate via trait-based lookup:
 #### Current GameObject Creation Pattern
 
 ```typescript
-new GameObject({ id: 'rock-1' })
-  .addComponent(new TransformComponent({ position: [5, 0, 3] }))
-  .addComponent(new GeometryComponent({ type: 'box', params: [1, 1, 1] }))
-  .addComponent(new MaterialComponent({ color: 0xff1493 }))
-  .addComponent(new MeshComponent())
-  .addComponent(new HoverComponent());
+new GameObject({ id: "rock-1" })
+	.addComponent(new TransformComponent({ position: [5, 0, 3] }))
+	.addComponent(new GeometryComponent({ type: "box", params: [1, 1, 1] }))
+	.addComponent(new MaterialComponent({ color: 0xff1493 }))
+	.addComponent(new MeshComponent())
+	.addComponent(new HoverComponent());
 ```
 
 ### 2.2 Reference Games
 
 **Noia Online** (Primary Reference): Browser-based MMO using 2D sprites in 3D space. Key observations:
+
 - Cylindrical billboarding for all characters and environmental objects
 - Sprites remain upright regardless of camera pitch
 - Smooth movement interpolation in 3D space
 - Layered sprite compositing for character customization (body, hair, equipment as separate sprites)
 
 **Octopath Traveler** ("HD-2D"): Demonstrates the high-end potential:
+
 - Sprites receive and cast shadows
 - Dynamic lighting affects sprite appearance
 - Depth of field and other post-processing include sprites
@@ -117,6 +119,7 @@ new GameObject({ id: 'rock-1' })
 The system must support cylindrical billboarding where sprites rotate only around the Y-axis to face the camera while remaining upright.
 
 **Acceptance Criteria:**
+
 - Sprite faces the camera horizontally at all times
 - Sprite does not tilt when camera looks up or down
 - Rotation updates every frame without visible snapping
@@ -129,6 +132,7 @@ The system must support cylindrical billboarding where sprites rotate only aroun
 The system must support spherical billboarding where sprites fully face the camera from any angle.
 
 **Acceptance Criteria:**
+
 - Sprite always directly faces the camera regardless of camera position
 - No locked axes; sprite can tilt in any direction
 - Smooth orientation updates without jittering
@@ -140,6 +144,7 @@ The system must support spherical billboarding where sprites fully face the came
 Components must allow runtime switching between billboard modes.
 
 **Acceptance Criteria:**
+
 - Billboard mode can be changed via component method
 - Mode change takes effect on next frame
 - No memory leaks when switching modes
@@ -151,6 +156,7 @@ Components must allow runtime switching between billboard modes.
 The system must support static sprites from individual textures.
 
 **Acceptance Criteria:**
+
 - Texture loads asynchronously with loading state feedback
 - Texture uses NearestFilter for crisp pixel art rendering
 - Transparency (alpha channel) renders correctly
@@ -161,6 +167,7 @@ The system must support static sprites from individual textures.
 The system must support sprite sheets (texture atlases) with multiple frames arranged in a grid.
 
 **Acceptance Criteria:**
+
 - Configuration accepts sprite sheet dimensions (columns × rows)
 - Individual frames addressable by index or (column, row) coordinates
 - UV coordinates calculate correctly for any frame
@@ -171,6 +178,7 @@ The system must support sprite sheets (texture atlases) with multiple frames arr
 The system must support animated sprites using sprite sheet frames.
 
 **Acceptance Criteria:**
+
 - Animations defined by start frame, end frame, and FPS
 - Multiple named animations per sprite (e.g., "idle", "walk", "attack")
 - Current animation changeable at runtime via `play(animationName)`
@@ -182,6 +190,7 @@ The system must support animated sprites using sprite sheet frames.
 Animation frame timing must be frame-rate independent.
 
 **Acceptance Criteria:**
+
 - Animations play at consistent speed regardless of render FPS
 - Accumulator pattern used for sub-frame timing precision
 - No frame skipping or doubling under normal conditions
@@ -193,6 +202,7 @@ Animation frame timing must be frame-rate independent.
 Sprite components must work with the existing TransformComponent.
 
 **Acceptance Criteria:**
+
 - Sprite position controlled by TransformComponent
 - Sprite scale affected by TransformComponent scale
 - Sprite inherits parent transforms in scene graph
@@ -202,6 +212,7 @@ Sprite components must work with the existing TransformComponent.
 Sprites must be detectable by the existing InteractionSystem for raycasting.
 
 **Acceptance Criteria:**
+
 - Sprites can receive hover events
 - Sprites can receive click events
 - Hit detection works with transparent regions (configurable alpha threshold)
@@ -212,6 +223,7 @@ Sprites must be detectable by the existing InteractionSystem for raycasting.
 Sprites must work with the existing Rapier3D physics system.
 
 **Acceptance Criteria:**
+
 - Sprite GameObjects can have physics colliders
 - Collider shape independent of visual sprite (box, capsule, etc.)
 - Physics debug visualization shows collider bounds
@@ -221,6 +233,7 @@ Sprites must work with the existing Rapier3D physics system.
 Sprites should integrate with the existing VFX system where applicable.
 
 **Acceptance Criteria:**
+
 - Screen shake affects sprite rendering
 - Future: Emissive effects can apply to sprites (stretch goal)
 
@@ -231,6 +244,7 @@ Sprites should integrate with the existing VFX system where applicable.
 Loaded textures must be cached and shared across sprites using the same source.
 
 **Acceptance Criteria:**
+
 - Same texture file loaded only once regardless of sprite count
 - Cache keyed by texture path
 - Cache provides usage counting for cleanup decisions
@@ -240,6 +254,7 @@ Loaded textures must be cached and shared across sprites using the same source.
 All sprite resources must integrate with CleanupRegistry.
 
 **Acceptance Criteria:**
+
 - Sprite geometry disposed on component destroy
 - Sprite material disposed on component destroy
 - Shared textures disposed only when no longer referenced
@@ -352,29 +367,29 @@ The system introduces four new components that follow the existing GameComponent
 
 ```typescript
 interface I_SpriteComponentConfig {
-  // Texture source (required)
-  texture: string;                    // Path to texture file
-  
-  // Sprite sheet configuration (optional)
-  spriteSheet?: {
-    columns: number;                  // Number of columns in sheet
-    rows: number;                     // Number of rows in sheet
-    frameWidth?: number;              // Override calculated frame width
-    frameHeight?: number;             // Override calculated frame height
-  };
-  
-  // Initial frame (optional, defaults to 0)
-  initialFrame?: number;
-  
-  // Visual configuration
-  size?: [number, number];            // Width, height in world units (default: [1, 1])
-  anchor?: [number, number];          // Pivot point 0-1 (default: [0.5, 0])
-  opacity?: number;                   // 0-1 (default: 1)
-  
-  // Rendering options
-  alphaTest?: number;                 // Alpha threshold for transparency (default: 0.1)
-  depthWrite?: boolean;               // Write to depth buffer (default: false)
-  renderOrder?: number;               // Render order for transparency sorting
+	// Texture source (required)
+	texture: string; // Path to texture file
+
+	// Sprite sheet configuration (optional)
+	spriteSheet?: {
+		columns: number; // Number of columns in sheet
+		rows: number; // Number of rows in sheet
+		frameWidth?: number; // Override calculated frame width
+		frameHeight?: number; // Override calculated frame height
+	};
+
+	// Initial frame (optional, defaults to 0)
+	initialFrame?: number;
+
+	// Visual configuration
+	size?: [number, number]; // Width, height in world units (default: [1, 1])
+	anchor?: [number, number]; // Pivot point 0-1 (default: [0.5, 0])
+	opacity?: number; // 0-1 (default: 1)
+
+	// Rendering options
+	alphaTest?: number; // Alpha threshold for transparency (default: 0.1)
+	depthWrite?: boolean; // Write to depth buffer (default: false)
+	renderOrder?: number; // Render order for transparency sorting
 }
 ```
 
@@ -382,20 +397,20 @@ interface I_SpriteComponentConfig {
 
 ```typescript
 class SpriteComponent extends GameComponent {
-  // Frame control
-  setFrame(index: number): void;
-  setFrame(column: number, row: number): void;
-  getFrame(): number;
-  
-  // Appearance
-  setOpacity(opacity: number): void;
-  setTint(color: THREE.Color | number): void;
-  setSize(width: number, height: number): void;
-  
-  // State
-  isLoaded(): boolean;
-  getTexture(): THREE.Texture | null;
-  getMesh(): THREE.Mesh;
+	// Frame control
+	setFrame(index: number): void;
+	setFrame(column: number, row: number): void;
+	getFrame(): number;
+
+	// Appearance
+	setOpacity(opacity: number): void;
+	setTint(color: THREE.Color | number): void;
+	setSize(width: number, height: number): void;
+
+	// State
+	isLoaded(): boolean;
+	getTexture(): THREE.Texture | null;
+	getMesh(): THREE.Mesh;
 }
 ```
 
@@ -419,11 +434,11 @@ class SpriteComponent extends GameComponent {
 
 ```typescript
 interface I_BillboardComponentConfig {
-  mode: 'cylindrical' | 'spherical' | 'none';
-  
-  // Advanced options
-  lockAxis?: 'x' | 'y' | 'z';        // Which axis to lock (default: 'y' for cylindrical)
-  updateFrequency?: 'always' | 'onCameraMove';  // Optimization option
+	mode: "cylindrical" | "spherical" | "none";
+
+	// Advanced options
+	lockAxis?: "x" | "y" | "z"; // Which axis to lock (default: 'y' for cylindrical)
+	updateFrequency?: "always" | "onCameraMove"; // Optimization option
 }
 ```
 
@@ -431,8 +446,8 @@ interface I_BillboardComponentConfig {
 
 ```typescript
 class BillboardComponent extends GameComponent {
-  setMode(mode: 'cylindrical' | 'spherical' | 'none'): void;
-  getMode(): string;
+	setMode(mode: "cylindrical" | "spherical" | "none"): void;
+	getMode(): string;
 }
 ```
 
@@ -456,17 +471,17 @@ class BillboardComponent extends GameComponent {
 
 ```typescript
 interface I_AnimationDefinition {
-  name: string;
-  startFrame: number;
-  endFrame: number;
-  fps: number;
-  loop?: boolean;                     // Default: true
-  onComplete?: () => void;            // Callback for non-looping animations
+	name: string;
+	startFrame: number;
+	endFrame: number;
+	fps: number;
+	loop?: boolean; // Default: true
+	onComplete?: () => void; // Callback for non-looping animations
 }
 
 interface I_SpriteAnimationComponentConfig {
-  animations: I_AnimationDefinition[];
-  defaultAnimation?: string;          // Auto-play on init
+	animations: I_AnimationDefinition[];
+	defaultAnimation?: string; // Auto-play on init
 }
 ```
 
@@ -474,21 +489,21 @@ interface I_SpriteAnimationComponentConfig {
 
 ```typescript
 class SpriteAnimationComponent extends GameComponent {
-  // Playback control
-  play(animationName: string): void;
-  stop(): void;
-  pause(): void;
-  resume(): void;
-  
-  // State queries
-  isPlaying(): boolean;
-  getCurrentAnimation(): string | null;
-  getCurrentFrame(): number;
-  
-  // Dynamic animation management
-  addAnimation(definition: I_AnimationDefinition): void;
-  removeAnimation(name: string): void;
-  hasAnimation(name: string): boolean;
+	// Playback control
+	play(animationName: string): void;
+	stop(): void;
+	pause(): void;
+	resume(): void;
+
+	// State queries
+	isPlaying(): boolean;
+	getCurrentAnimation(): string | null;
+	getCurrentFrame(): number;
+
+	// Dynamic animation management
+	addAnimation(definition: I_AnimationDefinition): void;
+	removeAnimation(name: string): void;
+	hasAnimation(name: string): boolean;
 }
 ```
 
@@ -506,13 +521,13 @@ Add a new trait for mesh/sprite providers:
 ```typescript
 // In GameComponent.ts, extend TRAIT object:
 export const TRAIT = {
-  MATERIAL_PROVIDER: Symbol("I_MaterialProvider"),
-  MESH_PROVIDER: Symbol("I_MeshProvider"),      // NEW
+	MATERIAL_PROVIDER: Symbol("I_MaterialProvider"),
+	MESH_PROVIDER: Symbol("I_MeshProvider"), // NEW
 } as const;
 
 // Interface for mesh providers
 interface I_MeshProvider {
-  getMesh(): THREE.Object3D;
+	getMesh(): THREE.Object3D;
 }
 ```
 
@@ -526,21 +541,21 @@ A singleton utility manages texture loading and caching:
 
 ```typescript
 class TextureCache {
-  private static instance: TextureCache;
-  private cache: Map<string, { texture: THREE.Texture; refCount: number }>;
-  private loader: THREE.TextureLoader;
-  
-  static getInstance(): TextureCache;
-  
-  // Load or retrieve cached texture
-  async load(path: string, options?: TextureOptions): Promise<THREE.Texture>;
-  
-  // Reference counting for cleanup
-  retain(path: string): void;
-  release(path: string): void;
-  
-  // Force cleanup
-  clear(): void;
+	private static instance: TextureCache;
+	private cache: Map<string, { texture: THREE.Texture; refCount: number }>;
+	private loader: THREE.TextureLoader;
+
+	static getInstance(): TextureCache;
+
+	// Load or retrieve cached texture
+	async load(path: string, options?: TextureOptions): Promise<THREE.Texture>;
+
+	// Reference counting for cleanup
+	retain(path: string): void;
+	release(path: string): void;
+
+	// Force cleanup
+	clear(): void;
 }
 ```
 
@@ -550,9 +565,9 @@ class TextureCache {
 // In SpriteComponent.init()
 const cache = TextureCache.getInstance();
 this.texture = await cache.load(this.config.texture, {
-  minFilter: THREE.NearestFilter,
-  magFilter: THREE.NearestFilter,
-  generateMipmaps: false
+	minFilter: THREE.NearestFilter,
+	magFilter: THREE.NearestFilter,
+	generateMipmaps: false,
 });
 cache.retain(this.config.texture);
 
@@ -591,23 +606,29 @@ src/game/
 ```typescript
 // A simple tree that stays upright
 export class TreePrefab extends GameObject {
-  constructor(config: { id: string; position: [number, number, number]; variant?: number }) {
-    super({ id: config.id, type: 'environment' });
-    
-    this.addComponent(new TransformComponent({ 
-      position: config.position 
-    }))
-    .addComponent(new SpriteComponent({
-      texture: '/assets/sprites/trees.png',
-      spriteSheet: { columns: 4, rows: 2 },
-      initialFrame: config.variant ?? 0,
-      size: [2, 3],
-      anchor: [0.5, 0]  // Bottom-center anchor so tree "stands" on ground
-    }))
-    .addComponent(new BillboardComponent({ 
-      mode: 'cylindrical' 
-    }));
-  }
+	constructor(config: { id: string; position: [number, number, number]; variant?: number }) {
+		super({ id: config.id, type: "environment" });
+
+		this.addComponent(
+			new TransformComponent({
+				position: config.position,
+			}),
+		)
+			.addComponent(
+				new SpriteComponent({
+					texture: "/assets/sprites/trees.png",
+					spriteSheet: { columns: 4, rows: 2 },
+					initialFrame: config.variant ?? 0,
+					size: [2, 3],
+					anchor: [0.5, 0], // Bottom-center anchor so tree "stands" on ground
+				}),
+			)
+			.addComponent(
+				new BillboardComponent({
+					mode: "cylindrical",
+				}),
+			);
+	}
 }
 ```
 
@@ -616,43 +637,53 @@ export class TreePrefab extends GameObject {
 ```typescript
 // A player character with walk and idle animations
 export class PlayerSpritePrefab extends GameObject {
-  constructor(config: { id: string; position: [number, number, number] }) {
-    super({ id: config.id, type: 'player' });
-    
-    this.addComponent(new TransformComponent({ 
-      position: config.position 
-    }))
-    .addComponent(new SpriteComponent({
-      texture: '/assets/sprites/player.png',
-      spriteSheet: { columns: 8, rows: 4 },
-      size: [1, 1.5],
-      anchor: [0.5, 0]
-    }))
-    .addComponent(new BillboardComponent({ 
-      mode: 'cylindrical' 
-    }))
-    .addComponent(new SpriteAnimationComponent({
-      animations: [
-        { name: 'idle', startFrame: 0, endFrame: 3, fps: 6 },
-        { name: 'walk', startFrame: 8, endFrame: 15, fps: 12 },
-        { name: 'attack', startFrame: 16, endFrame: 23, fps: 16, loop: false }
-      ],
-      defaultAnimation: 'idle'
-    }))
-    .addComponent(new InteractionComponent({
-      enableHover: true,
-      enableClick: true
-    }));
-  }
+	constructor(config: { id: string; position: [number, number, number] }) {
+		super({ id: config.id, type: "player" });
+
+		this.addComponent(
+			new TransformComponent({
+				position: config.position,
+			}),
+		)
+			.addComponent(
+				new SpriteComponent({
+					texture: "/assets/sprites/player.png",
+					spriteSheet: { columns: 8, rows: 4 },
+					size: [1, 1.5],
+					anchor: [0.5, 0],
+				}),
+			)
+			.addComponent(
+				new BillboardComponent({
+					mode: "cylindrical",
+				}),
+			)
+			.addComponent(
+				new SpriteAnimationComponent({
+					animations: [
+						{ name: "idle", startFrame: 0, endFrame: 3, fps: 6 },
+						{ name: "walk", startFrame: 8, endFrame: 15, fps: 12 },
+						{ name: "attack", startFrame: 16, endFrame: 23, fps: 16, loop: false },
+					],
+					defaultAnimation: "idle",
+				}),
+			)
+			.addComponent(
+				new InteractionComponent({
+					enableHover: true,
+					enableClick: true,
+				}),
+			);
+	}
 }
 
 // Usage in scene:
-const player = new PlayerSpritePrefab({ id: 'player-1', position: [0, 0, 0] });
+const player = new PlayerSpritePrefab({ id: "player-1", position: [0, 0, 0] });
 await gameObjectsManager.add(player);
 
 // Control animation from game logic:
 const animation = player.getComponent(SpriteAnimationComponent);
-animation.play('walk');
+animation.play("walk");
 ```
 
 ### 6.3 Particle Effect (Spherical Billboard)
@@ -660,30 +691,36 @@ animation.play('walk');
 ```typescript
 // A floating magic particle that always faces camera
 export class MagicParticlePrefab extends GameObject {
-  constructor(config: { id: string; position: [number, number, number] }) {
-    super({ id: config.id, type: 'effect' });
-    
-    this.addComponent(new TransformComponent({ 
-      position: config.position 
-    }))
-    .addComponent(new SpriteComponent({
-      texture: '/assets/sprites/particles.png',
-      spriteSheet: { columns: 4, rows: 4 },
-      size: [0.5, 0.5],
-      anchor: [0.5, 0.5],  // Center anchor for floating effect
-      depthWrite: false,
-      renderOrder: 100     // Render after solid objects
-    }))
-    .addComponent(new BillboardComponent({ 
-      mode: 'spherical'    // Always faces camera, even from above
-    }))
-    .addComponent(new SpriteAnimationComponent({
-      animations: [
-        { name: 'glow', startFrame: 0, endFrame: 15, fps: 24 }
-      ],
-      defaultAnimation: 'glow'
-    }));
-  }
+	constructor(config: { id: string; position: [number, number, number] }) {
+		super({ id: config.id, type: "effect" });
+
+		this.addComponent(
+			new TransformComponent({
+				position: config.position,
+			}),
+		)
+			.addComponent(
+				new SpriteComponent({
+					texture: "/assets/sprites/particles.png",
+					spriteSheet: { columns: 4, rows: 4 },
+					size: [0.5, 0.5],
+					anchor: [0.5, 0.5], // Center anchor for floating effect
+					depthWrite: false,
+					renderOrder: 100, // Render after solid objects
+				}),
+			)
+			.addComponent(
+				new BillboardComponent({
+					mode: "spherical", // Always faces camera, even from above
+				}),
+			)
+			.addComponent(
+				new SpriteAnimationComponent({
+					animations: [{ name: "glow", startFrame: 0, endFrame: 15, fps: 24 }],
+					defaultAnimation: "glow",
+				}),
+			);
+	}
 }
 ```
 
@@ -692,31 +729,31 @@ export class MagicParticlePrefab extends GameObject {
 ```typescript
 // Sprites can coexist with 3D meshes in the same scene
 class PlaygroundScene extends GameScene {
-  protected addSceneObjects(): void {
-    // 3D ground plane (existing pattern)
-    const ground = new GameObject({ id: 'ground' })
-      .addComponent(new TransformComponent({ position: [0, 0, 0] }))
-      .addComponent(new GeometryComponent({ type: 'plane', params: [50, 50] }))
-      .addComponent(new MaterialComponent({ color: 0x228B22 }))
-      .addComponent(new MeshComponent());
-    
-    // Sprite-based trees
-    for (let i = 0; i < 20; i++) {
-      const tree = new TreePrefab({
-        id: `tree-${i}`,
-        position: [Math.random() * 40 - 20, 0, Math.random() * 40 - 20],
-        variant: Math.floor(Math.random() * 8)
-      });
-      this.services.gameObjectsManager.add(tree);
-    }
-    
-    // Sprite-based player
-    const player = new PlayerSpritePrefab({
-      id: 'local-player',
-      position: [0, 0, 0]
-    });
-    this.services.gameObjectsManager.add(player);
-  }
+	protected addSceneObjects(): void {
+		// 3D ground plane (existing pattern)
+		const ground = new GameObject({ id: "ground" })
+			.addComponent(new TransformComponent({ position: [0, 0, 0] }))
+			.addComponent(new GeometryComponent({ type: "plane", params: [50, 50] }))
+			.addComponent(new MaterialComponent({ color: 0x228b22 }))
+			.addComponent(new MeshComponent());
+
+		// Sprite-based trees
+		for (let i = 0; i < 20; i++) {
+			const tree = new TreePrefab({
+				id: `tree-${i}`,
+				position: [Math.random() * 40 - 20, 0, Math.random() * 40 - 20],
+				variant: Math.floor(Math.random() * 8),
+			});
+			this.services.gameObjectsManager.add(tree);
+		}
+
+		// Sprite-based player
+		const player = new PlayerSpritePrefab({
+			id: "local-player",
+			position: [0, 0, 0],
+		});
+		this.services.gameObjectsManager.add(player);
+	}
 }
 ```
 
@@ -729,16 +766,16 @@ class PlaygroundScene extends GameScene {
 **Scope:** SpriteComponent with static sprite support
 
 **Deliverables:**
+
 1. `SpriteComponent` class with single-texture support
 2. `TextureCache` utility with loading and caching
 3. Basic cleanup integration
 4. Unit tests for component lifecycle
 
 **Acceptance Test:**
+
 ```typescript
-const sprite = new GameObject({ id: 'test' })
-  .addComponent(new TransformComponent({ position: [0, 0, 0] }))
-  .addComponent(new SpriteComponent({ texture: '/test.png', size: [1, 1] }));
+const sprite = new GameObject({ id: "test" }).addComponent(new TransformComponent({ position: [0, 0, 0] })).addComponent(new SpriteComponent({ texture: "/test.png", size: [1, 1] }));
 // Sprite renders at origin, facing +Z direction
 ```
 
@@ -751,12 +788,14 @@ const sprite = new GameObject({ id: 'test' })
 **Scope:** BillboardComponent with both modes
 
 **Deliverables:**
+
 1. `BillboardComponent` class
 2. Cylindrical billboarding implementation
 3. Spherical billboarding implementation
 4. Integration with camera system
 
 **Acceptance Test:**
+
 ```typescript
 // Cylindrical: Sprite stays upright when camera looks from above
 // Spherical: Sprite tilts to face camera from any angle
@@ -771,19 +810,21 @@ const sprite = new GameObject({ id: 'test' })
 **Scope:** Extend SpriteComponent for sprite sheets
 
 **Deliverables:**
+
 1. Sprite sheet configuration parsing
 2. UV coordinate calculation
 3. `setFrame()` method implementation
 4. Frame bleeding prevention
 
 **Acceptance Test:**
+
 ```typescript
 const sprite = new SpriteComponent({
-  texture: '/sheet.png',
-  spriteSheet: { columns: 8, rows: 4 },
-  initialFrame: 5
+	texture: "/sheet.png",
+	spriteSheet: { columns: 8, rows: 4 },
+	initialFrame: 5,
 });
-sprite.setFrame(12);  // Shows correct frame without bleeding
+sprite.setFrame(12); // Shows correct frame without bleeding
 ```
 
 **Estimated Effort:** 1-2 days
@@ -795,6 +836,7 @@ sprite.setFrame(12);  // Shows correct frame without bleeding
 **Scope:** SpriteAnimationComponent
 
 **Deliverables:**
+
 1. `SpriteAnimationComponent` class
 2. Animation definition parsing
 3. Frame timing with accumulator pattern
@@ -802,10 +844,11 @@ sprite.setFrame(12);  // Shows correct frame without bleeding
 5. Loop and one-shot modes
 
 **Acceptance Test:**
+
 ```typescript
 const anim = sprite.getComponent(SpriteAnimationComponent);
-anim.play('walk');  // Sprite cycles through walk frames at configured FPS
-anim.play('attack');  // One-shot animation fires onComplete
+anim.play("walk"); // Sprite cycles through walk frames at configured FPS
+anim.play("attack"); // One-shot animation fires onComplete
 ```
 
 **Estimated Effort:** 2-3 days
@@ -817,12 +860,14 @@ anim.play('attack');  // One-shot animation fires onComplete
 **Scope:** Ensure sprites work with all existing systems
 
 **Deliverables:**
+
 1. InteractionSystem compatibility verification
 2. PhysicsSystem integration testing
 3. TRAIT.MESH_PROVIDER implementation
 4. Example prefabs (Tree, Character, Particle)
 
 **Acceptance Test:**
+
 ```typescript
 // Sprite receives hover/click events
 // Sprite has physics collider that works with existing physics
@@ -837,12 +882,14 @@ anim.play('attack');  // One-shot animation fires onComplete
 **Scope:** Ensure performance targets are met
 
 **Deliverables:**
+
 1. Performance profiling with 200+ sprites
 2. Texture atlas batching (if needed)
 3. Billboard update optimization (skip when camera stationary)
 4. Documentation of performance characteristics
 
 **Acceptance Test:**
+
 ```
 200 animated sprites on screen, mobile device simulation
 Target: 55+ FPS
@@ -859,21 +906,23 @@ Target: 55+ FPS
 Each component requires unit tests covering:
 
 1. **SpriteComponent:**
-   - Texture loading success and failure paths
-   - Frame index bounds checking
-   - UV calculation accuracy
-   - Cleanup disposal
+
+    - Texture loading success and failure paths
+    - Frame index bounds checking
+    - UV calculation accuracy
+    - Cleanup disposal
 
 2. **BillboardComponent:**
-   - Cylindrical orientation calculation
-   - Spherical orientation calculation
-   - Mode switching
+
+    - Cylindrical orientation calculation
+    - Spherical orientation calculation
+    - Mode switching
 
 3. **SpriteAnimationComponent:**
-   - Animation playback timing
-   - Loop behavior
-   - One-shot completion callbacks
-   - Animation switching
+    - Animation playback timing
+    - Loop behavior
+    - One-shot completion callbacks
+    - Animation switching
 
 ### 8.2 Integration Tests
 
@@ -891,6 +940,7 @@ Create a test scene accessible via development build:
 ```
 
 Features:
+
 - Grid of sprites demonstrating all billboard modes
 - Animation playback controls
 - Performance metrics overlay
@@ -903,6 +953,7 @@ Features:
 ### 9.1 Code Documentation
 
 All public APIs must include JSDoc comments with:
+
 - Brief description
 - Parameter descriptions
 - Return value description
@@ -911,6 +962,7 @@ All public APIs must include JSDoc comments with:
 ### 9.2 Architecture Documentation
 
 Update `docs/architecture.md` with:
+
 - Sprite component diagram
 - Billboard mode explanations
 - Decision guide: When to use sprites vs meshes
@@ -918,6 +970,7 @@ Update `docs/architecture.md` with:
 ### 9.3 Usage Guide
 
 Create `docs/sprites.md` covering:
+
 - Quick start example
 - Sprite sheet preparation guidelines
 - Animation definition format
@@ -954,12 +1007,12 @@ For sprite sheets to work correctly:
 
 ### B. Performance Budgets
 
-| Metric | Target | Warning | Critical |
-|--------|--------|---------|----------|
-| Frame Time | < 16ms | 16-20ms | > 20ms |
-| Draw Calls | < 100 | 100-200 | > 200 |
-| Texture Memory | < 100MB | 100-150MB | > 150MB |
-| Sprite Count | 200+ | 300+ | 500+ |
+| Metric         | Target  | Warning   | Critical |
+| -------------- | ------- | --------- | -------- |
+| Frame Time     | < 16ms  | 16-20ms   | > 20ms   |
+| Draw Calls     | < 100   | 100-200   | > 200    |
+| Texture Memory | < 100MB | 100-150MB | > 150MB  |
+| Sprite Count   | 200+    | 300+      | 500+     |
 
 ### C. Glossary
 
@@ -974,10 +1027,10 @@ For sprite sheets to work correctly:
 
 **Document History:**
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0 | Dec 2024 | Claude | Initial PRD |
+| Version | Date     | Author | Changes     |
+| ------- | -------- | ------ | ----------- |
+| 1.0     | Dec 2024 | Claude | Initial PRD |
 
 ---
 
-*End of Document*
+_End of Document_

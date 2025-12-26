@@ -346,11 +346,11 @@ export class SpriteSheetRegistry extends Singleton {
 			texture: "/sprites/enemies/slime.png",
 			framesPerRow: 7,
 			totalRows: 12,
-			size: [1.5, 2],
+			size: [2.5, 2.5], // Smaller size to match actual slime graphic (not full cell)
 			directional: false,
 			animations: [{ name: "idle", row: 1, frameCount: 4, fps: 6 }],
 			defaultAnimation: "idle",
-			anchor: [0.5, 0],
+			anchor: [0.5, 0.2],
 		});
 	}
 }

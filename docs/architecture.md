@@ -47,11 +47,11 @@ The recommended pattern for complex interactions.
 
 Pure data emitters - no visual logic, just events.
 
-| Component | Emits |
-|-----------|-------|
-| `InteractionComponent` | click, doubleclick |
-| `HoverComponent` | start, end (no visuals!) |
-| `UnitsComponent` | distance measurements |
+| Component              | Emits                    |
+| ---------------------- | ------------------------ |
+| `InteractionComponent` | click, doubleclick       |
+| `HoverComponent`       | start, end (no visuals!) |
+| `UnitsComponent`       | distance measurements    |
 
 **Key rule**: Capability components NEVER apply visuals directly.
 
@@ -59,8 +59,8 @@ Pure data emitters - no visual logic, just events.
 
 Listen to events, check conditions, coordinate responses.
 
-| Component | Responsibility |
-|-----------|---------------|
+| Component        | Responsibility                                              |
+| ---------------- | ----------------------------------------------------------- |
 | `MatchComponent` | Listens to hover/click, checks range, triggers combat state |
 
 ### Example Flow
@@ -96,11 +96,11 @@ const material = this.requireByTrait<I_MaterialProvider>(TRAIT.MATERIAL_PROVIDER
 
 ### Available Traits
 
-| Trait | Interface | Purpose |
-|-------|-----------|---------|
+| Trait               | Interface            | Purpose                          |
+| ------------------- | -------------------- | -------------------------------- |
 | `MATERIAL_PROVIDER` | `I_MaterialProvider` | Components that expose materials |
-| `MESH_PROVIDER` | `I_MeshProvider` | Components that expose meshes |
-| `PHYSICS_BODY` | `I_PhysicsBody` | Components with physics bodies |
+| `MESH_PROVIDER`     | `I_MeshProvider`     | Components that expose meshes    |
+| `PHYSICS_BODY`      | `I_PhysicsBody`      | Components with physics bodies   |
 
 Use `requireByTrait()` when the trait MUST exist (throws if missing).
 Use `getByTrait()` when the trait is optional (returns undefined).
@@ -113,11 +113,11 @@ Managed by `SceneState` service.
 
 ### States
 
-| State | Description |
-|-------|-------------|
-| `OVERWORLD` | Normal exploration, all interactions enabled |
-| `MATCH_REQUEST` | Hovering combat target, showing UI prompt |
-| `MATCH` | In combat, movement restricted |
+| State           | Description                                  |
+| --------------- | -------------------------------------------- |
+| `OVERWORLD`     | Normal exploration, all interactions enabled |
+| `MATCH_REQUEST` | Hovering combat target, showing UI prompt    |
+| `MATCH`         | In combat, movement restricted               |
 
 ### Transitions
 
@@ -131,11 +131,15 @@ MATCH → OVERWORLD (combat ends)
 ### Usage
 
 ```typescript
-const state = context.getService('state');
+const state = context.getService("state");
 
-state.transition('MATCH_REQUEST');
-state.onEnter('MATCH', () => { /* setup combat UI */ });
-state.onExit('MATCH', () => { /* cleanup */ });
+state.transition("MATCH_REQUEST");
+state.onEnter("MATCH", () => {
+	/* setup combat UI */
+});
+state.onExit("MATCH", () => {
+	/* cleanup */
+});
 ```
 
 ---
@@ -159,7 +163,7 @@ const stop = watch(someRef, callback);
 context.cleanupRegistry.registerWatcher(stop);
 
 // Event listeners
-context.cleanupRegistry.registerListener(element, 'click', handler);
+context.cleanupRegistry.registerListener(element, "click", handler);
 ```
 
 ### Common Leaks to Avoid
