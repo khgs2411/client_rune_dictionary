@@ -119,7 +119,6 @@ export class MatchAreaWalls extends GameObject {
 							height: wall.dimensions[1],
 							depth: wall.dimensions[2],
 						},
-						showDebug: config.showDebug,
 					}),
 				);
 

@@ -78,7 +78,6 @@ export class MatchAreaDome extends GameObject {
 						type: "sphere",
 						radius: config.radius,
 					},
-					showDebug: config.showDebug,
 				}),
 			);
 	}

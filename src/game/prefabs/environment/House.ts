@@ -1,3 +1,4 @@
+import { CollisionComponent } from "@/game/components/physics/CollisionComponent";
 import { OcclusionComponent } from "@/game/components/rendering/OcclusionComponent";
 import { GameObject } from "../../GameObject";
 import { SpriteSheetRegistry } from "../../SpriteSheetRegistry";
@@ -28,6 +29,8 @@ export interface I_HouseConfig extends I_BasePrefabConfig {
 	cycleTextures?: boolean;
 	/** Scale multiplier (legacy API, for single house) */
 	scale?: number;
+	/** Enable collision (default: true) */
+	enableCollision?: boolean;
 }
 
 /** Available house sprite sheet IDs (registered in SpriteSheetRegistry) */
@@ -69,6 +72,7 @@ export class House {
 		const id = config.id ?? "house";
 		const defaultSpriteId = config.spriteSheetId ?? HOUSE_SPRITE_IDS[0];
 		const cycleTextures = config.cycleTextures ?? false;
+		const enableCollision = config.enableCollision ?? true;
 
 		// Get base size from config or registry
 		const registry = SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>();
@@ -105,6 +109,12 @@ export class House {
 			const scale = pos.scale ?? 1;
 			const size: [number, number] | undefined = pos.size ?? (scale !== 1 ? [baseSize[0] * scale, baseSize[1] * scale] : undefined);
 
+			// Calculate actual size for collision
+			const actualSize = size ?? baseSize;
+			const collisionWidth = actualSize[0]; // Slightly narrower than visual
+			const collisionHeight = actualSize[1];
+			const collisionDepth = 2; // Depth for the building
+
 			// Create sprite house with billboard and occlusion
 			const house = new SpriteGameObject({
 				id: `${id}-${index}`,
@@ -113,6 +123,24 @@ export class House {
 				size, // Only override if pos.size or scaled
 				billboardMode: "spherical",
 			}).addComponent(new OcclusionComponent());
+
+			// Add collision if enabled
+			// Cuboid collision - physics body is world-aligned (no rotation needed)
+			if (enableCollision) {
+				house.addComponent(
+					new CollisionComponent({
+						type: "static",
+						shape: {
+							type: "cuboid",
+							width: collisionWidth,
+							height: collisionHeight,
+							depth: collisionDepth,
+							offset: [0, collisionHeight / 2, 0], // Center vertically
+						},
+						debugShape: true, // Use our debug mesh (world-aligned), not physics engine's
+					}),
+				);
+			}
 
 			return house;
 		});

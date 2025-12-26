@@ -40,7 +40,7 @@ export const CAMERA_ZOOM_PRESET = {
 
 export const CAMERA_OVERWORLD_PERSPECTIVE: I_CameraPerspective = {
 	angle: {
-		horizontal: 0,
+		horizontal: Math.PI, // Camera at -Z looking toward +Z (so +Z is "up" on screen)
 		vertical: 0.76, // ~43° - isometric-style view
 	},
 	distance: CAMERA_ZOOM_PRESET.default,

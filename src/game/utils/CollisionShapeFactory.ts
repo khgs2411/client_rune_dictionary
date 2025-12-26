@@ -9,6 +9,7 @@ export interface I_CollisionShapeConfig {
 	width?: number; // For cuboid x-axis (default: 1)
 	depth?: number; // For cuboid z-axis (default: 1)
 	offset?: [number, number, number]; // Offset from transform (default: [0, 0, 0])
+	rotation?: [number, number, number]; // Rotation in radians [x, y, z] (default: [0, 0, 0])
 }
 
 /**
@@ -60,6 +61,10 @@ export class CollisionShapeFactory {
 		// Apply offset if provided
 		const offset = config.offset ?? [0, 0, 0];
 		mesh.position.set(offset[0], offset[1], offset[2]);
+
+		// Apply rotation if provided
+		const rotation = config.rotation ?? [0, 0, 0];
+		mesh.rotation.set(rotation[0], rotation[1], rotation[2]);
 
 		return mesh;
 	}

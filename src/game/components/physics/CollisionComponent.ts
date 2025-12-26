@@ -13,11 +13,9 @@ export interface I_CollisionConfig {
 	// Inline shape definition (recommended for sprites)
 	shape?: I_CollisionShapeConfig;
 
-	// Debug visualization
+	// Debug visualization (creates custom Three.js wireframe, independent of Rapier debug)
 	debugShape?: boolean;
 	debugColor?: number;
-
-	showDebug?: boolean;
 
 	// Collision callbacks
 	onCollisionEnter?: (otherId: string) => void;
@@ -111,16 +109,12 @@ export class CollisionComponent extends GameComponent {
 			// Get shape dimensions for physics (half-extents for cuboid, radius/halfHeight for others)
 			const shapeDimensions = CollisionShapeFactory.getShapeDimensions(this.config.shape);
 
-			physics.registerStatic(
-				this.gameObject.id,
-				{
-					shape: this.config.shape.type,
-					size: shapeDimensions as [number, number, number],
-					position,
-					rotation,
-				},
-				{ showDebug: this.config.showDebug || this.config.debugShape },
-			);
+			physics.registerStatic(this.gameObject.id, {
+				shape: this.config.shape.type,
+				size: shapeDimensions as [number, number, number],
+				position,
+				rotation,
+			});
 
 			// Add debug wireframe mesh if requested
 			if (this.config.debugShape) {
@@ -141,9 +135,7 @@ export class CollisionComponent extends GameComponent {
 			this.instanceIds = physics.registerInstancedStatic(this.gameObject.id, instancedMeshComp.instancedMesh);
 		} else if (meshProvider) {
 			// Single mesh registration (derive collision from mesh geometry)
-			physics.registerStaticFromMesh(this.gameObject.id, meshProvider.getMesh(), {
-				showDebug: this.config.showDebug,
-			});
+			physics.registerStaticFromMesh(this.gameObject.id, meshProvider.getMesh());
 		} else {
 			throw new Error(
 				`[CollisionComponent] GameObject "${this.gameObject.id}" has no collision shape.\n\n` +

@@ -639,7 +639,8 @@ export class SpriteAnimatorComponent extends GameComponent {
 	setDirectionFromVector(x: number, z: number, use8Directions = false): void {
 		if (Math.abs(x) < 0.01 && Math.abs(z) < 0.01) return;
 
-		const angle = Math.atan2(x, z);
+		// Add π to account for camera at -Z looking toward +Z
+		const angle = Math.atan2(x, z) + Math.PI;
 
 		if (use8Directions) {
 			const segment = Math.round((angle + Math.PI) / (Math.PI / 4)) % 8;

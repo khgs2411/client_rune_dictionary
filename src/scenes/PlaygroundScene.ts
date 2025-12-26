@@ -163,11 +163,11 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
 	private addTownCenter(gom: ReturnType<typeof this.getService<"gameObjectsManager">>): void {
 		// Central shop - slightly larger, prominent position
-		const shop = House.create({
+		const shops = House.create({
 			id: "town-shop",
 			positions: [{ x: 0, y: 0, z: 12, spriteSheetId: "shop-01", scale: 1.15 }],
 		});
-		shop.forEach((s) => gom.register(s));
+		shops.forEach((s) => gom.register(s));
 
 		// Residential houses clustered around the shop
 		const houses = House.create({
@@ -228,20 +228,20 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		});
 		gom.register(guard);
 
-		// Mage near the shop (behind it, north side)
+		// Mage near the shop (in front of it)
 		const mage = new SpriteGameObject({
 			id: "npc-mage",
-			position: [-2, 0, 16],
+			position: [-2, 0, -6],
 			texture: "/sprites/mage_00.png",
 			size: [1.5, 2],
 			billboardMode: "cylindrical",
 		});
 		gom.register(mage);
 
-		// Goblin on east side of town (moved north)
+		// Goblin on east side of town (moved forward)
 		const goblin = new SpriteGameObject({
 			id: "npc-goblin",
-			position: [8, 0, 12],
+			position: [8, 0, 2],
 			texture: "/sprites/goblin_00.png",
 			size: [1.2, 1.5],
 			billboardMode: "cylindrical",
@@ -377,7 +377,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 			.addComponent(
 				new CollisionComponent({
 					type: "static",
-					showDebug: true,
 				}),
 			)
 			.addComponent(new HoverComponent())

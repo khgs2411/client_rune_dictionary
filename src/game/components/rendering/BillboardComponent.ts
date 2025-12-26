@@ -109,7 +109,8 @@ export class BillboardComponent extends GameComponent {
 		);
 
 		// Calculate target rotation angle (Y-axis)
-		const targetRotationY = Math.atan2(this.directionToCamera.x, this.directionToCamera.z);
+		// Add π to account for camera at -Z looking toward +Z
+		const targetRotationY = Math.atan2(this.directionToCamera.x, this.directionToCamera.z) + Math.PI;
 
 		// Apply rotation with optional clamping
 		if (this.maxRotation !== undefined) {
