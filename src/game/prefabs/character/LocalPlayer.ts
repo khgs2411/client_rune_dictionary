@@ -9,7 +9,7 @@ import { BillboardComponent } from "@/game/components/rendering/BillboardCompone
 import { DirectionalSpriteAnimator } from "@/game/components/rendering/DirectionalSpriteAnimator";
 import { SpriteComponent } from "@/game/components/rendering/SpriteComponent";
 import { GameObject } from "@/game/GameObject";
-import { SpriteSheetRegistry } from "@/game/utils/SpriteSheetRegistry";
+import { SpriteSheetRegistry } from "@/game/SpriteSheetRegistry";
 
 /**
  * Configuration for LocalPlayer prefab
@@ -42,7 +42,7 @@ export interface I_LocalPlayerConfig {
  * computes ACTUAL state, and MovementComponent syncs them bidirectionally.
  *
  * Prerequisites:
- * - Call `registerAllSpriteSheets()` before creating LocalPlayer
+ * - Call `SpriteSheetRegistry.RegisterAllSpriteSheets()` before creating LocalPlayer
  *
  * Usage:
  * ```typescript

@@ -1,7 +1,7 @@
 import { Singleton } from "topsyde-utils";
-import type { I_AnimationDefinition } from "../common/sprite.types";
-import type { I_AnimationRowDefinition, I_ExtendedAnimationDefinition, I_QuickSpriteSheetConfig, I_SpriteSheetDefinition, I_TextureSource, SpriteDirection, TextureConfig } from "../common/spritesheet.types";
-import { GetTexturePathById, IsMultiTexture } from "../common/spritesheet.types";
+import type { I_AnimationDefinition } from "./common/sprite.types";
+import type { I_AnimationRowDefinition, I_ExtendedAnimationDefinition, I_QuickSpriteSheetConfig, I_SpriteSheetDefinition, I_TextureSource, SpriteDirection, TextureConfig } from "./common/spritesheet.types";
+import { GetTexturePathById, IsMultiTexture } from "./common/spritesheet.types";
 
 /**
  * SpriteSheetRegistry - Singleton registry for sprite sheet definitions
@@ -408,18 +408,168 @@ export class SpriteSheetRegistry extends Singleton {
 
 		return definitions;
 	}
-}
 
-/**
- * Convenience function to register a sprite sheet
- */
-export function registerSpriteSheet(config: I_QuickSpriteSheetConfig): void {
-	SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>().registerQuick(config);
-}
+	public static GetSpriteSheet(id: string): I_SpriteSheetDefinition | undefined {
+		return SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>().get(id);
+	}
 
-/**
- * Convenience function to get a sprite sheet definition
- */
-export function getSpriteSheet(id: string): I_SpriteSheetDefinition | undefined {
-	return SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>().get(id);
+	public static RegisterSpriteSheet(config: I_QuickSpriteSheetConfig): void {
+		SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>().registerQuick(config);
+	}
+
+	/**
+	 * Helper to register a multi-texture character
+	 *
+	 * Each animation is in its own file, following the naming pattern:
+	 * {basePath}_{animationName}.png
+	 *
+	 * Example:
+	 * registerMultiTextureCharacter('hero', '/sprites/hero', ['idle', 'walk', 'attack'])
+	 * Loads: /sprites/hero_idle.png, /sprites/hero_walk.png, /sprites/hero_attack.png
+	 */
+	public static RegisterMultitextureSpriteSheet(
+		id: string,
+		basePath: string,
+		animationConfigs: Array<{
+			name: string;
+			frameCount: number;
+			fps: number;
+			loop?: boolean;
+		}>,
+		options?: {
+			size?: [number, number];
+			framesPerRow?: number;
+			extension?: string;
+		},
+	): void {
+		const framesPerRow = options?.framesPerRow ?? 8;
+		const size = options?.size ?? [1, 1.5];
+		const ext = options?.extension ?? "png";
+
+		// Build texture sources
+		const textures = animationConfigs.map((anim) => ({
+			id: anim.name,
+			src: `${basePath}_${anim.name}.${ext}`,
+		}));
+
+		// Build animation definitions
+		const animations = animationConfigs.map((anim) => ({
+			textureId: anim.name,
+			name: anim.name,
+			frameCount: anim.frameCount,
+			fps: anim.fps,
+			loop: anim.loop,
+		}));
+
+		SpriteSheetRegistry.RegisterSpriteSheet({
+			id,
+			texture: textures,
+			framesPerRow,
+			totalRows: 4, // 4 directions per file
+			size,
+			directional: true,
+			animations,
+			defaultAnimation: animationConfigs[0]?.name ?? "idle",
+		});
+	}
+
+	public static RegisterAllSpriteSheets(): void {
+		// ===== SINGLE TEXTURE EXAMPLES =====
+		// ===== MULTI-TEXTURE EXAMPLES =====
+		/**
+		 * Mage Character - Multi-Texture
+		 * Each animation in its own file
+		 *
+		 * File layout (each file):
+		 * - 4 rows (down, left, right, up)
+		 * - N frames per row depending on animation
+		 */
+		/* SpriteSheetRegistry.RegisterSpriteSheet({
+		id: "mage",
+		texture: [
+			{ id: "idle", src: "/sprites/mage_00_idle.png" },
+			{ id: "walk", src: "/sprites/mage_00_walk.png" },
+			{ id: "attack", src: "/sprites/mage_00_attack.png" },
+		],
+		framesPerRow: 8, // Max frames in any animation
+		totalRows: 4, // 4 directions per file
+		size: [1, 1.5],
+		directional: true,
+		animations: [
+			{ textureId: "idle", name: "idle", frameCount: 4, fps: 6 },
+			{ textureId: "walk", name: "walk", frameCount: 6, fps: 10 },
+			{ textureId: "attack", name: "attack", frameCount: 8, fps: 14, loop: false },
+		],
+		defaultAnimation: "idle",
+	}); */
+		/**
+		 * Example: RPG Character with many animations - Multi-Texture
+		 * Shows how to organize a character with 5+ animations
+		 */
+		// SpriteSheetRegistry.RegisterSpriteSheet({
+		// 	id: "hero",
+		// 	texture: [
+		// 		{ id: "idle", src: "/sprites/hero_idle.png" },
+		// 		{ id: "walk", src: "/sprites/hero_walk.png" },
+		// 		{ id: "run", src: "/sprites/hero_run.png" },
+		// 		{ id: "attack", src: "/sprites/hero_attack.png" },
+		// 		{ id: "hurt", src: "/sprites/hero_hurt.png" },
+		// 		{ id: "death", src: "/sprites/hero_death.png" },
+		// 		{ id: "cast", src: "/sprites/hero_cast.png" },
+		// 	],
+		// 	framesPerRow: 12,
+		// 	totalRows: 4,
+		// 	size: [1, 1.5],
+		// 	directional: true,
+		// 	animations: [
+		// 		{ textureId: "idle", name: "idle", frameCount: 4, fps: 6 },
+		// 		{ textureId: "walk", name: "walk", frameCount: 8, fps: 10 },
+		// 		{ textureId: "run", name: "run", frameCount: 8, fps: 14 },
+		// 		{ textureId: "attack", name: "attack", frameCount: 6, fps: 12, loop: false },
+		// 		{ textureId: "hurt", name: "hurt", frameCount: 3, fps: 8, loop: false },
+		// 		{ textureId: "death", name: "death", frameCount: 8, fps: 8, loop: false },
+		// 		{ textureId: "cast", name: "cast", frameCount: 10, fps: 10, loop: false },
+		// 	],
+		// 	defaultAnimation: "idle",
+		// });
+		// ===== LOCAL PLAYER =====
+		/**
+		 * Local Player Character - Explicit Row Mapping
+		 *
+		 * Uses explicit row indices for non-standard sprite sheet layout.
+		 * Same animation used for all directions, flip X when facing left.
+		 *
+		 * Layout:
+		 * - Row 1: idle (side view)
+		 * - Row 4: walk (side view)
+		 */
+		SpriteSheetRegistry.RegisterSpriteSheet({
+			id: "local-player",
+			texture: "/sprites/character/player.png",
+			framesPerRow: 6,
+			totalRows: 10, // Total rows in the sprite sheet
+			size: [3, 4],
+			directional: false, // Same animation for all directions
+			animations: [
+				{ name: "idle", row: 1, frameCount: 6, fps: 6 },
+				{ name: "walk", row: 4, frameCount: 6, fps: 10 },
+			],
+			defaultAnimation: "idle",
+			anchor: [0.5, 0.125], // Bottom-center for standing character
+		});
+
+		SpriteSheetRegistry.RegisterSpriteSheet({
+			id: "slime",
+			texture: "/sprites/enemies/slime.png",
+			framesPerRow: 7,
+			totalRows: 12, // Total rows in the sprite sheet
+			size: [3, 4],
+			directional: false, // Same animation for all directions
+			animations: [{ name: "idle", row: 0, frameCount: 4, fps: 6 }],
+			defaultAnimation: "idle",
+			anchor: [0.5, 0.125], // Bottom-center for standing character
+		});
+
+		// ===== ENVIRONMENT (Static, non-directional) =====
+	}
 }

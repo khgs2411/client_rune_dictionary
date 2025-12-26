@@ -10,7 +10,7 @@ import { CollisionProxyComponent } from "@/game/components/physics/CollisionProx
 import { BillboardComponent } from "@/game/components/rendering/BillboardComponent";
 import { DirectionalSpriteAnimator } from "@/game/components/rendering/DirectionalSpriteAnimator";
 import { SpriteComponent } from "@/game/components/rendering/SpriteComponent";
-import { SpriteSheetRegistry } from "@/game/utils/SpriteSheetRegistry";
+import { SpriteSheetRegistry } from "@/game/SpriteSheetRegistry";
 
 export interface I_TrainingDummyConfig extends I_GameObjectConfig {
 	id: string;
@@ -61,9 +61,9 @@ export class TrainingDummy extends GameObject {
 		const registry = SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>();
 		const spriteConfig = registry.getSpriteConfig("slime");
 		if (!spriteConfig) {
-			console.error("[LocalPlayer] Sprite sheet 'local-player' not found. Make sure to call registerAllSpriteSheets() first.");
+			console.error("[TrainingDummy] Sprite sheet 'slime' not found. Make sure to call SpriteSheetRegistry.RegisterAllSpriteSheets() first.");
 		} else {
-			const animations = registry.buildAnimations("local-player");
+			const animations = registry.buildAnimations("slime");
 			// Visual components
 			this.addComponent(new TransformComponent({ position }))
 				.addComponent(

@@ -5,7 +5,7 @@ import { BillboardComponent } from "../components/rendering/BillboardComponent";
 import { DirectionalSpriteAnimator } from "../components/rendering/DirectionalSpriteAnimator";
 import { SpriteComponent } from "../components/rendering/SpriteComponent";
 import { GameObject } from "../GameObject";
-import { SpriteSheetRegistry } from "../utils/SpriteSheetRegistry";
+import { SpriteSheetRegistry } from "../SpriteSheetRegistry";
 
 /**
  * Configuration for CharacterSprite prefab
