@@ -1,9 +1,9 @@
+import type { I_MeshProvider } from "@/game/common/mesh.types";
 import type { I_SceneContext } from "@/game/common/scenes.types";
-import { ComponentPriority, GameComponent } from "@/game/GameComponent";
+import { ComponentPriority, GameComponent, TRAIT } from "@/game/GameComponent";
 import { useGameConfigStore } from "@/stores/config.store";
 import type { Vector3 } from "three";
 import { TransformComponent } from "../entities/TransformComponent";
-import { MeshComponent } from "../rendering/MeshComponent";
 
 export interface I_DragConfig {
 	lockAxis?: ("x" | "y" | "z")[]; // Lock specific axes from dragging
@@ -51,8 +51,8 @@ export class DragComponent extends GameComponent {
 	}
 
 	async init(context: I_SceneContext): Promise<void> {
-		// Require MeshComponent for hover detection
-		const meshComp = this.requireComponent(MeshComponent);
+		// Require any mesh provider (MeshComponent, SpriteComponent, etc.) for hover detection
+		const meshProvider = this.requireByTrait<I_MeshProvider>(TRAIT.MESH_PROVIDER);
 		// Require TransformComponent for position updates
 		const transformComp = this.requireComponent(TransformComponent);
 
@@ -62,7 +62,7 @@ export class DragComponent extends GameComponent {
 		// Register drag callbacks with InteractionService
 		this.unregister = interaction.registerDrag(
 			`${this.gameObject.id}-drag`,
-			meshComp.mesh,
+			meshProvider.getMesh(),
 			{
 				onStart: (startPos) => {
 					// Only allow dragging in editor mode

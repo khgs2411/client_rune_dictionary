@@ -64,24 +64,7 @@ export class GridHelperComponent extends GameComponent {
 		// Add to scene
 		context.scene.add(this.gridHelper);
 
-		// Register for cleanup
+		// Register for cleanup (handles scene removal and disposal automatically)
 		context.cleanupRegistry.registerObject(this.gridHelper);
-	}
-
-	destroy(): void {
-		// Remove grid helper from scene when GameObject is destroyed
-		if (this.gridHelper && this.gridHelper.parent) {
-			this.gridHelper.parent.remove(this.gridHelper);
-		}
-		// Dispose geometry manually (not handled by scene cleanup)
-		if (this.gridHelper) {
-			this.gridHelper.geometry?.dispose();
-			const material = this.gridHelper.material;
-			if (Array.isArray(material)) {
-				material.forEach((m) => m.dispose());
-			} else {
-				material?.dispose();
-			}
-		}
 	}
 }

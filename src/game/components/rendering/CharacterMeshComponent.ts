@@ -3,7 +3,7 @@ import { I_SceneContext } from "@/game/common/scenes.types";
 import { useSettingsStore } from "@/stores/settings.store";
 import { CapsuleGeometry, ConeGeometry, Group, Mesh, MeshStandardMaterial } from "three";
 import type { I_MeshProvider } from "../../common/mesh.types";
-import { ComponentPriority, GameComponent } from "../../GameComponent";
+import { ComponentPriority, GameComponent, TRAIT } from "../../GameComponent";
 import { TransformComponent } from "../entities/TransformComponent";
 
 export interface I_CharacterMeshConfig {
@@ -56,9 +56,13 @@ export class CharacterMeshComponent extends GameComponent implements I_MeshProvi
 	constructor(config: I_CharacterMeshConfig = {}) {
 		super();
 		this.config = config;
+		this.registerTrait(TRAIT.MESH_PROVIDER);
 	}
 
 	async init(context: I_SceneContext): Promise<void> {
+		// Ensure only one mesh provider per GameObject
+		this.restrictByTrait(TRAIT.MESH_PROVIDER, "Only one mesh provider allowed per GameObject");
+
 		// Require TransformComponent (we read from it)
 		const transform = this.requireComponent(TransformComponent);
 

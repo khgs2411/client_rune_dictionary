@@ -1,7 +1,7 @@
+import type { I_MeshProvider } from "@/game/common/mesh.types";
 import type { I_SceneContext } from "@/game/common/scenes.types";
-import { ComponentPriority, GameComponent } from "@/game/GameComponent";
+import { ComponentPriority, GameComponent, TRAIT } from "@/game/GameComponent";
 import type { Intersection } from "three";
-import { MeshComponent } from "../rendering/MeshComponent";
 
 export interface I_ClickVFXConfig {
 	button?: "left" | "right" | "middle"; // Mouse button (default: 'left')
@@ -59,8 +59,8 @@ export class ClickVFXComponent extends GameComponent {
 	}
 
 	async init(context: I_SceneContext): Promise<void> {
-		// Require MeshComponent for raycasting
-		const meshComp = this.requireComponent(MeshComponent);
+		// Require any mesh provider (MeshComponent, SpriteComponent, etc.)
+		const meshProvider = this.requireByTrait<I_MeshProvider>(TRAIT.MESH_PROVIDER);
 
 		const interaction = context.getService("interaction");
 		const vfx = context.getService("vfx");
@@ -90,7 +90,7 @@ export class ClickVFXComponent extends GameComponent {
 			},
 			{
 				requireHover: true, // Only trigger if hovering over mesh
-				object3D: meshComp.mesh,
+				object3D: meshProvider.getMesh(),
 			},
 		);
 	}

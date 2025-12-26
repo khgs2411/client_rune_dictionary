@@ -1,10 +1,16 @@
 import type { I_MeshProvider } from "@/game/common/mesh.types";
 import { I_SceneContext } from "@/game/common/scenes.types";
 import { GameObject } from "@/game/GameObject";
-import { Intersection } from "three";
-import { ComponentPriority, GameComponent, TRAIT } from "../../GameComponent";
+import { Intersection, Scene } from "three";
+import { ComponentPriority, TRAIT } from "../../GameComponent";
+import { EventEmitterComponent } from "@/game/components/core/EventEmitterComponent";
 
 export type HoverEventCallback = (target: GameObject, intersection?: Intersection) => void;
+
+type HoverEvents = {
+	start: HoverEventCallback;
+	end: HoverEventCallback;
+};
 
 /**
  * HoverComponent - Pure hover capability that emits events
@@ -41,10 +47,9 @@ export type HoverEventCallback = (target: GameObject, intersection?: Intersectio
  *
  * Priority: INTERACTION (300) - Runs after MeshComponent
  */
-export class HoverComponent extends GameComponent {
+export class HoverComponent extends EventEmitterComponent<HoverEvents> {
 	public readonly priority = ComponentPriority.INTERACTION;
 
-	private events = new Map<string, HoverEventCallback[]>();
 	private unregister?: () => void;
 	private isHovered = false;
 
@@ -55,25 +60,13 @@ export class HoverComponent extends GameComponent {
 		this.unregister = interaction.registerHover(`${this.gameObject.id}-hover`, meshProvider.getMesh(), {
 			onStart: (intersection: Intersection) => {
 				this.isHovered = true;
-				this.emit("start", intersection);
+				this.emit("start", this.gameObject, intersection);
 			},
 			onEnd: () => {
 				this.isHovered = false;
-				this.emit("end");
+				this.emit("end", this.gameObject, undefined);
 			},
 		});
-	}
-
-	/**
-	 * Register event listener
-	 * @param event - Event type ('start' or 'end')
-	 * @param callback - Function to call when event fires
-	 */
-	public on(event: "start" | "end", callback: HoverEventCallback): void {
-		if (!this.events.has(event)) {
-			this.events.set(event, []);
-		}
-		this.events.get(event)!.push(callback);
 	}
 
 	/**
@@ -83,20 +76,10 @@ export class HoverComponent extends GameComponent {
 		return this.isHovered;
 	}
 
-	/**
-	 * Emit event to all registered listeners
-	 */
-	private emit(event: string, intersection?: Intersection): void {
-		const callbacks = this.events.get(event);
-		if (callbacks) {
-			callbacks.forEach((cb) => cb(this.gameObject, intersection));
-		}
-	}
-
-	destroy(): void {
+	destroy(scene: Scene): void {
 		if (this.unregister) {
 			this.unregister();
 		}
-		this.events.clear();
+		super.destroy(scene);
 	}
 }

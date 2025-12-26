@@ -3,7 +3,6 @@ import { isOpacityMaterial } from "../../common/mesh.types";
 import { I_SceneContext } from "@/game/common/scenes.types";
 import { ComponentPriority, GameComponent, TRAIT } from "@/game/GameComponent";
 import { Material, Mesh, Object3D, Raycaster, Vector3 } from "three";
-import { InstancedMeshComponent } from "./InstancedMeshComponent";
 
 export interface I_OcclusionConfig {
 	/** Target opacity when occluding (0-1). Default: 0.3 */
@@ -26,13 +25,13 @@ export interface I_OcclusionConfig {
  *   it smoothly fades to semi-transparent
  * - When no longer blocking, it smoothly fades back to opaque
  *
- * Supports:
+ * Supports any I_MeshProvider:
  * - MeshComponent (single 3D mesh)
  * - SpriteComponent (billboard sprites)
  * - InstancedMeshComponent (multiple instances - fades entire group if any blocks)
  *
  * Requires:
- * - I_MeshProvider (MeshComponent, SpriteComponent) OR InstancedMeshComponent
+ * - Any component that provides I_MeshProvider trait
  *
  * Note: Material is obtained directly from the mesh, so no separate MaterialComponent
  * is required when using SpriteComponent.
@@ -81,17 +80,10 @@ export class OcclusionComponent extends GameComponent {
 	async init(context: I_SceneContext): Promise<void> {
 		this.context = context;
 
-		// Try to get mesh from any provider (MeshComponent or SpriteComponent)
-		const meshProvider = this.findByTrait<I_MeshProvider>(TRAIT.MESH_PROVIDER);
-		const instancedMeshComp = this.getComponent(InstancedMeshComponent);
-
-		if (meshProvider) {
-			this.targetMesh = meshProvider.getMesh();
-		} else if (instancedMeshComp) {
-			this.targetMesh = instancedMeshComp.instancedMesh;
-		} else {
-			throw new Error(`[OcclusionComponent] GameObject "${this.gameObject.id}" requires I_MeshProvider or InstancedMeshComponent`);
-		}
+		// Get mesh from any provider (MeshComponent, SpriteComponent, InstancedMeshComponent, etc.)
+		// Note: InstancedMeshComponent also registers MESH_PROVIDER trait and implements getMesh()
+		const meshProvider = this.requireByTrait<I_MeshProvider>(TRAIT.MESH_PROVIDER);
+		this.targetMesh = meshProvider.getMesh();
 
 		// Get material directly from the mesh
 		// This works for both:

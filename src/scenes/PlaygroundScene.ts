@@ -12,6 +12,7 @@ import { TransformComponent } from "@/game/components/entities/TransformComponen
 import { ClickVFXComponent } from "@/game/components/interactions/ClickVFXComponent";
 import { CollisionComponent } from "@/game/components/physics/CollisionComponent";
 import { DragComponent } from "@/game/components/interactions/DragComponent";
+import { HoverComponent } from "@/game/components/interactions/HoverComponent";
 import { HoverGlowComponent } from "@/game/components/interactions/HoverGlowComponent";
 import { MatchComponent } from "@/game/components/match/MatchComponent";
 import { BillboardComponent } from "@/game/components/rendering/BillboardComponent";
@@ -170,6 +171,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 					showDebug: true,
 				}),
 			)
+			.addComponent(new HoverComponent())
 			.addComponent(
 				new HoverGlowComponent({
 					glowColor: 0xff8c00,

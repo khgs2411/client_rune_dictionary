@@ -1,10 +1,16 @@
 import type { I_MeshProvider } from "@/game/common/mesh.types";
 import type { I_SceneContext } from "@/game/common/scenes.types";
-import { ComponentPriority, GameComponent, TRAIT } from "@/game/GameComponent";
+import { ComponentPriority, TRAIT } from "@/game/GameComponent";
 import { GameObject } from "@/game/GameObject";
-import type { Intersection } from "three";
+import { EventEmitterComponent } from "@/game/components/core/EventEmitterComponent";
+import type { Intersection, Scene } from "three";
 
 export type InteractionEventCallback = (gameObject: GameObject, intersection: Intersection) => void;
+
+type InteractionEvents = {
+	click: InteractionEventCallback;
+	doubleclick: InteractionEventCallback;
+};
 
 /**
  * InteractionComponent - Generic interaction event proxy layer
@@ -41,11 +47,8 @@ export type InteractionEventCallback = (gameObject: GameObject, intersection: In
  *
  * Priority: INTERACTION (300) - Runs after rendering and physics
  */
-export class InteractionComponent extends GameComponent {
+export class InteractionComponent extends EventEmitterComponent<InteractionEvents> {
 	public readonly priority = ComponentPriority.INTERACTION;
-
-	// Event emitter
-	private events = new Map<string, InteractionEventCallback[]>();
 
 	// Double-click detection state
 	private lastClickTime = 0;
@@ -57,19 +60,6 @@ export class InteractionComponent extends GameComponent {
 
 	public async init(context: I_SceneContext): Promise<void> {
 		this.registerInteractions(context);
-	}
-
-	/**
-	 * Register event listener
-	 *
-	 * @param event - Event type ('click' or 'doubleclick')
-	 * @param callback - Function to call when event fires
-	 */
-	public on(event: "click" | "doubleclick", callback: InteractionEventCallback): void {
-		if (!this.events.has(event)) {
-			this.events.set(event, []);
-		}
-		this.events.get(event)!.push(callback);
 	}
 
 	private registerInteractions(context: I_SceneContext): void {
@@ -86,15 +76,6 @@ export class InteractionComponent extends GameComponent {
 		});
 	}
 
-	/**
-	 * Emit event to all registered listeners
-	 */
-	private emit(event: string, intersection: Intersection): void {
-		const callbacks = this.events.get(event);
-		if (callbacks) {
-			callbacks.forEach((cb) => cb(this.gameObject, intersection));
-		}
-	}
 
 	/**
 	 * Handle click event from InteractionService
@@ -106,7 +87,7 @@ export class InteractionComponent extends GameComponent {
 		if (!intersection) return;
 
 		// Always emit 'click' event
-		this.emit("click", intersection);
+		this.emit("click", this.gameObject, intersection);
 
 		// Double-click detection
 		const now = Date.now();
@@ -114,7 +95,7 @@ export class InteractionComponent extends GameComponent {
 
 		if (timeSinceLastClick < this.DOUBLE_CLICK_THRESHOLD) {
 			// Double-click detected!
-			this.emit("doubleclick", intersection);
+			this.emit("doubleclick", this.gameObject, intersection);
 			this.lastClickTime = 0; // Reset to prevent triple-click
 		} else {
 			// Single click (start timer for potential double-click)
@@ -122,7 +103,7 @@ export class InteractionComponent extends GameComponent {
 		}
 	}
 
-	public destroy(): void {
+	public destroy(scene: Scene): void {
 		// Unregister from InteractionService
 		if (this.unregisterClick) {
 			this.unregisterClick();
@@ -131,9 +112,7 @@ export class InteractionComponent extends GameComponent {
 			this.unregisterHover();
 		}
 
-		// Clear all event listeners
-		this.events.clear();
-
-		console.log(`👆 [InteractionComponent] Unregistered interaction events for GameObject "${this.gameObject.id}"`);
+		// Let base class clear event listeners and cleanup registry
+		super.destroy(scene);
 	}
 }
