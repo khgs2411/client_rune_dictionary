@@ -9,15 +9,6 @@ export interface I_MeshProvider {
 }
 
 /**
- * Interface for components that provide collision mesh (separate from visual mesh)
- * Used by CollisionComponent and KinematicCollisionComponent when sprite-based
- * GameObjects need 3D collision shapes instead of PlaneGeometry
- */
-export interface I_CollisionMeshProvider {
-	getCollisionMesh(): Mesh;
-}
-
-/**
  * Interface for components that provide material access
  * Implemented by MaterialComponent, ToonMaterialComponent, etc.
  */

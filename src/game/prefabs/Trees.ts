@@ -1,6 +1,6 @@
 import { OcclusionComponent } from "../components/rendering/OcclusionComponent";
 import { GameObject } from "../GameObject";
-import { SpriteCharacter } from "./SpriteCharacter";
+import { SpriteGameObject } from "./SpriteGameObject";
 import { I_BasePrefabConfig } from "./prefab.types";
 
 export interface I_TreePosition {
@@ -74,7 +74,7 @@ export class Trees {
 			const size = pos.size ?? defaultSize;
 
 			// Create sprite tree with billboard and occlusion
-			const tree = new SpriteCharacter({
+			const tree = new SpriteGameObject({
 				id: `${id}-${index}`,
 				position: [pos.x, pos.y, pos.z],
 				texture,

@@ -29,7 +29,7 @@ import { House } from "@/game/prefabs/environment/House";
 import { Path } from "@/game/prefabs/environment/Path";
 import { Rocks } from "@/game/prefabs/environment/Rock";
 import { TrainingDummy } from "@/game/prefabs/npc/TrainingDummy";
-import { SpriteCharacter } from "@/game/prefabs/SpriteCharacter";
+import { SpriteGameObject } from "@/game/prefabs/SpriteGameObject";
 
 /**
  * Module Registry for PlaygroundScene
@@ -165,7 +165,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 			.addComponent(
 				new CollisionComponent({
 					type: "static",
-					shape: "cuboid",
 					showDebug: true,
 				}),
 			)
@@ -300,7 +299,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		// ========================================
 
 		// Sprite NPC - Knight
-		const spriteKnight = new SpriteCharacter({
+		const spriteKnight = new SpriteGameObject({
 			id: "sprite-knight",
 			position: [-3, 0, 8],
 			texture: "/sprites/knight_00.png",
@@ -310,7 +309,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		gom.register(spriteKnight);
 
 		// Sprite NPC - Goblin
-		const spriteGoblin = new SpriteCharacter({
+		const spriteGoblin = new SpriteGameObject({
 			id: "sprite-goblin",
 			position: [-12, 0, 5],
 			texture: "/sprites/goblin_00.png",

@@ -12,9 +12,9 @@ export interface I_PositionProvider {
 }
 
 /**
- * Configuration for DirectionalSpriteAnimator
+ * Configuration for SpriteAnimatorComponent
  */
-export interface I_DirectionalSpriteAnimatorConfig {
+export interface I_SpriteAnimatorConfig {
 	/**
 	 * Animation definitions
 	 * Can be standard I_AnimationDefinition[] or I_ExtendedAnimationDefinition[] with texture info
@@ -63,9 +63,9 @@ export interface I_DirectionalSpriteAnimatorConfig {
 }
 
 /**
- * DirectionalSpriteAnimator - Enhanced animation component for directional sprites
+ * SpriteAnimatorComponent - Enhanced animation component for sprite-based entities
  *
- * Extends the standard animation system to handle direction-based animation switching.
+ * Handles both simple and direction-based animation switching.
  * Automatically switches between directional variants (e.g., 'walk-down', 'walk-left')
  * when direction changes.
  *
@@ -75,39 +75,44 @@ export interface I_DirectionalSpriteAnimatorConfig {
  * - Falls back to base animation if directional variant not found
  * - Maintains animation progress when only direction changes
  * - Multi-texture support: automatically swaps textures when animation changes
+ * - Optional movement tracking for auto idle/walk switching
  *
- * Single-texture usage:
+ * Simple usage (no directions):
+ * ```typescript
+ * new GameObject({ id: 'tree' })
+ *   .addComponent(new SpriteComponent({ texture: '/tree.png', spriteSheet: { columns: 4, rows: 1 } }))
+ *   .addComponent(new SpriteAnimatorComponent({
+ *     animations: [{ name: 'sway', startFrame: 0, endFrame: 3, fps: 4, loop: true }],
+ *     defaultAnimation: 'sway'
+ *   }));
+ * ```
+ *
+ * Directional usage:
  * ```typescript
  * new GameObject({ id: 'player' })
- *   .addComponent(new SpriteComponent({
- *     texture: '/player.png',
- *     spriteSheet: { columns: 6, rows: 8 },
- *   }))
- *   .addComponent(new DirectionalSpriteAnimator({
+ *   .addComponent(new SpriteComponent({ texture: '/player.png', spriteSheet: { columns: 6, rows: 8 } }))
+ *   .addComponent(new SpriteAnimatorComponent({
  *     animations: SpriteSheetRegistry.getInstance().buildAnimations('player'),
  *     defaultAnimation: 'idle',
  *     initialDirection: 'down'
  *   }));
  * ```
  *
- * Multi-texture usage:
+ * With movement tracking:
  * ```typescript
- * new GameObject({ id: 'player' })
- *   .addComponent(new SpriteComponent({
- *     texture: '/player_idle.png',  // Initial texture
- *     spriteSheet: { columns: 6, rows: 4 },
- *   }))
- *   .addComponent(new DirectionalSpriteAnimator({
- *     animations: SpriteSheetRegistry.getInstance().buildExtendedAnimations('player'),
- *     defaultAnimation: 'idle',
- *     initialDirection: 'down'
- *   }));
+ * new SpriteAnimatorComponent({
+ *   animations,
+ *   movementSource: characterController,
+ *   idleAnimation: 'idle',
+ *   walkAnimation: 'walk',
+ *   nativeFacing: 'right'
+ * });
  * ```
  */
-export class DirectionalSpriteAnimator extends GameComponent {
+export class SpriteAnimatorComponent extends GameComponent {
 	public readonly priority = ComponentPriority.RENDERING + 2; // 102
 
-	private config: I_DirectionalSpriteAnimatorConfig;
+	private config: I_SpriteAnimatorConfig;
 	private spriteComponent: SpriteComponent | null = null;
 
 	// Animation registry (uses extended format internally)
@@ -144,7 +149,7 @@ export class DirectionalSpriteAnimator extends GameComponent {
 	private nativeFacingLeft = false; // Default: sprite faces right
 	private movementFlipState = false; // Separate flip state for movement tracking
 
-	constructor(config: I_DirectionalSpriteAnimatorConfig) {
+	constructor(config: I_SpriteAnimatorConfig) {
 		super();
 		this.config = config;
 		this.currentDirection = config.initialDirection ?? "down";
@@ -265,7 +270,7 @@ export class DirectionalSpriteAnimator extends GameComponent {
 	async init(context: I_SceneContext): Promise<void> {
 		this.spriteComponent = this.getComponent(SpriteComponent);
 		if (!this.spriteComponent) {
-			throw new Error(`[DirectionalSpriteAnimator] SpriteComponent required on GameObject "${this.gameObject.id}"`);
+			throw new Error(`[SpriteAnimatorComponent] SpriteComponent required on GameObject "${this.gameObject.id}"`);
 		}
 
 		// Preload all textures if multi-texture
@@ -407,9 +412,7 @@ export class DirectionalSpriteAnimator extends GameComponent {
 		const resolved = this.resolveAnimation(baseName, this.currentDirection);
 
 		if (!resolved) {
-			console.warn(
-				`[DirectionalSpriteAnimator] Animation "${baseName}" not found on "${this.gameObject.id}"`,
-			);
+			console.warn(`[SpriteAnimatorComponent] Animation "${baseName}" not found on "${this.gameObject.id}"`);
 			return;
 		}
 

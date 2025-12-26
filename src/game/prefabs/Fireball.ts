@@ -103,8 +103,10 @@ export class Fireball extends GameObject {
 		this.addComponent(
 			new CollisionComponent({
 				type: "trigger",
-				shape: "sphere",
-				shapeParams: [size],
+				shape: {
+					type: "sphere",
+					radius: size,
+				},
 				onCollisionEnter: (targetId) => {
 					console.log(`💥 [Fireball] Hit target: ${targetId}`);
 					config.onHit?.(targetId);

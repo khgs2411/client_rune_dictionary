@@ -1,6 +1,6 @@
 import { OcclusionComponent } from "@/game/components/rendering/OcclusionComponent";
 import { GameObject } from "../../GameObject";
-import { SpriteCharacter } from "../SpriteCharacter";
+import { SpriteGameObject } from "../SpriteGameObject";
 import { I_BasePrefabConfig } from "../prefab.types";
 
 export interface I_HousePosition {
@@ -101,7 +101,7 @@ export class House {
 			const size: [number, number] = pos.size ?? [defaultSize[0] * scale, defaultSize[1] * scale];
 
 			// Create sprite house with billboard and occlusion
-			const house = new SpriteCharacter({
+			const house = new SpriteGameObject({
 				id: `${id}-${index}`,
 				position: [pos.x, pos.y, pos.z],
 				texture,

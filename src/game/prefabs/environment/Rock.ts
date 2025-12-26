@@ -1,6 +1,6 @@
 import { OcclusionComponent } from "../../components/rendering/OcclusionComponent";
 import { GameObject } from "../../GameObject";
-import { SpriteCharacter } from "../SpriteCharacter";
+import { SpriteGameObject } from "../SpriteGameObject";
 import { I_BasePrefabConfig } from "../prefab.types";
 
 export interface I_RockPosition {
@@ -69,7 +69,7 @@ export class Rocks {
 			const size: [number, number] = [defaultSize[0] * scale, defaultSize[1] * scale];
 
 			// Create sprite rock with billboard and occlusion
-			const rock = new SpriteCharacter({
+			const rock = new SpriteGameObject({
 				id: `${id}-${index}`,
 				position: [pos.x, pos.y, pos.z],
 				texture,

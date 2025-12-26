@@ -3,9 +3,8 @@ import type { I_CharacterControls } from "@/composables/composables.types";
 import { KinematicCollisionComponent } from "@/game/components/physics/KinematicCollisionComponent";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { SyncMovementComponent } from "@/game/components/multiplayer/SyncMovementComponent";
-import { CollisionProxyComponent } from "@/game/components/physics/CollisionProxyComponent";
 import { BillboardComponent } from "@/game/components/rendering/BillboardComponent";
-import { DirectionalSpriteAnimator } from "@/game/components/rendering/DirectionalSpriteAnimator";
+import { SpriteAnimatorComponent } from "@/game/components/rendering/SpriteAnimatorComponent";
 import { SpriteComponent } from "@/game/components/rendering/SpriteComponent";
 import { GameObject } from "@/game/GameObject";
 import { SpriteSheetRegistry } from "@/game/SpriteSheetRegistry";
@@ -29,7 +28,7 @@ export interface I_LocalPlayerConfig {
  *
  * Visual:
  * - SpriteComponent: Player sprite sheet from registry ('local-player')
- * - DirectionalSpriteAnimator: Handles animation playback + movement-based animation switching
+ * - SpriteAnimatorComponent: Handles animation playback + movement-based animation switching
  * - BillboardComponent: Cylindrical billboarding (stays upright, faces camera)
  *
  * Behavior:
@@ -79,10 +78,16 @@ export class LocalPlayer extends GameObject {
 	}
 
 	private addCharacterControllerComponents(startPos: Vec3, config: I_LocalPlayerConfig) {
-		// KinematicCollisionComponent automatically uses CollisionProxyComponent via trait
+		// Inline capsule shape for collision (replaces CollisionProxyComponent)
 		this.addComponent(
 			new KinematicCollisionComponent({
 				type: "static", // Required by base, but overridden for kinematic
+				shape: {
+					type: "capsule",
+					radius: 0.3,
+					height: 1.5,
+					offset: [0, 0.75, 0], // Center capsule vertically on sprite
+				},
 				initialPosition: startPos, // Physics body starts at correct position
 				characterOptions: {
 					enableAutostep: true,
@@ -132,10 +137,10 @@ export class LocalPlayer extends GameObject {
 				}),
 			);
 
-			// Add DirectionalSpriteAnimator with animations and movement tracking
+			// Add SpriteAnimatorComponent with animations and movement tracking
 			const animations = registry.buildAnimations("local-player");
 			this.addComponent(
-				new DirectionalSpriteAnimator({
+				new SpriteAnimatorComponent({
 					animations,
 					defaultAnimation: "idle",
 					// Movement tracking - auto-switches idle/walk and flips sprite
@@ -151,17 +156,6 @@ export class LocalPlayer extends GameObject {
 		this.addComponent(
 			new BillboardComponent({
 				mode: "cylindrical",
-			}),
-		);
-
-		// Collision proxy - invisible capsule for physics
-		// Sprite handles rendering, this capsule handles collision
-		this.addComponent(
-			new CollisionProxyComponent({
-				shape: "capsule",
-				radius: 0.3,
-				height: 1.5,
-				offset: [0, 0.75, 0], // Center capsule vertically on sprite
 			}),
 		);
 	}

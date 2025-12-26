@@ -6,9 +6,8 @@ import { CollisionComponent } from "@/game/components/physics/CollisionComponent
 import { HoverComponent } from "@/game/components/interactions/HoverComponent";
 import { InteractionComponent } from "@/game/components/interactions/InteractionComponent";
 import { MatchComponent } from "@/game/components/match/MatchComponent";
-import { CollisionProxyComponent } from "@/game/components/physics/CollisionProxyComponent";
 import { BillboardComponent } from "@/game/components/rendering/BillboardComponent";
-import { DirectionalSpriteAnimator } from "@/game/components/rendering/DirectionalSpriteAnimator";
+import { SpriteAnimatorComponent } from "@/game/components/rendering/SpriteAnimatorComponent";
 import { SpriteComponent } from "@/game/components/rendering/SpriteComponent";
 import { SpriteSheetRegistry } from "@/game/SpriteSheetRegistry";
 
@@ -26,12 +25,12 @@ export interface I_TrainingDummyConfig extends I_GameObjectConfig {
  * Components:
  * - TransformComponent: Position in world
  * - SpriteComponent: Slime sprite texture
+ * - SpriteAnimatorComponent: Handles animation playback
  * - BillboardComponent: Cylindrical billboarding (stays upright, faces camera)
- * - CollisionProxyComponent: Invisible cylinder for physics collision
+ * - CollisionComponent: Static capsule collision (inline shape)
  * - UnitsComponent: Distance measurement
  * - InteractionComponent: Click/double-click events
  * - HoverComponent: Hover detection events
- * - CollisionComponent: Static collision (uses CollisionProxyComponent)
  * - MatchComponent: Match creation logic (range checking + combat glow)
  *
  * Usage:
@@ -47,11 +46,6 @@ export interface I_TrainingDummyConfig extends I_GameObjectConfig {
  * Behavior:
  * - Double-click → Creates PvE match
  * - Single-click → No action (can be extended later for dialogue/info)
- *
- * Future Extensions:
- * - DialogueComponent for NPC conversations
- * - SpriteAnimationComponent for idle/hit animations
- * - NPCLabelComponent for name tag display
  */
 export class TrainingDummy extends GameObject {
 	constructor(config: I_TrainingDummyConfig) {
@@ -75,7 +69,7 @@ export class TrainingDummy extends GameObject {
 					}),
 				)
 				.addComponent(
-					new DirectionalSpriteAnimator({
+					new SpriteAnimatorComponent({
 						animations,
 						defaultAnimation: "idle",
 						idleAnimation: "idle",
@@ -88,24 +82,25 @@ export class TrainingDummy extends GameObject {
 					}),
 				)
 
-				// Collision proxy - capsule sized to match slime graphic (not full sprite cell)
-				// Slime is a small, round creature in lower portion of sprite frame
-				.addComponent(
-					new CollisionProxyComponent({
-						shape: "capsule",
-						radius: 0.6,
-						height: 1.2,
-						offset: [0, 0.6, 0], // Raise capsule to center on slime body
-					}),
-				)
-
 				// System components
 				.addComponent(new UnitsComponent()) // Distance measurement
 
 				// Interaction components (order matters for dependencies)
 				.addComponent(new InteractionComponent()) // Provides click/doubleclick events
 				.addComponent(new HoverComponent()) // Provides hover events
-				.addComponent(new CollisionComponent()) // Uses CollisionProxyComponent automatically via trait
+				// Inline capsule collision - sized to match slime graphic (not full sprite cell)
+				// Slime is a small, round creature in lower portion of sprite frame
+				.addComponent(
+					new CollisionComponent({
+						type: "static",
+						shape: {
+							type: "capsule",
+							radius: 0.6,
+							height: 1.2,
+							offset: [0, 0.6, 0], // Raise capsule to center on slime body
+						},
+					}),
+				)
 				.addComponent(new MatchComponent()); // Orchestrates: hover glow when in range, doubleclick to start match
 		}
 	}

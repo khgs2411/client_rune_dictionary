@@ -62,7 +62,7 @@ export class SpriteSheetRegistry extends Singleton {
 		return def.texture;
 	}
 
-	/** Build animation definitions for SpriteAnimationComponent. */
+	/** Build animation definitions for SpriteAnimatorComponent. */
 	buildAnimations(id: string, direction?: SpriteDirection): I_AnimationDefinition[] {
 		const def = this.definitions.get(id);
 		if (!def) {

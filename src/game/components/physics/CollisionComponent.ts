@@ -1,15 +1,22 @@
-import type { I_CollisionMeshProvider, I_MeshProvider } from "@/game/common/mesh.types";
+import type { I_MeshProvider } from "@/game/common/mesh.types";
 import { I_SceneContext } from "@/game/common/scenes.types";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { DataStore } from "@/stores/DataStore";
 import { ComponentPriority, GameComponent, TRAIT } from "../../GameComponent";
+import { CollisionShapeFactory, type I_CollisionShapeConfig } from "../../utils/CollisionShapeFactory";
 import { DebugLabelComponent } from "../debug/DebugLabelComponent";
 import { InstancedMeshComponent } from "../rendering/InstancedMeshComponent";
 
 export interface I_CollisionConfig {
 	type: "static" | "dynamic" | "trigger";
-	shape?: "cuboid" | "sphere" | "capsule" | "cylinder";
-	shapeParams?: number[]; // Explicit shape dimensions (e.g., [halfWidth, halfHeight, halfDepth] for cuboid)
+
+	// Inline shape definition (recommended for sprites)
+	shape?: I_CollisionShapeConfig;
+
+	// Debug visualization
+	debugShape?: boolean;
+	debugColor?: number;
+
 	showDebug?: boolean;
 
 	// Collision callbacks
@@ -30,32 +37,35 @@ export interface I_CollisionConfig {
  * - trigger: Ghost collider (detects collision but doesn't block, for projectiles/pickups)
  *
  * Mesh Resolution Priority:
- * 1. Explicit shape + shapeParams config
- * 2. COLLISION_MESH_PROVIDER trait (CollisionProxyComponent - recommended for sprites)
+ * 1. Inline shape config (recommended for sprites)
+ * 2. InstancedMeshComponent (for instanced objects)
  * 3. MESH_PROVIDER trait (MeshComponent, SpriteComponent - fallback)
- * 4. InstancedMeshComponent (for instanced objects)
  *
  * Usage:
  * ```typescript
- * // Static wall with explicit shape (no mesh required)
+ * // Static NPC with inline shape (recommended for sprites)
  * new CollisionComponent({
  *   type: 'static',
- *   shape: 'cuboid',
- *   shapeParams: [20, 10, 0.25], // Half-extents: [halfWidth, halfHeight, halfDepth]
- *   showDebug: true
+ *   shape: { type: 'capsule', radius: 0.5, height: 1.2, offset: [0, 0.6, 0] },
+ *   debugShape: true  // Show wireframe visualization
  * });
  *
- * // Static NPC with CollisionProxyComponent (recommended for sprites)
- * gameObject
- *   .addComponent(new SpriteComponent({ texture: '/sprites/npc.png' }))
- *   .addComponent(new CollisionProxyComponent({ shape: 'cylinder', radius: 0.4, height: 1.2 }))
- *   .addComponent(new CollisionComponent({ type: 'static' })); // Uses collision proxy automatically
+ * // Static wall with inline cuboid shape
+ * new CollisionComponent({
+ *   type: 'static',
+ *   shape: { type: 'cuboid', width: 40, height: 20, depth: 0.5 }
+ * });
  *
- * // Static wall deriving collision from mesh geometry
+ * // Trigger sphere (projectile hit detection)
+ * new CollisionComponent({
+ *   type: 'trigger',
+ *   shape: { type: 'sphere', radius: 0.3 },
+ *   onCollisionEnter: (targetId) => console.log('Hit:', targetId)
+ * });
+ *
+ * // Static wall deriving collision from mesh geometry (fallback)
  * new CollisionComponent({ type: 'static' });
  * ```
- *
- * IMPORTANT: shapeParams use HALF-EXTENTS convention (divide full dimensions by 2)
  */
 export class CollisionComponent extends GameComponent {
 	public readonly priority = ComponentPriority.PHYSICS; // 200 - depends on mesh
@@ -81,43 +91,50 @@ export class CollisionComponent extends GameComponent {
 		}
 
 		// Get mesh providers (optional - can use explicit shape params instead)
-		const collisionMeshProvider = this.findByTrait<I_CollisionMeshProvider>(TRAIT.COLLISION_MESH_PROVIDER);
 		const meshProvider = this.findByTrait<I_MeshProvider>(TRAIT.MESH_PROVIDER);
 		const instancedMeshComp = this.getComponent(InstancedMeshComponent);
 		const transformComp = this.getComponent(TransformComponent);
 
 		// Register collider with physics service using priority order:
-		// 1. Explicit shape + shapeParams
-		// 2. COLLISION_MESH_PROVIDER (CollisionProxyComponent)
-		// 3. InstancedMeshComponent (must check BEFORE meshProvider since it also registers MESH_PROVIDER)
-		// 4. MESH_PROVIDER (MeshComponent, SpriteComponent)
-		if (this.config.shape && this.config.shapeParams) {
-			// Explicit shape registration
-			// shapeParams are half-extents: [halfWidth, halfHeight, halfDepth]
-			// Convert to full dimensions for registerStatic
-			const position = transformComp?.getPositionArray() || [0, 0, 0];
-			// Note: Don't apply transform rotation for explicit shapes - shapeParams already
-			// define the shape in world-space orientation. Using transform rotation would
-			// incorrectly rotate colliders (e.g., ground plane rotation would turn floor into wall)
+		// 1. Inline shape config (recommended for sprites)
+		// 2. InstancedMeshComponent (must check BEFORE meshProvider since it also registers MESH_PROVIDER)
+		// 3. MESH_PROVIDER (MeshComponent, SpriteComponent)
+		if (this.config.shape) {
+			// Inline shape registration (new API)
+			const basePosition = transformComp?.getPositionArray() || [0, 0, 0];
+			const offset = this.config.shape.offset ?? [0, 0, 0];
+			const position: [number, number, number] = [basePosition[0] + offset[0], basePosition[1] + offset[1], basePosition[2] + offset[2]];
+			// Note: Don't apply transform rotation for explicit shapes - shape config defines
+			// the shape in world-space orientation
 			const rotation: [number, number, number] = [0, 0, 0];
 
-			const fullSize = this.config.shapeParams.map((halfExtent) => halfExtent * 2) as [number, number, number];
+			// Get shape dimensions for physics (half-extents for cuboid, radius/halfHeight for others)
+			const shapeDimensions = CollisionShapeFactory.getShapeDimensions(this.config.shape);
 
 			physics.registerStatic(
 				this.gameObject.id,
 				{
-					shape: this.config.shape,
-					size: fullSize, // Full dimensions
+					shape: this.config.shape.type,
+					size: shapeDimensions as [number, number, number],
 					position,
 					rotation,
 				},
-				{ showDebug: this.config.showDebug },
+				{ showDebug: this.config.showDebug || this.config.debugShape },
 			);
-		} else if (collisionMeshProvider) {
-			// CollisionProxyComponent (recommended for sprites)
-			physics.registerStaticFromMesh(this.gameObject.id, collisionMeshProvider.getCollisionMesh(), {
-				showDebug: this.config.showDebug,
-			});
+
+			// Add debug wireframe mesh if requested
+			if (this.config.debugShape) {
+				const debugMesh = CollisionShapeFactory.createDebugMesh(this.config.shape, this.config.debugColor);
+				const transform = this.getComponent(TransformComponent);
+				if (transform) {
+					debugMesh.position.copy(transform.position);
+					debugMesh.position.x += offset[0];
+					debugMesh.position.y += offset[1];
+					debugMesh.position.z += offset[2];
+				}
+				context.scene.add(debugMesh);
+				context.cleanupRegistry.registerObject(debugMesh);
+			}
 		} else if (instancedMeshComp) {
 			// Instanced mesh registration (multiple static bodies)
 			// Must check BEFORE meshProvider since InstancedMeshComponent also registers MESH_PROVIDER trait
@@ -129,7 +146,13 @@ export class CollisionComponent extends GameComponent {
 			});
 		} else {
 			throw new Error(
-				`[CollisionComponent] GameObject "${this.gameObject.id}" requires one of: (1) shape + shapeParams, (2) CollisionProxyComponent, (3) MeshProvider, or (4) InstancedMeshComponent`,
+				`[CollisionComponent] GameObject "${this.gameObject.id}" has no collision shape.\n\n` +
+					`For sprites, add inline shape config:\n` +
+					`  new CollisionComponent({\n` +
+					`    type: 'static',\n` +
+					`    shape: { type: 'capsule', radius: 0.5, height: 1.2, offset: [0, 0.6, 0] },\n` +
+					`  })\n\n` +
+					`For mesh-based objects, collision shape is derived from MeshComponent automatically.`,
 			);
 		}
 

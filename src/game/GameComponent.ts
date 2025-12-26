@@ -23,7 +23,6 @@ import { I_SceneContext } from "./common/scenes.types";
 export const TRAIT = {
 	MATERIAL_PROVIDER: Symbol("I_MaterialProvider"),
 	MESH_PROVIDER: Symbol("I_MeshProvider"),
-	COLLISION_MESH_PROVIDER: Symbol("I_CollisionMeshProvider"),
 } as const;
 
 export type TraitKey = (typeof TRAIT)[keyof typeof TRAIT];

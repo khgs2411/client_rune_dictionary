@@ -448,7 +448,7 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 	/**
 	 * Flip sprite horizontally
 	 *
-	 * Used by DirectionalSpriteAnimator for direction fallback
+	 * Used by SpriteAnimatorComponent for direction fallback
 	 * (e.g., using 'right' animation flipped for 'left' direction)
 	 *
 	 * @param flip - true to flip horizontally, false for normal

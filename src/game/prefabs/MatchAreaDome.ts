@@ -74,8 +74,10 @@ export class MatchAreaDome extends GameObject {
 			.addComponent(
 				new CollisionComponent({
 					type: "static",
-					shape: "sphere",
-					shapeParams: [config.radius],
+					shape: {
+						type: "sphere",
+						radius: config.radius,
+					},
 					showDebug: config.showDebug,
 				}),
 			);

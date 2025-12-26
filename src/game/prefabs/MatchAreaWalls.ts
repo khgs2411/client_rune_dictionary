@@ -113,8 +113,12 @@ export class MatchAreaWalls extends GameObject {
 				.addComponent(
 					new CollisionComponent({
 						type: "static",
-						shape: "cuboid",
-						shapeParams: [wall.dimensions[0] / 2, wall.dimensions[1] / 2, wall.dimensions[2] / 2], // Half-extents: [halfWidth, halfHeight, halfDepth]
+						shape: {
+							type: "cuboid",
+							width: wall.dimensions[0],
+							height: wall.dimensions[1],
+							depth: wall.dimensions[2],
+						},
 						showDebug: config.showDebug,
 					}),
 				);

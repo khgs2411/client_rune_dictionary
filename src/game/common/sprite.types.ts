@@ -106,7 +106,7 @@ export interface I_BillboardComponentConfig {
 }
 
 /**
- * Animation definition for SpriteAnimationComponent
+ * Animation definition for sprite animation components
  */
 export interface I_AnimationDefinition {
 	/** Unique animation name */
@@ -124,7 +124,7 @@ export interface I_AnimationDefinition {
 }
 
 /**
- * SpriteAnimationComponent configuration
+ * @deprecated Use I_SpriteAnimatorConfig from SpriteAnimatorComponent instead
  */
 export interface I_SpriteAnimationComponentConfig {
 	/** Animation definitions */

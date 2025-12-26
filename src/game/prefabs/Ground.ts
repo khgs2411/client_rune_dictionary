@@ -108,8 +108,12 @@ export class Ground extends GameObject {
 			this.addComponent(
 				new CollisionComponent({
 					type: "static",
-					shape: "cuboid",
-					shapeParams: [size / 2, 0.1, size / 2], // Half-extents for cuboid collider
+					shape: {
+						type: "cuboid",
+						width: size,
+						height: 0.2, // Full height (was 0.1 half-extent)
+						depth: size,
+					},
 				}),
 			);
 		}

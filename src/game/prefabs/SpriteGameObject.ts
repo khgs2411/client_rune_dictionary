@@ -2,14 +2,14 @@ import type { BillboardMode, I_AnimationDefinition } from "../common/sprite.type
 import { DebugLabelComponent } from "../components/debug/DebugLabelComponent";
 import { TransformComponent } from "../components/entities/TransformComponent";
 import { BillboardComponent } from "../components/rendering/BillboardComponent";
-import { SpriteAnimationComponent } from "../components/rendering/SpriteAnimationComponent";
+import { SpriteAnimatorComponent } from "../components/rendering/SpriteAnimatorComponent";
 import { SpriteComponent } from "../components/rendering/SpriteComponent";
 import { GameObject } from "../GameObject";
 
 /**
- * Configuration for SpriteCharacter prefab
+ * Configuration for SpriteGameObject prefab
  */
-export interface I_SpriteCharacterConfig {
+export interface I_SpriteGameObjectConfig {
 	id: string;
 	position?: [number, number, number];
 
@@ -30,14 +30,14 @@ export interface I_SpriteCharacterConfig {
 }
 
 /**
- * SpriteCharacter - Example prefab for sprite-based characters
+ * SpriteGameObject - Prefab for sprite-based game entities
  *
  * Combines TransformComponent, SpriteComponent, BillboardComponent,
- * and optionally SpriteAnimationComponent for a complete sprite character.
+ * and optionally SpriteAnimatorComponent for a complete sprite entity.
  *
  * Usage with static sprite:
  * ```typescript
- * const tree = new SpriteCharacter({
+ * const tree = new SpriteGameObject({
  *   id: 'tree-1',
  *   position: [5, 0, 3],
  *   texture: '/assets/sprites/tree.png',
@@ -48,10 +48,10 @@ export interface I_SpriteCharacterConfig {
  *
  * Usage with animated sprite:
  * ```typescript
- * const player = new SpriteCharacter({
- *   id: 'player-1',
+ * const npc = new SpriteGameObject({
+ *   id: 'npc-1',
  *   position: [0, 0, 0],
- *   texture: '/assets/sprites/player.png',
+ *   texture: '/assets/sprites/npc.png',
  *   spriteSheet: { columns: 8, rows: 4 },
  *   size: [1, 1.5],
  *   animations: [
@@ -62,12 +62,12 @@ export interface I_SpriteCharacterConfig {
  * });
  *
  * // Control animation
- * const anim = player.getComponent(SpriteAnimationComponent);
+ * const anim = npc.getComponent(SpriteAnimatorComponent);
  * anim?.play('walk');
  * ```
  */
-export class SpriteCharacter extends GameObject {
-	constructor(config: I_SpriteCharacterConfig) {
+export class SpriteGameObject extends GameObject {
+	constructor(config: I_SpriteGameObjectConfig) {
 		super({ id: config.id });
 
 		const position = config.position ?? [0, 0, 0];
@@ -105,7 +105,7 @@ export class SpriteCharacter extends GameObject {
 		// Animation (optional)
 		if (config.animations && config.animations.length > 0) {
 			this.addComponent(
-				new SpriteAnimationComponent({
+				new SpriteAnimatorComponent({
 					animations: config.animations,
 					defaultAnimation: config.defaultAnimation,
 				}),
