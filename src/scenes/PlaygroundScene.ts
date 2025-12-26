@@ -228,20 +228,20 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		});
 		gom.register(guard);
 
-		// Mage near the shop
+		// Mage near the shop (behind it, north side)
 		const mage = new SpriteGameObject({
 			id: "npc-mage",
-			position: [-2, 0, 10],
+			position: [-2, 0, 16],
 			texture: "/sprites/mage_00.png",
 			size: [1.5, 2],
 			billboardMode: "cylindrical",
 		});
 		gom.register(mage);
 
-		// Goblin on east side of town
+		// Goblin on east side of town (moved north)
 		const goblin = new SpriteGameObject({
 			id: "npc-goblin",
-			position: [8, 0, 5],
+			position: [8, 0, 12],
 			texture: "/sprites/goblin_00.png",
 			size: [1.2, 1.5],
 			billboardMode: "cylindrical",
