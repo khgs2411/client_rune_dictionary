@@ -195,10 +195,10 @@ export interface I_QuickSpriteSheetConfig {
 	 */
 	texture: TextureConfig;
 
-	/** Frames per row (columns) - default for all textures */
+	/** Frames per row (columns) - default for all textures (1-indexed)*/
 	framesPerRow: number;
 
-	/** Total rows in sheet - default for all textures */
+	/** Total rows in sheet - default for all textures (1-indexed)*/
 	totalRows: number;
 
 	/** Size in world units */

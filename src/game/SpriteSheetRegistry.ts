@@ -3,68 +3,10 @@ import type { I_AnimationDefinition } from "./common/sprite.types";
 import type { I_AnimationRowDefinition, I_ExtendedAnimationDefinition, I_QuickSpriteSheetConfig, I_SpriteSheetDefinition, I_TextureSource, SpriteDirection, TextureConfig } from "./common/spritesheet.types";
 import { GetTexturePathById, IsMultiTexture } from "./common/spritesheet.types";
 
-/**
- * SpriteSheetRegistry - Singleton registry for sprite sheet definitions
- *
- * Provides a central place to register and retrieve sprite sheet configurations.
- * Automatically generates animation definitions from sprite sheet layouts.
- *
- * Supports both single-texture and multi-texture sprite sheets.
- *
- * Features:
- * - Register sprite sheets by ID
- * - Quick setup for common 4-directional character sheets
- * - Auto-generate directional animation names (e.g., 'walk-down', 'walk-left')
- * - Build I_AnimationDefinition[] for SpriteAnimationComponent
- * - Multi-texture support for characters with separate animation files
- *
- * Single texture usage:
- * ```typescript
- * SpriteSheetRegistry.getInstance().registerQuick({
- *   id: 'knight',
- *   texture: '/sprites/knight_00.png',
- *   framesPerRow: 6,
- *   totalRows: 8,
- *   size: [1, 1.5],
- *   directional: true,
- *   animations: [
- *     { name: 'idle', frameCount: 4, fps: 6 },
- *     { name: 'walk', frameCount: 6, fps: 10 }
- *   ]
- * });
- * ```
- *
- * Multi-texture usage:
- * ```typescript
- * SpriteSheetRegistry.getInstance().registerQuick({
- *   id: 'knight',
- *   texture: [
- *     { id: 'idle', src: '/sprites/knight_idle.png' },
- *     { id: 'walk', src: '/sprites/knight_walk.png' },
- *     { id: 'attack', src: '/sprites/knight_attack.png' },
- *   ],
- *   framesPerRow: 6,
- *   totalRows: 4,  // 4 directions per texture file
- *   size: [1, 1.5],
- *   directional: true,
- *   animations: [
- *     { textureId: 'idle', name: 'idle', frameCount: 4, fps: 6 },
- *     { textureId: 'walk', name: 'walk', frameCount: 6, fps: 10 },
- *     { textureId: 'attack', name: 'attack', frameCount: 8, fps: 14, loop: false },
- *   ]
- * });
- * ```
- */
+/** Singleton registry for sprite sheet definitions. Supports single and multi-texture sheets. */
 export class SpriteSheetRegistry extends Singleton {
 	private definitions: Map<string, I_SpriteSheetDefinition> = new Map();
 
-	/**
-	 * Get the singleton instance
-	 */
-
-	/**
-	 * Register a full sprite sheet definition
-	 */
 	register(definition: I_SpriteSheetDefinition): void {
 		if (this.definitions.has(definition.id)) {
 			console.warn(`[SpriteSheetRegistry] Overwriting definition: ${definition.id}`);
@@ -72,66 +14,38 @@ export class SpriteSheetRegistry extends Singleton {
 		this.definitions.set(definition.id, definition);
 	}
 
-	/**
-	 * Register using the quick config format
-	 *
-	 * This is the easiest way to register common character sprite sheets.
-	 * Automatically expands to full I_SpriteSheetDefinition with all
-	 * directional animations generated.
-	 */
+	/** Register using quick config format. Auto-expands directional animations. */
 	registerQuick(config: I_QuickSpriteSheetConfig): void {
 		const definition = this.expandQuickConfig(config);
 		this.register(definition);
 	}
 
-	/**
-	 * Get a registered sprite sheet definition
-	 */
 	get(id: string): I_SpriteSheetDefinition | undefined {
 		return this.definitions.get(id);
 	}
 
-	/**
-	 * Check if a definition exists
-	 */
 	has(id: string): boolean {
 		return this.definitions.has(id);
 	}
 
-	/**
-	 * Get all registered definition IDs
-	 */
 	getIds(): string[] {
 		return Array.from(this.definitions.keys());
 	}
 
-	/**
-	 * Remove a definition
-	 */
 	unregister(id: string): boolean {
 		return this.definitions.delete(id);
 	}
 
-	/**
-	 * Clear all definitions
-	 */
 	clear(): void {
 		this.definitions.clear();
 	}
 
-	/**
-	 * Check if a sprite sheet uses multiple textures
-	 */
 	isMultiTexture(id: string): boolean {
 		const def = this.definitions.get(id);
 		return def ? IsMultiTexture(def.texture) : false;
 	}
 
-	/**
-	 * Get all texture paths for a sprite sheet
-	 *
-	 * Useful for preloading textures.
-	 */
+	/** Get all texture paths for preloading. */
 	getTexturePaths(id: string): string[] {
 		const def = this.definitions.get(id);
 		if (!def) return [];
@@ -142,24 +56,13 @@ export class SpriteSheetRegistry extends Singleton {
 		return [def.texture];
 	}
 
-	/**
-	 * Get texture sources for multi-texture sheets
-	 */
 	getTextureSources(id: string): I_TextureSource[] | null {
 		const def = this.definitions.get(id);
 		if (!def || !IsMultiTexture(def.texture)) return null;
 		return def.texture;
 	}
 
-	/**
-	 * Build animation definitions for SpriteAnimationComponent
-	 *
-	 * For multi-texture sheets, includes texturePath for each animation.
-	 *
-	 * @param id - Sprite sheet definition ID
-	 * @param direction - Optional: filter to only animations for this direction
-	 * @returns Array of animation definitions ready for SpriteAnimationComponent
-	 */
+	/** Build animation definitions for SpriteAnimationComponent. */
 	buildAnimations(id: string, direction?: SpriteDirection): I_AnimationDefinition[] {
 		const def = this.definitions.get(id);
 		if (!def) {
@@ -170,11 +73,7 @@ export class SpriteSheetRegistry extends Singleton {
 		return this.animationRowsToDefinitions(def.animations, def.columns, def.texture, direction);
 	}
 
-	/**
-	 * Build extended animation definitions with texture info
-	 *
-	 * Use this for DirectionalSpriteAnimator with multi-texture support.
-	 */
+	/** Build extended animation definitions with texture info (for multi-texture support). */
 	buildExtendedAnimations(id: string, direction?: SpriteDirection): I_ExtendedAnimationDefinition[] {
 		const def = this.definitions.get(id);
 		if (!def) {
@@ -185,11 +84,7 @@ export class SpriteSheetRegistry extends Singleton {
 		return this.animationRowsToExtendedDefinitions(def.animations, def.columns, def.texture, direction);
 	}
 
-	/**
-	 * Get sprite component config from definition
-	 *
-	 * For multi-texture sheets, returns the first texture as default.
-	 */
+	/** Get config for SpriteComponent. Multi-texture sheets use first texture. */
 	getSpriteConfig(id: string): {
 		texture: string;
 		spriteSheet: { columns: number; rows: number };
@@ -199,7 +94,6 @@ export class SpriteSheetRegistry extends Singleton {
 		const def = this.definitions.get(id);
 		if (!def) return null;
 
-		// For multi-texture, use first texture as default
 		let texturePath: string;
 		if (IsMultiTexture(def.texture)) {
 			texturePath = def.texture[0]?.src ?? "";
@@ -218,29 +112,19 @@ export class SpriteSheetRegistry extends Singleton {
 		};
 	}
 
-	/**
-	 * Expand quick config to full definition
-	 *
-	 * Supports explicit row mapping: if `row` is provided in the animation definition,
-	 * it will be used directly. Otherwise, rows are calculated sequentially.
-	 */
+	/** Expand quick config to full definition. Explicit `row` uses that row; otherwise sequential. */
 	private expandQuickConfig(config: I_QuickSpriteSheetConfig): I_SpriteSheetDefinition {
 		const directions: SpriteDirection[] = config.directionOrder ?? ["down", "left", "right", "up"];
 		const animations: I_AnimationRowDefinition[] = [];
 		const isMulti = IsMultiTexture(config.texture);
 
-		// Check if any animation has explicit row mapping
-		const hasExplicitRows = config.animations.some((anim) => anim.row !== undefined);
-
-		// For multi-texture, each texture file contains all directions for ONE animation
-		// So row indexing resets per animation (per texture)
+		// Multi-texture directional: row index resets per texture file (1-indexed)
 		if (isMulti && config.directional) {
 			for (const anim of config.animations) {
-				// If animation has explicit direction, use it as single entry
 				if (anim.direction !== undefined) {
 					animations.push({
 						name: anim.name,
-						row: anim.row ?? 0,
+						row: anim.row ?? 1,
 						frameCount: anim.frameCount,
 						fps: anim.fps,
 						loop: anim.loop ?? true,
@@ -248,8 +132,7 @@ export class SpriteSheetRegistry extends Singleton {
 						textureId: anim.textureId,
 					});
 				} else {
-					// Expand to all directions
-					let rowInTexture = 0;
+					let rowInTexture = 1;
 					for (const dir of directions) {
 						animations.push({
 							name: anim.name,
@@ -265,10 +148,8 @@ export class SpriteSheetRegistry extends Singleton {
 				}
 			}
 		} else if (config.directional) {
-			// Single texture directional
-			let currentRow = 0;
+			let currentRow = 1;
 			for (const anim of config.animations) {
-				// If animation has explicit row + direction, use directly
 				if (anim.row !== undefined && anim.direction !== undefined) {
 					animations.push({
 						name: anim.name,
@@ -280,7 +161,6 @@ export class SpriteSheetRegistry extends Singleton {
 						textureId: anim.textureId,
 					});
 				} else if (anim.row !== undefined) {
-					// Explicit row but no direction - single animation at that row
 					animations.push({
 						name: anim.name,
 						row: anim.row,
@@ -290,7 +170,6 @@ export class SpriteSheetRegistry extends Singleton {
 						textureId: anim.textureId,
 					});
 				} else {
-					// No explicit row - expand to all directions sequentially
 					for (const dir of directions) {
 						animations.push({
 							name: anim.name,
@@ -306,11 +185,9 @@ export class SpriteSheetRegistry extends Singleton {
 				}
 			}
 		} else {
-			// Non-directional
-			let currentRow = 0;
+			let currentRow = 1;
 			for (const anim of config.animations) {
-				// Use explicit row if provided, otherwise sequential
-				const row = anim.row ?? (isMulti ? 0 : currentRow);
+				const row = anim.row ?? (isMulti ? 1 : currentRow);
 				animations.push({
 					name: anim.name,
 					row,
@@ -337,23 +214,16 @@ export class SpriteSheetRegistry extends Singleton {
 		};
 	}
 
-	/**
-	 * Convert animation row definitions to SpriteAnimationComponent format
-	 */
 	private animationRowsToDefinitions(rows: I_AnimationRowDefinition[], columns: number, texture: TextureConfig, filterDirection?: SpriteDirection): I_AnimationDefinition[] {
 		const definitions: I_AnimationDefinition[] = [];
 
 		for (const row of rows) {
-			// Skip if filtering by direction and this doesn't match
 			if (filterDirection && row.direction && row.direction !== filterDirection) {
 				continue;
 			}
 
-			// Build animation name (e.g., 'walk' or 'walk-down')
 			const name = row.direction ? `${row.name}-${row.direction}` : row.name;
-
-			// Calculate frame indices
-			const startFrame = row.row * columns;
+			const startFrame = (row.row - 1) * columns; // row is 1-indexed
 			const endFrame = startFrame + row.frameCount - 1;
 
 			definitions.push({
@@ -368,26 +238,18 @@ export class SpriteSheetRegistry extends Singleton {
 		return definitions;
 	}
 
-	/**
-	 * Convert animation row definitions to extended format with texture info
-	 */
 	private animationRowsToExtendedDefinitions(rows: I_AnimationRowDefinition[], columns: number, texture: TextureConfig, filterDirection?: SpriteDirection): I_ExtendedAnimationDefinition[] {
 		const definitions: I_ExtendedAnimationDefinition[] = [];
 
 		for (const row of rows) {
-			// Skip if filtering by direction and this doesn't match
 			if (filterDirection && row.direction && row.direction !== filterDirection) {
 				continue;
 			}
 
-			// Build animation name (e.g., 'walk' or 'walk-down')
 			const name = row.direction ? `${row.name}-${row.direction}` : row.name;
-
-			// Calculate frame indices
-			const startFrame = row.row * columns;
+			const startFrame = (row.row - 1) * columns; // row is 1-indexed
 			const endFrame = startFrame + row.frameCount - 1;
 
-			// Get texture path for this animation
 			let texturePath: string | undefined;
 			if (row.textureId) {
 				texturePath = GetTexturePathById(texture, row.textureId);
@@ -417,16 +279,7 @@ export class SpriteSheetRegistry extends Singleton {
 		SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>().registerQuick(config);
 	}
 
-	/**
-	 * Helper to register a multi-texture character
-	 *
-	 * Each animation is in its own file, following the naming pattern:
-	 * {basePath}_{animationName}.png
-	 *
-	 * Example:
-	 * registerMultiTextureCharacter('hero', '/sprites/hero', ['idle', 'walk', 'attack'])
-	 * Loads: /sprites/hero_idle.png, /sprites/hero_walk.png, /sprites/hero_attack.png
-	 */
+	/** Register multi-texture character. Files: {basePath}_{animationName}.{ext} */
 	public static RegisterMultitextureSpriteSheet(
 		id: string,
 		basePath: string,
@@ -446,13 +299,11 @@ export class SpriteSheetRegistry extends Singleton {
 		const size = options?.size ?? [1, 1.5];
 		const ext = options?.extension ?? "png";
 
-		// Build texture sources
 		const textures = animationConfigs.map((anim) => ({
 			id: anim.name,
 			src: `${basePath}_${anim.name}.${ext}`,
 		}));
 
-		// Build animation definitions
 		const animations = animationConfigs.map((anim) => ({
 			textureId: anim.name,
 			name: anim.name,
@@ -465,7 +316,7 @@ export class SpriteSheetRegistry extends Singleton {
 			id,
 			texture: textures,
 			framesPerRow,
-			totalRows: 4, // 4 directions per file
+			totalRows: 4,
 			size,
 			directional: true,
 			animations,
@@ -474,102 +325,32 @@ export class SpriteSheetRegistry extends Singleton {
 	}
 
 	public static RegisterAllSpriteSheets(): void {
-		// ===== SINGLE TEXTURE EXAMPLES =====
-		// ===== MULTI-TEXTURE EXAMPLES =====
-		/**
-		 * Mage Character - Multi-Texture
-		 * Each animation in its own file
-		 *
-		 * File layout (each file):
-		 * - 4 rows (down, left, right, up)
-		 * - N frames per row depending on animation
-		 */
-		/* SpriteSheetRegistry.RegisterSpriteSheet({
-		id: "mage",
-		texture: [
-			{ id: "idle", src: "/sprites/mage_00_idle.png" },
-			{ id: "walk", src: "/sprites/mage_00_walk.png" },
-			{ id: "attack", src: "/sprites/mage_00_attack.png" },
-		],
-		framesPerRow: 8, // Max frames in any animation
-		totalRows: 4, // 4 directions per file
-		size: [1, 1.5],
-		directional: true,
-		animations: [
-			{ textureId: "idle", name: "idle", frameCount: 4, fps: 6 },
-			{ textureId: "walk", name: "walk", frameCount: 6, fps: 10 },
-			{ textureId: "attack", name: "attack", frameCount: 8, fps: 14, loop: false },
-		],
-		defaultAnimation: "idle",
-	}); */
-		/**
-		 * Example: RPG Character with many animations - Multi-Texture
-		 * Shows how to organize a character with 5+ animations
-		 */
-		// SpriteSheetRegistry.RegisterSpriteSheet({
-		// 	id: "hero",
-		// 	texture: [
-		// 		{ id: "idle", src: "/sprites/hero_idle.png" },
-		// 		{ id: "walk", src: "/sprites/hero_walk.png" },
-		// 		{ id: "run", src: "/sprites/hero_run.png" },
-		// 		{ id: "attack", src: "/sprites/hero_attack.png" },
-		// 		{ id: "hurt", src: "/sprites/hero_hurt.png" },
-		// 		{ id: "death", src: "/sprites/hero_death.png" },
-		// 		{ id: "cast", src: "/sprites/hero_cast.png" },
-		// 	],
-		// 	framesPerRow: 12,
-		// 	totalRows: 4,
-		// 	size: [1, 1.5],
-		// 	directional: true,
-		// 	animations: [
-		// 		{ textureId: "idle", name: "idle", frameCount: 4, fps: 6 },
-		// 		{ textureId: "walk", name: "walk", frameCount: 8, fps: 10 },
-		// 		{ textureId: "run", name: "run", frameCount: 8, fps: 14 },
-		// 		{ textureId: "attack", name: "attack", frameCount: 6, fps: 12, loop: false },
-		// 		{ textureId: "hurt", name: "hurt", frameCount: 3, fps: 8, loop: false },
-		// 		{ textureId: "death", name: "death", frameCount: 8, fps: 8, loop: false },
-		// 		{ textureId: "cast", name: "cast", frameCount: 10, fps: 10, loop: false },
-		// 	],
-		// 	defaultAnimation: "idle",
-		// });
-		// ===== LOCAL PLAYER =====
-		/**
-		 * Local Player Character - Explicit Row Mapping
-		 *
-		 * Uses explicit row indices for non-standard sprite sheet layout.
-		 * Same animation used for all directions, flip X when facing left.
-		 *
-		 * Layout:
-		 * - Row 1: idle (side view)
-		 * - Row 4: walk (side view)
-		 */
+		// Local player - row values are 1-indexed (what you see = what you put)
 		SpriteSheetRegistry.RegisterSpriteSheet({
 			id: "local-player",
 			texture: "/sprites/character/player.png",
 			framesPerRow: 6,
-			totalRows: 10, // Total rows in the sprite sheet
+			totalRows: 10,
 			size: [3, 4],
-			directional: false, // Same animation for all directions
+			directional: false,
 			animations: [
-				{ name: "idle", row: 1, frameCount: 6, fps: 6 },
-				{ name: "walk", row: 4, frameCount: 6, fps: 10 },
+				{ name: "idle", row: 2, frameCount: 6, fps: 4 },
+				{ name: "walk", row: 5, frameCount: 6, fps: 10 },
 			],
 			defaultAnimation: "idle",
-			anchor: [0.5, 0.125], // Bottom-center for standing character
+			anchor: [0.5, 0.125],
 		});
 
 		SpriteSheetRegistry.RegisterSpriteSheet({
 			id: "slime",
 			texture: "/sprites/enemies/slime.png",
 			framesPerRow: 7,
-			totalRows: 12, // Total rows in the sprite sheet
-			size: [3, 4],
-			directional: false, // Same animation for all directions
-			animations: [{ name: "idle", row: 0, frameCount: 4, fps: 6 }],
+			totalRows: 12,
+			size: [1.5, 2],
+			directional: false,
+			animations: [{ name: "idle", row: 1, frameCount: 4, fps: 6 }],
 			defaultAnimation: "idle",
-			anchor: [0.5, 0.125], // Bottom-center for standing character
+			anchor: [0.5, 0],
 		});
-
-		// ===== ENVIRONMENT (Static, non-directional) =====
 	}
 }

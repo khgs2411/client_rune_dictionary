@@ -93,9 +93,9 @@ export class TrainingDummy extends GameObject {
 				.addComponent(
 					new CollisionProxyComponent({
 						shape: "cylinder",
-						radius: 0.4,
-						height: 2,
-						offset: [0, 0.6, 0], // Center cylinder vertically on sprite
+						radius: 0.5,
+						height: 1,
+						offset: [0, 0.5, 0], // Center on slime body (sprite size [1.5, 2] with anchor at bottom)
 					}),
 				)
 
