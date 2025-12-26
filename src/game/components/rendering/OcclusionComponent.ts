@@ -2,7 +2,7 @@ import type { I_MeshProvider } from "../../common/mesh.types";
 import { isOpacityMaterial } from "../../common/mesh.types";
 import { I_SceneContext } from "@/game/common/scenes.types";
 import { ComponentPriority, GameComponent, TRAIT } from "@/game/GameComponent";
-import { Material, Mesh, Object3D, Raycaster, Vector3 } from "three";
+import { Box3, Material, Mesh, Object3D, Vector3 } from "three";
 
 export interface I_OcclusionConfig {
 	/** Target opacity when occluding (0-1). Default: 0.3 */
@@ -11,6 +11,8 @@ export interface I_OcclusionConfig {
 	fadeSpeed?: number;
 	/** Vertical offset for player position (to target chest/head). Default: 1.5 */
 	playerHeightOffset?: number;
+	/** Extra padding around screen bounds for detection (NDC units 0-1). Default: 0.02 */
+	screenPadding?: number;
 }
 
 /**
@@ -20,10 +22,13 @@ export interface I_OcclusionConfig {
  * the player from the camera's view in an isometric/top-down game.
  *
  * How it works:
- * - Each frame, casts a ray from camera to player
- * - If this object's mesh intersects the ray (and is closer than the player),
+ * - Projects both mesh bounds and player to screen space (NDC coordinates)
+ * - If player's screen position falls within mesh's screen bounds AND mesh is closer,
  *   it smoothly fades to semi-transparent
  * - When no longer blocking, it smoothly fades back to opaque
+ *
+ * Note: Uses screen-space projection instead of raycasting for reliable detection
+ * with billboard sprites (thin planes that would miss rays at oblique angles).
  *
  * Supports any I_MeshProvider:
  * - MeshComponent (single 3D mesh)
@@ -66,11 +71,11 @@ export class OcclusionComponent extends GameComponent {
 	private originalTransparent = false;
 	private currentOpacity = 1;
 
-	// Raycasting
-	private raycaster = new Raycaster();
-	private cameraPosition = new Vector3();
-	private playerPosition = new Vector3();
-	private direction = new Vector3();
+	// Screen-space projection
+	private playerWorldPos = new Vector3();
+	private playerScreenPos = new Vector3();
+	private meshBounds = new Box3();
+	private boundCorner = new Vector3();
 
 	constructor(config: I_OcclusionConfig = { occludedOpacity: 0.3, fadeSpeed: 8 }) {
 		super();
@@ -134,33 +139,67 @@ export class OcclusionComponent extends GameComponent {
 	}
 
 	/**
-	 * Check if this mesh is between the camera and player
+	 * Check if this mesh is blocking the player using screen-space projection.
+	 * More reliable than raycasting for billboard sprites.
 	 */
 	private checkIfBlockingCamera(): boolean {
-		const camera = this.context.camera!;
+		const camera = this.context.camera!.instance;
 		const character = this.context.character!;
 
-		// Get camera position
-		this.cameraPosition.copy(camera.instance.position);
-
-		// Get player position with height offset (target chest/head area)
+		// Get player world position with height offset
 		const playerPos = character.controller.getPosition();
 		const heightOffset = this.config.playerHeightOffset ?? 1.5;
-		this.playerPosition.set(playerPos.x, playerPos.y + heightOffset, playerPos.z);
+		this.playerWorldPos.set(playerPos.x, playerPos.y + heightOffset, playerPos.z);
 
-		// Calculate direction and distance
-		this.direction.subVectors(this.playerPosition, this.cameraPosition).normalize();
-		const distanceToPlayer = this.cameraPosition.distanceTo(this.playerPosition);
+		// Project player to screen space (NDC: -1 to 1)
+		this.playerScreenPos.copy(this.playerWorldPos).project(camera);
+		const playerDepth = this.playerScreenPos.z;
 
-		// Cast ray from camera toward player
-		this.raycaster.set(this.cameraPosition, this.direction);
-		this.raycaster.far = distanceToPlayer;
+		// Get mesh bounding box in world space
+		this.meshBounds.setFromObject(this.targetMesh);
 
-		// Check intersection with this mesh (recursive for instanced meshes)
-		const intersects = this.raycaster.intersectObject(this.targetMesh, true);
+		// Project bounding box corners to screen space and find screen bounds
+		let minX = Infinity,
+			maxX = -Infinity;
+		let minY = Infinity,
+			maxY = -Infinity;
+		let meshDepth = Infinity;
 
-		// If any intersection is closer than the player, we're blocking
-		return intersects.length > 0 && intersects[0].distance < distanceToPlayer;
+		// Check all 8 corners of the bounding box
+		const corners = [
+			[this.meshBounds.min.x, this.meshBounds.min.y, this.meshBounds.min.z],
+			[this.meshBounds.min.x, this.meshBounds.min.y, this.meshBounds.max.z],
+			[this.meshBounds.min.x, this.meshBounds.max.y, this.meshBounds.min.z],
+			[this.meshBounds.min.x, this.meshBounds.max.y, this.meshBounds.max.z],
+			[this.meshBounds.max.x, this.meshBounds.min.y, this.meshBounds.min.z],
+			[this.meshBounds.max.x, this.meshBounds.min.y, this.meshBounds.max.z],
+			[this.meshBounds.max.x, this.meshBounds.max.y, this.meshBounds.min.z],
+			[this.meshBounds.max.x, this.meshBounds.max.y, this.meshBounds.max.z],
+		] as const;
+
+		for (const [x, y, z] of corners) {
+			this.boundCorner.set(x, y, z).project(camera);
+			minX = Math.min(minX, this.boundCorner.x);
+			maxX = Math.max(maxX, this.boundCorner.x);
+			minY = Math.min(minY, this.boundCorner.y);
+			maxY = Math.max(maxY, this.boundCorner.y);
+			meshDepth = Math.min(meshDepth, this.boundCorner.z);
+		}
+
+		// Mesh must be closer to camera than player (smaller depth = closer)
+		if (meshDepth >= playerDepth) {
+			return false;
+		}
+
+		// Check if player screen position is within mesh screen bounds (with padding)
+		const padding = this.config.screenPadding ?? 0.02;
+		const playerInBounds =
+			this.playerScreenPos.x >= minX - padding &&
+			this.playerScreenPos.x <= maxX + padding &&
+			this.playerScreenPos.y >= minY - padding &&
+			this.playerScreenPos.y <= maxY + padding;
+
+		return playerInBounds;
 	}
 
 	/**
