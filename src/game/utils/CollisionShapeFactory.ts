@@ -84,8 +84,8 @@ export class CollisionShapeFactory {
 				// Physics expects: [radius, halfHeight]
 				return [radius, height / 2];
 			case "cuboid":
-				// Physics expects: [halfWidth, halfHeight, halfDepth]
-				return [width / 2, height / 2, depth / 2];
+				// GeometryConverter expects full dimensions, handles half-extent conversion
+				return [width, height, depth];
 			case "sphere":
 				// Physics expects: [radius]
 				return [radius];

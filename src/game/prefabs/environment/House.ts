@@ -109,11 +109,11 @@ export class House {
 			const scale = pos.scale ?? 1;
 			const size: [number, number] | undefined = pos.size ?? (scale !== 1 ? [baseSize[0] * scale, baseSize[1] * scale] : undefined);
 
-			// Calculate actual size for collision
+			// Calculate actual size for collision (slightly smaller than visual for better feel)
 			const actualSize = size ?? baseSize;
-			const collisionWidth = actualSize[0]; // Slightly narrower than visual
-			const collisionHeight = actualSize[1];
-			const collisionDepth = 2; // Depth for the building
+			const collisionWidth = actualSize[0] * 0.8;
+			const collisionHeight = actualSize[1] * 1.2;
+			const collisionDepth = 1.5;
 
 			// Create sprite house with billboard and occlusion
 			const house = new SpriteGameObject({
@@ -135,9 +135,8 @@ export class House {
 							width: collisionWidth,
 							height: collisionHeight,
 							depth: collisionDepth,
-							offset: [0, collisionHeight / 2, 0], // Center vertically
+							offset: [0, collisionHeight * 0.65, 0], // Slightly above center
 						},
-						debugShape: true, // Use our debug mesh (world-aligned), not physics engine's
 					}),
 				);
 			}

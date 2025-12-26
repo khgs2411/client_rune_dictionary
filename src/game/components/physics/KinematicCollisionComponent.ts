@@ -109,20 +109,6 @@ export class KinematicCollisionComponent extends CollisionComponent {
 			},
 		);
 
-		// Add debug wireframe mesh if requested (only for inline shape config)
-		if (this.config.debugShape && this.config.shape) {
-			const debugMesh = CollisionShapeFactory.createDebugMesh(this.config.shape, this.config.debugColor);
-			const transform = this.getComponent(TransformComponent);
-			if (transform) {
-				debugMesh.position.copy(transform.position);
-				debugMesh.position.x += offset[0];
-				debugMesh.position.y += offset[1];
-				debugMesh.position.z += offset[2];
-			}
-			context.scene.add(debugMesh);
-			context.cleanupRegistry.registerObject(debugMesh);
-		}
-
 		// Register collision callbacks
 		this.registerCallbacks();
 

@@ -13,10 +13,6 @@ export interface I_CollisionConfig {
 	// Inline shape definition (recommended for sprites)
 	shape?: I_CollisionShapeConfig;
 
-	// Debug visualization (creates custom Three.js wireframe, independent of Rapier debug)
-	debugShape?: boolean;
-	debugColor?: number;
-
 	// Collision callbacks
 	onCollisionEnter?: (otherId: string) => void;
 	onCollisionStay?: (otherId: string) => void;
@@ -39,13 +35,14 @@ export interface I_CollisionConfig {
  * 2. InstancedMeshComponent (for instanced objects)
  * 3. MESH_PROVIDER trait (MeshComponent, SpriteComponent - fallback)
  *
+ * Debug: Use global `DataStore.settings.debug.showPhysicsDebug` to visualize all colliders.
+ *
  * Usage:
  * ```typescript
  * // Static NPC with inline shape (recommended for sprites)
  * new CollisionComponent({
  *   type: 'static',
  *   shape: { type: 'capsule', radius: 0.5, height: 1.2, offset: [0, 0.6, 0] },
- *   debugShape: true  // Show wireframe visualization
  * });
  *
  * // Static wall with inline cuboid shape
@@ -115,20 +112,6 @@ export class CollisionComponent extends GameComponent {
 				position,
 				rotation,
 			});
-
-			// Add debug wireframe mesh if requested
-			if (this.config.debugShape) {
-				const debugMesh = CollisionShapeFactory.createDebugMesh(this.config.shape, this.config.debugColor);
-				const transform = this.getComponent(TransformComponent);
-				if (transform) {
-					debugMesh.position.copy(transform.position);
-					debugMesh.position.x += offset[0];
-					debugMesh.position.y += offset[1];
-					debugMesh.position.z += offset[2];
-				}
-				context.scene.add(debugMesh);
-				context.cleanupRegistry.registerObject(debugMesh);
-			}
 		} else if (instancedMeshComp) {
 			// Instanced mesh registration (multiple static bodies)
 			// Must check BEFORE meshProvider since InstancedMeshComponent also registers MESH_PROVIDER trait
