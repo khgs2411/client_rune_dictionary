@@ -46,7 +46,7 @@ export interface I_AnimationRowDefinition {
 	/** Animation name (e.g., 'idle', 'walk', 'attack') */
 	name: CharacterAnimationName;
 
-	/** Row index in the sprite sheet (0-based) */
+	/** Row index in the sprite sheet (1-indexed) */
 	row: number;
 
 	/** Number of frames in this animation */
@@ -63,6 +63,13 @@ export interface I_AnimationRowDefinition {
 
 	/** Texture ID (required for multi-texture sheets) */
 	textureId?: string;
+
+	/**
+	 * Column index for static frame selection (1-indexed).
+	 * If set, this represents a single frame at [row, column] rather than an animation.
+	 * When column is specified, frameCount/fps are ignored.
+	 */
+	column?: number;
 }
 
 /**
@@ -110,11 +117,11 @@ export interface I_SpriteSheetDefinition {
 }
 
 /**
- * Simplified animation definition for non-directional sprites
+ * Animated sprite definition - plays through frames
  *
- * Use with layout: 'single' for simple sprite sheets
+ * Use for animations with multiple frames that play in sequence.
  */
-export interface I_SimpleAnimationDef {
+export interface I_AnimatedDef {
 	/** Animation name */
 	name: string;
 	/** Number of frames */
@@ -129,7 +136,7 @@ export interface I_SimpleAnimationDef {
 	 */
 	textureId?: string;
 	/**
-	 * Explicit row index (0-based) in the sprite sheet.
+	 * Explicit row index (1-indexed) in the sprite sheet.
 	 * If provided, overrides sequential row calculation.
 	 * Use this when animations aren't in sequential order.
 	 */
@@ -139,6 +146,39 @@ export interface I_SimpleAnimationDef {
 	 * Used with directional: true to specify which direction each row is for.
 	 */
 	direction?: SpriteDirection;
+}
+
+/**
+ * Static frame definition - selects single frame from atlas
+ *
+ * Use for sprite atlases where each cell is a unique variant (not animation frames).
+ * Both row and column are 1-indexed for consistency.
+ */
+export interface I_StaticFrameDef {
+	/** Frame name (used as animation name for consistency) */
+	name: string;
+	/** Row index (1-indexed) */
+	row: number;
+	/** Column index (1-indexed) */
+	column: number;
+	/** Texture ID for multi-texture sheets */
+	textureId?: string;
+}
+
+/**
+ * Animation definition - either animated or static frame
+ *
+ * Discriminated union:
+ * - If `frameCount` exists → animated sprite
+ * - If `column` exists → static frame selection
+ */
+export type I_AnimationDef = I_AnimatedDef | I_StaticFrameDef;
+
+/**
+ * Type guard to check if definition is animated
+ */
+export function isAnimatedDef(def: I_AnimationDef): def is I_AnimatedDef {
+	return "frameCount" in def;
 }
 
 /**
@@ -195,29 +235,29 @@ export interface I_QuickSpriteSheetConfig {
 	 */
 	texture: TextureConfig;
 
-	/** Frames per row (columns) - default for all textures (1-indexed)*/
-	framesPerRow: number;
-
-	/** Total rows in sheet - default for all textures (1-indexed)*/
-	totalRows: number;
-
 	/** Size in world units */
 	size: [number, number];
 
+	/** Frames per row (columns) - defaults to 1 for static sprites */
+	framesPerRow?: number;
+
+	/** Total rows in sheet - defaults to 1 for static sprites */
+	totalRows?: number;
+
 	/**
-	 * Animations in order they appear in the sheet
+	 * Animations in order they appear in the sheet (defaults to [] for static sprites)
 	 * For directional sheets, each animation takes 4 rows
 	 * For multi-texture, include textureId to specify which texture
 	 */
-	animations: I_SimpleAnimationDef[];
+	animations?: I_AnimationDef[];
+
+	/** Is this a directional sprite sheet? (defaults to false) */
+	directional?: boolean;
 
 	/**
 	 * Direction order in the sheet (default: ['down', 'left', 'right', 'up'])
 	 */
 	directionOrder?: SpriteDirection[];
-
-	/** Is this a directional sprite sheet? */
-	directional?: boolean;
 
 	/** Default animation */
 	defaultAnimation?: string;

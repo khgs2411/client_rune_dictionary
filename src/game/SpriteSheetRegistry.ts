@@ -1,7 +1,7 @@
 import { Singleton } from "topsyde-utils";
 import type { I_AnimationDefinition } from "./common/sprite.types";
 import type { I_AnimationRowDefinition, I_ExtendedAnimationDefinition, I_QuickSpriteSheetConfig, I_SpriteSheetDefinition, I_TextureSource, SpriteDirection, TextureConfig } from "./common/spritesheet.types";
-import { GetTexturePathById, IsMultiTexture } from "./common/spritesheet.types";
+import { GetTexturePathById, IsMultiTexture, isAnimatedDef } from "./common/spritesheet.types";
 
 /** Singleton registry for sprite sheet definitions. Supports single and multi-texture sheets. */
 export class SpriteSheetRegistry extends Singleton {
@@ -114,13 +114,21 @@ export class SpriteSheetRegistry extends Singleton {
 
 	/** Expand quick config to full definition. Explicit `row` uses that row; otherwise sequential. */
 	private expandQuickConfig(config: I_QuickSpriteSheetConfig): I_SpriteSheetDefinition {
+		// Apply defaults for static sprites
+		const framesPerRow = config.framesPerRow ?? 1;
+		const totalRows = config.totalRows ?? 1;
+		const inputAnimations = config.animations ?? [];
+		const directional = config.directional ?? false;
+
 		const directions: SpriteDirection[] = config.directionOrder ?? ["down", "left", "right", "up"];
 		const animations: I_AnimationRowDefinition[] = [];
 		const isMulti = IsMultiTexture(config.texture);
 
 		// Multi-texture directional: row index resets per texture file (1-indexed)
-		if (isMulti && config.directional) {
-			for (const anim of config.animations) {
+		// Note: Static frames (I_StaticFrameDef) are skipped in directional paths - they don't have directions
+		if (isMulti && directional) {
+			for (const anim of inputAnimations) {
+				if (!isAnimatedDef(anim)) continue; // Skip static frames in directional mode
 				if (anim.direction !== undefined) {
 					animations.push({
 						name: anim.name,
@@ -147,9 +155,10 @@ export class SpriteSheetRegistry extends Singleton {
 					}
 				}
 			}
-		} else if (config.directional) {
+		} else if (directional) {
 			let currentRow = 1;
-			for (const anim of config.animations) {
+			for (const anim of inputAnimations) {
+				if (!isAnimatedDef(anim)) continue; // Skip static frames in directional mode
 				if (anim.row !== undefined && anim.direction !== undefined) {
 					animations.push({
 						name: anim.name,
@@ -186,35 +195,49 @@ export class SpriteSheetRegistry extends Singleton {
 			}
 		} else {
 			let currentRow = 1;
-			for (const anim of config.animations) {
-				const row = anim.row ?? (isMulti ? 1 : currentRow);
-				animations.push({
-					name: anim.name,
-					row,
-					frameCount: anim.frameCount,
-					fps: anim.fps,
-					loop: anim.loop ?? true,
-					textureId: anim.textureId,
-				});
-				if (!isMulti && anim.row === undefined) currentRow++;
+			for (const anim of inputAnimations) {
+				if (isAnimatedDef(anim)) {
+					// Animated sprite - existing logic
+					const row = anim.row ?? (isMulti ? 1 : currentRow);
+					animations.push({
+						name: anim.name,
+						row,
+						frameCount: anim.frameCount,
+						fps: anim.fps,
+						loop: anim.loop ?? true,
+						textureId: anim.textureId,
+					});
+					if (!isMulti && anim.row === undefined) currentRow++;
+				} else {
+					// Static frame - single frame at specific [row, column]
+					animations.push({
+						name: anim.name,
+						row: anim.row,
+						column: anim.column, // Carry column through pipeline
+						frameCount: 1, // Required by interface but ignored
+						fps: 1, // Required by interface but ignored
+						loop: false,
+						textureId: anim.textureId,
+					});
+				}
 			}
 		}
 
 		return {
 			id: config.id,
 			texture: config.texture,
-			columns: config.framesPerRow,
-			rows: config.totalRows,
+			columns: framesPerRow,
+			rows: totalRows,
 			size: config.size,
 			anchor: config.anchor ?? [0.5, 0],
 			animations,
 			defaultAnimation: config.defaultAnimation,
-			layout: config.directional ? "directional-4" : "single",
+			layout: directional ? "directional-4" : "single",
 			isMultiTexture: isMulti,
 		};
 	}
 
-	private animationRowsToDefinitions(rows: I_AnimationRowDefinition[], columns: number, texture: TextureConfig, filterDirection?: SpriteDirection): I_AnimationDefinition[] {
+	private animationRowsToDefinitions(rows: I_AnimationRowDefinition[], columns: number, _texture: TextureConfig, filterDirection?: SpriteDirection): I_AnimationDefinition[] {
 		const definitions: I_AnimationDefinition[] = [];
 
 		for (const row of rows) {
@@ -223,14 +246,24 @@ export class SpriteSheetRegistry extends Singleton {
 			}
 
 			const name = row.direction ? `${row.name}-${row.direction}` : row.name;
-			const startFrame = (row.row - 1) * columns; // row is 1-indexed
-			const endFrame = startFrame + row.frameCount - 1;
+
+			// Calculate startFrame based on whether column is specified
+			const startFrame =
+				row.column !== undefined
+					? (row.row - 1) * columns + (row.column - 1) // Static: specific cell (both 1-indexed)
+					: (row.row - 1) * columns; // Animated: start of row
+
+			// endFrame: static = same frame, animated = range
+			const endFrame =
+				row.column !== undefined
+					? startFrame // Static: single frame
+					: startFrame + row.frameCount - 1; // Animated: frame range
 
 			definitions.push({
 				name,
 				startFrame,
 				endFrame,
-				fps: row.fps,
+				fps: row.fps, // For static: 1 (ignored since startFrame === endFrame)
 				loop: row.loop ?? true,
 			});
 		}
@@ -247,8 +280,18 @@ export class SpriteSheetRegistry extends Singleton {
 			}
 
 			const name = row.direction ? `${row.name}-${row.direction}` : row.name;
-			const startFrame = (row.row - 1) * columns; // row is 1-indexed
-			const endFrame = startFrame + row.frameCount - 1;
+
+			// Calculate startFrame based on whether column is specified
+			const startFrame =
+				row.column !== undefined
+					? (row.row - 1) * columns + (row.column - 1) // Static: specific cell (both 1-indexed)
+					: (row.row - 1) * columns; // Animated: start of row
+
+			// endFrame: static = same frame, animated = range
+			const endFrame =
+				row.column !== undefined
+					? startFrame // Static: single frame
+					: startFrame + row.frameCount - 1; // Animated: frame range
 
 			let texturePath: string | undefined;
 			if (row.textureId) {
@@ -361,41 +404,25 @@ export class SpriteSheetRegistry extends Singleton {
 		SpriteSheetRegistry.RegisterSpriteSheet({
 			id: "tree-00",
 			texture: "/sprites/objects/tree_00.png",
-			framesPerRow: 1,
-			totalRows: 1,
 			size: [4, 5],
-			directional: false,
-			animations: [],
 		});
 		SpriteSheetRegistry.RegisterSpriteSheet({
 			id: "tree-01",
 			texture: "/sprites/objects/tree_01.png",
-			framesPerRow: 1,
-			totalRows: 1,
 			size: [4, 5],
-			directional: false,
-			animations: [],
 		});
 		SpriteSheetRegistry.RegisterSpriteSheet({
 			id: "tree-02",
 			texture: "/sprites/objects/tree_02.png",
-			framesPerRow: 1,
-			totalRows: 1,
 			size: [4, 5],
-			directional: false,
-			animations: [],
 		});
 		SpriteSheetRegistry.RegisterSpriteSheet({
 			id: "tree-03",
 			texture: "/sprites/objects/tree_03.png",
-			framesPerRow: 1,
-			totalRows: 1,
 			size: [4, 5],
-			directional: false,
-			animations: [],
 		});
 
-		// Rocks (3 variants) - static, no animations
+		// Rocks atlas - 6 variants in 3x2 grid using static frame selection
 		SpriteSheetRegistry.RegisterSpriteSheet({
 			id: "rock-00",
 			texture: "/sprites/objects/rocks.png",
@@ -403,8 +430,7 @@ export class SpriteSheetRegistry extends Singleton {
 			totalRows: 2,
 			size: [2, 1.5],
 			directional: false,
-			animations: [{ name: "idle", row: 1, frameCount: 1, fps: 6 }],
-
+			animations: [{ name: "idle", row: 1, column: 1 }], // Top-left
 		});
 		SpriteSheetRegistry.RegisterSpriteSheet({
 			id: "rock-01",
@@ -413,8 +439,7 @@ export class SpriteSheetRegistry extends Singleton {
 			totalRows: 2,
 			size: [2, 1.5],
 			directional: false,
-			animations: [{ name: "idle", row: 2, frameCount: 1, fps: 6 }],
-
+			animations: [{ name: "idle", row: 1, column: 2 }], // Top-center
 		});
 		SpriteSheetRegistry.RegisterSpriteSheet({
 			id: "rock-02",
@@ -423,28 +448,19 @@ export class SpriteSheetRegistry extends Singleton {
 			totalRows: 2,
 			size: [2, 1.5],
 			directional: false,
-			animations: [{ name: "idle", row: 1, frameCount: 1, fps: 6 }],
-
+			animations: [{ name: "idle", row: 1, column: 3 }], // Top-right
 		});
 
-		// Houses (2 variants) - static, no animations
+		// Houses (2 variants) - static sprites
 		SpriteSheetRegistry.RegisterSpriteSheet({
 			id: "house-00",
 			texture: "/sprites/house_00.png",
-			framesPerRow: 1,
-			totalRows: 1,
 			size: [6, 5],
-			directional: false,
-			animations: [],
 		});
 		SpriteSheetRegistry.RegisterSpriteSheet({
 			id: "shop-01",
 			texture: "/sprites/shop_01.png",
-			framesPerRow: 1,
-			totalRows: 1,
 			size: [6, 5],
-			directional: false,
-			animations: [],
 		});
 	}
 }

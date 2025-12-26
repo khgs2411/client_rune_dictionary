@@ -1,7 +1,6 @@
 import type { GameObjectType } from "../common/gameobject.types";
 import type { BillboardMode, I_AnimationDefinition } from "../common/sprite.types";
 import type { SpriteDirection } from "../common/spritesheet.types";
-import { DebugLabelComponent } from "../components/debug/DebugLabelComponent";
 import { TransformComponent } from "../components/entities/TransformComponent";
 import { BillboardComponent } from "../components/rendering/BillboardComponent";
 import { SpriteAnimatorComponent } from "../components/rendering/SpriteAnimatorComponent";
@@ -148,8 +147,6 @@ export class SpriteGameObject extends GameObject {
 				mode: billboardMode,
 			}),
 		);
-
-		this.addComponent(new DebugLabelComponent());
 
 		// Animation (only add if animations exist - skip for static sprites)
 		if (animations && animations.length > 0) {
