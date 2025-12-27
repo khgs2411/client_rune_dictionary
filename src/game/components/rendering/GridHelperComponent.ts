@@ -89,7 +89,7 @@ export class GridHelperComponent extends GameComponent {
 		}
 	}
 
-	destroy(scene?: Scene): void {
+	destroy(scene: Scene): void {
 		// Clean up watcher
 		if (this.unwatchDebug) {
 			this.unwatchDebug();

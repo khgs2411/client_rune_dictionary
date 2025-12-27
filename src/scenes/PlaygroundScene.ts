@@ -28,6 +28,7 @@ import { Path } from "@/game/prefabs/environment/Path";
 import { Rocks } from "@/game/prefabs/environment/Rock";
 import { TrainingDummy } from "@/game/prefabs/npc/TrainingDummy";
 import { SpriteGameObject } from "@/game/prefabs/SpriteGameObject";
+import { TileChunk } from "@/game/prefabs/environment/TileChunk";
 
 /**
  * Module Registry for PlaygroundScene
@@ -368,6 +369,21 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 	}
 
 	private addDebugObjects(gom: ReturnType<typeof this.getService<"gameObjectsManager">>): void {
+		// ========================================
+		// TILED GROUND SYSTEM - Phase 1 MVP Test
+		// ========================================
+		// Test chunk positioned to the RIGHT of the player spawn
+		// Small 8x8 chunk for easier visibility testing
+		const testChunk = new TileChunk({
+			chunkX: 0, // Chunk starts at X=0
+			chunkZ: 0, // Chunk starts at Z=0
+			tileSize: 1,
+			chunkSize: 8, // Smaller chunk for testing (8x8 = 64 tiles)
+			debug: true, // Show wireframe for testing
+		});
+		gom.register(testChunk);
+		console.log("🗺️ [PlaygroundScene] Test TileChunk registered at chunk (0, 0) - 8x8 tiles at world origin");
+
 		// Interactive test box - relocated to northeast edge of town
 		const interactiveBox = new GameObject({ id: "interactive-box" })
 			.addComponent(new TransformComponent({ position: [35, 1, 25] }))
