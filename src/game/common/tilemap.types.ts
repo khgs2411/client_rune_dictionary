@@ -50,13 +50,21 @@ export interface I_TileMapConfig {
  */
 export interface I_TilesetConfig {
 	/** Path to the tileset atlas texture */
-	atlasPath: string;
-	/** Size of each tile in the atlas in pixels */
+	texturePath: string;
+	/** Size of each tile in the atlas in pixels (e.g., 32 for 32x32) */
 	tilePixelSize: number;
-	/** Number of tile columns in the atlas */
-	columns: number;
-	/** Number of tile rows in the atlas */
-	rows: number;
+	/** Total number of tile columns in the full atlas */
+	atlasColumns: number;
+	/** Total number of tile rows in the full atlas */
+	atlasRows: number;
+	/** Starting column for our tile group (0-indexed) */
+	startColumn: number;
+	/** Starting row for our tile group (0-indexed) */
+	startRow: number;
+	/** Number of tile columns in our group (default: 4 for auto-tile) */
+	groupColumns?: number;
+	/** Number of tile rows in our group (default: 4 for auto-tile) */
+	groupRows?: number;
 }
 
 /**
@@ -77,6 +85,8 @@ export interface I_TileChunkConfig {
 	tileData?: I_TileData[][];
 	/** Whether to show debug wireframe (default: false) */
 	debug?: boolean;
+	/** Tileset configuration - if provided, renders with tileset shader */
+	tileset?: I_TilesetConfig;
 }
 
 /**
