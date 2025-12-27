@@ -4,6 +4,7 @@ import { GameScene } from "@/game/GameScene";
 import { DebugModule } from "@/game/modules/scene/DebugModule";
 import { LightingModule } from "@/game/modules/scene/LightingModule";
 import { MatchModule } from "@/game/modules/scene/MatchModule";
+import { TileMapModule } from "@/game/modules/scene/TileMapModule";
 import { watch } from "vue";
 import { I_SceneConfig } from "../game/common/scenes.types";
 
@@ -28,7 +29,6 @@ import { Path } from "@/game/prefabs/environment/Path";
 import { Rocks } from "@/game/prefabs/environment/Rock";
 import { TrainingDummy } from "@/game/prefabs/npc/TrainingDummy";
 import { SpriteGameObject } from "@/game/prefabs/SpriteGameObject";
-import { TileChunk } from "@/game/prefabs/environment/TileChunk";
 
 /**
  * Module Registry for PlaygroundScene
@@ -38,6 +38,7 @@ interface PlaygroundModuleRegistry extends Record<string, any> {
 	lighting: LightingModule;
 	debug: DebugModule;
 	match: MatchModule;
+	tilemap: TileMapModule;
 }
 
 export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
@@ -57,6 +58,23 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		this.addModule("lighting", new LightingModule());
 		this.addModule("multiplayer", new MultiplayerModule());
 		this.addModule("match", new MatchModule());
+		this.addModule(
+			"tilemap",
+			new TileMapModule({
+				chunkSize: 16, // 16x16 tiles per chunk
+				tileSize: 1, // 1 world unit per tile
+				activeRadius: 2, // 5x5 grid of chunks around player
+				maxPoolSize: 25, // Pool up to 25 chunks
+				enableFrustumCulling: true,
+				debug: true, // Enable debug logging for testing
+				generatorConfig: {
+					seed: 12345,
+					noiseScale: 0.15,
+					heightScale: 0,
+					useAutoTiling: false,
+				},
+			}),
+		);
 	}
 
 	protected addSceneObjects() {
@@ -369,20 +387,8 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 	}
 
 	private addDebugObjects(gom: ReturnType<typeof this.getService<"gameObjectsManager">>): void {
-		// ========================================
-		// TILED GROUND SYSTEM - Phase 1 MVP Test
-		// ========================================
-		// Test chunk positioned to the RIGHT of the player spawn
-		// Small 8x8 chunk for easier visibility testing
-		const testChunk = new TileChunk({
-			chunkX: 0, // Chunk starts at X=0
-			chunkZ: 0, // Chunk starts at Z=0
-			tileSize: 1,
-			chunkSize: 8, // Smaller chunk for testing (8x8 = 64 tiles)
-			debug: true, // Show wireframe for testing
-		});
-		gom.register(testChunk);
-		console.log("🗺️ [PlaygroundScene] Test TileChunk registered at chunk (0, 0) - 8x8 tiles at world origin");
+		// TileMapModule now handles chunk creation automatically
+		// See registerModules() for tilemap configuration
 
 		// Interactive test box - relocated to northeast edge of town
 		const interactiveBox = new GameObject({ id: "interactive-box" })
