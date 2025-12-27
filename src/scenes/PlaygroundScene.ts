@@ -73,17 +73,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 					heightScale: 0,
 					useAutoTiling: false,
 				},
-				tileset: {
-					texturePath: "/sprites/tileset/Tileset Spring.png",
-					tilePixelSize: 32,
-					atlasColumns: 6, // Actual: 192px / 32px = 6 columns
-					atlasRows: 10, // Actual: 320px / 32px = 10 rows
-					// Grass tiles are in left columns, use a single tile for testing
-					startColumn: 0,
-					startRow: 0,
-					groupColumns: 2, // Just use 2 columns of grass
-					groupRows: 5,    // 5 rows of variations
-				},
 			}),
 		);
 	}

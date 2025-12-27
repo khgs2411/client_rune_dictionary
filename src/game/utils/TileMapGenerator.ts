@@ -184,10 +184,15 @@ export class TileMapGenerator {
 				if (this.useAutoTiling) {
 					tileIndex = this.autoTiler.processTile(autoTileGrid, row, col);
 				} else {
-					// TEMP: Test tile index 0 (top-left of our group)
-					// With groupColumns=2, groupRows=5:
-					// 0 = (0,0), 1 = (1,0), 2 = (0,1), 3 = (1,1), etc.
-					tileIndex = 0;
+					// Simple terrain-to-index mapping without auto-tiling
+					const terrainBaseIndex: Record<TerrainType, number> = {
+						grass: 0,
+						dirt: 1,
+						water: 2,
+						stone: 3,
+						sand: 4,
+					};
+					tileIndex = terrainBaseIndex[autoTile.terrain] ?? 0;
 				}
 
 				tiles[row][col] = {

@@ -10,7 +10,6 @@
 
 import type { I_GameCamera } from "@/composables/composables.types";
 import { I_SceneContext, I_SceneModule } from "@/game/common/scenes.types";
-import { I_TilesetConfig } from "@/game/common/tilemap.types";
 import SceneModule from "@/game/modules/SceneModule";
 import { Frustum, Matrix4 } from "three";
 import { TileChunk } from "../../prefabs/environment/TileChunk";
@@ -36,20 +35,13 @@ export interface I_TileMapModuleConfig {
 	enableFrustumCulling?: boolean;
 	/** Enable debug logging */
 	debug?: boolean;
-	/** Tileset configuration - if provided, renders with tileset textures */
-	tileset?: I_TilesetConfig;
 }
-
-/**
- * Internal config with required base fields but optional tileset
- */
-type TileMapModuleInternalConfig = Required<Omit<I_TileMapModuleConfig, "tileset">> & Pick<I_TileMapModuleConfig, "tileset">;
 
 /**
  * TileMapModule class
  */
 export class TileMapModule extends SceneModule implements I_SceneModule {
-	private config: TileMapModuleInternalConfig;
+	private config: Required<I_TileMapModuleConfig>;
 
 	// Core systems
 	private chunkManager!: ChunkManager;
@@ -80,7 +72,6 @@ export class TileMapModule extends SceneModule implements I_SceneModule {
 			generatorConfig: config.generatorConfig ?? {},
 			enableFrustumCulling: config.enableFrustumCulling ?? true,
 			debug: config.debug ?? false,
-			tileset: config.tileset,
 		};
 	}
 
@@ -215,7 +206,6 @@ export class TileMapModule extends SceneModule implements I_SceneModule {
 			tileSize: this.config.tileSize,
 			chunkSize: this.config.chunkSize,
 			tileData: chunkData.tiles,
-			tileset: this.config.tileset,
 		});
 
 		// Register with GameObjectsManager

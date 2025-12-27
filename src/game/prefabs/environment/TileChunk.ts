@@ -53,7 +53,6 @@ export class TileChunk extends GameObject {
 			tileData: config.tileData,
 			layer: layer,
 			debug: config.debug ?? false,
-			tileset: config.tileset,
 		});
 
 		// Add components
