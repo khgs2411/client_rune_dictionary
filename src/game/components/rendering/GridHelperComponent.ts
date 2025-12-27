@@ -1,5 +1,7 @@
 import { I_SceneContext } from "@/game/common/scenes.types";
-import { GridHelper } from "three";
+import { useSettingsStore } from "@/stores/settings.store";
+import { GridHelper, Scene } from "three";
+import { watch } from "vue";
 import { ComponentPriority, GameComponent } from "../../GameComponent";
 import { TransformComponent } from "../entities/TransformComponent";
 
@@ -9,6 +11,7 @@ export interface I_GridHelperConfig {
 	centerColor?: number;
 	gridColor?: number;
 	yOffset?: number; // Prevent z-fighting (default: 0.01)
+	linkToPhysicsDebug?: boolean; // Sync visibility with showPhysicsDebug setting (default: true)
 }
 
 /**
@@ -32,6 +35,7 @@ export class GridHelperComponent extends GameComponent {
 
 	private config: I_GridHelperConfig;
 	private gridHelper!: GridHelper;
+	private unwatchDebug?: () => void;
 
 	constructor(config: I_GridHelperConfig = {}) {
 		super();
@@ -44,6 +48,7 @@ export class GridHelperComponent extends GameComponent {
 		const centerColor = this.config.centerColor ?? 0x444444;
 		const gridColor = this.config.gridColor ?? 0x888888;
 		const yOffset = this.config.yOffset ?? 0.01;
+		const linkToPhysicsDebug = this.config.linkToPhysicsDebug ?? true;
 
 		// Create grid helper
 		this.gridHelper = new GridHelper(size, divisions, centerColor, gridColor);
@@ -66,5 +71,29 @@ export class GridHelperComponent extends GameComponent {
 
 		// Register for cleanup (handles scene removal and disposal automatically)
 		context.cleanupRegistry.registerObject(this.gridHelper);
+
+		// Link visibility to physics debug setting
+		if (linkToPhysicsDebug) {
+			const settings = useSettingsStore();
+
+			// Set initial visibility
+			this.gridHelper.visible = settings.debug.showPhysicsDebug;
+
+			// Watch for changes
+			this.unwatchDebug = watch(
+				() => settings.debug.showPhysicsDebug,
+				(showDebug) => {
+					this.gridHelper.visible = showDebug;
+				},
+			);
+		}
+	}
+
+	destroy(scene?: Scene): void {
+		// Clean up watcher
+		if (this.unwatchDebug) {
+			this.unwatchDebug();
+		}
+		super.destroy(scene);
 	}
 }
