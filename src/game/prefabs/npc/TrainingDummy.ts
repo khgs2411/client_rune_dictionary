@@ -48,9 +48,8 @@ export class TrainingDummy extends SpriteGameObject {
 			type: config.type,
 			spriteSheetId: "slime",
 			position,
-			billboardMode: "cylindrical",
+			billboardMode: "spherical",
 			defaultAnimation: "idle",
-			nativeFacing: "right",
 		});
 
 		// Add TrainingDummy-specific components

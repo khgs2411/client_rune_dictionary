@@ -38,23 +38,23 @@ export interface I_SpriteGameObjectConfig {
 	defaultAnimation?: string;
 	/** Initial sprite direction */
 	direction?: SpriteDirection;
-	/** Which direction the sprite natively faces */
-	nativeFacing?: "left" | "right";
 	/** Billboard mode (default: 'cylindrical') */
 	billboardMode?: BillboardMode;
 
 	// === Pass-through to SpriteAnimatorComponent ===
 
 	/**
-	 * Additional animator config (passed through to SpriteAnimatorComponent).
-	 * Use this for movement tracking, custom animation mapping, etc.
+	 * Animator config (passed through to SpriteAnimatorComponent).
+	 * Use this for animation selection, direction flip, etc.
 	 *
-	 * @example Movement tracking
+	 * @example Animation resolver
 	 * ```typescript
 	 * animatorConfig: {
-	 *   movementSource: characterController,
-	 *   idleAnimation: "idle",
-	 *   walkAnimation: "walk",
+	 *   movementSource: controller,  // For direction flip
+	 *   animationResolver: () => {
+	 *     if (controller.isJumping.value) return "jump";
+	 *     return controller.isMoving.value ? "walk" : "idle";
+	 *   },
 	 *   nativeFacing: "right",
 	 * }
 	 * ```
@@ -153,7 +153,6 @@ export class SpriteGameObject extends GameObject {
 					animations: resolved.animations,
 					defaultAnimation: config.defaultAnimation,
 					initialDirection: config.direction,
-					nativeFacing: config.nativeFacing,
 					...config.animatorConfig,
 				}),
 			);

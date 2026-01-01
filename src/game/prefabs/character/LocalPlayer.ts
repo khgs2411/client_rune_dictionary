@@ -71,8 +71,7 @@ export class LocalPlayer extends SpriteGameObject {
 			animatorConfig: {
 				movementSource: controller, // For direction flip
 				animationResolver: () => {
-					// Priority: jump > walk > idle
-					if (controller.isJumping.value) return "walk";
+					// TODO: Add "jump" animation to registry, then: if (controller.isJumping.value) return "jump";
 					return controller.isMoving.value ? "walk" : "idle";
 				},
 				nativeFacing: "right",
