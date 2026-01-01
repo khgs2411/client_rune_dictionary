@@ -111,4 +111,7 @@ export interface I_TileGridConfig {
 
 	/** Y offset to prevent z-fighting (default: 0.01) */
 	yOffset?: number;
+
+	/** Render order for depth sorting - lower values render first/behind (default: 0) */
+	renderOrder?: number;
 }

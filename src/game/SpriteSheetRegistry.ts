@@ -437,6 +437,14 @@ export class SpriteSheetRegistry extends Singleton {
 			anchor: [0.5, 0.2],
 		});
 
+		SpriteSheetRegistry.Register({
+			id: "ground-tileset",
+			texture: "/sprites/tileset/ground_tileset.png",
+			size: [1, 1],
+			columns: 12,
+			rows: 20,
+		});
+
 		// ========================================
 		// ENVIRONMENT SPRITES (Static)
 		// ========================================

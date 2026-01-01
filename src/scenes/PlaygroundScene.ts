@@ -60,7 +60,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
 	protected addSceneObjects() {
 		// Ground
-		const ground = new Ground({ size: 200, showGrid: false });
+		const ground = new Ground({ size: 200, showGrid: true });
 		const gom = this.getService("gameObjectsManager");
 		gom.register(ground);
 

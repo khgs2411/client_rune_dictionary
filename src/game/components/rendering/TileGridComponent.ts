@@ -183,6 +183,9 @@ export class TileGridComponent extends GameComponent {
 		const baseY = transform ? transform.position.y : 0;
 		this.instancedMesh.position.y = baseY + (this.config.yOffset ?? 0.01);
 
+		// Render order for depth sorting (lower = renders first/behind)
+		this.instancedMesh.renderOrder = this.config.renderOrder ?? 0;
+
 		// Add instance UV attribute (2 floats per instance: offsetX, offsetY)
 		const uvOffsets = new Float32Array(instanceCount * 2);
 		geometry.setAttribute("instanceUvOffset", new InstancedBufferAttribute(uvOffsets, 2));
@@ -238,6 +241,7 @@ export class TileGridComponent extends GameComponent {
 				}
 			`,
 			transparent: true,
+			depthWrite: true, // Prevent objects from being hidden behind tiles
 		});
 	}
 

@@ -4,6 +4,7 @@ import { GeometryComponent } from "../components/rendering/GeometryComponent";
 import { GridHelperComponent } from "../components/rendering/GridHelperComponent";
 import { MaterialComponent } from "../components/rendering/MaterialComponent";
 import { MeshComponent } from "../components/rendering/MeshComponent";
+import { TileGridComponent } from "../components/rendering/TileGridComponent";
 import { GameObject } from "../GameObject";
 
 import { useSettingsStore } from "@/stores/settings.store";
@@ -83,10 +84,18 @@ export class Ground extends GameObject {
 					metalness: 0,
 				}),
 			)
+			// .addComponent(
+			// 	new MeshComponent({
+			// 		castShadow: false, // Ground doesn't cast shadow
+			// 		receiveShadow: true, // Ground receives shadows
+			// 	}),
+			// )
 			.addComponent(
-				new MeshComponent({
-					castShadow: false, // Ground doesn't cast shadow
-					receiveShadow: true, // Ground receives shadows
+				new TileGridComponent({
+					tilesetId: "ground-tileset",
+					size: [size, size],
+					renderOrder: -2,
+					defaultTile: { row: 4, column: 12 },
 				}),
 			);
 
@@ -98,7 +107,7 @@ export class Ground extends GameObject {
 					divisions: gridDivisions,
 					centerColor: 0x444444,
 					gridColor: 0x888888,
-					yOffset: 0.01, // Prevent z-fighting
+					yOffset: 0.1, // Prevent z-fighting
 				}),
 			);
 		}
