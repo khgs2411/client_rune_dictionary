@@ -146,7 +146,11 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		// Auto-match debug feature (simulates double-click on TrainingDummy)
 		const trainingDummy = this.getService("gameObjectsManager").get<TrainingDummy>("training-dummy-1");
 		if (!trainingDummy) return;
-		this.handleAutoMatch(trainingDummy);
+		
+		// Check if auto-match is enabled
+		if (this.settings.debug.autoMatch) {
+			this.handleAutoMatch(trainingDummy);
+		}
 	}
 
 	private addEnvironmentObjects() {
@@ -459,11 +463,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 	 * Simulates double-click on TrainingDummy by triggering MatchComponent directly
 	 */
 	private handleAutoMatch(trainingDummy: TrainingDummy): void {
-		// Check if auto-match is enabled
-		if (!this.settings.debug.autoMatch) {
-			return; // Auto-match disabled, do nothing
-		}
-
 		console.log("🎮 [PlaygroundScene] Auto-match enabled, starting PvE match in 1 second...");
 
 		// Wait 1 second for scene to fully initialize, then trigger match

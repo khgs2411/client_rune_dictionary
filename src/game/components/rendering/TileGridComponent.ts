@@ -273,19 +273,27 @@ export class TileGridComponent extends GameComponent {
 		let instanceIndex = 0;
 		for (let y = 0; y < this.gridHeight; y++) {
 			for (let x = 0; x < this.gridWidth; x++) {
-				// Get tile selection
+				// Get tile selection (null = hide this instance)
 				const tile = this.selectTile(x, y, context);
 
-				// Set instance position
-				const worldX = baseX + x * this.tileSize;
-				const worldZ = baseZ + y * this.tileSize;
-				matrix.makeTranslation(worldX, 0, worldZ);
-				this.instancedMesh.setMatrixAt(instanceIndex, matrix);
+				if (tile === null) {
+					// Hide instance by scaling to zero
+					matrix.makeScale(0, 0, 0);
+					this.instancedMesh.setMatrixAt(instanceIndex, matrix);
+					// UV doesn't matter for hidden tiles, but set to 0,0
+					uvOffsetAttr.setXY(instanceIndex, 0, 0);
+				} else {
+					// Set instance position
+					const worldX = baseX + x * this.tileSize;
+					const worldZ = baseZ + y * this.tileSize;
+					matrix.makeTranslation(worldX, 0, worldZ);
+					this.instancedMesh.setMatrixAt(instanceIndex, matrix);
 
-				// Set UV offset for this tile (row/col are 1-indexed, flipY=false so V=0 is top)
-				const uvOffsetX = (tile.column - 1) / this.columns;
-				const uvOffsetY = (tile.row - 1) / this.rows;
-				uvOffsetAttr.setXY(instanceIndex, uvOffsetX, uvOffsetY);
+					// Set UV offset for this tile (row/col are 1-indexed, flipY=false so V=0 is top)
+					const uvOffsetX = (tile.column - 1) / this.columns;
+					const uvOffsetY = (tile.row - 1) / this.rows;
+					uvOffsetAttr.setXY(instanceIndex, uvOffsetX, uvOffsetY);
+				}
 
 				instanceIndex++;
 			}
@@ -298,8 +306,9 @@ export class TileGridComponent extends GameComponent {
 
 	/**
 	 * Select which tile to render at a grid position
+	 * Returns null to hide the tile (scale to zero)
 	 */
-	private selectTile(x: number, y: number, context: TileSelectorContext): TileSelection {
+	private selectTile(x: number, y: number, context: TileSelectorContext): TileSelection | null {
 		// Use selector if provided
 		if (this.config.tileSelector) {
 			return this.config.tileSelector(x, y, context);

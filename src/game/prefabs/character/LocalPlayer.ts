@@ -3,6 +3,7 @@ import { KinematicCollisionComponent } from "@/game/components/physics/Kinematic
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { SyncMovementComponent } from "@/game/components/multiplayer/SyncMovementComponent";
 import { KinematicMovementComponent } from "@/game/components/physics/KinematicMovementComponent";
+import { CullingAnchorComponent } from "@/game/components/rendering/CullingAnchorComponent";
 import { SpriteGameObject } from "../SpriteGameObject";
 
 /**
@@ -86,6 +87,9 @@ export class LocalPlayer extends SpriteGameObject {
 	}
 
 	private addCharacterControllerComponents(startPos: [number, number, number], config: I_LocalPlayerConfig) {
+		// LocalPlayer is the culling anchor - culling is calculated from player position
+		this.addComponent(new CullingAnchorComponent());
+
 		// Inline capsule shape for collision
 		this.addComponent(
 			new KinematicCollisionComponent({

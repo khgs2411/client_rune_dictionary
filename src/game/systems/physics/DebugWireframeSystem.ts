@@ -155,6 +155,22 @@ export class DebugWireframeSystem {
 	}
 
 	/**
+	 * Set visibility for a specific wireframe by ID
+	 * Used by CullingSystem to hide wireframes for culled objects
+	 */
+	public setWireframeVisible(id: string, visible: boolean): void {
+		const staticWireframe = this.staticWireframes.get(id);
+		if (staticWireframe) {
+			staticWireframe.visible = visible;
+		}
+
+		const kinematicWireframe = this.kinematicWireframes.get(id);
+		if (kinematicWireframe) {
+			kinematicWireframe.visible = visible;
+		}
+	}
+
+	/**
 	 * Clear all wireframes (called on destroy)
 	 */
 	public clear(): void {
