@@ -276,12 +276,7 @@ export class SpriteSheetRegistry extends Singleton {
 		};
 	}
 
-	private animationRowsToClips(
-		animRows: AnimationRowDefinition[],
-		columns: number,
-		_texture: TextureConfig,
-		filterDirection?: SpriteDirection,
-	): AnimationClip[] {
+	private animationRowsToClips(animRows: AnimationRowDefinition[], columns: number, _texture: TextureConfig, filterDirection?: SpriteDirection): AnimationClip[] {
 		const clips: AnimationClip[] = [];
 
 		for (const row of animRows) {
@@ -315,12 +310,7 @@ export class SpriteSheetRegistry extends Singleton {
 		return clips;
 	}
 
-	private animationRowsToClipsWithTexture(
-		animRows: AnimationRowDefinition[],
-		columns: number,
-		texture: TextureConfig,
-		filterDirection?: SpriteDirection,
-	): AnimationClip[] {
+	private animationRowsToClipsWithTexture(animRows: AnimationRowDefinition[], columns: number, texture: TextureConfig, filterDirection?: SpriteDirection): AnimationClip[] {
 		const clips: AnimationClip[] = [];
 
 		for (const row of animRows) {
@@ -331,15 +321,9 @@ export class SpriteSheetRegistry extends Singleton {
 			const name = row.direction ? `${row.name}-${row.direction}` : row.name;
 
 			// Calculate startFrame based on whether column is specified
-			const startFrame =
-				row.column !== undefined
-					? (row.row - 1) * columns + (row.column - 1)
-					: (row.row - 1) * columns;
+			const startFrame = row.column !== undefined ? (row.row - 1) * columns + (row.column - 1) : (row.row - 1) * columns;
 
-			const endFrame =
-				row.column !== undefined
-					? startFrame
-					: startFrame + row.frameCount - 1;
+			const endFrame = row.column !== undefined ? startFrame : startFrame + row.frameCount - 1;
 
 			let texturePath: string | undefined;
 			if (row.textureId) {
