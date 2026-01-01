@@ -1,6 +1,5 @@
 import type { I_SceneContext } from "../../common/scenes.types";
-import type { I_AnimationDefinition } from "../../common/sprite.types";
-import type { I_ExtendedAnimationDefinition, SpriteDirection } from "../../common/spritesheet.types";
+import type { AnimationClip, SpriteDirection } from "../../common/sprite.types";
 import { ComponentPriority, GameComponent } from "../../GameComponent";
 import { SpriteComponent } from "./SpriteComponent";
 
@@ -15,11 +14,8 @@ export interface I_PositionProvider {
  * Configuration for SpriteAnimatorComponent
  */
 export interface I_SpriteAnimatorConfig {
-	/**
-	 * Animation definitions
-	 * Can be standard I_AnimationDefinition[] or I_ExtendedAnimationDefinition[] with texture info
-	 */
-	animations: I_AnimationDefinition[] | I_ExtendedAnimationDefinition[];
+	/** Animation clips (from SpriteSheetRegistry.buildAnimations or buildExtendedAnimations) */
+	animations: AnimationClip[];
 
 	/** Default animation name (without direction suffix) */
 	defaultAnimation?: string;
@@ -36,19 +32,42 @@ export interface I_SpriteAnimatorConfig {
 	 */
 	preloadTextures?: boolean;
 
-	// === Movement Tracking (optional) ===
+	// === Animation Selection ===
 
 	/**
-	 * Position provider for automatic movement-based animation switching.
-	 * When provided, animator will track position changes and auto-switch
-	 * between idle/walk animations, and flip sprite based on movement direction.
+	 * Callback that returns the animation name to play each frame.
+	 * Gives full control over animation selection logic.
+	 *
+	 * @example
+	 * ```typescript
+	 * animationResolver: () => {
+	 *   if (controller.isJumping.value) return "jump";
+	 *   if (controller.isCasting) return "cast";
+	 *   return controller.isMoving() ? "walk" : "idle";
+	 * }
+	 * ```
+	 */
+	animationResolver?: () => string | null;
+
+	// === Direction Auto-Detection (optional) ===
+
+	/**
+	 * Position provider for automatic sprite flip (facing direction).
+	 * Tracks horizontal movement to flip sprite left/right.
+	 * Does NOT control animation selection - use animationResolver for that.
 	 */
 	movementSource?: I_PositionProvider;
 
-	/** Animation to play when not moving (default: 'idle') */
+	/**
+	 * @deprecated Use animationResolver instead.
+	 * Animation to play when not moving (default: 'idle')
+	 */
 	idleAnimation?: string;
 
-	/** Animation to play when moving (default: 'walk') */
+	/**
+	 * @deprecated Use animationResolver instead.
+	 * Animation to play when moving (default: 'walk')
+	 */
 	walkAnimation?: string;
 
 	/** Movement threshold for detecting motion (default: 0.1) */
@@ -115,14 +134,14 @@ export class SpriteAnimatorComponent extends GameComponent {
 	private config: I_SpriteAnimatorConfig;
 	private spriteComponent: SpriteComponent | null = null;
 
-	// Animation registry (uses extended format internally)
-	private animations: Map<string, I_ExtendedAnimationDefinition> = new Map();
+	// Animation registry
+	private animations: Map<string, AnimationClip> = new Map();
 	private availableDirections: Set<SpriteDirection> = new Set();
 
 	// Current state
 	private currentBaseAnimation: string | null = null;
 	private currentDirection: SpriteDirection = "down";
-	private currentAnimation: I_ExtendedAnimationDefinition | null = null;
+	private currentAnimation: AnimationClip | null = null;
 	private currentFrame = 0;
 	private isPlaying = false;
 	private isPaused = false;
@@ -138,34 +157,40 @@ export class SpriteAnimatorComponent extends GameComponent {
 	// Flip state for direction fallback (e.g., using 'right' sprite flipped for 'left')
 	private currentFlipX = false;
 
-	// Movement tracking state (when movementSource is provided)
+	// Animation resolver (new way - full control)
+	private animationResolver: (() => string | null) | null = null;
+	private lastResolvedAnimation: string | null = null;
+
+	// Movement tracking state (for direction flip)
 	private movementSource: I_PositionProvider | null = null;
 	private lastPositionX = 0;
 	private lastPositionZ = 0;
+	private nativeFacingLeft = false; // Default: sprite faces right
+	private movementFlipState = false; // Separate flip state for movement tracking
+
+	// Legacy movement tracking (deprecated - use animationResolver instead)
+	private useLegacyMovementTracking = false;
 	private isMoving = false;
 	private idleAnimation = "idle";
 	private walkAnimation = "walk";
 	private movementThreshold = 0.1;
-	private nativeFacingLeft = false; // Default: sprite faces right
-	private movementFlipState = false; // Separate flip state for movement tracking
 
 	constructor(config: I_SpriteAnimatorConfig) {
 		super();
 		this.config = config;
 		this.currentDirection = config.initialDirection ?? "down";
 
-		// Build animation lookup map (convert to extended format)
+		// Build animation lookup map
 		for (const anim of config.animations) {
-			const extended = this.toExtendedAnimation(anim);
-			this.animations.set(extended.name, extended);
+			this.animations.set(anim.name, anim);
 
 			// Track if we have multiple textures
-			if (extended.texturePath) {
+			if (anim.texturePath) {
 				this.hasMultipleTextures = true;
 			}
 
 			// Extract direction from name if present
-			const parts = extended.name.split("-");
+			const parts = anim.name.split("-");
 			if (parts.length > 1) {
 				const possibleDir = parts[parts.length - 1] as SpriteDirection;
 				if (this.isValidDirection(possibleDir)) {
@@ -179,30 +204,24 @@ export class SpriteAnimatorComponent extends GameComponent {
 			this.availableDirections = new Set(config.directions);
 		}
 
-		// Initialize movement tracking config
+		// Initialize animation resolver (new way)
+		if (config.animationResolver) {
+			this.animationResolver = config.animationResolver;
+		}
+
+		// Initialize movement source for direction flip
 		if (config.movementSource) {
 			this.movementSource = config.movementSource;
-			this.idleAnimation = config.idleAnimation ?? "idle";
-			this.walkAnimation = config.walkAnimation ?? "walk";
-			this.movementThreshold = config.movementThreshold ?? 0.1;
 			this.nativeFacingLeft = config.nativeFacing === "left";
-		}
-	}
+			this.movementThreshold = config.movementThreshold ?? 0.1;
 
-	/**
-	 * Convert standard animation to extended format
-	 */
-	private toExtendedAnimation(anim: I_AnimationDefinition | I_ExtendedAnimationDefinition): I_ExtendedAnimationDefinition {
-		return {
-			name: anim.name,
-			startFrame: anim.startFrame,
-			endFrame: anim.endFrame,
-			fps: anim.fps,
-			loop: anim.loop,
-			onComplete: anim.onComplete,
-			texturePath: (anim as I_ExtendedAnimationDefinition).texturePath,
-			textureId: (anim as I_ExtendedAnimationDefinition).textureId,
-		};
+			// Legacy mode: use movement for animation selection (when no resolver)
+			if (!config.animationResolver) {
+				this.useLegacyMovementTracking = true;
+				this.idleAnimation = config.idleAnimation ?? "idle";
+				this.walkAnimation = config.walkAnimation ?? "walk";
+			}
+		}
 	}
 
 	private isValidDirection(dir: string): dir is SpriteDirection {
@@ -219,7 +238,7 @@ export class SpriteAnimatorComponent extends GameComponent {
 	 *
 	 * @returns { anim, flipX } or null if not found
 	 */
-	private resolveAnimation(baseName: string, direction: SpriteDirection): { anim: I_ExtendedAnimationDefinition; flipX: boolean } | null {
+	private resolveAnimation(baseName: string, direction: SpriteDirection): { anim: AnimationClip; flipX: boolean } | null {
 		// 1. Try exact directional match
 		const directionalName = `${baseName}-${direction}`;
 		const exactMatch = this.animations.get(directionalName);
@@ -279,12 +298,23 @@ export class SpriteAnimatorComponent extends GameComponent {
 		// Track initial texture
 		this.currentTexturePath = this.spriteComponent.getCurrentTexturePath();
 
-		// Initialize movement tracking if movementSource provided
+		// Initialize movement source position tracking (for direction flip)
 		if (this.movementSource) {
 			const pos = this.movementSource.getPosition();
 			this.lastPositionX = pos.x;
 			this.lastPositionZ = pos.z;
-			// Start with idle animation
+		}
+
+		// Determine initial animation
+		if (this.animationResolver) {
+			// Let resolver decide the first animation
+			const resolved = this.animationResolver();
+			if (resolved) {
+				this.lastResolvedAnimation = resolved;
+				this.play(resolved);
+			}
+		} else if (this.useLegacyMovementTracking) {
+			// Legacy mode: start with idle animation
 			this.play(this.idleAnimation);
 		} else if (this.config.defaultAnimation) {
 			// Auto-play default animation
@@ -311,9 +341,18 @@ export class SpriteAnimatorComponent extends GameComponent {
 	}
 
 	update(delta: number): void {
-		// Handle movement tracking if enabled
+		// Handle animation resolver (new way - full control)
+		if (this.animationResolver && this.spriteComponent) {
+			const resolved = this.animationResolver();
+			if (resolved && resolved !== this.lastResolvedAnimation) {
+				this.lastResolvedAnimation = resolved;
+				this.play(resolved);
+			}
+		}
+
+		// Handle direction auto-detection from movement source
 		if (this.movementSource && this.spriteComponent) {
-			this.updateMovementTracking(delta);
+			this.updateDirectionTracking(delta);
 		}
 
 		// Handle animation frame advancement
@@ -330,9 +369,9 @@ export class SpriteAnimatorComponent extends GameComponent {
 	}
 
 	/**
-	 * Track position changes and update animation/flip accordingly
+	 * Track position changes for direction flip (and legacy animation selection)
 	 */
-	private updateMovementTracking(delta: number): void {
+	private updateDirectionTracking(delta: number): void {
 		if (!this.movementSource || !this.spriteComponent) return;
 
 		const pos = this.movementSource.getPosition();
@@ -357,8 +396,8 @@ export class SpriteAnimatorComponent extends GameComponent {
 			this.movementFlipState = this.nativeFacingLeft ? !movingLeft : movingLeft;
 		}
 
-		// Update animation if movement state changed
-		if (nowMoving !== this.isMoving) {
+		// Legacy mode: update animation based on movement (deprecated)
+		if (this.useLegacyMovementTracking && nowMoving !== this.isMoving) {
 			this.isMoving = nowMoving;
 			this.play(nowMoving ? this.walkAnimation : this.idleAnimation);
 		}
@@ -654,11 +693,19 @@ export class SpriteAnimatorComponent extends GameComponent {
 
 	/**
 	 * Set movement source for auto idle/walk switching.
-	 * Call after construction if not provided in config.
 	 *
-	 * Enables:
-	 * - Automatic switching between idle/walk animations based on movement
-	 * - Automatic sprite flip based on movement direction
+	 * @deprecated Pass movementSource via constructor config instead.
+	 * Use SpriteGameObject's animatorConfig pass-through:
+	 * ```typescript
+	 * new SpriteGameObject({
+	 *   spriteSheetId: "character",
+	 *   animatorConfig: {
+	 *     movementSource: controller,
+	 *     idleAnimation: "idle",
+	 *     walkAnimation: "walk",
+	 *   },
+	 * });
+	 * ```
 	 *
 	 * @param source - Position provider to track (e.g., CharacterController)
 	 * @param options - Optional configuration overrides
@@ -672,6 +719,7 @@ export class SpriteAnimatorComponent extends GameComponent {
 			nativeFacing?: "left" | "right";
 		},
 	): void {
+		console.warn("[SpriteAnimatorComponent] setMovementSource() is deprecated. Pass movementSource via constructor config instead.");
 		this.movementSource = source;
 		const pos = source.getPosition();
 		this.lastPositionX = pos.x;

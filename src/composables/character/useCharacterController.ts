@@ -70,6 +70,8 @@ export function useCharacterController(options: I_CharacterControlsOptions): I_C
 		rotation: movement.rotation,
 		speed: movement.speed,
 		isJumping: jump.isJumping,
+		isMoving: movement.isMoving,
+
 		joystick: {
 			active: joystick.active,
 			x: joystick.x,

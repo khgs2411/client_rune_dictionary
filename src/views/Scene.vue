@@ -50,6 +50,7 @@ function start() {
 		console.log("   ↳ Scene UUID:", engine.scene.uuid);
 
 		loadSceneAssets();
+		
 		// Create and load playground scene
 		// LoadingScreen.vue (mounted first) listens to events emitted by the scene
 		setCurrentScene();

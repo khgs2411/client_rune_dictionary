@@ -2,7 +2,6 @@ import type { I_CharacterControls } from "@/composables/composables.types";
 import { KinematicCollisionComponent } from "@/game/components/physics/KinematicCollisionComponent";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { SyncMovementComponent } from "@/game/components/multiplayer/SyncMovementComponent";
-import { SpriteAnimatorComponent } from "@/game/components/rendering/SpriteAnimatorComponent";
 import { KinematicMovementComponent } from "@/game/components/physics/KinematicMovementComponent";
 import { SpriteGameObject } from "../SpriteGameObject";
 
@@ -60,28 +59,28 @@ export class LocalPlayer extends SpriteGameObject {
 			}
 		}
 
-		// Call SpriteGameObject constructor
+		// Capture controller reference for resolver closure
+		const controller = config.characterController;
+
+		// Call SpriteGameObject constructor with animationResolver
 		super({
 			id: config.playerId,
 			spriteSheetId: "local-player",
 			position: startPos,
 			billboardMode: "cylindrical",
-			defaultAnimation: "idle",
-			nativeFacing: "right",
+			animatorConfig: {
+				movementSource: controller, // For direction flip
+				animationResolver: () => {
+					// Priority: jump > walk > idle
+					if (controller.isJumping.value) return "walk";
+					return controller.isMoving.value ? "walk" : "idle";
+				},
+				nativeFacing: "right",
+			},
 		});
 
 		// Store controller reference
 		this.characterController = config.characterController;
-
-		// Configure movement tracking on animator (must be after super)
-		const animator = this.getComponent(SpriteAnimatorComponent);
-		if (animator) {
-			animator.setMovementSource(this.characterController, {
-				idleAnimation: "idle",
-				walkAnimation: "walk",
-				nativeFacing: "right",
-			});
-		}
 
 		// Add LocalPlayer-specific components
 		this.addCharacterControllerComponents(startPos, config);

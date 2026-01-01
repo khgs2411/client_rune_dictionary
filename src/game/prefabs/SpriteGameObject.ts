@@ -1,9 +1,8 @@
 import type { GameObjectType } from "../common/gameobject.types";
-import type { BillboardMode, I_AnimationDefinition } from "../common/sprite.types";
-import type { SpriteDirection } from "../common/spritesheet.types";
+import type { AnimationClip, BillboardMode, SpriteDirection } from "../common/sprite.types";
 import { TransformComponent } from "../components/entities/TransformComponent";
 import { BillboardComponent } from "../components/rendering/BillboardComponent";
-import { SpriteAnimatorComponent } from "../components/rendering/SpriteAnimatorComponent";
+import { type I_SpriteAnimatorConfig, SpriteAnimatorComponent } from "../components/rendering/SpriteAnimatorComponent";
 import { SpriteComponent } from "../components/rendering/SpriteComponent";
 import { GameObject } from "../GameObject";
 import { SpriteSheetRegistry } from "../SpriteSheetRegistry";
@@ -31,7 +30,7 @@ export interface I_SpriteGameObjectConfig {
 	// === Only used with direct texture mode ===
 	spriteSheet?: { columns: number; rows: number };
 	anchor?: [number, number];
-	animations?: I_AnimationDefinition[];
+	animations?: AnimationClip[];
 
 	// === Shared options ===
 
@@ -43,6 +42,24 @@ export interface I_SpriteGameObjectConfig {
 	nativeFacing?: "left" | "right";
 	/** Billboard mode (default: 'cylindrical') */
 	billboardMode?: BillboardMode;
+
+	// === Pass-through to SpriteAnimatorComponent ===
+
+	/**
+	 * Additional animator config (passed through to SpriteAnimatorComponent).
+	 * Use this for movement tracking, custom animation mapping, etc.
+	 *
+	 * @example Movement tracking
+	 * ```typescript
+	 * animatorConfig: {
+	 *   movementSource: characterController,
+	 *   idleAnimation: "idle",
+	 *   walkAnimation: "walk",
+	 *   nativeFacing: "right",
+	 * }
+	 * ```
+	 */
+	animatorConfig?: Partial<I_SpriteAnimatorConfig>;
 }
 
 /**
@@ -80,46 +97,30 @@ export interface I_SpriteGameObjectConfig {
  * anim?.play('walk');
  * ```
  */
+/** Resolved sprite configuration used internally */
+interface I_ResolvedSpriteConfig {
+	texture: string;
+	spriteSheet?: { columns: number; rows: number };
+	size: [number, number];
+	anchor: [number, number];
+	animations?: AnimationClip[];
+}
+
 export class SpriteGameObject extends GameObject {
 	constructor(config: I_SpriteGameObjectConfig) {
 		super({ id: config.id, type: config.type });
+		let resolved: I_ResolvedSpriteConfig | null = null;
 
 		// Resolve sprite configuration from registry or direct config
-		let texture: string;
-		let spriteSheet: { columns: number; rows: number } | undefined;
-		let size: [number, number];
-		let anchor: [number, number];
-		let animations: I_AnimationDefinition[] | undefined;
-
 		if (config.spriteSheetId) {
-			// Registry-based (preferred)
-			const registry = SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>();
-			const spriteConfig = registry.getSpriteConfig(config.spriteSheetId);
-
-			if (!spriteConfig) {
-				throw new Error(`[SpriteGameObject] Sprite sheet "${config.spriteSheetId}" not found. ` + `Available: [${registry.getIds().join(", ")}]`);
-			}
-
-			texture = spriteConfig.texture;
-			spriteSheet = spriteConfig.spriteSheet;
-			size = config.size ?? spriteConfig.size; // Allow size override
-			anchor = spriteConfig.anchor;
-
-			// buildAnimations returns empty array for static sprites
-			const builtAnimations = registry.buildAnimations(config.spriteSheetId, config.direction);
-			animations = builtAnimations.length > 0 ? builtAnimations : undefined;
+			resolved = this.buildFromSpriteSheetRegistry(config);
 		} else if (config.texture) {
-			// Direct config (fallback)
-			texture = config.texture;
-			spriteSheet = config.spriteSheet;
-			size = config.size ?? [1, 1];
-			anchor = config.anchor ?? [0.5, 0];
-			animations = config.animations;
-		} else {
-			throw new Error(`[SpriteGameObject] Either "spriteSheetId" or "texture" is required.`);
+			resolved = this.buildFromTexture(config);
 		}
 
-		const billboardMode = config.billboardMode ?? "cylindrical";
+		if (!resolved) {
+			throw new Error(`[SpriteGameObject] Either "spriteSheetId" or "texture" is required.`);
+		}
 
 		// Transform
 		this.addComponent(
@@ -131,30 +132,62 @@ export class SpriteGameObject extends GameObject {
 		// Sprite
 		this.addComponent(
 			new SpriteComponent({
-				texture,
-				spriteSheet,
-				size,
-				anchor,
+				texture: resolved.texture,
+				spriteSheet: resolved.spriteSheet,
+				size: resolved.size,
+				anchor: resolved.anchor,
 			}),
 		);
 
 		// Billboard
 		this.addComponent(
 			new BillboardComponent({
-				mode: billboardMode,
+				mode: config.billboardMode ?? "cylindrical",
 			}),
 		);
 
 		// Animation (only add if animations exist - skip for static sprites)
-		if (animations && animations.length > 0) {
+		if (resolved.animations && resolved.animations.length > 0) {
 			this.addComponent(
 				new SpriteAnimatorComponent({
-					animations,
+					animations: resolved.animations,
 					defaultAnimation: config.defaultAnimation,
 					initialDirection: config.direction,
 					nativeFacing: config.nativeFacing,
+					...config.animatorConfig,
 				}),
 			);
 		}
+	}
+
+	/** Build sprite config from SpriteSheetRegistry (preferred) */
+	private buildFromSpriteSheetRegistry(config: I_SpriteGameObjectConfig): I_ResolvedSpriteConfig {
+		const registry = SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>();
+		const spriteConfig = registry.getSpriteConfig(config.spriteSheetId!);
+
+		if (!spriteConfig) {
+			throw new Error(`[SpriteGameObject] Sprite sheet "${config.spriteSheetId}" not found. ` + `Available: [${registry.getIds().join(", ")}]`);
+		}
+
+		const builtAnimations = registry.buildAnimations(config.spriteSheetId!, config.direction);
+
+		return {
+			texture: spriteConfig.texture,
+			spriteSheet: spriteConfig.spriteSheet,
+			size: config.size ?? spriteConfig.size,
+			anchor: spriteConfig.anchor,
+			animations: builtAnimations.length > 0 ? builtAnimations : undefined,
+		};
+	}
+
+	/** Build sprite config from direct texture path (fallback) */
+	private buildFromTexture(config: I_SpriteGameObjectConfig): I_ResolvedSpriteConfig {
+		return {
+			texture: config.texture!,
+			spriteSheet: config.spriteSheet,
+			size: config.size ?? [1, 1],
+			anchor: config.anchor ?? [0.5, 0],
+			animations: config.animations,
+		};
 	}
 }
