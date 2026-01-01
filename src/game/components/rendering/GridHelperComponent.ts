@@ -53,7 +53,7 @@ export class GridHelperComponent extends GameComponent {
 		if (transform && transform.position) {
 			this.gridHelper.position.set(
 				transform.position.x,
-				yOffset, // Use yOffset for Y, not transform.position.y
+				transform.position.y + yOffset, // Position relative to transform Y
 				transform.position.z,
 			);
 		} else {
