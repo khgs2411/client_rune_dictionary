@@ -19,15 +19,15 @@ bun run format   # Prettier (run before commits)
 
 ## Tech Stack
 
-| Layer | Technology | Notes |
-|-------|------------|-------|
-| Framework | Vue 3 + TypeScript + Vite 7 | Composition API, `<script setup>` only |
-| 3D Engine | Three.js 0.180.0 | Imperative only (NOT TresJS) |
-| Physics | Rapier3D (WASM) | Always use `PhysicsSystem` facade |
-| State | Pinia + persistedstate | Stores in `src/stores/` |
-| UI | Reka UI + Tailwind CSS 4.1 | Components in `src/components/ui/` |
-| Utilities | VueUse 13.9.0, topsyde-utils | Prefer VueUse over custom solutions |
-| Runtime | Bun | Never use npm/node |
+| Layer     | Technology                        | Notes                                  |
+| --------- | --------------------------------- | -------------------------------------- |
+| Framework | Vue 3.5 + TypeScript 5.9 + Vite 7 | Composition API, `<script setup>` only |
+| 3D Engine | Three.js 0.180.0                  | Imperative only (NOT TresJS)           |
+| Physics   | Rapier3D 0.19 (WASM)              | Always use `PhysicsSystem` facade      |
+| State     | Pinia 3 + persistedstate          | Stores in `src/stores/`                |
+| UI        | Reka UI 2.6 + Tailwind CSS 4.1    | Components in `src/components/ui/`     |
+| Utilities | VueUse 14.1, topsyde-utils        | Prefer VueUse over custom solutions    |
+| Runtime   | Bun                               | Never use npm/node                     |
 
 ---
 
@@ -37,7 +37,7 @@ bun run format   # Prettier (run before commits)
 
 ```
 Is it...
-├── Singular infrastructure for the scene (lighting, camera, ground)?
+├── Singular infrastructure for the scene (lighting, camera, match setup)?
 │   └── SceneModule
 ├── Multiple instances of something (enemies, trees, rocks)?
 │   └── GameObject with components
@@ -49,12 +49,12 @@ Is it...
 
 ### Pattern Summary
 
-| Pattern | Cardinality | Examples | Location |
-|---------|-------------|----------|----------|
-| `SceneModule` | One per scene | LightingModule, GroundModule, MatchModule | `src/game/modules/` |
-| `GameObject` | Many instances | TrainingDummy, Rock, LocalPlayer | `src/game/prefabs/` |
-| `GameComponent` | Attached to GameObjects | HoverComponent, MeshComponent | `src/game/components/` |
-| System | Singleton services | PhysicsSystem, VFXSystem | `src/game/systems/` |
+| Pattern         | Cardinality             | Examples                                 | Location               |
+| --------------- | ----------------------- | ---------------------------------------- | ---------------------- |
+| `SceneModule`   | One per scene           | LightingModule, MatchModule, DebugModule | `src/game/modules/`    |
+| `GameObject`    | Many instances          | TrainingDummy, Rock, LocalPlayer         | `src/game/prefabs/`    |
+| `GameComponent` | Attached to GameObjects | HoverComponent, MeshComponent            | `src/game/components/` |
+| System          | Singleton services      | PhysicsSystem, VFXSystem                 | `src/game/systems/`    |
 
 ---
 
@@ -68,32 +68,60 @@ src/
 │   ├── GameObject.ts        # Entity base class
 │   ├── GameComponent.ts     # Component base class
 │   ├── CleanupRegistry.ts   # Memory management (CRITICAL)
+│   ├── ModuleRegistry.ts    # Module lifecycle
+│   ├── SpriteSheetRegistry.ts # Sprite sheet management
+│   ├── common/              # Game-specific types
 │   ├── components/          # Reusable components
 │   │   ├── core/            # EventEmitterComponent
+│   │   ├── debug/           # DebugLabelComponent
 │   │   ├── rendering/       # Mesh, Material, Sprite, Billboard
 │   │   ├── interactions/    # Hover, Click, Drag, Hotkey
 │   │   ├── physics/         # Collision, Kinematic movement
-│   │   └── entities/        # Transform, Spawn, Trajectory
+│   │   ├── entities/        # Transform, Spawn, Trajectory
+│   │   ├── match/           # MatchComponent
+│   │   └── multiplayer/     # RemotePlayer, SyncMovement
 │   ├── prefabs/             # GameObject implementations
 │   │   ├── character/       # LocalPlayer, RemotePlayer
-│   │   ├── environment/     # Rock, House, TileChunk
+│   │   ├── environment/     # Rock, House, Path
 │   │   └── npc/             # TrainingDummy
 │   ├── modules/             # SceneModule implementations
-│   │   └── scene/           # Lighting, Ground, Match, TileMap
-│   └── systems/             # Global systems
-│       ├── PhysicsSystem.ts # Rapier3D facade
-│       ├── VFXSystem.ts     # Emissive, particles
-│       └── InteractionSystem.ts # Raycasting
-├── scenes/                  # Scene implementations
+│   │   ├── scene/           # Lighting, Match, Debug
+│   │   └── networking/      # MultiplayerModule
+│   ├── systems/             # Global systems
+│   │   ├── PhysicsSystem.ts # Rapier3D facade
+│   │   ├── VFXSystem.ts     # Emissive, particles
+│   │   ├── InteractionSystem.ts # Raycasting
+│   │   ├── NetworkingSystem.ts
+│   │   ├── SceneSystem.ts
+│   │   ├── SceneState.ts
+│   │   ├── GameObjectsManager.ts
+│   │   ├── Spawner.ts
+│   │   └── physics/         # Physics subsystems
+│   └── utils/               # Game utilities
+│       ├── CollisionShapeFactory.ts
+│       ├── Mouse.ts
+│       ├── ObjectPool.ts
+│       ├── Raycast.ts
+│       └── TextureCache.ts
+├── scenes/                  # Scene implementations (PlaygroundScene)
 ├── composables/             # Vue composables
+│   ├── camera/              # Camera controller subsystem
+│   ├── character/           # Character controller subsystem
+│   ├── useMatchState.ts     # Match state management
+│   ├── useMatchActions.ts   # Match action handlers
+│   ├── useATBPrediction.ts  # ATB timing prediction
+│   └── ...
 ├── stores/                  # Pinia stores
 ├── components/              # Vue UI components
 │   ├── ui/                  # Reka UI primitives
-│   ├── match/               # Combat UI (ActionBar, StatusPanel)
+│   ├── match/               # Combat UI (ActionBar, StatusPanel, ATB)
 │   └── grimoire/            # Inventory/ability UI
-├── views/                   # Route views
+├── views/                   # Route views (Game, Login, Scene)
+├── layout/                  # Layout components (Menu, VirtualJoystick)
+├── router/                  # Vue Router setup
 ├── common/                  # Shared types and enums
-└── api/                     # HTTP API clients
+├── api/                     # HTTP API clients
+└── lib/                     # Generic utilities
 
 src_deprecated/              # Old PrimeVue app - NEVER MODIFY
 ```
@@ -107,21 +135,23 @@ src_deprecated/              # Old PrimeVue app - NEVER MODIFY
 ```typescript
 // src/game/prefabs/MyObject.ts
 export class MyObject extends GameObject {
-    constructor(config: { id: string; position?: [number, number, number] }) {
-        super({ id: config.id });
-        
-        this.addComponent(new TransformComponent({ 
-            position: config.position || [0, 0, 0] 
-        }))
-        .addComponent(new GeometryComponent({ type: 'box', params: [1, 1, 1] }))
-        .addComponent(new MaterialComponent({ color: 0xff1493 }))
-        .addComponent(new MeshComponent())
-        .addComponent(new HoverComponent()); // Optional interactivity
-    }
+	constructor(config: { id: string; position?: [number, number, number] }) {
+		super({ id: config.id });
+
+		this.addComponent(
+			new TransformComponent({
+				position: config.position || [0, 0, 0],
+			}),
+		)
+			.addComponent(new GeometryComponent({ type: "box", params: [1, 1, 1] }))
+			.addComponent(new MaterialComponent({ color: 0xff1493 }))
+			.addComponent(new MeshComponent())
+			.addComponent(new HoverComponent()); // Optional interactivity
+	}
 }
 
 // Usage in scene:
-const obj = new MyObject({ id: 'my-object-1', position: [5, 0, 3] });
+const obj = new MyObject({ id: "my-object-1", position: [5, 0, 3] });
 context.gameObjectsManager.register(obj);
 await obj.init(context);
 ```
@@ -131,28 +161,28 @@ await obj.init(context);
 ```typescript
 // src/game/modules/scene/MyModule.ts
 export class MyModule extends SceneModule {
-    private mesh?: Mesh;
+	private mesh?: Mesh;
 
-    async init(context: I_ModuleContext): Promise<void> {
-        await super.init(context); // ⚠️ REQUIRED first!
+	async init(context: I_ModuleContext): Promise<void> {
+		await super.init(context); // ⚠️ REQUIRED first!
 
-        const geometry = new BoxGeometry(1, 1, 1);
-        const material = new MeshStandardMaterial({ color: 0x00ff00 });
-        this.mesh = new Mesh(geometry, material);
-        
-        context.scene.add(this.mesh);
-        
-        // ⚠️ CRITICAL: Register for cleanup
-        context.cleanupRegistry.registerObject(this.mesh);
-        context.cleanupRegistry.registerDisposable(geometry);
-        context.cleanupRegistry.registerDisposable(material);
-    }
+		const geometry = new BoxGeometry(1, 1, 1);
+		const material = new MeshStandardMaterial({ color: 0x00ff00 });
+		this.mesh = new Mesh(geometry, material);
 
-    update(delta: number): void {
-        if (this.mesh) {
-            this.mesh.rotation.y += delta;
-        }
-    }
+		context.scene.add(this.mesh);
+
+		// ⚠️ CRITICAL: Register for cleanup
+		context.cleanupRegistry.registerObject(this.mesh);
+		context.cleanupRegistry.registerDisposable(geometry);
+		context.cleanupRegistry.registerDisposable(material);
+	}
+
+	update(delta: number): void {
+		if (this.mesh) {
+			this.mesh.rotation.y += delta;
+		}
+	}
 }
 ```
 
@@ -161,21 +191,21 @@ export class MyModule extends SceneModule {
 ```typescript
 // src/game/components/MyComponent.ts
 export class RotateComponent extends GameComponent {
-    public readonly priority = ComponentPriority.DEFAULT;
-    
-    private speed: number;
-    
-    constructor(config: { speed?: number } = {}) {
-        super();
-        this.speed = config.speed ?? 1;
-    }
+	public readonly priority = ComponentPriority.DEFAULT;
 
-    update(delta: number): void {
-        const mesh = this.getComponent(MeshComponent);
-        if (mesh?.mesh) {
-            mesh.mesh.rotation.y += delta * this.speed;
-        }
-    }
+	private speed: number;
+
+	constructor(config: { speed?: number } = {}) {
+		super();
+		this.speed = config.speed ?? 1;
+	}
+
+	update(delta: number): void {
+		const mesh = this.getComponent(MeshComponent);
+		if (mesh?.mesh) {
+			mesh.mesh.rotation.y += delta * this.speed;
+		}
+	}
 }
 ```
 
@@ -185,15 +215,15 @@ export class RotateComponent extends GameComponent {
 // In any module or component with access to context:
 
 // Physics
-const physics = context.getService('physics');
+const physics = context.getService("physics");
 physics.registerStaticFromMesh(this.gameObject.id, mesh, { showDebug: true });
 
 // VFX
-const vfx = context.getService('vfx');
+const vfx = context.getService("vfx");
 vfx.applyEmissive(mesh, 0xff0000, 0.5);
 
 // Interaction (handled automatically if using InteractionComponent/HoverComponent)
-const interaction = context.getService('interaction');
+const interaction = context.getService("interaction");
 ```
 
 ---
@@ -216,6 +246,7 @@ context.cleanupRegistry.registerDisposable({ dispose: unsubscribe });
 ```
 
 **Common Memory Leak Sources:**
+
 - Unregistered meshes
 - Geometries/materials not disposed
 - Event listeners not removed
@@ -225,14 +256,15 @@ context.cleanupRegistry.registerDisposable({ dispose: unsubscribe });
 
 ## Pinia Stores
 
-| Store | Purpose | Persisted |
-|-------|---------|-----------|
-| `auth.store.ts` | User authentication | Yes |
-| `websocket.store.ts` | WebSocket connection state | No |
-| `settings.store.ts` | User preferences | Yes |
-| `config.store.ts` | Debug flags, feature toggles | No |
-| `scene.store.ts` | Current scene state | No |
-| `match.store.ts` | Active match data | No |
+| Store                | Purpose                      | Persisted |
+| -------------------- | ---------------------------- | --------- |
+| `auth.store.ts`      | User authentication          | Yes       |
+| `websocket.store.ts` | WebSocket connection state   | No        |
+| `settings.store.ts`  | User preferences             | Yes       |
+| `config.store.ts`    | Debug flags, feature toggles | No        |
+| `scene.store.ts`     | Current scene state          | No        |
+| `match.store.ts`     | Active match data            | No        |
+| `DataStore.ts`       | Generic data store utility   | -         |
 
 ---
 
@@ -243,10 +275,11 @@ Client connects to server using topsyde-utils WebSocket:
 ```typescript
 // Connection format (in sec-websocket-protocol header):
 // "clientId-username"
-const ws = new WebSocket('wss://server:443', '123-PlayerName');
+const ws = new WebSocket("wss://server:443", "123-PlayerName");
 ```
 
 **Match Events Flow:**
+
 ```
 Server broadcasts → websocket.store receives → match.store updates → Vue/Three.js reacts
 ```
@@ -272,15 +305,19 @@ const { camera, controls } = useCamera();
 this.addComponent(new HoverComponent());
 
 // Method 2: InteractionComponent (full click handling)
-this.addComponent(new InteractionComponent({
-    onClick: () => console.log('Clicked!'),
-    onHover: () => console.log('Hovered!'),
-}));
+this.addComponent(
+	new InteractionComponent({
+		onClick: () => console.log("Clicked!"),
+		onHover: () => console.log("Hovered!"),
+	}),
+);
 
 // Method 3: MouseClickComponent + custom handling
-this.addComponent(new MouseClickComponent({
-    onClick: (event) => this.handleClick(event),
-}));
+this.addComponent(
+	new MouseClickComponent({
+		onClick: (event) => this.handleClick(event),
+	}),
+);
 ```
 
 ### Responding to Match Events
@@ -288,8 +325,8 @@ this.addComponent(new MouseClickComponent({
 ```typescript
 // In a Vue composable or store:
 websocketStore.on(E_MatchEventType.DAMAGE, (data) => {
-    // Update UI
-    matchStore.applyDamage(data);
+	// Update UI
+	matchStore.applyDamage(data);
 });
 
 // In a Three.js component (if needed):
@@ -300,28 +337,31 @@ websocketStore.on(E_MatchEventType.DAMAGE, (data) => {
 
 ## Anti-Patterns to Avoid
 
-| ❌ Don't | ✅ Do Instead |
-|----------|---------------|
-| Use raw Rapier API | Use `PhysicsSystem` facade |
-| Create custom utilities | Check VueUse first |
-| Forget cleanup registration | Always register Three.js objects |
-| Modify `src_deprecated/` | It's reference only |
+| ❌ Don't                        | ✅ Do Instead                      |
+| ------------------------------- | ---------------------------------- |
+| Use raw Rapier API              | Use `PhysicsSystem` facade         |
+| Create custom utilities         | Check VueUse first                 |
+| Forget cleanup registration     | Always register Three.js objects   |
+| Modify `src_deprecated/`        | It's reference only                |
 | Mix Vue reactivity in game code | Keep game logic in game/ directory |
-| Create new geometry per frame | Pool or reuse geometries |
+| Create new geometry per frame   | Pool or reuse geometries           |
 
 ---
 
 ## Debugging
 
 ### Three.js Inspector
+
 Enable in `config.store.ts` or use browser extension.
 
 ### Physics Debug Wireframes
+
 ```typescript
 physics.registerStaticFromMesh(id, mesh, { showDebug: true });
 ```
 
 ### Check Memory Leaks
+
 1. Open Chrome DevTools → Memory
 2. Take heap snapshot before/after scene change
 3. Compare for retained Three.js objects
@@ -340,8 +380,9 @@ VITE_HOST           # REST API base URL
 
 ## Additional Documentation
 
-| Doc | When to Read |
-|-----|--------------|
+| Doc                    | When to Read                                  |
+| ---------------------- | --------------------------------------------- |
 | `docs/architecture.md` | Component priorities, Pattern B, trait system |
-| `docs/composables.md` | Entity vs Controller composables |
-| `docs/systems.md` | Deep-dive on Physics, VFX, Interaction |
+| `docs/composables.md`  | Entity vs Controller composables              |
+| `docs/systems.md`      | Deep-dive on Physics, VFX, Interaction        |
+| `docs/sprites.md`      | Sprite sheets and animation                   |
