@@ -154,6 +154,8 @@ export class TileGridComponent extends GameComponent {
 					texture.minFilter = NearestFilter;
 					texture.magFilter = NearestFilter;
 					texture.generateMipmaps = false;
+					// Use standard image coordinates (V=0 at top, matches row indexing)
+					texture.flipY = false;
 					resolve(texture);
 				},
 				undefined,
@@ -185,6 +187,9 @@ export class TileGridComponent extends GameComponent {
 
 		// Render order for depth sorting (lower = renders first/behind)
 		this.instancedMesh.renderOrder = this.config.renderOrder ?? 0;
+
+		// Flip X to correct UV orientation after plane rotation
+		this.instancedMesh.scale.x = -1;
 
 		// Add instance UV attribute (2 floats per instance: offsetX, offsetY)
 		const uvOffsets = new Float32Array(instanceCount * 2);
@@ -277,9 +282,9 @@ export class TileGridComponent extends GameComponent {
 				matrix.makeTranslation(worldX, 0, worldZ);
 				this.instancedMesh.setMatrixAt(instanceIndex, matrix);
 
-				// Set UV offset for this tile
+				// Set UV offset for this tile (row/col are 1-indexed, flipY=false so V=0 is top)
 				const uvOffsetX = (tile.column - 1) / this.columns;
-				const uvOffsetY = 1 - tile.row / this.rows; // Flip Y for texture coords
+				const uvOffsetY = (tile.row - 1) / this.rows;
 				uvOffsetAttr.setXY(instanceIndex, uvOffsetX, uvOffsetY);
 
 				instanceIndex++;

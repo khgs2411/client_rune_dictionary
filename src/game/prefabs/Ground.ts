@@ -95,7 +95,7 @@ export class Ground extends GameObject {
 					tilesetId: "ground-tileset",
 					size: [size, size],
 					renderOrder: -2,
-					defaultTile: { row: 4, column: 12 },
+					defaultTile: { row: 4, column: 9 },
 				}),
 			);
 
