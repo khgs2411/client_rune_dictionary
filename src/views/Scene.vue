@@ -102,7 +102,7 @@ async function cleanupGame() {
 }
 
 function loadSceneAssets() {
-	SpriteSheetRegistry.RegisterAllSpriteSheets()
+	SpriteSheetRegistry.RegisterAllSpriteSheets();
 }
 
 function setCurrentScene() {

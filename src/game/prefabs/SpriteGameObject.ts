@@ -97,10 +97,7 @@ export class SpriteGameObject extends GameObject {
 			const spriteConfig = registry.getSpriteConfig(config.spriteSheetId);
 
 			if (!spriteConfig) {
-				throw new Error(
-					`[SpriteGameObject] Sprite sheet "${config.spriteSheetId}" not found. ` +
-						`Available: [${registry.getIds().join(", ")}]`,
-				);
+				throw new Error(`[SpriteGameObject] Sprite sheet "${config.spriteSheetId}" not found. ` + `Available: [${registry.getIds().join(", ")}]`);
 			}
 
 			texture = spriteConfig.texture;

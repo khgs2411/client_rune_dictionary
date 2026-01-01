@@ -76,7 +76,6 @@ export class InteractionComponent extends EventEmitterComponent<InteractionEvent
 		});
 	}
 
-
 	/**
 	 * Handle click event from InteractionService
 	 * @param _event

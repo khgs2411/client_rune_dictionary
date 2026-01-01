@@ -219,10 +219,7 @@ export class SpriteAnimatorComponent extends GameComponent {
 	 *
 	 * @returns { anim, flipX } or null if not found
 	 */
-	private resolveAnimation(
-		baseName: string,
-		direction: SpriteDirection,
-	): { anim: I_ExtendedAnimationDefinition; flipX: boolean } | null {
+	private resolveAnimation(baseName: string, direction: SpriteDirection): { anim: I_ExtendedAnimationDefinition; flipX: boolean } | null {
 		// 1. Try exact directional match
 		const directionalName = `${baseName}-${direction}`;
 		const exactMatch = this.animations.get(directionalName);
@@ -644,10 +641,7 @@ export class SpriteAnimatorComponent extends GameComponent {
 
 		if (use8Directions) {
 			const segment = Math.round((angle + Math.PI) / (Math.PI / 4)) % 8;
-			const directions: SpriteDirection[] = [
-				"up", "up-right", "right", "down-right",
-				"down", "down-left", "left", "up-left",
-			];
+			const directions: SpriteDirection[] = ["up", "up-right", "right", "down-right", "down", "down-left", "left", "up-left"];
 			this.setDirection(directions[segment]);
 		} else {
 			const segment = Math.round((angle + Math.PI) / (Math.PI / 2)) % 4;

@@ -112,7 +112,6 @@ export class OcclusionComponent extends GameComponent {
 		}
 	}
 
-
 	update(delta: number): void {
 		// Need both camera and character to check occlusion
 		if (!this.context.camera || !this.context.character) {
@@ -193,11 +192,7 @@ export class OcclusionComponent extends GameComponent {
 
 		// Check if player screen position is within mesh screen bounds (with padding)
 		const padding = this.config.screenPadding ?? 0.02;
-		const playerInBounds =
-			this.playerScreenPos.x >= minX - padding &&
-			this.playerScreenPos.x <= maxX + padding &&
-			this.playerScreenPos.y >= minY - padding &&
-			this.playerScreenPos.y <= maxY + padding;
+		const playerInBounds = this.playerScreenPos.x >= minX - padding && this.playerScreenPos.x <= maxX + padding && this.playerScreenPos.y >= minY - padding && this.playerScreenPos.y <= maxY + padding;
 
 		return playerInBounds;
 	}

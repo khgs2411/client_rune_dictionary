@@ -102,11 +102,7 @@ export class BillboardComponent extends GameComponent {
 		this.mesh!.getWorldPosition(this.meshPosition);
 
 		// Calculate direction to camera (XZ plane only)
-		this.directionToCamera.set(
-			this.cameraPosition.x - this.meshPosition.x,
-			0,
-			this.cameraPosition.z - this.meshPosition.z,
-		);
+		this.directionToCamera.set(this.cameraPosition.x - this.meshPosition.x, 0, this.cameraPosition.z - this.meshPosition.z);
 
 		// Calculate target rotation angle (Y-axis)
 		// Add π to account for camera at -Z looking toward +Z

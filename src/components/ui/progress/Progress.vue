@@ -19,10 +19,13 @@ const props = withDefaults(
 
 const rawPercentage = computed(() => Math.max(0, Math.min(100, (props.value / props.max) * 100)));
 
-const smoothPercentage = useTransition(toRef(() => rawPercentage.value), {
-	duration: props.animated ? 300 : 0,
-	transition: TransitionPresets.easeOutCubic,
-});
+const smoothPercentage = useTransition(
+	toRef(() => rawPercentage.value),
+	{
+		duration: props.animated ? 300 : 0,
+		transition: TransitionPresets.easeOutCubic,
+	},
+);
 
 const colorClass = computed(() => {
 	switch (props.color) {
@@ -44,10 +47,6 @@ const colorClass = computed(() => {
 
 <template>
 	<div class="bg-muted rounded-full overflow-hidden" :class="[containerClass || 'h-2']">
-		<div
-			class="h-full transition-colors duration-200"
-			:class="colorClass"
-			:style="{ width: `${smoothPercentage}%` }"
-		/>
+		<div class="h-full transition-colors duration-200" :class="colorClass" :style="{ width: `${smoothPercentage}%` }" />
 	</div>
 </template>

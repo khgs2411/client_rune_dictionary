@@ -236,10 +236,7 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 	 * @param spriteSheet - Optional: new sprite sheet dimensions for this texture
 	 * @returns Promise that resolves when texture is swapped
 	 */
-	async swapTexture(
-		texturePath: string,
-		spriteSheet?: { columns: number; rows: number },
-	): Promise<void> {
+	async swapTexture(texturePath: string, spriteSheet?: { columns: number; rows: number }): Promise<void> {
 		// Skip if already using this texture
 		if (texturePath === this.currentTexturePath) return;
 
@@ -291,10 +288,7 @@ export class SpriteComponent extends GameComponent implements I_MeshProvider {
 	 * @param spriteSheet - Optional: new sprite sheet dimensions
 	 * @returns true if swap succeeded, false if texture not preloaded
 	 */
-	swapTextureSync(
-		texturePath: string,
-		spriteSheet?: { columns: number; rows: number },
-	): boolean {
+	swapTextureSync(texturePath: string, spriteSheet?: { columns: number; rows: number }): boolean {
 		if (texturePath === this.currentTexturePath) return true;
 
 		const preloaded = this.preloadedTextures.get(texturePath);

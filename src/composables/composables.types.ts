@@ -43,7 +43,6 @@ export interface I_CameraPerspective {
 	fov: number;
 }
 
-
 export interface I_CameraControls extends I_GameComposable {
 	angle: {
 		horizontal: Ref<number>;

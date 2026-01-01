@@ -27,9 +27,7 @@ import { GameComponent } from "@/game/GameComponent";
  *
  * @typeParam T - Record mapping event names to callback signatures
  */
-export abstract class EventEmitterComponent<
-	T extends Record<string, (...args: any[]) => void>,
-> extends GameComponent {
+export abstract class EventEmitterComponent<T extends Record<string, (...args: any[]) => void>> extends GameComponent {
 	protected events = new Map<keyof T, T[keyof T][]>();
 
 	/**

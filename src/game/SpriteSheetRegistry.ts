@@ -1,6 +1,6 @@
 import { Singleton } from "topsyde-utils";
 import type { I_AnimationDefinition } from "./common/sprite.types";
-import type { I_AnimationRowDefinition, I_ExtendedAnimationDefinition, I_QuickSpriteSheetConfig, I_SpriteSheetDefinition, I_TextureSource, SpriteDirection, TextureConfig } from "./common/spritesheet.types";
+import type { I_AnimationRowDefinition, I_ExtendedAnimationDefinition, I_SpriteSheetConfig, I_SpriteSheetDefinition, I_TextureSource, SpriteDirection, TextureConfig } from "./common/spritesheet.types";
 import { GetTexturePathById, IsMultiTexture, isAnimatedDef } from "./common/spritesheet.types";
 
 /** Singleton registry for sprite sheet definitions. Supports single and multi-texture sheets. */
@@ -15,8 +15,8 @@ export class SpriteSheetRegistry extends Singleton {
 	}
 
 	/** Register using quick config format. Auto-expands directional animations. */
-	registerQuick(config: I_QuickSpriteSheetConfig): void {
-		const definition = this.expandQuickConfig(config);
+	registerByConfig(config: I_SpriteSheetConfig): void {
+		const definition = this.expandConfig(config);
 		this.register(definition);
 	}
 
@@ -113,7 +113,7 @@ export class SpriteSheetRegistry extends Singleton {
 	}
 
 	/** Expand quick config to full definition. Explicit `row` uses that row; otherwise sequential. */
-	private expandQuickConfig(config: I_QuickSpriteSheetConfig): I_SpriteSheetDefinition {
+	private expandConfig(config: I_SpriteSheetConfig): I_SpriteSheetDefinition {
 		// Apply defaults for static sprites
 		const framesPerRow = config.framesPerRow ?? 1;
 		const totalRows = config.totalRows ?? 1;
@@ -318,8 +318,8 @@ export class SpriteSheetRegistry extends Singleton {
 		return SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>().get(id);
 	}
 
-	public static RegisterSpriteSheet(config: I_QuickSpriteSheetConfig): void {
-		SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>().registerQuick(config);
+	public static RegisterSpriteSheet(config: I_SpriteSheetConfig): void {
+		SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>().registerByConfig(config);
 	}
 
 	/** Register multi-texture character. Files: {basePath}_{animationName}.{ext} */

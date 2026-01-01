@@ -3,9 +3,7 @@
 		<span class="text-sm font-semibold text-foreground flex items-center justify-center gap-1">
 			<Icon icon="lucide:clock" class="w-4 h-4" />
 			TURN TIMER:
-			<span :class="seconds < 5 ? 'text-destructive animate-pulse' : 'text-primary'" class="font-mono">
-				{{ seconds }}s
-			</span>
+			<span :class="seconds < 5 ? 'text-destructive animate-pulse' : 'text-primary'" class="font-mono"> {{ seconds }}s </span>
 		</span>
 	</div>
 </template>

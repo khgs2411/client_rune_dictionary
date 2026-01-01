@@ -224,7 +224,7 @@ export interface I_DirectionalAnimationDef {
  * }
  * ```
  */
-export interface I_QuickSpriteSheetConfig {
+export interface I_SpriteSheetConfig {
 	/** Unique ID */
 	id: string;
 
