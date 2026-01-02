@@ -95,47 +95,53 @@ export class TileRuleset {
 	}
 
 	/**
-	 * Factory: Create standard 4-bit blob tileset (16 tiles in 4x4 layout)
+	 * Factory: Create visual-layout tileset (corners in corners, edges on edges)
 	 *
-	 * Layout follows standard blob pattern where each tile's position
-	 * corresponds to its neighbor bitmask (N=1, E=2, S=4, W=8).
+	 * This layout matches how artists typically arrange tiles visually:
+	 * - Row 1: top-left corner, top edges, top-right corner
+	 * - Row 2-3: left edge, center tiles, right edge
+	 * - Row 4: bottom-left corner, bottom edges, bottom-right corner
+	 *
+	 * The neighbor logic: tile shows EDGE where there's NO neighbor.
 	 */
-	static createBlobRuleset(bounds: I_TilesetBounds): TileRuleset {
-		// Standard 4-bit blob layout maps bitmask to 4x4 position
-		// Row 1: isolated, E, EW, W
-		// Row 2: S, SE, SEW, SW
-		// Row 3: NS, NSE, all, NSW
-		// Row 4: N, NE, NEW, NW
+	static createRuleset(bounds: I_TilesetBounds): TileRuleset {
+		// Visual layout: corners in corners, edges on edges, centers in middle
+		// "Has neighbor" means grass continues (no edge drawn)
+		// "No neighbor" means edge is drawn on that side
 		const rules: I_TileRule[] = [
-			// Row 1: no north neighbors
-			{ neighbors: { north: false, east: false, south: false, west: false }, tiles: [{ row: 1, column: 1 }] }, // isolated
-			{ neighbors: { north: false, east: true, south: false, west: false }, tiles: [{ row: 1, column: 2 }] }, // E only
-			{ neighbors: { north: false, east: true, south: false, west: true }, tiles: [{ row: 1, column: 3 }] }, // E+W
-			{ neighbors: { north: false, east: false, south: false, west: true }, tiles: [{ row: 1, column: 4 }] }, // W only
+			// 4 Corners (2 neighbors each, on adjacent sides)
+			{ neighbors: { north: false, east: true, south: true, west: false }, tiles: [{ row: 4, column: 4 }] }, // top-left corner (S+E)
+			{ neighbors: { north: false, east: false, south: true, west: true }, tiles: [{ row: 4, column: 1 }] }, // top-right corner (S+W)
+			{ neighbors: { north: true, east: true, south: false, west: false }, tiles: [{ row: 1, column: 1 }] }, // bottom-left corner (N+E)
+			{ neighbors: { north: true, east: false, south: false, west: true }, tiles: [{ row: 1, column: 4 }] }, // bottom-right corner (N+W)
 
-			// Row 2: south neighbor, no north
-			{ neighbors: { north: false, east: false, south: true, west: false }, tiles: [{ row: 2, column: 1 }] }, // S only
-			{ neighbors: { north: false, east: true, south: true, west: false }, tiles: [{ row: 2, column: 2 }] }, // S+E
-			{ neighbors: { north: false, east: true, south: true, west: true }, tiles: [{ row: 2, column: 3 }] }, // S+E+W
-			{ neighbors: { north: false, east: false, south: true, west: true }, tiles: [{ row: 2, column: 4 }] }, // S+W
+			// 4 Edges (3 neighbors each)
+			{ neighbors: { north: false, east: true, south: true, west: true }, tiles: [{ row: 1, column: 2 }, { row: 1, column: 3 }] }, // top edge (S+E+W)
+			{ neighbors: { north: true, east: true, south: false, west: true }, tiles: [{ row: 4, column: 2 }, { row: 4, column: 3 }] }, // bottom edge (N+E+W)
+			{ neighbors: { north: true, east: true, south: true, west: false }, tiles: [{ row: 2, column: 1 }, { row: 3, column: 1 }] }, // left edge (N+S+E)
+			{ neighbors: { north: true, east: false, south: true, west: true }, tiles: [{ row: 2, column: 4 }, { row: 3, column: 4 }] }, // right edge (N+S+W)
 
-			// Row 3: north+south neighbors
-			{ neighbors: { north: true, east: false, south: true, west: false }, tiles: [{ row: 3, column: 1 }] }, // N+S
-			{ neighbors: { north: true, east: true, south: true, west: false }, tiles: [{ row: 3, column: 2 }] }, // N+S+E
-			{ neighbors: { north: true, east: true, south: true, west: true }, tiles: [{ row: 3, column: 3 }] }, // all
-			{ neighbors: { north: true, east: false, south: true, west: true }, tiles: [{ row: 3, column: 4 }] }, // N+S+W
+			// Center (all 4 neighbors)
+			{ neighbors: { north: true, east: true, south: true, west: true }, tiles: [{ row: 2, column: 2 }, { row: 2, column: 3 }, { row: 3, column: 2 }, { row: 3, column: 3 }] },
 
-			// Row 4: north neighbor, no south
-			{ neighbors: { north: true, east: false, south: false, west: false }, tiles: [{ row: 4, column: 1 }] }, // N only
-			{ neighbors: { north: true, east: true, south: false, west: false }, tiles: [{ row: 4, column: 2 }] }, // N+E
-			{ neighbors: { north: true, east: true, south: false, west: true }, tiles: [{ row: 4, column: 3 }] }, // N+E+W
-			{ neighbors: { north: true, east: false, south: false, west: true }, tiles: [{ row: 4, column: 4 }] }, // N+W
+			// Isolated (no neighbors) - use top-left as fallback
+			{ neighbors: { north: false, east: false, south: false, west: false }, tiles: [{ row: 2, column: 2 }] },
+
+			// Peninsulas (1 neighbor only) - rare cases, use edges as fallback
+			{ neighbors: { north: false, east: false, south: true, west: false }, tiles: [{ row: 1, column: 2 }] }, // S only -> top edge
+			{ neighbors: { north: true, east: false, south: false, west: false }, tiles: [{ row: 4, column: 2 }] }, // N only -> bottom edge
+			{ neighbors: { north: false, east: true, south: false, west: false }, tiles: [{ row: 2, column: 1 }] }, // E only -> left edge
+			{ neighbors: { north: false, east: false, south: false, west: true }, tiles: [{ row: 2, column: 4 }] }, // W only -> right edge
+
+			// Corridors (2 neighbors on opposite sides)
+			{ neighbors: { north: true, east: false, south: true, west: false }, tiles: [{ row: 2, column: 1 }] }, // N+S vertical -> left edge
+			{ neighbors: { north: false, east: true, south: false, west: true }, tiles: [{ row: 1, column: 2 }] }, // E+W horizontal -> top edge
 		];
 
 		return new TileRuleset({
 			bounds,
 			rules,
-			defaultTile: { row: 3, column: 3 }, // Center/all tile
+			defaultTile: { row: 2, column: 2 }, // Center tile as default
 			emptyTile: null,
 			useDiagonals: false,
 		});

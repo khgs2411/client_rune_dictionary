@@ -298,7 +298,11 @@ export class CullingSystem extends SceneSystem implements I_SceneSystem {
 		}
 
 		// Set physics debug wireframe visibility (uses GameObject ID)
-		physics.setWireframeVisible(obj.id, visible);
+		// Only control per-object wireframe visibility when global debug is ON
+		// When debug is OFF, PhysicsSystem's watcher already hides all wireframes
+		if (DataStore.settings.debug.showPhysicsDebug) {
+			physics.setWireframeVisible(obj.id, visible);
+		}
 	}
 
 	/**

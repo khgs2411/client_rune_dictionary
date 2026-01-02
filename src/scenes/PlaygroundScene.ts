@@ -28,6 +28,7 @@ import { Path } from "@/game/prefabs/environment/Path";
 import { Rocks } from "@/game/prefabs/environment/Rock";
 import { TrainingDummy } from "@/game/prefabs/npc/TrainingDummy";
 import { SpriteGameObject } from "@/game/prefabs/SpriteGameObject";
+import { DataStore } from "@/stores/DataStore";
 
 /**
  * Module Registry for PlaygroundScene
@@ -60,7 +61,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
 	protected addSceneObjects() {
 		// Ground
-		const ground = new Ground({ size: 200, showGrid: true });
+		const ground = new Ground({ size: 10, showGrid: DataStore.settings.debug.showPhysicsDebug });
 		const gom = this.getService("gameObjectsManager");
 		gom.register(ground);
 
@@ -146,7 +147,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		// Auto-match debug feature (simulates double-click on TrainingDummy)
 		const trainingDummy = this.getService("gameObjectsManager").get<TrainingDummy>("training-dummy-1");
 		if (!trainingDummy) return;
-		
+
 		// Check if auto-match is enabled
 		if (this.settings.debug.autoMatch) {
 			this.handleAutoMatch(trainingDummy);

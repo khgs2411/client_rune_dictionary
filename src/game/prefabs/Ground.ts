@@ -6,6 +6,7 @@ import { MaterialComponent } from "../components/rendering/MaterialComponent";
 import { MeshComponent } from "../components/rendering/MeshComponent";
 import { TileGridComponent } from "../components/rendering/TileGridComponent";
 import { GameObject } from "../GameObject";
+import { TileRuleset } from "../utils/TileRuleset";
 
 import { useSettingsStore } from "@/stores/settings.store";
 
@@ -55,7 +56,7 @@ export class Ground extends GameObject {
 		const position = config.position ?? [0, 0, 0];
 		const useTheme = config.useTheme ?? false;
 		const staticColor = config.staticColor ?? 0x808080;
-		const showGrid = config.showGrid ?? true;
+		const showGrid = config.showGrid ?? false;
 		const enablePhysics = config.enablePhysics ?? true;
 
 		// Determine material color
@@ -63,6 +64,12 @@ export class Ground extends GameObject {
 
 		// Add small Y offset to prevent z-fighting and initial clipping
 		const groundPosition: [number, number, number] = [position[0], position[1] - 0.05, position[2]];
+		const tileRuleset = TileRuleset.createRuleset({
+			startRow: 1,
+			endRow: 4,
+			startColumn: 9,
+			endColumn: 12,
+		});
 
 		// Add all components in fluent style
 		this.addComponent(
@@ -84,18 +91,13 @@ export class Ground extends GameObject {
 					metalness: 0,
 				}),
 			)
-			// .addComponent(
-			// 	new MeshComponent({
-			// 		castShadow: false, // Ground doesn't cast shadow
-			// 		receiveShadow: true, // Ground receives shadows
-			// 	}),
-			// )
 			.addComponent(
 				new TileGridComponent({
 					tilesetId: "ground-tileset",
 					size: [size, size],
 					renderOrder: -2,
-					defaultTile: { row: 4, column: 9 },
+					// Use ruleset for auto-tiling (first 4x4 tileset at cols 9-12, rows 1-4)
+					tileSelector: tileRuleset.createSelector(),
 				}),
 			);
 
