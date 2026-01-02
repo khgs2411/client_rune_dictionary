@@ -65,8 +65,8 @@ export class Ground extends GameObject {
 		// Add small Y offset to prevent z-fighting and initial clipping
 		const groundPosition: [number, number, number] = [position[0], position[1] - 0.05, position[2]];
 		const tileRuleset = TileRuleset.createRuleset({
-			startRow: 1,
-			endRow: 4,
+			startRow: 17,
+			endRow: 20,
 			startColumn: 9,
 			endColumn: 12,
 		});

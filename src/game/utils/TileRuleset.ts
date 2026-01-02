@@ -116,27 +116,29 @@ export class TileRuleset {
 			{ neighbors: { north: true, east: true, south: false, west: false }, tiles: [{ row: 4, column: 1 }] }, // bottom-left corner (has N+E)
 			{ neighbors: { north: true, east: false, south: false, west: true }, tiles: [{ row: 4, column: 4 }] }, // bottom-right corner (has N+W)
 
-			// 4 Edges (3 neighbors each)
-			{ neighbors: { north: false, east: true, south: true, west: true }, tiles: [{ row: 1, column: 2 }, { row: 1, column: 3 }] }, // top edge (has S+E+W)
-			{ neighbors: { north: true, east: true, south: false, west: true }, tiles: [{ row: 4, column: 2 }, { row: 4, column: 3 }] }, // bottom edge (has N+E+W)
-			{ neighbors: { north: true, east: true, south: true, west: false }, tiles: [{ row: 2, column: 1 }, { row: 3, column: 1 }] }, // left edge (has N+S+E)
-			{ neighbors: { north: true, east: false, south: true, west: true }, tiles: [{ row: 2, column: 4 }, { row: 3, column: 4 }] }, // right edge (has N+S+W)
+			// 4 Edges (3 neighbors each) - single tile per edge, no variance
+			// Row 1 = north edge visible, Row 4 = south edge visible
+			// Col 1 = west edge visible, Col 4 = east edge visible
+			{ neighbors: { north: false, south: true, east: true, west: true }, tiles: [{ row: 1, column: 3 }] }, // top edge (no N)
+			{ neighbors: { north: true, south: false, east: true, west: true }, tiles: [{ row: 4, column: 2 }] }, // bottom edge (no S)
+			{ neighbors: { north: true, south: true, east: true, west: false }, tiles: [{ row: 2, column: 1 }] }, // left edge (no W)
+			{ neighbors: { north: true, south: true, east: false, west: true }, tiles: [{ row: 3, column: 4 }] }, // right edge (no E)
 
 			// Center (all 4 neighbors)
-			{ neighbors: { north: true, east: true, south: true, west: true }, tiles: [{ row: 2, column: 2 }, { row: 2, column: 3 }, { row: 3, column: 2 }, { row: 3, column: 3 }] },
+			{ neighbors: { north: true, south: true, east: true, west: true }, tiles: [/* { row: 2, column: 2 }, { row: 2, column: 3 },  */{ row: 3, column: 2 }, /* { row: 3, column: 3 } */] },
 
 			// Isolated (no neighbors) - use center as fallback
-			{ neighbors: { north: false, east: false, south: false, west: false }, tiles: [{ row: 2, column: 2 }] },
+			{ neighbors: { north: false, south: false, east: false, west: false }, tiles: [{ row: 2, column: 2 }] },
 
-			// Peninsulas (1 neighbor only) - use closest edge as fallback
-			{ neighbors: { north: false, east: false, south: true, west: false }, tiles: [{ row: 1, column: 2 }] }, // S only -> top edge
-			{ neighbors: { north: true, east: false, south: false, west: false }, tiles: [{ row: 4, column: 2 }] }, // N only -> bottom edge
-			{ neighbors: { north: false, east: true, south: false, west: false }, tiles: [{ row: 2, column: 1 }] }, // E only -> left edge
-			{ neighbors: { north: false, east: false, south: false, west: true }, tiles: [{ row: 2, column: 4 }] }, // W only -> right edge
+			// Peninsulas (1 neighbor only) - use edge tiles as fallback
+			{ neighbors: { north: false, south: true, east: false, west: false }, tiles: [{ row: 1, column: 2 }] }, // only S -> top edge
+			{ neighbors: { north: true, south: false, east: false, west: false }, tiles: [{ row: 4, column: 2 }] }, // only N -> bottom edge
+			{ neighbors: { north: false, south: false, east: true, west: false }, tiles: [{ row: 2, column: 1 }] }, // only E -> left edge
+			{ neighbors: { north: false, south: false, east: false, west: true }, tiles: [{ row: 2, column: 4 }] }, // only W -> right edge
 
-			// Corridors (2 neighbors on opposite sides)
-			{ neighbors: { north: true, east: false, south: true, west: false }, tiles: [{ row: 2, column: 1 }] }, // N+S vertical -> left edge
-			{ neighbors: { north: false, east: true, south: false, west: true }, tiles: [{ row: 1, column: 2 }] }, // E+W horizontal -> top edge
+			// Corridors (2 neighbors on opposite sides) - use edge as fallback
+			{ neighbors: { north: true, south: true, east: false, west: false }, tiles: [{ row: 2, column: 1 }] }, // N+S vertical -> left edge
+			{ neighbors: { north: false, south: false, east: true, west: true }, tiles: [{ row: 1, column: 2 }] }, // E+W horizontal -> top edge
 		];
 
 		return new TileRuleset({
@@ -194,8 +196,7 @@ export class TileRuleset {
 	 * Get neighbor fill states for a position
 	 */
 	private getNeighbors(x: number, y: number, fillFn: FillFunction): NeighborInfo {
-		// Grid Y increases downward, but world "north" is +Y direction
-		// So north = y+1 in grid coordinates
+		// Grid Y+ = world north (away from camera)
 		return {
 			north: fillFn(x, y + 1),
 			south: fillFn(x, y - 1),

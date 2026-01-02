@@ -61,7 +61,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
 	protected addSceneObjects() {
 		// Ground
-		const ground = new Ground({ size: 10, showGrid: DataStore.settings.debug.showPhysicsDebug });
+		const ground = new Ground({ size: 100, showGrid: DataStore.settings.debug.showPhysicsDebug });
 		const gom = this.getService("gameObjectsManager");
 		gom.register(ground);
 
@@ -158,7 +158,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		const gom = this.getService("gameObjectsManager");
 
 		this.addTownCenter(gom);
-		this.addTownPaths(gom);
+		// this.addTownPaths(gom);
 		this.addTownNPCs(gom);
 		this.addOutskirts(gom);
 		this.addForestPerimeter(gom);
