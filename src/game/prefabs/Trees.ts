@@ -1,154 +1,79 @@
-import { CollisionComponent } from "../components/interactions/CollisionComponent";
-import { GeometryComponent } from "../components/rendering/GeometryComponent";
-import { I_InstanceTransform, InstancedMeshComponent } from "../components/rendering/InstancedMeshComponent";
-import { MaterialComponent } from "../components/rendering/MaterialComponent";
 import { OcclusionComponent } from "../components/rendering/OcclusionComponent";
-import { ToonMaterialComponent } from "../components/rendering/ToonMaterialComponent";
 import { GameObject } from "../GameObject";
+import { SpriteGameObject } from "./SpriteGameObject";
 import { I_BasePrefabConfig } from "./prefab.types";
 
 export interface I_TreePosition {
 	x: number;
 	y: number;
 	z: number;
+	/** Optional spriteSheetId override for this tree */
+	spriteSheetId?: string;
+	/** Optional size override [width, height] */
+	size?: [number, number];
 }
 
 export interface I_TreesConfig extends I_BasePrefabConfig {
-	positions: I_TreePosition[]; // Base positions for trees
-	trunkHeight?: number; // Height of trunk (default: 1.5)
-	trunkRadius?: number; // Radius of trunk (default: 0.15-0.2)
-	leavesHeight?: number; // Height of leaves cone (default: 1.5)
-	leavesRadius?: number; // Radius of leaves cone (default: 0.8)
-	trunkColor?: number; // Trunk color (default: 0x654321 - brown)
-	leavesColor?: number; // Leaves color (default: 0x228b22 - green)
+	positions: I_TreePosition[];
+	/** Default spriteSheetId for all trees (can be overridden per-position) */
+	spriteSheetId?: string;
+	/** Default size [width, height] override (registry default: [4, 5]) */
+	size?: [number, number];
+	/** Cycle through available tree variants (tree-00 through tree-03) */
+	cycleTextures?: boolean;
 }
 
+/** Available tree sprite sheet IDs (registered in SpriteSheetRegistry) */
+const TREE_SPRITE_IDS = ["tree-00", "tree-01", "tree-02", "tree-03"];
+
 /**
- * Trees Helper - Creates tree GameObjects (trunks + leaves)
+ * Trees Helper - Creates sprite billboard tree GameObjects
  *
- * Returns an array of 2 GameObjects:
- * - [0]: Tree trunks (instanced cylinders)
- * - [1]: Tree leaves (instanced cones)
- *
- * Each GameObject uses InstancedMeshComponent for efficient rendering.
+ * Returns an array of GameObjects, one per tree position.
+ * Each tree is a billboard sprite that faces the camera.
  *
  * Usage:
  * ```typescript
- * const [trunks, leaves] = Trees.create({
+ * const trees = Trees.create({
+ *   id: "forest",
  *   positions: [
  *     { x: 10, y: 0, z: 0 },
  *     { x: 12, y: 0, z: 2 },
  *     { x: 14, y: 0, z: -1 }
- *   ]
+ *   ],
+ *   cycleTextures: true, // Use different tree variants
  * });
  *
+ * trees.forEach(tree => gom.register(tree));
  * ```
  */
 export class Trees {
 	/**
 	 * Create tree GameObjects from positions
-	 * Returns [trunks, leaves]
+	 * Returns GameObject[] - one per tree
 	 */
-	static create(config: I_TreesConfig): [GameObject, GameObject] {
+	static create(config: I_TreesConfig): GameObject[] {
 		const id = config.id ?? "trees";
-		const SIZE_MULTIPLIER = 3.0;
-		const trunkHeight = config.trunkHeight ?? 1.5 * SIZE_MULTIPLIER;
-		const trunkRadius = config.trunkRadius ?? 0.15 * SIZE_MULTIPLIER;
-		const leavesHeight = config.leavesHeight ?? 1.5 * SIZE_MULTIPLIER;
-		const leavesRadius = config.leavesRadius ?? 0.8 * SIZE_MULTIPLIER;
-		const trunkColor = config.trunkColor ?? 0x8b5a2b; // Warmer brown
-		const leavesColor = config.leavesColor ?? 0x2e8b57; // Sea green (vibrant)
-		const enablePhysics = config.enablePhysics ?? true;
-		const useToonShading = config.useToonShading ?? false;
-		const vibrant = config.vibrant ?? false;
+		const defaultSpriteId = config.spriteSheetId ?? TREE_SPRITE_IDS[0];
+		const cycleTextures = config.cycleTextures ?? false;
 
-		// Create trunk instances
-		const trunkInstances: I_InstanceTransform[] = config.positions.map((pos) => ({
-			position: [pos.x, pos.y + trunkHeight / 2, pos.z], // Center at half height
-			rotation: [0, 0, 0],
-			scale: [1, 1, 1],
-		}));
+		return config.positions.map((pos, index) => {
+			// Determine spriteSheetId for this tree
+			let spriteSheetId = pos.spriteSheetId ?? defaultSpriteId;
+			if (cycleTextures && !pos.spriteSheetId) {
+				spriteSheetId = TREE_SPRITE_IDS[index % TREE_SPRITE_IDS.length];
+			}
 
-		// Create leaves instances (offset on top of trunks)
-		const leavesInstances: I_InstanceTransform[] = config.positions.map((pos) => ({
-			position: [pos.x, pos.y + trunkHeight + leavesHeight / 2, pos.z], // On top of trunk
-			rotation: [0, 0, 0],
-			scale: [1, 1, 1],
-		}));
+			// Create sprite tree with billboard and occlusion
+			const tree = new SpriteGameObject({
+				id: `${id}-${index}`,
+				position: [pos.x, pos.y, pos.z],
+				spriteSheetId,
+				size: pos.size ?? config.size, // Optional size override
+				billboardMode: "cylindrical",
+			}).addComponent(new OcclusionComponent());
 
-		// Choose material component based on toon shading option
-		const createTrunkMaterial = () =>
-			useToonShading
-				? new ToonMaterialComponent({
-						color: trunkColor,
-						gradientSteps: 3,
-						vibrant,
-					})
-				: new MaterialComponent({
-						color: trunkColor,
-						roughness: 0.9,
-						metalness: 0,
-					});
-
-		const createLeavesMaterial = () =>
-			useToonShading
-				? new ToonMaterialComponent({
-						color: leavesColor,
-						gradientSteps: 4,
-						vibrant,
-					})
-				: new MaterialComponent({
-						color: leavesColor,
-						roughness: 0.9,
-						metalness: 0,
-					});
-
-		// Trunks GameObject
-		const trunks = new GameObject({ id: `${id}-trunks` })
-			.addComponent(
-				new GeometryComponent({
-					type: "cylinder",
-					params: [trunkRadius, trunkRadius + 0.05, trunkHeight], // Slightly wider at base
-				}),
-			)
-			.addComponent(createTrunkMaterial())
-			.addComponent(
-				new InstancedMeshComponent({
-					instances: trunkInstances,
-					castShadow: true,
-					receiveShadow: true,
-				}),
-			)
-			.addComponent(new OcclusionComponent());
-
-		// Add physics to trunks
-		if (enablePhysics) {
-			trunks.addComponent(
-				new CollisionComponent({
-					type: "static",
-					shape: "cylinder",
-				}),
-			);
-		}
-
-		// Leaves GameObject
-		const leaves = new GameObject({ id: `${id}-leaves` })
-			.addComponent(
-				new GeometryComponent({
-					type: "cone",
-					params: [leavesRadius, leavesHeight, 8], // 8 segments for low-poly look
-				}),
-			)
-			.addComponent(createLeavesMaterial())
-			.addComponent(
-				new InstancedMeshComponent({
-					instances: leavesInstances,
-					castShadow: true,
-					receiveShadow: true,
-				}),
-			)
-			.addComponent(new OcclusionComponent());
-
-		return [trunks, leaves];
+			return tree;
+		});
 	}
 }

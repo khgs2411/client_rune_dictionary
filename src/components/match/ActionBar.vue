@@ -1,158 +1,116 @@
 <template>
-	<!-- MMO-style Action Bar - Draggable, 8 slots + Run/Pass -->
-	<div
-		ref="container"
-		:style="{
-			left: `${x}px`,
-			top: `${y}px`,
-		}"
-		class="fixed select-none pointer-events-auto">
-		<div class="bg-card/90 backdrop-blur-sm rounded-lg border border-border shadow-lg p-3 space-y-2">
-			<!-- Drag Handle -->
-			<div ref="handle" class="flex items-center justify-center py-1 cursor-move hover:bg-muted/50 rounded transition-colors" title="Drag to reposition">
-				<div class="flex gap-1">
-					<div class="w-1 h-1 rounded-full bg-muted-foreground/40"></div>
-					<div class="w-1 h-1 rounded-full bg-muted-foreground/40"></div>
-					<div class="w-1 h-1 rounded-full bg-muted-foreground/40"></div>
-				</div>
-			</div>
+	<div class="bg-card/90 backdrop-blur-sm rounded-lg border border-border shadow-lg p-3 space-y-2">
+		<!-- Utility Buttons (Run / Pass) -->
+		<div class="flex gap-2">
+			<button
+				@click="handlePass"
+				:disabled="!isPlayerTurn"
+				class="flex-1 px-3 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-md font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center gap-1">
+				<Icon icon="lucide:skip-forward" class="w-4 h-4" />
+				Pass
+			</button>
+			<button
+				@click="emitLeaveMatch"
+				:disabled="isLeaving"
+				class="flex-1 px-3 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-md font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center gap-1">
+				<Icon icon="lucide:log-out" class="w-4 h-4" />
+				{{ isLeaving ? "Leaving..." : "Run" }}
+			</button>
+		</div>
 
-			<!-- Utility Buttons (Run / Pass) -->
-			<div class="flex gap-2">
-				<button
-					@click="handlePass"
-					:disabled="!props.isPlayerTurn"
-					:class="[
-						'flex-1 px-3 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-md font-medium text-xs sm:text-sm transition-colors min-h-[44px] sm:min-h-0',
-						!props.isPlayerTurn && 'opacity-50 cursor-not-allowed hover:bg-secondary',
-					]">
-					Pass
-				</button>
-				<button
-					@click="emitLeaveMatch"
-					:disabled="isLeaving"
-					class="flex-1 px-3 py-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-md font-medium text-xs sm:text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-0">
-					{{ isLeaving ? "Leaving..." : "Run" }}
-				</button>
-			</div>
-
-			<!-- 8-Slot Action Bar (Horizontal) -->
-			<div class="grid grid-cols-4 sm:grid-cols-8 gap-1 sm:gap-2">
-				<button
-					v-for="slot in actionSlots"
-					:key="slot.id"
-					@click="handleActionClick(slot.id)"
-					:disabled="!props.isPlayerTurn"
-					:class="[
-						'relative aspect-square bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-md font-medium text-xs sm:text-sm transition-colors flex flex-col items-center justify-center p-1 min-h-[44px] sm:min-h-0',
-						slot.isActive && 'ring-2 ring-primary',
-						!props.isPlayerTurn && 'opacity-50 cursor-not-allowed hover:bg-secondary',
-					]"
-					:title="`${slot.name} (Hotkey: ${slot.keybind})`">
-					<!-- Action name -->
-					<span class="text-[10px] sm:text-xs font-semibold truncate w-full text-center">
-						{{ slot.name }}
-					</span>
-
-					<!-- Keybind indicator -->
-					<span class="absolute bottom-0.5 right-0.5 text-[8px] sm:text-[10px] text-muted-foreground font-mono">
-						{{ slot.keybind }}
-					</span>
-				</button>
-			</div>
+		<!-- 8-Slot Action Bar -->
+		<div class="grid grid-cols-4 sm:grid-cols-8 gap-1">
+			<TooltipProvider>
+				<Tooltip v-for="slot in actionSlots" :key="slot.id">
+					<TooltipTrigger as-child>
+						<button
+							@click="handleActionClick(slot)"
+							:disabled="!isPlayerTurn"
+							:class="[
+								'relative aspect-square bg-secondary hover:bg-secondary/80 rounded-md transition-colors flex items-center justify-center p-1 min-h-[44px]',
+								slot.isActive && 'ring-2 ring-primary',
+								!isPlayerTurn && 'opacity-50 cursor-not-allowed',
+							]">
+							<Icon :icon="slot.icon" class="w-6 h-6" />
+							<!-- Keybind indicator -->
+							<span class="absolute bottom-0.5 right-0.5 text-[10px] text-muted-foreground font-mono">
+								{{ slot.keybind }}
+							</span>
+						</button>
+					</TooltipTrigger>
+					<TooltipContent side="top">
+						<p class="font-semibold">{{ slot.name }}</p>
+						<p class="text-xs text-muted-foreground">{{ slot.description }}</p>
+						<p class="text-xs text-muted-foreground mt-1">Hotkey: {{ slot.keybind }}</p>
+					</TooltipContent>
+				</Tooltip>
+			</TooltipProvider>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { useDraggable, useLocalStorage, watchDebounced } from "@vueuse/core";
-import { onMounted, onUnmounted, ref } from "vue";
+import { ref, watchEffect } from "vue";
+import { useMagicKeys } from "@vueuse/core";
+import { Icon } from "@iconify/vue";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 
-// Props
+interface ActionSlot {
+	id: number;
+	name: string;
+	description: string;
+	icon: string;
+	keybind: string;
+	isActive: boolean;
+	actionType: string;
+}
+
 const props = defineProps<{
 	isLeaving: boolean;
 	isPlayerTurn: boolean;
 }>();
 
-// Emits
 const emit = defineEmits<{
 	leaveMatch: [];
-	action: [number | string];
+	action: [string];
 }>();
 
-const container = ref<HTMLElement | null>(null);
-const handle = ref<HTMLElement | null>(null);
-
-// Persist position in localStorage
-// Default: bottom-right with 16px margin (matching original "bottom-4 right-4")
-const initialX = window.innerWidth - 470;
-const initialY = window.innerHeight - 160;
-const defaultX = Math.max(16, initialX); // ~600px for 8-slot horizontal bar
-const defaultY = Math.max(16, initialY); // ~160px total height with drag handle
-
-const savedPosition = useLocalStorage("match-action-bar-position", {
-	x: defaultX,
-	y: defaultY,
-});
-
-// Draggable composable - x and y manage position
-const { x, y } = useDraggable(container, {
-	initialValue: { x: savedPosition.value.x, y: savedPosition.value.y },
-	handle,
-});
-
-// Sync position to localStorage (debounced and rounded)
-watchDebounced(
-	[x, y],
-	([newX, newY]) => {
-		const roundedX = Math.round(newX);
-		const roundedY = Math.round(newY);
-
-		// Update refs to rounded values
-		x.value = roundedX;
-		y.value = roundedY;
-
-		// Save to localStorage
-		savedPosition.value = { x: roundedX, y: roundedY };
-	},
-	{ debounce: 300 },
-);
-
-const actionSlots = ref([
-	{ id: 1, name: "Attack", keybind: "1", isActive: false },
-	{ id: 2, name: "Attack", keybind: "2", isActive: false },
-	{ id: 3, name: "Attack", keybind: "3", isActive: false },
-	{ id: 4, name: "Attack", keybind: "4", isActive: false },
-	{ id: 5, name: "Attack", keybind: "5", isActive: false },
-	{ id: 6, name: "Attack", keybind: "6", isActive: false },
-	{ id: 7, name: "Attack", keybind: "7", isActive: false },
-	{ id: 8, name: "Attack", keybind: "8", isActive: false },
+const actionSlots = ref<ActionSlot[]>([
+	{ id: 1, name: "Attack", description: "Basic physical attack", icon: "game-icons:sword-clash", keybind: "1", isActive: false, actionType: "attack" },
+	{ id: 2, name: "Defend", description: "Reduce incoming damage", icon: "game-icons:shield", keybind: "2", isActive: false, actionType: "defend" },
+	{ id: 3, name: "Fire", description: "Deal fire damage", icon: "game-icons:flame", keybind: "3", isActive: false, actionType: "fire" },
+	{ id: 4, name: "Ice", description: "Deal ice damage", icon: "game-icons:frozen-orb", keybind: "4", isActive: false, actionType: "ice" },
+	{ id: 5, name: "Heal", description: "Restore HP", icon: "game-icons:healing", keybind: "5", isActive: false, actionType: "heal" },
+	{ id: 6, name: "Buff", description: "Increase stats", icon: "game-icons:biceps", keybind: "6", isActive: false, actionType: "buff" },
+	{ id: 7, name: "Item", description: "Use an item", icon: "game-icons:potion-ball", keybind: "7", isActive: false, actionType: "item" },
+	{ id: 8, name: "Special", description: "Ultimate ability", icon: "game-icons:star-swirl", keybind: "8", isActive: false, actionType: "special" },
 ]);
 
-function handleKeyPress(event: KeyboardEvent) {
-	const key = event.key;
+// Keyboard shortcuts using VueUse
+const keys = useMagicKeys();
 
-	// Check if key is 1-8
-	if (key >= "1" && key <= "8") {
-		// Turn validation happens inside handleActionClick
-		const slotIndex = parseInt(key) - 1;
-		const slot = actionSlots.value[slotIndex];
+// Watch for 1-8 keys
+watchEffect(() => {
+	if (!props.isPlayerTurn) return;
 
-		if (slot) {
-			event.preventDefault();
-			handleActionClick(slot.id);
+	for (let i = 1; i <= 8; i++) {
+		const keyRef = keys[i.toString()];
+		if (keyRef?.value) {
+			const slot = actionSlots.value[i - 1];
+			if (slot) {
+				handleActionClick(slot);
+			}
 		}
 	}
-}
+});
 
-function handleActionClick(slotId: number) {
+function handleActionClick(slot: ActionSlot) {
 	if (!props.isPlayerTurn) {
 		console.warn("[ActionBar] Cannot perform action - not your turn");
 		return;
 	}
-	console.log(`[ActionBar] Action ${slotId} clicked`);
-	emit("action", "attack");
-	// TODO: Send action to match server via WebSocket
+	console.log(`[ActionBar] Action ${slot.actionType} clicked`);
+	emit("action", slot.actionType);
 }
 
 function handlePass() {
@@ -161,19 +119,10 @@ function handlePass() {
 		return;
 	}
 	console.log("[ActionBar] Pass button clicked");
-	// TODO: Send pass action to match server via WebSocket
 	emit("action", "pass");
 }
 
 function emitLeaveMatch() {
 	emit("leaveMatch");
 }
-
-onMounted(() => {
-	window.addEventListener("keydown", handleKeyPress);
-});
-
-onUnmounted(() => {
-	window.removeEventListener("keydown", handleKeyPress);
-});
 </script>

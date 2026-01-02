@@ -1,6 +1,6 @@
 import MatchAPI from "@/api/match.api";
 import { I_CreatePveMatchRequest } from "@/common/match.types";
-import { CAMERA_OVERWORLD_PERSPECTIVE } from "@/composables/camera/useCameraController";
+import { CAMERA_OVERWORLD_PERSPECTIVE } from "@/composables/camera/useCameraZoom";
 import { I_SceneContext, I_SceneModule } from "@/game/common/scenes.types";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { I_ArenaConfig, MatchComponent } from "@/game/components/match/MatchComponent";

@@ -51,9 +51,8 @@ export class MeshComponent extends GameComponent implements I_MeshProvider {
 	}
 
 	async init(context: I_SceneContext): Promise<void> {
-		// Restrict: cannot use with InstancedMeshComponent
-		const InstancedMeshComponent = await import("./InstancedMeshComponent").then((m) => m.InstancedMeshComponent);
-		this.restrictComponent(InstancedMeshComponent, "Use InstancedMeshComponent OR MeshComponent, not both.");
+		// Restrict: only one mesh provider allowed per GameObject
+		this.restrictByTrait(TRAIT.MESH_PROVIDER, "Use only one of: MeshComponent, InstancedMeshComponent, or SpriteComponent");
 
 		// Require geometry component
 		const geometryComp = this.requireComponent(GeometryComponent);

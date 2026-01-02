@@ -87,7 +87,7 @@ const isPlayerTurn = computed(() => matchStore.match.turn.isPlayerTurn);
 
 async function handleAction(action: number | string) {
 	console.log("[MatchHUD] Action received from ActionBar:", action);
-	
+
 	switch (action) {
 		case "attack":
 			actions.attack();

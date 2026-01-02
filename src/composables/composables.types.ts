@@ -28,6 +28,7 @@ export interface I_CharacterControls extends I_GameComposable {
 	rotation: Ref<number>;
 	speed: Ref<number>;
 	isJumping: Ref<boolean>;
+	isMoving: Ref<boolean>;
 	joystick: I_JoystickControls;
 	getPosition: () => Vector3;
 	setPosition: (x: number, y: number, z: number) => void;
@@ -42,7 +43,6 @@ export interface I_CameraPerspective {
 	distance: number;
 	fov: number;
 }
-
 
 export interface I_CameraControls extends I_GameComposable {
 	angle: {

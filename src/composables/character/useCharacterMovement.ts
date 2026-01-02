@@ -10,6 +10,7 @@ export interface CharacterMovement {
 	};
 	rotation: Ref<number>;
 	speed: Ref<number>;
+	isMoving: Ref<boolean>;
 	update: (delta: number, cameraAngleH: number, joystickInputX: number, joystickInputZ: number) => void;
 	reset: () => void;
 }
@@ -21,6 +22,7 @@ export interface CharacterMovement {
 export function useCharacterMovement(): CharacterMovement {
 	const config = useGameConfigStore();
 
+	const isMoving = ref(false);
 	// Position and rotation
 	const playerX = ref(0);
 	const playerY = ref(5); // Spawn height - prevents falling through ground on init
@@ -45,7 +47,9 @@ export function useCharacterMovement(): CharacterMovement {
 			if (e.key === "w" || e.key === "a" || e.key === "s" || e.key === "d" || e.key === "W" || e.key === "A" || e.key === "S" || e.key === "D") {
 				e.preventDefault();
 				e.stopPropagation();
-			}
+				isMoving.value = e.type === "keydown";
+			} 
+			
 		},
 	});
 
@@ -112,6 +116,7 @@ export function useCharacterMovement(): CharacterMovement {
 		},
 		rotation: playerRotation,
 		speed: moveSpeed,
+		isMoving: isMoving,
 		update,
 		reset,
 	};

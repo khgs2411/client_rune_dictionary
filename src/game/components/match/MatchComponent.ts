@@ -1,10 +1,10 @@
+import type { I_MeshProvider } from "@/game/common/mesh.types";
 import type { I_SceneContext } from "@/game/common/scenes.types";
-import { ComponentPriority, GameComponent } from "@/game/GameComponent";
+import { ComponentPriority, GameComponent, TRAIT } from "@/game/GameComponent";
 import { E_SceneState } from "@/game/systems/SceneState";
 import { UnitsComponent } from "../entities/UnitsComponent";
 import { HoverComponent } from "../interactions/HoverComponent";
 import { InteractionComponent } from "../interactions/InteractionComponent";
-import { MeshComponent } from "../rendering/MeshComponent";
 
 /**
  * Arena configuration for match environment
@@ -46,13 +46,13 @@ export interface I_MatchComponentConfig {
  * - Requires InteractionComponent (for doubleclick event)
  * - Requires HoverComponent (for hover events)
  * - Requires UnitsComponent (for range checking)
- * - Requires MeshComponent (for glow effects)
+ * - Requires I_MeshProvider (MeshComponent or SpriteComponent, for glow effects)
  *
  * Usage:
  * ```typescript
  * const npc = new GameObject({ id: 'training-dummy' })
  *   .addComponent(new TransformComponent({ position: [0, 0, 0] }))
- *   .addComponent(new MeshComponent())
+ *   .addComponent(new SpriteComponent({ texture: '/sprites/goblin.png' }))
  *   .addComponent(new UnitsComponent())
  *   .addComponent(new InteractionComponent())
  *   .addComponent(new HoverComponent())
@@ -83,7 +83,7 @@ export class MatchComponent extends GameComponent {
 	public readonly arenaConfig: I_ArenaConfig;
 
 	private unitsComponent!: UnitsComponent;
-	private meshComponent!: MeshComponent;
+	private meshProvider!: I_MeshProvider;
 	private context!: I_SceneContext;
 
 	constructor(config: I_MatchComponentConfig = {}) {
@@ -101,7 +101,8 @@ export class MatchComponent extends GameComponent {
 	async init(context: I_SceneContext): Promise<void> {
 		this.context = context;
 		this.unitsComponent = this.requireComponent(UnitsComponent);
-		this.meshComponent = this.requireComponent(MeshComponent);
+		this.meshProvider = this.requireByTrait<I_MeshProvider>(TRAIT.MESH_PROVIDER);
+
 		this.setupInteractionListener(context);
 		this.setupHoverListener();
 	}
@@ -132,12 +133,12 @@ export class MatchComponent extends GameComponent {
 
 	private showCombatGlow(): void {
 		const vfx = this.context.getService("vfx");
-		vfx.applyEmissive(this.meshComponent.mesh, this.glowColor, this.glowIntensity);
+		vfx.applyEmissive(this.meshProvider.getMesh(), this.glowColor, this.glowIntensity);
 	}
 
 	private hideCombatGlow(): void {
 		const vfx = this.context.getService("vfx");
-		vfx.restoreEmissive(this.meshComponent.mesh);
+		vfx.restoreEmissive(this.meshProvider.getMesh());
 	}
 
 	/**

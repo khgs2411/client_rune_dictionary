@@ -12,6 +12,7 @@ import { PhysicsSystem } from "@/game/systems/physics/PhysicsSystem";
 import SceneState from "@/game/systems/SceneState";
 import { Spawner } from "@/game/systems/Spawner";
 import { VFXSystem } from "@/game/systems/VFXSystem";
+import { CullingSystem } from "@/game/systems/CullingSystem";
 import { GameConfig } from "@/stores/config.store";
 import { DataStore } from "@/stores/DataStore";
 import { SceneStore as ScenesManager } from "@/stores/scene.store";
@@ -51,6 +52,7 @@ export abstract class GameScene<TModuleRegistry extends Record<string, I_SceneMo
 		gameObjectsManager: new GameObjectsManager(),
 		spawner: new Spawner(),
 		state: new SceneState(),
+		culling: new CullingSystem(),
 	};
 
 	// High-level entity composables

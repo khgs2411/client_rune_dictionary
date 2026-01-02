@@ -11,13 +11,21 @@ Handles raycasting and user input events.
 ### Registration
 
 ```typescript
-const interaction = context.getService('interaction');
+const interaction = context.getService("interaction");
 
 interaction.register(mesh, {
-  onClick: (event) => { /* handle click */ },
-  onDoubleClick: (event) => { /* handle double click */ },
-  onHoverStart: (mesh) => { /* cursor entered */ },
-  onHoverEnd: (mesh) => { /* cursor left */ },
+	onClick: (event) => {
+		/* handle click */
+	},
+	onDoubleClick: (event) => {
+		/* handle double click */
+	},
+	onHoverStart: (mesh) => {
+		/* cursor entered */
+	},
+	onHoverEnd: (mesh) => {
+		/* cursor left */
+	},
 });
 ```
 
@@ -51,11 +59,11 @@ Facade over Rapier3D WASM physics engine.
 For environment objects that don't move:
 
 ```typescript
-const physics = context.getService('physics');
+const physics = context.getService("physics");
 
 physics.registerStaticFromMesh(gameObject.id, mesh, {
-  showDebug: true,  // Show wireframe collider
-  colliderType: 'trimesh',  // or 'box', 'sphere', 'capsule'
+	showDebug: true, // Show wireframe collider
+	colliderType: "trimesh", // or 'box', 'sphere', 'capsule'
 });
 ```
 
@@ -65,9 +73,9 @@ For objects you move programmatically (players, NPCs):
 
 ```typescript
 physics.registerKinematic(gameObject.id, mesh, {
-  colliderType: 'capsule',
-  height: 1.8,
-  radius: 0.3,
+	colliderType: "capsule",
+	height: 1.8,
+	radius: 0.3,
 });
 
 // Move kinematic body
@@ -78,11 +86,11 @@ physics.setKinematicPosition(gameObject.id, new Vector3(x, y, z));
 
 ```typescript
 physics.onCollisionStart(gameObject.id, (other) => {
-  console.log(`Collided with ${other.id}`);
+	console.log(`Collided with ${other.id}`);
 });
 
 physics.onCollisionEnd(gameObject.id, (other) => {
-  console.log(`Stopped colliding with ${other.id}`);
+	console.log(`Stopped colliding with ${other.id}`);
 });
 ```
 
@@ -104,19 +112,19 @@ Visual effects management.
 ### Emissive Glow
 
 ```typescript
-const vfx = context.getService('vfx');
+const vfx = context.getService("vfx");
 
 // Apply glow
-vfx.applyEmissive(mesh, 0xff0000, 0.5);  // color, intensity
+vfx.applyEmissive(mesh, 0xff0000, 0.5); // color, intensity
 
 // Remove glow
 vfx.removeEmissive(mesh);
 
 // Pulse effect
 vfx.pulseEmissive(mesh, 0xff0000, {
-  minIntensity: 0.2,
-  maxIntensity: 0.8,
-  duration: 1000,
+	minIntensity: 0.2,
+	maxIntensity: 0.8,
+	duration: 1000,
 });
 ```
 
@@ -125,9 +133,9 @@ vfx.pulseEmissive(mesh, 0xff0000, {
 ```typescript
 // Screen shake
 vfx.cameraShake({
-  intensity: 0.5,
-  duration: 200,
-  decay: true,
+	intensity: 0.5,
+	duration: 200,
+	decay: true,
 });
 
 // Flash
@@ -138,13 +146,13 @@ vfx.screenFlash(0xffffff, 100);
 
 ```typescript
 const emitter = vfx.createParticleEmitter({
-  position: new Vector3(0, 1, 0),
-  count: 50,
-  lifetime: 1000,
-  color: 0xffff00,
-  size: 0.1,
-  velocity: new Vector3(0, 2, 0),
-  spread: 0.5,
+	position: new Vector3(0, 1, 0),
+	count: 50,
+	lifetime: 1000,
+	color: 0xffff00,
+	size: 0.1,
+	velocity: new Vector3(0, 2, 0),
+	spread: 0.5,
 });
 
 // Later
@@ -155,9 +163,9 @@ emitter.dispose();
 ### Tooltips
 
 ```typescript
-vfx.showTooltip(mesh, 'Training Dummy', {
-  offset: new Vector2(0, 50),
-  duration: 3000,  // auto-hide
+vfx.showTooltip(mesh, "Training Dummy", {
+	offset: new Vector2(0, 50),
+	duration: 3000, // auto-hide
 });
 
 vfx.hideTooltip(mesh);
@@ -171,13 +179,13 @@ State machine for game flow.
 
 ### States
 
-| State | Description |
-|-------|-------------|
-| `OVERWORLD` | Normal gameplay |
+| State           | Description            |
+| --------------- | ---------------------- |
+| `OVERWORLD`     | Normal gameplay        |
 | `MATCH_REQUEST` | Combat target selected |
-| `MATCH` | In active combat |
-| `PAUSED` | Game paused |
-| `DIALOGUE` | In conversation |
+| `MATCH`         | In active combat       |
+| `PAUSED`        | Game paused            |
+| `DIALOGUE`      | In conversation        |
 
 ### API
 
@@ -207,9 +215,9 @@ state.onExit('MATCH', () => {
 Prevent invalid transitions:
 
 ```typescript
-state.addGuard('OVERWORLD', 'MATCH', () => {
-  // Return false to block transition
-  return player.health > 0;
+state.addGuard("OVERWORLD", "MATCH", () => {
+	// Return false to block transition
+	return player.health > 0;
 });
 ```
 
@@ -222,9 +230,9 @@ Coordinates GameObject lifecycle.
 ### Adding Objects
 
 ```typescript
-const manager = this.getModule('gameObjects') as GameObjectsManager;
+const manager = this.getModule("gameObjects") as GameObjectsManager;
 
-const dummy = new TrainingDummy({ id: 'dummy-1', position: [5, 0, 0] });
+const dummy = new TrainingDummy({ id: "dummy-1", position: [5, 0, 0] });
 manager.add(dummy);
 ```
 
@@ -232,27 +240,27 @@ manager.add(dummy);
 
 ```typescript
 // By ID
-const obj = manager.get('dummy-1');
+const obj = manager.get("dummy-1");
 
 // By type
 const dummies = manager.getByType(TrainingDummy);
 
 // By tag
-const enemies = manager.getByTag('enemy');
+const enemies = manager.getByTag("enemy");
 ```
 
 ### Removal
 
 ```typescript
-manager.remove('dummy-1');  // Calls destroy(), cleanup handled
+manager.remove("dummy-1"); // Calls destroy(), cleanup handled
 
-manager.clear();  // Remove all
+manager.clear(); // Remove all
 ```
 
 ### Iteration
 
 ```typescript
 manager.forEach((gameObject) => {
-  gameObject.update(delta);
+	gameObject.update(delta);
 });
 ```

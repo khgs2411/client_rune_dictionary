@@ -5,6 +5,7 @@ import { I_ThemeColors } from "@/composables/useTheme";
 import { CleanupRegistry } from "@/game/CleanupRegistry";
 import { Engine } from "@/game/Engine";
 import { GameObjectsManager } from "@/game/systems/GameObjectsManager";
+import type { CullingSystem } from "@/game/systems/CullingSystem";
 import type { InteractionSystem } from "@/game/systems/InteractionSystem";
 import { PhysicsSystem } from "@/game/systems/physics/PhysicsSystem";
 import SceneState from "@/game/systems/SceneState";
@@ -87,6 +88,7 @@ export interface I_SceneSystems {
 	gameObjectsManager: GameObjectsManager;
 	spawner: Spawner;
 	state: SceneState;
+	culling: CullingSystem;
 }
 
 /**

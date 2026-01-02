@@ -16,6 +16,7 @@ import EditorPanel from "@/components/EditorPanel.vue";
 import LoadingScreen from "@/components/LoadingScreen.vue";
 import { I_GameScene, I_SceneConfig } from "@/game/common/scenes.types";
 import { Engine } from "@/game/Engine";
+import { SpriteSheetRegistry } from "@/game/SpriteSheetRegistry";
 import { PlaygroundScene } from "@/scenes/PlaygroundScene";
 import { useAuthStore } from "@/stores/auth.store";
 import { useSceneStore } from "@/stores/scene.store";
@@ -48,6 +49,8 @@ function start() {
 		engine = new Engine(canvasRef.value);
 		console.log("   ↳ Scene UUID:", engine.scene.uuid);
 
+		loadSceneAssets();
+		
 		// Create and load playground scene
 		// LoadingScreen.vue (mounted first) listens to events emitted by the scene
 		setCurrentScene();
@@ -97,6 +100,10 @@ async function cleanupGame() {
 		engine.cleanup();
 		engine = null;
 	}
+}
+
+function loadSceneAssets() {
+	SpriteSheetRegistry.RegisterAllSpriteSheets();
 }
 
 function setCurrentScene() {

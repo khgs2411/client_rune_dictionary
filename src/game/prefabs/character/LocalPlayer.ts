@@ -1,12 +1,10 @@
-import { Vec3 } from "@/common/types";
 import type { I_CharacterControls } from "@/composables/composables.types";
-import { KinematicCollisionComponent } from "@/game/components/entities/KinematicCollisionComponent";
-import { KinematicMovementComponent } from "@/game/components/entities/KinematicMovementComponent";
+import { KinematicCollisionComponent } from "@/game/components/physics/KinematicCollisionComponent";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { SyncMovementComponent } from "@/game/components/multiplayer/SyncMovementComponent";
-import { CharacterMeshComponent } from "@/game/components/rendering/CharacterMeshComponent";
-import { GameObject } from "@/game/GameObject";
-import { createPlayer } from "./createPlayer";
+import { KinematicMovementComponent } from "@/game/components/physics/KinematicMovementComponent";
+import { CullingAnchorComponent } from "@/game/components/rendering/CullingAnchorComponent";
+import { SpriteGameObject } from "../SpriteGameObject";
 
 /**
  * Configuration for LocalPlayer prefab
@@ -22,20 +20,19 @@ export interface I_LocalPlayerConfig {
  * LocalPlayer Prefab - Complete local player character GameObject
  *
  * This prefab represents the player controlled by this client.
- * Uses createCharacterVisual() factory for shared visual components, then adds
- * client-specific behavior components:
+ * Uses billboard sprite with animated sprite sheet for visual representation.
  *
- * Visual (from factory):
- * - CharacterMeshComponent: Two-part visual (body + cone indicator, theme-aware)
- *
- * Behavior (LocalPlayer-specific):
- * - KinematicPhysicsComponent: Kinematic character controller (collision, auto-step, ground detection)
- * - MovementComponent: Movement logic (controller → physics → sync back)
+ * Extends SpriteGameObject (provides Transform, Sprite, Billboard, Animator) and adds:
+ * - KinematicCollisionComponent: Kinematic character controller (collision, auto-step, ground detection)
+ * - KinematicMovementComponent: Movement logic (controller → physics → sync back)
  * - SyncMovementComponent: Network position/rotation sync
  *
  * The character controller (input handling) is owned by the scene and passed
  * to this GameObject. The controller holds DESIRED state from input, physics
  * computes ACTUAL state, and MovementComponent syncs them bidirectionally.
+ *
+ * Prerequisites:
+ * - Call `SpriteSheetRegistry.RegisterAllSpriteSheets()` before creating LocalPlayer
  *
  * Usage:
  * ```typescript
@@ -45,37 +42,64 @@ export interface I_LocalPlayerConfig {
  *   position: [0, 1, 0],
  * });
  */
-export class LocalPlayer extends GameObject {
+export class LocalPlayer extends SpriteGameObject {
 	private characterController: I_CharacterControls;
 
 	constructor(config: I_LocalPlayerConfig) {
-		super({ id: config.playerId });
+		// Calculate spawn position inline (can't call methods before super)
+		const controllerPos = config.characterController.getPosition();
+		const startPos: [number, number, number] = [controllerPos.x, controllerPos.y, controllerPos.z];
+
+		// Override with config position if provided (for API spawn positions)
+		if (config.position) {
+			startPos[0] = config.position[0];
+			startPos[2] = config.position[2];
+			// Keep Y from controller unless explicitly overridden
+			if (config.position[1] !== undefined) {
+				startPos[1] = config.position[1];
+			}
+		}
+
+		// Capture controller reference for resolver closure
+		const controller = config.characterController;
+
+		// Call SpriteGameObject constructor with animationResolver
+		super({
+			id: config.playerId,
+			spriteSheetId: "local-player",
+			position: startPos,
+			billboardMode: "cylindrical",
+			animatorConfig: {
+				movementSource: controller, // For direction flip
+				animationResolver: () => {
+					// TODO: Add "jump" animation to registry, then: if (controller.isJumping.value) return "jump";
+					return controller.isMoving.value ? "walk" : "idle";
+				},
+				nativeFacing: "right",
+			},
+		});
 
 		// Store controller reference
 		this.characterController = config.characterController;
 
-		// Get starting position from controller (source of truth)
-		const startPos: Vec3 = this.getSpawnPosition(config);
-
-		// Add shared components from factory (transform + mesh)
-		this.addBaseComponents(startPos);
-
-		// Add KinematicPhysicsComponent (kinematic character controller)
+		// Add LocalPlayer-specific components
 		this.addCharacterControllerComponents(startPos, config);
-
-		// Add components that I am testing
-		this.addTestingComponents();
 	}
 
-	private addTestingComponents() {
-		// Add spawn trigger components to player BEFORE registration
-	}
+	private addCharacterControllerComponents(startPos: [number, number, number], config: I_LocalPlayerConfig) {
+		// LocalPlayer is the culling anchor - culling is calculated from player position
+		this.addComponent(new CullingAnchorComponent());
 
-	private addCharacterControllerComponents(startPos: Vec3, config: I_LocalPlayerConfig) {
+		// Inline capsule shape for collision
 		this.addComponent(
 			new KinematicCollisionComponent({
 				type: "static", // Required by base, but overridden for kinematic
-				getMesh: () => this.getComponent(CharacterMeshComponent)!.getMesh(), // Polymorphic mesh getter
+				shape: {
+					type: "capsule",
+					radius: 0.3,
+					height: 1.5,
+					offset: [0, 0.75, 0], // Center capsule vertically on sprite
+				},
 				initialPosition: startPos, // Physics body starts at correct position
 				characterOptions: {
 					enableAutostep: true,
@@ -96,44 +120,8 @@ export class LocalPlayer extends GameObject {
 			}),
 		);
 
-		// SyncMovementComponent will be added later when networking is ready
+		// SyncMovementComponent for network sync
 		this.addComponent(new SyncMovementComponent({ playerId: this.id, syncRotation: true }));
-	}
-
-	private addBaseComponents(startPos: Vec3) {
-		const sharedComponents = createPlayer({
-			position: startPos,
-			bodyRadius: 0.5,
-			bodyHeight: 1,
-			coneRadius: 0.2,
-			coneHeight: 0.4,
-			coneOffset: 0.7,
-		});
-		sharedComponents.forEach((comp) => this.addComponent(comp));
-	}
-
-	private getSpawnPosition(config: I_LocalPlayerConfig) {
-		const controllerPos = config.characterController.getPosition();
-		const startPos: [number, number, number] = [controllerPos.x, controllerPos.y, controllerPos.z];
-
-		// Override with config position if provided (for API spawn positions)
-		if (config.position) {
-			startPos[0] = config.position[0];
-			startPos[2] = config.position[2];
-			// Keep Y from controller unless explicitly overridden
-			if (config.position[1] !== undefined) {
-				startPos[1] = config.position[1];
-			}
-		}
-
-		// TODO: Override from API spawn position
-		// Example usage after API call:
-		// const spawnData = await api.getPlayerSpawnPosition(playerId);
-		// if (spawnData) {
-		//   startPos = [spawnData.x, spawnData.y, spawnData.z];
-		//   config.characterController.setPosition(startPos[0], startPos[1], startPos[2]);
-		// }
-		return startPos;
 	}
 
 	/**
@@ -162,7 +150,7 @@ export class LocalPlayer extends GameObject {
 			movementComp.resetVerticalVelocity();
 		}
 
-		// Note: CharacterMeshComponent will automatically sync from TransformComponent
+		// Note: SpriteComponent will automatically sync from TransformComponent
 	}
 
 	/**

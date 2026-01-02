@@ -110,27 +110,6 @@ const metadata: ConfigMetadata = {
 		},
 	},
 	camera: {
-		initialDistance: {
-			label: "Initial Distance",
-			min: 5,
-			max: 30,
-			step: 1,
-			group: "Camera Position",
-		},
-		initialAngleH: {
-			label: "Initial Horizontal Angle",
-			min: -Math.PI,
-			max: Math.PI,
-			step: 0.1,
-			group: "Camera Position",
-		},
-		initialAngleV: {
-			label: "Initial Vertical Angle",
-			min: 0,
-			max: Math.PI / 2,
-			step: 0.1,
-			group: "Camera Position",
-		},
 		mouseSensitivityH: {
 			label: "Mouse Sensitivity (Horizontal)",
 			min: 0.001,
@@ -152,20 +131,7 @@ const metadata: ConfigMetadata = {
 			step: 0.5,
 			group: "Camera Sensitivity",
 		},
-		zoomMin: {
-			label: "Zoom Min",
-			min: 1,
-			max: 10,
-			step: 1,
-			group: "Camera Zoom",
-		},
-		zoomMax: {
-			label: "Zoom Max",
-			min: 10,
-			max: 50,
-			step: 1,
-			group: "Camera Zoom",
-		},
+		// Note: Zoom is controlled from CAMERA_ZOOM_PRESET in cameraPresets.ts
 		angleVMin: {
 			label: "Min Vertical Angle",
 			min: 0.01,
@@ -247,19 +213,12 @@ export const useGameConfigStore = defineStore(
 		});
 
 		const camera = reactive({
-			// Initial camera position (matches combat camera exactly)
-			initialDistance: 25, // Matches combat camera
-			initialAngleH: 0, // Horizontal angle (radians) - fixed for isometric
-			initialAngleV: 0.76, // ~43° - matches combat camera
-
 			// Camera rotation sensitivity (rotation disabled for isometric view)
 			mouseSensitivityH: 0.005, // Horizontal mouse sensitivity
 			mouseSensitivityV: 0.005, // Vertical mouse sensitivity
 			touchSensitivityMultiplier: 2, // Touch sensitivity multiplier (compared to mouse)
 
-			// Camera zoom limits
-			zoomMin: 10, // Minimum zoom distance (zoomed in)
-			zoomMax: 25, // Maximum zoom distance (zoomed out)
+			// Note: Zoom is controlled from CAMERA_ZOOM_PRESET in cameraPresets.ts
 
 			// Camera angle limits
 			angleVMin: 0.1, // Minimum vertical angle (prevent looking straight down)

@@ -434,6 +434,14 @@ export class PhysicsSystem extends SceneSystem {
 		this.setPosition(id, position);
 	}
 
+	/**
+	 * Set visibility of debug wireframe for a specific body
+	 * Used by CullingSystem to hide wireframes for culled objects
+	 */
+	public setWireframeVisible(id: string, visible: boolean): void {
+		this.wireframeSystem.setWireframeVisible(id, visible);
+	}
+
 	// ============================================================================
 	// Internal Helpers
 	// ============================================================================

@@ -1,9 +1,8 @@
+import type { I_MeshProvider } from "../../common/mesh.types";
+import { isOpacityMaterial } from "../../common/mesh.types";
 import { I_SceneContext } from "@/game/common/scenes.types";
 import { ComponentPriority, GameComponent, TRAIT } from "@/game/GameComponent";
-import { Material, MeshStandardMaterial, MeshToonMaterial, Object3D, Raycaster, Vector3 } from "three";
-import type { I_MaterialProvider } from "../../common/mesh.types";
-import { InstancedMeshComponent } from "./InstancedMeshComponent";
-import { MeshComponent } from "./MeshComponent";
+import { Box3, Material, Mesh, Object3D, Vector3 } from "three";
 
 export interface I_OcclusionConfig {
 	/** Target opacity when occluding (0-1). Default: 0.3 */
@@ -12,6 +11,8 @@ export interface I_OcclusionConfig {
 	fadeSpeed?: number;
 	/** Vertical offset for player position (to target chest/head). Default: 1.5 */
 	playerHeightOffset?: number;
+	/** Extra padding around screen bounds for detection (NDC units 0-1). Default: 0.02 */
+	screenPadding?: number;
 }
 
 /**
@@ -21,18 +22,24 @@ export interface I_OcclusionConfig {
  * the player from the camera's view in an isometric/top-down game.
  *
  * How it works:
- * - Each frame, casts a ray from camera to player
- * - If this object's mesh intersects the ray (and is closer than the player),
+ * - Projects both mesh bounds and player to screen space (NDC coordinates)
+ * - If player's screen position falls within mesh's screen bounds AND mesh is closer,
  *   it smoothly fades to semi-transparent
  * - When no longer blocking, it smoothly fades back to opaque
  *
- * Supports both:
- * - MeshComponent (single mesh)
+ * Note: Uses screen-space projection instead of raycasting for reliable detection
+ * with billboard sprites (thin planes that would miss rays at oblique angles).
+ *
+ * Supports any I_MeshProvider:
+ * - MeshComponent (single 3D mesh)
+ * - SpriteComponent (billboard sprites)
  * - InstancedMeshComponent (multiple instances - fades entire group if any blocks)
  *
  * Requires:
- * - MeshComponent OR InstancedMeshComponent
- * - Any I_MaterialProvider (MaterialComponent, ToonMaterialComponent, etc.)
+ * - Any component that provides I_MeshProvider trait
+ *
+ * Note: Material is obtained directly from the mesh, so no separate MaterialComponent
+ * is required when using SpriteComponent.
  *
  * Usage:
  * ```typescript
@@ -64,11 +71,11 @@ export class OcclusionComponent extends GameComponent {
 	private originalTransparent = false;
 	private currentOpacity = 1;
 
-	// Raycasting
-	private raycaster = new Raycaster();
-	private cameraPosition = new Vector3();
-	private playerPosition = new Vector3();
-	private direction = new Vector3();
+	// Screen-space projection
+	private playerWorldPos = new Vector3();
+	private playerScreenPos = new Vector3();
+	private meshBounds = new Box3();
+	private boundCorner = new Vector3();
 
 	constructor(config: I_OcclusionConfig = { occludedOpacity: 0.3, fadeSpeed: 8 }) {
 		super();
@@ -78,32 +85,31 @@ export class OcclusionComponent extends GameComponent {
 	async init(context: I_SceneContext): Promise<void> {
 		this.context = context;
 
-		// Try to get MeshComponent first, then InstancedMeshComponent
-		const meshComp = this.getComponent(MeshComponent);
-		const instancedMeshComp = this.getComponent(InstancedMeshComponent);
+		// Get mesh from any provider (MeshComponent, SpriteComponent, InstancedMeshComponent, etc.)
+		// Note: InstancedMeshComponent also registers MESH_PROVIDER trait and implements getMesh()
+		const meshProvider = this.requireByTrait<I_MeshProvider>(TRAIT.MESH_PROVIDER);
+		this.targetMesh = meshProvider.getMesh();
 
-		if (meshComp) {
-			this.targetMesh = meshComp.mesh;
-		} else if (instancedMeshComp) {
-			this.targetMesh = instancedMeshComp.instancedMesh;
+		// Get material directly from the mesh
+		// This works for both:
+		// - MeshComponent: material comes from MaterialComponent, stored on mesh
+		// - SpriteComponent: material is created internally, stored on mesh
+		const meshWithMaterial = this.targetMesh as Mesh;
+		const meshMaterial = meshWithMaterial.material;
+
+		if (Array.isArray(meshMaterial)) {
+			// Multi-material mesh - use first material
+			this.material = meshMaterial[0];
 		} else {
-			throw new Error(`[OcclusionComponent] GameObject "${this.gameObject.id}" requires MeshComponent or InstancedMeshComponent`);
+			this.material = meshMaterial;
 		}
 
-		// Get material for opacity changes
-		const materialProvider = this.requireByTrait<I_MaterialProvider>(TRAIT.MATERIAL_PROVIDER);
-		this.material = materialProvider.material;
-
 		// Store original material state
-		if (this.isSupportedMaterial(this.material)) {
+		if (isOpacityMaterial(this.material)) {
 			this.originalOpacity = this.material.opacity;
 			this.originalTransparent = this.material.transparent;
 			this.currentOpacity = this.originalOpacity;
 		}
-	}
-
-	private isSupportedMaterial(mat: Material): mat is MeshStandardMaterial | MeshToonMaterial {
-		return mat instanceof MeshStandardMaterial || mat instanceof MeshToonMaterial;
 	}
 
 	update(delta: number): void {
@@ -132,40 +138,70 @@ export class OcclusionComponent extends GameComponent {
 	}
 
 	/**
-	 * Check if this mesh is between the camera and player
+	 * Check if this mesh is blocking the player using screen-space projection.
+	 * More reliable than raycasting for billboard sprites.
 	 */
 	private checkIfBlockingCamera(): boolean {
-		const camera = this.context.camera!;
+		const camera = this.context.camera!.instance;
 		const character = this.context.character!;
 
-		// Get camera position
-		this.cameraPosition.copy(camera.instance.position);
-
-		// Get player position with height offset (target chest/head area)
+		// Get player world position with height offset
 		const playerPos = character.controller.getPosition();
 		const heightOffset = this.config.playerHeightOffset ?? 1.5;
-		this.playerPosition.set(playerPos.x, playerPos.y + heightOffset, playerPos.z);
+		this.playerWorldPos.set(playerPos.x, playerPos.y + heightOffset, playerPos.z);
 
-		// Calculate direction and distance
-		this.direction.subVectors(this.playerPosition, this.cameraPosition).normalize();
-		const distanceToPlayer = this.cameraPosition.distanceTo(this.playerPosition);
+		// Project player to screen space (NDC: -1 to 1)
+		this.playerScreenPos.copy(this.playerWorldPos).project(camera);
+		const playerDepth = this.playerScreenPos.z;
 
-		// Cast ray from camera toward player
-		this.raycaster.set(this.cameraPosition, this.direction);
-		this.raycaster.far = distanceToPlayer;
+		// Get mesh bounding box in world space
+		this.meshBounds.setFromObject(this.targetMesh);
 
-		// Check intersection with this mesh (recursive for instanced meshes)
-		const intersects = this.raycaster.intersectObject(this.targetMesh, true);
+		// Project bounding box corners to screen space and find screen bounds
+		let minX = Infinity,
+			maxX = -Infinity;
+		let minY = Infinity,
+			maxY = -Infinity;
+		let meshDepth = Infinity;
 
-		// If any intersection is closer than the player, we're blocking
-		return intersects.length > 0 && intersects[0].distance < distanceToPlayer;
+		// Check all 8 corners of the bounding box
+		const corners = [
+			[this.meshBounds.min.x, this.meshBounds.min.y, this.meshBounds.min.z],
+			[this.meshBounds.min.x, this.meshBounds.min.y, this.meshBounds.max.z],
+			[this.meshBounds.min.x, this.meshBounds.max.y, this.meshBounds.min.z],
+			[this.meshBounds.min.x, this.meshBounds.max.y, this.meshBounds.max.z],
+			[this.meshBounds.max.x, this.meshBounds.min.y, this.meshBounds.min.z],
+			[this.meshBounds.max.x, this.meshBounds.min.y, this.meshBounds.max.z],
+			[this.meshBounds.max.x, this.meshBounds.max.y, this.meshBounds.min.z],
+			[this.meshBounds.max.x, this.meshBounds.max.y, this.meshBounds.max.z],
+		] as const;
+
+		for (const [x, y, z] of corners) {
+			this.boundCorner.set(x, y, z).project(camera);
+			minX = Math.min(minX, this.boundCorner.x);
+			maxX = Math.max(maxX, this.boundCorner.x);
+			minY = Math.min(minY, this.boundCorner.y);
+			maxY = Math.max(maxY, this.boundCorner.y);
+			meshDepth = Math.min(meshDepth, this.boundCorner.z);
+		}
+
+		// Mesh must be closer to camera than player (smaller depth = closer)
+		if (meshDepth >= playerDepth) {
+			return false;
+		}
+
+		// Check if player screen position is within mesh screen bounds (with padding)
+		const padding = this.config.screenPadding ?? 0.02;
+		const playerInBounds = this.playerScreenPos.x >= minX - padding && this.playerScreenPos.x <= maxX + padding && this.playerScreenPos.y >= minY - padding && this.playerScreenPos.y <= maxY + padding;
+
+		return playerInBounds;
 	}
 
 	/**
 	 * Apply opacity to the material
 	 */
 	private applyOpacity(opacity: number): void {
-		if (this.isSupportedMaterial(this.material)) {
+		if (isOpacityMaterial(this.material)) {
 			// Enable transparency if fading
 			if (opacity < 1) {
 				this.material.transparent = true;
@@ -185,7 +221,7 @@ export class OcclusionComponent extends GameComponent {
 	 * Restore material to original state on destroy
 	 */
 	destroy(): void {
-		if (this.isSupportedMaterial(this.material)) {
+		if (isOpacityMaterial(this.material)) {
 			this.material.opacity = this.originalOpacity;
 			this.material.transparent = this.originalTransparent;
 			this.material.needsUpdate = true;

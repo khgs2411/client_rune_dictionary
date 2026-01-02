@@ -1,145 +1,147 @@
+import { CollisionComponent } from "@/game/components/physics/CollisionComponent";
 import { OcclusionComponent } from "@/game/components/rendering/OcclusionComponent";
-import { TransformComponent } from "../../components/entities/TransformComponent";
-import { CollisionComponent } from "../../components/interactions/CollisionComponent";
-import { GeometryComponent } from "../../components/rendering/GeometryComponent";
-import { MaterialComponent } from "../../components/rendering/MaterialComponent";
-import { MeshComponent } from "../../components/rendering/MeshComponent";
-import { ToonMaterialComponent } from "../../components/rendering/ToonMaterialComponent";
 import { GameObject } from "../../GameObject";
+import { SpriteSheetRegistry } from "../../SpriteSheetRegistry";
+import { SpriteGameObject } from "../SpriteGameObject";
 import { I_BasePrefabConfig } from "../prefab.types";
 
-export interface I_HouseConfig extends I_BasePrefabConfig {
-	position?: [number, number, number];
-	rotation?: [number, number, number];
-	scale?: number; // Uniform scale multiplier (default: 1)
-	wallColor?: number; // Wall color (default: 0xdeb887 - burlywood)
-	roofColor?: number; // Roof color (default: 0x8b4513 - saddle brown)
+export interface I_HousePosition {
+	x: number;
+	y: number;
+	z: number;
+	scale?: number; // Scale multiplier for sprite size
+	/** Optional spriteSheetId override for this house */
+	spriteSheetId?: string;
+	/** Optional size override [width, height] */
+	size?: [number, number];
 }
 
+export interface I_HouseConfig extends I_BasePrefabConfig {
+	/** Single house position (legacy API) */
+	position?: [number, number, number];
+	/** Multiple house positions (new API) */
+	positions?: I_HousePosition[];
+	/** Default spriteSheetId for all houses (can be overridden per-position) */
+	spriteSheetId?: string;
+	/** Base size [width, height] before scaling (uses registry default if not specified) */
+	size?: [number, number];
+	/** Cycle through available house variants */
+	cycleTextures?: boolean;
+	/** Scale multiplier (legacy API, for single house) */
+	scale?: number;
+	/** Enable collision (default: true) */
+	enableCollision?: boolean;
+}
+
+/** Available house sprite sheet IDs (registered in SpriteSheetRegistry) */
+const HOUSE_SPRITE_IDS = ["house-00", "shop-01"];
+
 /**
- * House Prefab - Simple low-poly house with walls and roof
+ * House Helper - Creates sprite billboard house GameObjects
  *
- * Creates two GameObjects:
- * - [0]: Walls (box geometry)
- * - [1]: Roof (cone/pyramid geometry)
+ * Returns an array of GameObjects, one per house position.
+ * Each house is a billboard sprite that faces the camera.
  *
  * Usage:
  * ```typescript
- * const [walls, roof] = House.create({
- *   position: [10, 0, 10],
- *   useToonShading: true,
- *   vibrant: true
+ * // New API - multiple houses
+ * const houses = House.create({
+ *   id: "town-houses",
+ *   positions: [
+ *     { x: 30, y: 0, z: 0 },
+ *     { x: 45, y: 0, z: -10, scale: 1.2 },
+ *   ],
+ *   cycleTextures: true,
  * });
+ * houses.forEach(house => gom.register(house));
+ *
+ * // Legacy API - single house (returns array with one element)
+ * const [house] = House.create({
+ *   id: "single-house",
+ *   position: [10, 0, 10],
+ * });
+ * gom.register(house);
  * ```
  */
 export class House {
-	static create(config: I_HouseConfig = {}): [GameObject, GameObject] {
+	/**
+	 * Create house GameObjects from positions
+	 * Returns GameObject[] - one per house
+	 */
+	static create(config: I_HouseConfig = {}): GameObject[] {
 		const id = config.id ?? "house";
-		const position = config.position ?? [0, 0, 0];
-		const rotation = config.rotation ?? [0, 0, 0];
-		const scale = config.scale ?? 1;
-		const wallColor = config.wallColor ?? 0xdeb887; // Burlywood
-		const roofColor = config.roofColor ?? 0x8b4513; // Saddle brown
-		const useToonShading = config.useToonShading ?? false;
-		const vibrant = config.vibrant ?? false;
-		const enablePhysics = config.enablePhysics ?? true;
+		const defaultSpriteId = config.spriteSheetId ?? HOUSE_SPRITE_IDS[0];
+		const cycleTextures = config.cycleTextures ?? false;
+		const enableCollision = config.enableCollision ?? true;
 
-		// House dimensions (OSRS-inspired low-poly)
-		const wallWidth = 8 * scale;
-		const wallHeight = 6 * scale;
-		const wallDepth = 8 * scale;
-		const roofHeight = 4 * scale;
-		const roofRadius = 6 * scale; // Slightly wider than walls
+		// Get base size from config or registry
+		const registry = SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>();
+		const registryConfig = registry.getSpriteConfig(defaultSpriteId);
+		const baseSize = config.size ?? registryConfig?.size ?? [6, 5];
 
-		// Material factories
-		const createWallMaterial = () =>
-			useToonShading
-				? new ToonMaterialComponent({
-						color: wallColor,
-						gradientSteps: 3,
-						vibrant,
-					})
-				: new MaterialComponent({
-						color: wallColor,
-						roughness: 0.9,
-						metalness: 0,
-					});
-
-		const createRoofMaterial = () =>
-			useToonShading
-				? new ToonMaterialComponent({
-						color: roofColor,
-						gradientSteps: 3,
-						vibrant,
-					})
-				: new MaterialComponent({
-						color: roofColor,
-						roughness: 0.8,
-						metalness: 0,
-					});
-
-		// Walls GameObject
-		const walls = new GameObject({ id: `${id}-walls` })
-			.addComponent(
-				new TransformComponent({
-					position: [position[0], position[1] + wallHeight / 2, position[2]],
-					rotation,
-				}),
-			)
-			.addComponent(
-				new GeometryComponent({
-					type: "box",
-					params: [wallWidth, wallHeight, wallDepth],
-				}),
-			)
-			.addComponent(createWallMaterial())
-			.addComponent(
-				new MeshComponent({
-					castShadow: true,
-					receiveShadow: true,
-				}),
-			)
-			.addComponent(new OcclusionComponent());
-
-		if (enablePhysics) {
-			walls.addComponent(
-				new CollisionComponent({
-					type: "static",
-					shape: "cuboid",
-					shapeParams: [wallWidth / 2, wallHeight / 2, wallDepth / 2],
-				}),
-			);
+		// Support both new positions[] API and legacy position API
+		let positions: I_HousePosition[];
+		if (config.positions && config.positions.length > 0) {
+			positions = config.positions;
+		} else if (config.position) {
+			// Legacy single-house API
+			positions = [
+				{
+					x: config.position[0],
+					y: config.position[1],
+					z: config.position[2],
+					scale: config.scale,
+				},
+			];
+		} else {
+			// Default to origin
+			positions = [{ x: 0, y: 0, z: 0 }];
 		}
 
-		// Roof GameObject (pyramid using cone with 4 segments)
-		const roof = new GameObject({ id: `${id}-roof` })
-			.addComponent(
-				new TransformComponent({
-					position: [position[0], position[1] + wallHeight + roofHeight / 2, position[2]],
-					rotation,
-				}),
-			)
-			.addComponent(
-				new GeometryComponent({
-					type: "cone",
-					params: [roofRadius, roofHeight, 4], // 4 segments = pyramid shape
-				}),
-			)
-			.addComponent(createRoofMaterial())
-			.addComponent(
-				new MeshComponent({
-					castShadow: true,
-					receiveShadow: true,
-				}),
-			)
-			.addComponent(new OcclusionComponent());;
+		return positions.map((pos, index) => {
+			// Determine spriteSheetId for this house
+			let spriteSheetId = pos.spriteSheetId ?? defaultSpriteId;
+			if (cycleTextures && !pos.spriteSheetId) {
+				spriteSheetId = HOUSE_SPRITE_IDS[index % HOUSE_SPRITE_IDS.length];
+			}
 
-		// Rotate roof 45 degrees to align with walls
-		const roofTransform = roof.getComponent(TransformComponent);
-		if (roofTransform) {
-			roofTransform.setRotation(rotation[0], rotation[1] + Math.PI / 4, rotation[2]);
-		}
+			// Apply scale to size (pos.size overrides scaling)
+			const scale = pos.scale ?? 1;
+			const size: [number, number] | undefined = pos.size ?? (scale !== 1 ? [baseSize[0] * scale, baseSize[1] * scale] : undefined);
 
-		return [walls, roof];
+			// Calculate actual size for collision (slightly smaller than visual for better feel)
+			const actualSize = size ?? baseSize;
+			const collisionWidth = actualSize[0] * 0.8;
+			const collisionHeight = actualSize[1] * 1.2;
+			const collisionDepth = 1.5;
+
+			// Create sprite house with billboard and occlusion
+			const house = new SpriteGameObject({
+				id: `${id}-${index}`,
+				position: [pos.x, pos.y, pos.z],
+				spriteSheetId,
+				size, // Only override if pos.size or scaled
+				billboardMode: "spherical",
+			}).addComponent(new OcclusionComponent());
+
+			// Add collision if enabled
+			// Cuboid collision - physics body is world-aligned (no rotation needed)
+			if (enableCollision) {
+				house.addComponent(
+					new CollisionComponent({
+						type: "static",
+						shape: {
+							type: "cuboid",
+							width: collisionWidth,
+							height: collisionHeight,
+							depth: collisionDepth,
+							offset: [0, collisionHeight * 0.65, 0], // Slightly above center
+						},
+					}),
+				);
+			}
+
+			return house;
+		});
 	}
 }

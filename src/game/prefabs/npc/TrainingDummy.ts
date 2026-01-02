@@ -1,31 +1,24 @@
-import { GameObject } from "@/game/GameObject";
 import { I_GameObjectConfig } from "@/game/common/gameobject.types";
-import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { UnitsComponent } from "@/game/components/entities/UnitsComponent";
-import { CollisionComponent } from "@/game/components/interactions/CollisionComponent";
+import { CollisionComponent } from "@/game/components/physics/CollisionComponent";
 import { HoverComponent } from "@/game/components/interactions/HoverComponent";
 import { InteractionComponent } from "@/game/components/interactions/InteractionComponent";
 import { MatchComponent } from "@/game/components/match/MatchComponent";
-import { GeometryComponent } from "@/game/components/rendering/GeometryComponent";
-import { MaterialComponent } from "@/game/components/rendering/MaterialComponent";
-import { MeshComponent } from "@/game/components/rendering/MeshComponent";
+import { SpriteGameObject } from "../SpriteGameObject";
 
 export interface I_TrainingDummyConfig extends I_GameObjectConfig {
 	id: string;
 	position?: [number, number, number];
-	color?: number; // Hex color for material
 }
 
 /**
  * TrainingDummy - NPC prefab for match creation testing
  *
  * Represents a training dummy NPC that players can double-click to start a PvE match.
+ * Uses a slime sprite with cylindrical billboarding.
  *
- * Components:
- * - TransformComponent: Position in world
- * - GeometryComponent: Capsule shape (humanoid)
- * - MaterialComponent: Red color (indicates NPC/enemy)
- * - MeshComponent: Visual mesh
+ * Extends SpriteGameObject (provides Transform, Sprite, Billboard, Animator) and adds:
+ * - CollisionComponent: Static capsule collision (inline shape)
  * - UnitsComponent: Distance measurement
  * - InteractionComponent: Click/double-click events
  * - HoverComponent: Hover detection events
@@ -36,7 +29,6 @@ export interface I_TrainingDummyConfig extends I_GameObjectConfig {
  * const dummy = new TrainingDummy({
  *   id: 'training-dummy-1',
  *   position: [10, 0, 5],
- *   color: 0xff0000, // Red
  * });
  *
  * gameObjects.register(dummy);
@@ -45,42 +37,38 @@ export interface I_TrainingDummyConfig extends I_GameObjectConfig {
  * Behavior:
  * - Double-click → Creates PvE match
  * - Single-click → No action (can be extended later for dialogue/info)
- *
- * Future Extensions:
- * - DialogueComponent for NPC conversations
- * - AnimationComponent for idle/hit animations
- * - NPCLabelComponent for name tag display
  */
-export class TrainingDummy extends GameObject {
+export class TrainingDummy extends SpriteGameObject {
 	constructor(config: I_TrainingDummyConfig) {
-		super({ id: config.id || "training-dummy", type: config.type });
+		const position = config.position ?? [10, 0, 5];
 
-		const position = config.position || [10, 0.9, 5]; // Default position (0.9 = half capsule height)
-		const color = config.color !== undefined ? config.color : 0xff0000; // Default red
-		// Visual components
-		this.addComponent(new TransformComponent({ position }))
+		// Call SpriteGameObject constructor
+		super({
+			id: config.id || "training-dummy",
+			type: config.type,
+			spriteSheetId: "slime",
+			position,
+			billboardMode: "spherical",
+			defaultAnimation: "idle",
+		});
+
+		// Add TrainingDummy-specific components
+		this.addComponent(new UnitsComponent())
+			.addComponent(new InteractionComponent())
+			.addComponent(new HoverComponent())
+			// Inline capsule collision - sized to match slime graphic (not full sprite cell)
+			// Slime is a small, round creature in lower portion of sprite frame
 			.addComponent(
-				new GeometryComponent({
-					type: "capsule",
-					params: [0.5, 1.8, 8, 16], // radius, height, capSegments, radialSegments
+				new CollisionComponent({
+					type: "static",
+					shape: {
+						type: "capsule",
+						radius: 0.6,
+						height: 1.2,
+						offset: [0, 0.6, 0], // Raise capsule to center on slime body
+					},
 				}),
 			)
-			.addComponent(
-				new MaterialComponent({
-					color,
-					roughness: 0.7,
-					metalness: 0.2,
-				}),
-			)
-			.addComponent(new MeshComponent())
-
-			// System components
-			.addComponent(new UnitsComponent()) // Distance measurement
-
-			// Interaction components (order matters for dependencies)
-			.addComponent(new InteractionComponent()) // Provides click/doubleclick events
-			.addComponent(new HoverComponent()) // Provides hover events
-			.addComponent(new MatchComponent()) // Orchestrates: hover glow when in range, doubleclick to start match
-			.addComponent(new CollisionComponent());
+			.addComponent(new MatchComponent());
 	}
 }

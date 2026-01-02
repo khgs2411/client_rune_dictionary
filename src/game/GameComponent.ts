@@ -177,6 +177,31 @@ export abstract class GameComponent implements I_GameComponent {
 	}
 
 	/**
+	 * Restrict trait to this component only (no other component can have it)
+	 * Throws error if another component has the same trait
+	 *
+	 * Use this to enforce mutual exclusion between components that provide
+	 * the same capability (e.g., only one mesh provider allowed).
+	 *
+	 * @example
+	 * ```typescript
+	 * // In MeshComponent and InstancedMeshComponent:
+	 * this.restrictByTrait(TRAIT.MESH_PROVIDER, "Only one mesh provider allowed per GameObject");
+	 * ```
+	 */
+	protected restrictByTrait(trait: TraitKey, reason?: string): void {
+		for (const component of this.gameObject.getAllComponents()) {
+			if (component !== this && component.hasTrait(trait)) {
+				const traitName = trait.description || String(trait);
+				const message = reason
+					? `[${this.constructor.name}] Trait "${traitName}" already provided by ${component.constructor.name} on GameObject "${this.gameObject.id}". ${reason}`
+					: `[${this.constructor.name}] Trait "${traitName}" already provided by ${component.constructor.name} on GameObject "${this.gameObject.id}"`;
+				throw new Error(message);
+			}
+		}
+	}
+
+	/**
 	 * Find a sibling component by trait
 	 * Returns null if no component has the trait
 	 *

@@ -10,14 +10,14 @@
 		</template>
 		<!-- Scene Component (only shows when connected) -->
 		<Scene v-if="websocketManager.isConnected" />
-		<!-- Match HUD (shows when in match) -->
-		<MatchHUD v-if="websocketManager.isConnected" />
+		<!-- Combat Overlay (shows when in match) -->
+		<CombatOverlay v-if="websocketManager.isConnected" />
 	</div>
 </template>
 <script lang="ts" setup>
 import DebugConsole from "@/components/DebugConsole.vue";
 import WebSocketManager from "@/components/WebSocketManager.vue";
-import MatchHUD from "@/components/match/MatchHUD.vue";
+import CombatOverlay from "@/components/match/CombatOverlay.vue";
 import GrimoireOverlay from "@/components/grimoire/GrimoireOverlay.vue";
 import { useAuthStore } from "@/stores/auth.store";
 import { useWebSocketStore } from "@/stores/websocket.store";

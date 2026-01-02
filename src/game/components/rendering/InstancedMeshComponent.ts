@@ -3,7 +3,6 @@ import { Euler, InstancedMesh, Matrix4, Quaternion, Vector3 } from "three";
 import type { I_MaterialProvider, I_MeshProvider } from "../../common/mesh.types";
 import { ComponentPriority, GameComponent, TRAIT } from "../../GameComponent";
 import { GeometryComponent } from "./GeometryComponent";
-import { MeshComponent } from "./MeshComponent";
 
 export interface I_InstanceTransform {
 	position: [number, number, number];
@@ -71,10 +70,8 @@ export class InstancedMeshComponent extends GameComponent implements I_MeshProvi
 	}
 
 	async init(context: I_SceneContext): Promise<void> {
-		// Validate: cannot use with MeshComponent
-		if (this.gameObject.hasComponent(MeshComponent)) {
-			throw new Error(`[InstancedMeshComponent] GameObject "${this.gameObject.id}" has MeshComponent. Use InstancedMeshComponent OR MeshComponent, not both.`);
-		}
+		// Restrict: only one mesh provider allowed per GameObject
+		this.restrictByTrait(TRAIT.MESH_PROVIDER, "Use only one of: MeshComponent, InstancedMeshComponent, or SpriteComponent");
 
 		// Require geometry component
 		const geometryComp = this.requireComponent(GeometryComponent);

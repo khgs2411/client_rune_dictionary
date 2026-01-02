@@ -2,7 +2,7 @@ import type { Vector3Like } from "three";
 import { GameObject } from "../GameObject";
 import { TrajectoryComponent } from "../components/entities/TrajectoryComponent";
 import { TransformComponent } from "../components/entities/TransformComponent";
-import { CollisionComponent } from "../components/interactions/CollisionComponent";
+import { CollisionComponent } from "../components/physics/CollisionComponent";
 import { GeometryComponent } from "../components/rendering/GeometryComponent";
 import { MaterialComponent } from "../components/rendering/MaterialComponent";
 import { MeshComponent } from "../components/rendering/MeshComponent";
@@ -103,8 +103,10 @@ export class Fireball extends GameObject {
 		this.addComponent(
 			new CollisionComponent({
 				type: "trigger",
-				shape: "sphere",
-				shapeParams: [size],
+				shape: {
+					type: "sphere",
+					radius: size,
+				},
 				onCollisionEnter: (targetId) => {
 					console.log(`💥 [Fireball] Hit target: ${targetId}`);
 					config.onHit?.(targetId);

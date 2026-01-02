@@ -10,12 +10,12 @@ import { I_SceneConfig } from "../game/common/scenes.types";
 import { GameObject } from "@/game/GameObject";
 import { TransformComponent } from "@/game/components/entities/TransformComponent";
 import { ClickVFXComponent } from "@/game/components/interactions/ClickVFXComponent";
-import { CollisionComponent } from "@/game/components/interactions/CollisionComponent";
+import { CollisionComponent } from "@/game/components/physics/CollisionComponent";
 import { DragComponent } from "@/game/components/interactions/DragComponent";
+import { HoverComponent } from "@/game/components/interactions/HoverComponent";
 import { HoverGlowComponent } from "@/game/components/interactions/HoverGlowComponent";
 import { MatchComponent } from "@/game/components/match/MatchComponent";
 import { GeometryComponent } from "@/game/components/rendering/GeometryComponent";
-import { InstancedMeshComponent } from "@/game/components/rendering/InstancedMeshComponent";
 import { MaterialComponent } from "@/game/components/rendering/MaterialComponent";
 import { MeshComponent } from "@/game/components/rendering/MeshComponent";
 import { MultiplayerModule } from "@/game/modules/networking/MultiplayerModule";
@@ -27,6 +27,8 @@ import { House } from "@/game/prefabs/environment/House";
 import { Path } from "@/game/prefabs/environment/Path";
 import { Rocks } from "@/game/prefabs/environment/Rock";
 import { TrainingDummy } from "@/game/prefabs/npc/TrainingDummy";
+import { SpriteGameObject } from "@/game/prefabs/SpriteGameObject";
+import { DataStore } from "@/stores/DataStore";
 
 /**
  * Module Registry for PlaygroundScene
@@ -59,19 +61,18 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 
 	protected addSceneObjects() {
 		// Ground
-		const ground = new Ground({ size: 200, showGrid: false });
+		const ground = new Ground({ size: 100, showGrid: DataStore.settings.debug.showPhysicsDebug });
 		const gom = this.getService("gameObjectsManager");
 		gom.register(ground);
 
 		// Add environment objects
 		this.addEnvironmentObjects();
 
-		// Training Dummy NPC (for match creation testing)
+		// Training Dummy NPC (for match creation testing) - near the shop in town
 		const trainingDummy = new TrainingDummy({
 			id: "training-dummy-1",
 			type: "npc",
-			position: [-5, 1.25, 5], // Positioned away from other objects
-			color: 0xff0000, // Red (indicates enemy/NPC)
+			position: [5, 0, 10], // Near the shop, inside town
 		});
 		gom.register(trainingDummy);
 
@@ -146,27 +147,244 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 		// Auto-match debug feature (simulates double-click on TrainingDummy)
 		const trainingDummy = this.getService("gameObjectsManager").get<TrainingDummy>("training-dummy-1");
 		if (!trainingDummy) return;
-		this.handleAutoMatch(trainingDummy);
+
+		// Check if auto-match is enabled
+		if (this.settings.debug.autoMatch) {
+			this.handleAutoMatch(trainingDummy);
+		}
 	}
 
 	private addEnvironmentObjects() {
 		const gom = this.getService("gameObjectsManager");
 
-		// ========================================
-		// INTERACTIVE TEST OBJECT
-		// ========================================
+		this.addTownCenter(gom);
+		// this.addTownPaths(gom);
+		this.addTownNPCs(gom);
+		this.addOutskirts(gom);
+		this.addForestPerimeter(gom);
+		this.addSlimeZone(gom);
+		this.addDebugObjects(gom);
+	}
+
+	private addTownCenter(gom: ReturnType<typeof this.getService<"gameObjectsManager">>): void {
+		// Central shop - slightly larger, prominent position
+		const shops = House.create({
+			id: "town-shop",
+			positions: [{ x: 0, y: 0, z: 12, spriteSheetId: "shop-01", scale: 1.15 }],
+		});
+		shops.forEach((s) => gom.register(s));
+
+		// Residential houses clustered around the shop
+		const houses = House.create({
+			id: "town-houses",
+			positions: [
+				{ x: -10, y: 0, z: 8 }, // West side
+				{ x: 10, y: 0, z: 8 }, // East side
+				{ x: -14, y: 0, z: 16, scale: 0.9 }, // Northwest
+				{ x: 14, y: 0, z: 16, scale: 0.9 }, // Northeast
+			],
+			cycleTextures: false, // All use house-00
+		});
+		houses.forEach((h) => gom.register(h));
+	}
+
+	private addTownPaths(gom: ReturnType<typeof this.getService<"gameObjectsManager">>): void {
+		// Main entrance path (south to town center)
+		const entrancePath = Path.createStraight({
+			id: "path-entrance",
+			start: [0, -20],
+			end: [0, 8],
+			width: 4,
+			useToonShading: true,
+			color: 0xc4a574,
+		});
+		entrancePath.forEach((p) => gom.register(p));
+
+		// East-west cross path through town
+		const crossPathWest = Path.createStraight({
+			id: "path-cross-west",
+			start: [-12, 8],
+			end: [0, 8],
+			width: 3,
+			useToonShading: true,
+			color: 0xc4a574,
+		});
+		crossPathWest.forEach((p) => gom.register(p));
+
+		const crossPathEast = Path.createStraight({
+			id: "path-cross-east",
+			start: [0, 8],
+			end: [12, 8],
+			width: 3,
+			useToonShading: true,
+			color: 0xc4a574,
+		});
+		crossPathEast.forEach((p) => gom.register(p));
+	}
+
+	private addTownNPCs(gom: ReturnType<typeof this.getService<"gameObjectsManager">>): void {
+		// Knight guard at town entrance
+		const guard = new SpriteGameObject({
+			id: "npc-guard",
+			position: [3, 0, -5],
+			texture: "/sprites/knight_00.png",
+			size: [1.5, 2],
+			billboardMode: "cylindrical",
+		});
+		gom.register(guard);
+
+		// Mage near the shop (in front of it)
+		const mage = new SpriteGameObject({
+			id: "npc-mage",
+			position: [-2, 0, -6],
+			texture: "/sprites/mage_00.png",
+			size: [1.5, 2],
+			billboardMode: "cylindrical",
+		});
+		gom.register(mage);
+
+		// Goblin on east side of town (moved forward)
+		const goblin = new SpriteGameObject({
+			id: "npc-goblin",
+			position: [8, 0, 2],
+			texture: "/sprites/goblin_00.png",
+			size: [1.2, 1.5],
+			billboardMode: "cylindrical",
+		});
+		gom.register(goblin);
+	}
+
+	private addOutskirts(gom: ReturnType<typeof this.getService<"gameObjectsManager">>): void {
+		// Scattered trees near town (not blocking paths)
+		const outskirtsTree = Trees.create({
+			id: "outskirts-trees",
+			positions: [
+				// Original 6
+				{ x: 18, y: 0, z: 3 },
+				{ x: -18, y: 0, z: 5 },
+				{ x: 20, y: 0, z: 18 },
+				{ x: -20, y: 0, z: 20 },
+				{ x: 15, y: 0, z: -8 },
+				{ x: -16, y: 0, z: -6 },
+				// Additional 6
+				{ x: 24, y: 0, z: -3 },
+				{ x: -22, y: 0, z: -10 },
+				{ x: 26, y: 0, z: 12 },
+				{ x: -26, y: 0, z: 15 },
+				{ x: 22, y: 0, z: 22 },
+				{ x: -24, y: 0, z: 24 },
+			],
+			cycleTextures: true,
+		});
+		outskirtsTree.forEach((t) => gom.register(t));
+
+		// Rocks scattered around
+		const rocks = Rocks.create({
+			id: "outskirts-rocks",
+			positions: [
+				{ x: 22, y: 0, z: 10, scale: 0.8 },
+				{ x: -24, y: 0, z: 12, scale: 1.2 },
+				{ x: 12, y: 0, z: -12, scale: 0.7 },
+				{ x: -10, y: 0, z: -15, scale: 1.0 },
+				{ x: 25, y: 0, z: -5, scale: 0.9 },
+			],
+			cycleTextures: true,
+		});
+		rocks.forEach((r) => gom.register(r));
+	}
+
+	private addForestPerimeter(gom: ReturnType<typeof this.getService<"gameObjectsManager">>): void {
+		const FOREST_CONFIG = {
+			outerRadius: 45,
+			outerCount: 50,
+			innerRadius: 35,
+			innerCount: 20,
+			radiusVariation: 6,
+			outerGapRadians: 0.35, // ~20° each side of south
+			innerGapRadians: 0.5, // Wider gap for inner ring
+		};
+
+		const forestPositions: Array<{ x: number; y: number; z: number }> = [];
+		const southAngle = -Math.PI / 2; // -90° points to -Z (south)
+
+		// Outer ring
+		for (let i = 0; i < FOREST_CONFIG.outerCount; i++) {
+			const angle = (i / FOREST_CONFIG.outerCount) * Math.PI * 2;
+
+			// Calculate angular distance from south
+			const angleDiff = Math.abs(Math.atan2(Math.sin(angle - southAngle), Math.cos(angle - southAngle)));
+
+			// Skip trees in entrance gap
+			if (angleDiff < FOREST_CONFIG.outerGapRadians) continue;
+
+			// Randomize radius for organic look
+			const radius = FOREST_CONFIG.outerRadius + (Math.random() - 0.5) * FOREST_CONFIG.radiusVariation * 2;
+
+			forestPositions.push({
+				x: Math.cos(angle) * radius,
+				y: 0,
+				z: Math.sin(angle) * radius,
+			});
+		}
+
+		// Inner ring (wider gap for clear path)
+		for (let i = 0; i < FOREST_CONFIG.innerCount; i++) {
+			const angle = (i / FOREST_CONFIG.innerCount) * Math.PI * 2;
+
+			const angleDiff = Math.abs(Math.atan2(Math.sin(angle - southAngle), Math.cos(angle - southAngle)));
+
+			if (angleDiff < FOREST_CONFIG.innerGapRadians) continue;
+
+			const radius = FOREST_CONFIG.innerRadius + (Math.random() - 0.5) * FOREST_CONFIG.radiusVariation * 2;
+
+			forestPositions.push({
+				x: Math.cos(angle) * radius,
+				y: 0,
+				z: Math.sin(angle) * radius,
+			});
+		}
+
+		const forest = Trees.create({
+			id: "forest-perimeter",
+			positions: forestPositions,
+			cycleTextures: true,
+		});
+		forest.forEach((t) => gom.register(t));
+	}
+
+	private addSlimeZone(gom: ReturnType<typeof this.getService<"gameObjectsManager">>): void {
+		// Slime positions - clustered near entrance but outside town
+		const slimeConfigs = [
+			{ id: "slime-1", position: [-6, 0, -20] as [number, number, number] },
+			{ id: "slime-2", position: [5, 0, -23] as [number, number, number] },
+			{ id: "slime-3", position: [-2, 0, -26] as [number, number, number] },
+			{ id: "slime-4", position: [9, 0, -19] as [number, number, number] },
+			{ id: "slime-5", position: [-10, 0, -24] as [number, number, number] },
+		];
+
+		slimeConfigs.forEach((config) => {
+			const slime = new TrainingDummy({
+				id: config.id,
+				type: "npc",
+				position: config.position,
+			});
+			gom.register(slime);
+		});
+	}
+
+	private addDebugObjects(gom: ReturnType<typeof this.getService<"gameObjectsManager">>): void {
+		// Interactive test box - relocated to northeast edge of town
 		const interactiveBox = new GameObject({ id: "interactive-box" })
-			.addComponent(new TransformComponent({ position: [5, 1, 5] }))
+			.addComponent(new TransformComponent({ position: [35, 1, 25] }))
 			.addComponent(new GeometryComponent({ type: "box", params: { x: 3, y: 2, z: 1.5 } }))
 			.addComponent(new MaterialComponent({ color: 0xff1493, roughness: 0.8, metalness: 0.2 }))
 			.addComponent(new MeshComponent())
 			.addComponent(
 				new CollisionComponent({
 					type: "static",
-					shape: "cuboid",
-					showDebug: true,
 				}),
 			)
+			.addComponent(new HoverComponent())
 			.addComponent(
 				new HoverGlowComponent({
 					glowColor: 0xff8c00,
@@ -190,190 +408,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 			);
 
 		gom.register(interactiveBox);
-
-		// ========================================
-		// SMALL TOWN (Toon Shading + Vibrant)
-		// ========================================
-
-		// Town center house
-		const [townHouseWalls, townHouseRoof] = House.create({
-			id: "town-house-1",
-			position: [30, 0, 0],
-			useToonShading: true,
-			vibrant: true,
-			wallColor: 0xf5deb3, // Wheat
-			roofColor: 0x8b0000, // Dark red
-		});
-		gom.register(townHouseWalls);
-		gom.register(townHouseRoof);
-
-		// Second house
-		const [house2Walls, house2Roof] = House.create({
-			id: "town-house-2",
-			position: [45, 0, -10],
-			rotation: [0, Math.PI / 6, 0],
-			useToonShading: true,
-			vibrant: true,
-			wallColor: 0xffe4c4, // Bisque
-			roofColor: 0x2f4f4f, // Dark slate gray
-		});
-		gom.register(house2Walls);
-		gom.register(house2Roof);
-
-		// Third house
-		const [house3Walls, house3Roof] = House.create({
-			id: "town-house-3",
-			position: [50, 0, 15],
-			rotation: [0, -Math.PI / 4, 0],
-			scale: 0.8,
-			useToonShading: true,
-			vibrant: true,
-			wallColor: 0xfaebd7, // Antique white
-			roofColor: 0x556b2f, // Dark olive green
-		});
-		gom.register(house3Walls);
-		gom.register(house3Roof);
-
-		// Town paths
-		const townPaths = Path.createStraight({
-			id: "town-main-path",
-			start: [0, 0],
-			end: [30, 0],
-			width: 5,
-			useToonShading: true,
-			color: 0xd2b48c, // Tan
-		});
-		townPaths.forEach((segment) => gom.register(segment));
-
-		// Path to second house
-		const path2 = Path.createStraight({
-			id: "town-house2-path",
-			start: [30, 0],
-			end: [45, -10],
-			width: 4,
-			useToonShading: true,
-			color: 0xd2b48c,
-		});
-		path2.forEach((segment) => gom.register(segment));
-
-		// ========================================
-		// FOREST (Toon Shading + Vibrant)
-		// ========================================
-
-		// Dense forest area (negative X side)
-		const [forestTrunks, forestLeaves] = Trees.create({
-			id: "forest-trees",
-			positions: [
-				// Forest cluster 1
-				{ x: -25, y: 0, z: 10 },
-				{ x: -30, y: 0, z: 8 },
-				{ x: -28, y: 0, z: 15 },
-				{ x: -35, y: 0, z: 12 },
-				{ x: -32, y: 0, z: 5 },
-			],
-			useToonShading: true,
-			vibrant: true,
-			leavesColor: 0x228b22, // Forest green
-			trunkColor: 0x8b4513, // Saddle brown
-		});
-		gom.register(forestTrunks);
-		gom.register(forestLeaves);
-		const [forestTrunks2, forestLeaves2] = Trees.create({
-			id: "forest-trees-2",
-			positions: [
-				// Forest cluster 2
-				{ x: -40, y: 0, z: -5 },
-				{ x: -45, y: 0, z: -8 },
-				{ x: -42, y: 0, z: 0 },
-				{ x: -38, y: 0, z: -12 },
-				{ x: -50, y: 0, z: -3 },
-			],
-			useToonShading: true,
-			vibrant: true,
-			leavesColor: 0x228b22, // Forest green
-			trunkColor: 0x8b4513, // Saddle brown
-		});
-		gom.register(forestTrunks2);
-		gom.register(forestLeaves2);
-		const [forestTrunks3, forestLeaves3] = Trees.create({
-			id: "forest-trees-3",
-			positions: [
-				// Scattered trees
-				{ x: -20, y: 0, z: -15 },
-				{ x: -55, y: 0, z: 10 },
-				{ x: -48, y: 0, z: 18 },
-			],
-			useToonShading: true,
-			vibrant: true,
-			leavesColor: 0x228b22, // Forest green
-			trunkColor: 0x8b4513, // Saddle brown
-		});
-		gom.register(forestTrunks3);
-		gom.register(forestLeaves3);
-
-		// Trees near town (sparser)
-		const [townTrunks, townLeaves] = Trees.create({
-			id: "town-trees",
-			positions: [
-				{ x: 20, y: 0, z: 20 },
-				{ x: 55, y: 0, z: 25 },
-				{ x: 60, y: 0, z: -5 },
-				{ x: 25, y: 0, z: -20 },
-			],
-			useToonShading: true,
-			vibrant: true,
-			leavesColor: 0x32cd32, // Lime green (variety)
-		});
-		gom.register(townTrunks);
-		gom.register(townLeaves);
-
-		// ========================================
-		// ROCKS (scattered around)
-		// ========================================
-
-		const rocks = new Rocks({
-			positions: [
-				// Near forest
-				{ x: -22, y: 0, z: 5, scale: 1.2 },
-				{ x: -35, y: 0, z: -15, scale: 0.8 },
-				{ x: -48, y: 0, z: 8, scale: 1.5 },
-				// Near town
-				{ x: 35, y: 0, z: 10, scale: 0.6 },
-				{ x: 52, y: 0, z: -15, scale: 1.0 },
-				// Random scatter
-				{ x: 10, y: 0, z: -25, scale: 0.9 },
-				{ x: -10, y: 0, z: 25, scale: 1.1 },
-			],
-			useToonShading: true,
-			vibrant: true,
-			color: 0x696969, // Dim gray
-		});
-		gom.register(rocks);
-
-		// ========================================
-		// BUSHES (using instanced mesh)
-		// ========================================
-		const bushes = new GameObject({ id: "bushes" })
-			.addComponent(new GeometryComponent({ type: "sphere", params: [1.5, 6, 6] }))
-			.addComponent(new MaterialComponent({ color: 0x228b22, roughness: 1.0 }))
-			.addComponent(
-				new InstancedMeshComponent({
-					instances: [
-						// Near forest
-						{ position: [-26, 0.8, 6] },
-						{ position: [-33, 0.8, 10] },
-						{ position: [-41, 0.8, -2] },
-						// Near town
-						{ position: [28, 0.8, 5] },
-						{ position: [48, 0.8, -8] },
-						{ position: [38, 0.8, 18] },
-						// Near spawn
-						{ position: [8, 0.8, 8] },
-						{ position: [-5, 0.8, -8] },
-					],
-				}),
-			);
-		gom.register(bushes);
 	}
 
 	/**
@@ -430,11 +464,6 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 	 * Simulates double-click on TrainingDummy by triggering MatchComponent directly
 	 */
 	private handleAutoMatch(trainingDummy: TrainingDummy): void {
-		// Check if auto-match is enabled
-		if (!this.settings.debug.autoMatch) {
-			return; // Auto-match disabled, do nothing
-		}
-
 		console.log("🎮 [PlaygroundScene] Auto-match enabled, starting PvE match in 1 second...");
 
 		// Wait 1 second for scene to fully initialize, then trigger match

@@ -1,93 +1,89 @@
-import { CollisionComponent } from "../../components/interactions/CollisionComponent";
-import { GeometryComponent } from "../../components/rendering/GeometryComponent";
-import { I_InstanceTransform, InstancedMeshComponent } from "../../components/rendering/InstancedMeshComponent";
-import { MaterialComponent } from "../../components/rendering/MaterialComponent";
-import { ToonMaterialComponent } from "../../components/rendering/ToonMaterialComponent";
+import { OcclusionComponent } from "../../components/rendering/OcclusionComponent";
 import { GameObject } from "../../GameObject";
+import { SpriteSheetRegistry } from "../../SpriteSheetRegistry";
+import { SpriteGameObject } from "../SpriteGameObject";
 import { I_BasePrefabConfig } from "../prefab.types";
 
 export interface I_RockPosition {
 	x: number;
 	y: number;
 	z: number;
-	scale?: number; // Individual rock scale (default: 1)
-	rotationY?: number; // Y rotation for variety (default: random)
+	scale?: number; // Scale multiplier for sprite size
+	/** Optional spriteSheetId override for this rock */
+	spriteSheetId?: string;
 }
 
 export interface I_RocksConfig extends I_BasePrefabConfig {
 	positions: I_RockPosition[];
-	baseScale?: number; // Base scale multiplier (default: 1)
-	color?: number; // Rock color (default: 0x708090 - slate gray)
+	/** Default spriteSheetId for all rocks (can be overridden per-position) */
+	spriteSheetId?: string;
+	/** Base size [width, height] before scaling (uses registry default if not specified) */
+	size?: [number, number];
+	/** Cycle through available rock variants */
+	cycleTextures?: boolean;
 }
 
+/** Available rock sprite sheet IDs (registered in SpriteSheetRegistry) */
+const ROCK_SPRITE_IDS = ["rock-00", "rock-01", "rock-02"];
+
 /**
- * Rocks Prefab - Low-poly rocks using icosahedron geometry
+ * Rocks Helper - Creates sprite billboard rock GameObjects
  *
- * Creates instanced rocks for efficient rendering.
- * Icosahedron with low detail gives a nice chunky rock look.
+ * Returns an array of GameObjects, one per rock position.
+ * Each rock is a billboard sprite that faces the camera.
  *
  * Usage:
  * ```typescript
- * const rocks = new Rocks({
+ * const rocks = Rocks.create({
+ *   id: "rocks",
  *   positions: [
  *     { x: 5, y: 0, z: 5 },
  *     { x: 7, y: 0, z: 3, scale: 1.5 },
  *     { x: 6, y: 0, z: 8, scale: 0.7 }
  *   ],
- *   useToonShading: true,
- *   vibrant: true
+ *   cycleTextures: true,
  * });
+ *
+ * rocks.forEach(rock => gom.register(rock));
  * ```
  */
-export class Rocks extends GameObject {
-	constructor(config: I_RocksConfig) {
-		super({ id: config.id ?? "rocks" });
+export class Rocks {
+	/**
+	 * Create rock GameObjects from positions
+	 * Returns GameObject[] - one per rock
+	 */
+	static create(config: I_RocksConfig): GameObject[] {
+		const id = config.id ?? "rocks";
+		const defaultSpriteId = config.spriteSheetId ?? ROCK_SPRITE_IDS[0];
+		const cycleTextures = config.cycleTextures ?? false;
 
-		const baseScale = config.baseScale ?? 2;
-		const color = config.color ?? 0x708090; // Slate gray
-		const useToonShading = config.useToonShading ?? false;
-		const vibrant = config.vibrant ?? false;
-		const enablePhysics = config.enablePhysics ?? true;
+		// Get base size from config or registry
+		const registry = SpriteSheetRegistry.GetInstance<SpriteSheetRegistry>();
+		const registryConfig = registry.getSpriteConfig(defaultSpriteId);
+		const baseSize = config.size ?? registryConfig?.size ?? [2, 1.5];
 
-		// Create instances with random rotation for variety
-		const instances: I_InstanceTransform[] = config.positions.map((pos) => {
-			const scale = (pos.scale ?? 1) * baseScale;
-			const rotationY = pos.rotationY ?? Math.random() * Math.PI * 2;
+		return config.positions.map((pos, index) => {
+			// Determine spriteSheetId for this rock
+			const defaultSpriteId = config.spriteSheetId ?? ROCK_SPRITE_IDS[Math.floor(Math.random() * ROCK_SPRITE_IDS.length)];
+			let spriteSheetId = pos.spriteSheetId ?? defaultSpriteId;
+			if (cycleTextures && !pos.spriteSheetId) {
+				spriteSheetId = ROCK_SPRITE_IDS[index % ROCK_SPRITE_IDS.length];
+			}
 
-			return {
-				position: [pos.x, pos.y + scale / 2, pos.z], // Offset by half height
-				rotation: [0, rotationY, 0],
-				scale: [scale, scale * 0.7, scale], // Slightly flattened
-			};
+			// Apply scale to size
+			const scale = pos.scale ?? 1;
+			const size: [number, number] = scale !== 1 ? [baseSize[0] * scale, baseSize[1] * scale] : undefined!;
+
+			// Create sprite rock with billboard and occlusion
+			const rock = new SpriteGameObject({
+				id: `${id}-${index}`,
+				position: [pos.x, pos.y, pos.z],
+				spriteSheetId,
+				size: scale !== 1 ? size : undefined, // Only override if scaled
+				billboardMode: "cylindrical",
+			}).addComponent(new OcclusionComponent());
+
+			return rock;
 		});
-
-		// Add components
-		this.addComponent(
-			new GeometryComponent({
-				type: "sphere", // Will use low segments for rock-like appearance
-				params: [1, 6, 4], // radius, widthSegments, heightSegments (low = chunky)
-			}),
-		)
-			.addComponent(
-				useToonShading
-					? new ToonMaterialComponent({ color, gradientSteps: 3, vibrant })
-					: new MaterialComponent({ color, roughness: 0.95, metalness: 0 }),
-			)
-			.addComponent(
-				new InstancedMeshComponent({
-					instances,
-					castShadow: true,
-					receiveShadow: true,
-				}),
-			);
-
-		if (enablePhysics) {
-			this.addComponent(
-				new CollisionComponent({
-					type: "static",
-					shape: "sphere", // Approximate with sphere collision
-				}),
-			);
-		}
 	}
 }

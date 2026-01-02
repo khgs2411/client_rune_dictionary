@@ -1,4 +1,4 @@
-import { CollisionComponent } from "@/game/components/interactions/CollisionComponent";
+import { CollisionComponent } from "@/game/components/physics/CollisionComponent";
 import { GameObject } from "../GameObject";
 import { I_SceneContext } from "../common/scenes.types";
 import { TransformComponent } from "../components/entities/TransformComponent";
@@ -74,9 +74,10 @@ export class MatchAreaDome extends GameObject {
 			.addComponent(
 				new CollisionComponent({
 					type: "static",
-					shape: "sphere",
-					shapeParams: [config.radius],
-					showDebug: config.showDebug,
+					shape: {
+						type: "sphere",
+						radius: config.radius,
+					},
 				}),
 			);
 	}
