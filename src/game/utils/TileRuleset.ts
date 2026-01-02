@@ -110,24 +110,25 @@ export class TileRuleset {
 		// "No neighbor" means edge is drawn on that side
 		const rules: I_TileRule[] = [
 			// 4 Corners (2 neighbors each, on adjacent sides)
-			{ neighbors: { north: false, east: true, south: true, west: false }, tiles: [{ row: 4, column: 4 }] }, // top-left corner (S+E)
-			{ neighbors: { north: false, east: false, south: true, west: true }, tiles: [{ row: 4, column: 1 }] }, // top-right corner (S+W)
-			{ neighbors: { north: true, east: true, south: false, west: false }, tiles: [{ row: 1, column: 1 }] }, // bottom-left corner (N+E)
-			{ neighbors: { north: true, east: false, south: false, west: true }, tiles: [{ row: 1, column: 4 }] }, // bottom-right corner (N+W)
+			// Tile shows EDGE on sides with NO neighbor
+			{ neighbors: { north: false, east: true, south: true, west: false }, tiles: [{ row: 1, column: 1 }] }, // top-left corner (has S+E)
+			{ neighbors: { north: false, east: false, south: true, west: true }, tiles: [{ row: 1, column: 4 }] }, // top-right corner (has S+W)
+			{ neighbors: { north: true, east: true, south: false, west: false }, tiles: [{ row: 4, column: 1 }] }, // bottom-left corner (has N+E)
+			{ neighbors: { north: true, east: false, south: false, west: true }, tiles: [{ row: 4, column: 4 }] }, // bottom-right corner (has N+W)
 
 			// 4 Edges (3 neighbors each)
-			{ neighbors: { north: false, east: true, south: true, west: true }, tiles: [{ row: 1, column: 2 }, { row: 1, column: 3 }] }, // top edge (S+E+W)
-			{ neighbors: { north: true, east: true, south: false, west: true }, tiles: [{ row: 4, column: 2 }, { row: 4, column: 3 }] }, // bottom edge (N+E+W)
-			{ neighbors: { north: true, east: true, south: true, west: false }, tiles: [{ row: 2, column: 1 }, { row: 3, column: 1 }] }, // left edge (N+S+E)
-			{ neighbors: { north: true, east: false, south: true, west: true }, tiles: [{ row: 2, column: 4 }, { row: 3, column: 4 }] }, // right edge (N+S+W)
+			{ neighbors: { north: false, east: true, south: true, west: true }, tiles: [{ row: 1, column: 2 }, { row: 1, column: 3 }] }, // top edge (has S+E+W)
+			{ neighbors: { north: true, east: true, south: false, west: true }, tiles: [{ row: 4, column: 2 }, { row: 4, column: 3 }] }, // bottom edge (has N+E+W)
+			{ neighbors: { north: true, east: true, south: true, west: false }, tiles: [{ row: 2, column: 1 }, { row: 3, column: 1 }] }, // left edge (has N+S+E)
+			{ neighbors: { north: true, east: false, south: true, west: true }, tiles: [{ row: 2, column: 4 }, { row: 3, column: 4 }] }, // right edge (has N+S+W)
 
 			// Center (all 4 neighbors)
 			{ neighbors: { north: true, east: true, south: true, west: true }, tiles: [{ row: 2, column: 2 }, { row: 2, column: 3 }, { row: 3, column: 2 }, { row: 3, column: 3 }] },
 
-			// Isolated (no neighbors) - use top-left as fallback
+			// Isolated (no neighbors) - use center as fallback
 			{ neighbors: { north: false, east: false, south: false, west: false }, tiles: [{ row: 2, column: 2 }] },
 
-			// Peninsulas (1 neighbor only) - rare cases, use edges as fallback
+			// Peninsulas (1 neighbor only) - use closest edge as fallback
 			{ neighbors: { north: false, east: false, south: true, west: false }, tiles: [{ row: 1, column: 2 }] }, // S only -> top edge
 			{ neighbors: { north: true, east: false, south: false, west: false }, tiles: [{ row: 4, column: 2 }] }, // N only -> bottom edge
 			{ neighbors: { north: false, east: true, south: false, west: false }, tiles: [{ row: 2, column: 1 }] }, // E only -> left edge
@@ -193,15 +194,17 @@ export class TileRuleset {
 	 * Get neighbor fill states for a position
 	 */
 	private getNeighbors(x: number, y: number, fillFn: FillFunction): NeighborInfo {
+		// Grid Y increases downward, but world "north" is +Y direction
+		// So north = y+1 in grid coordinates
 		return {
-			north: fillFn(x, y - 1),
-			south: fillFn(x, y + 1),
+			north: fillFn(x, y + 1),
+			south: fillFn(x, y - 1),
 			east: fillFn(x + 1, y),
 			west: fillFn(x - 1, y),
-			northEast: fillFn(x + 1, y - 1),
-			northWest: fillFn(x - 1, y - 1),
-			southEast: fillFn(x + 1, y + 1),
-			southWest: fillFn(x - 1, y + 1),
+			northEast: fillFn(x + 1, y + 1),
+			northWest: fillFn(x - 1, y + 1),
+			southEast: fillFn(x + 1, y - 1),
+			southWest: fillFn(x - 1, y - 1),
 		};
 	}
 
