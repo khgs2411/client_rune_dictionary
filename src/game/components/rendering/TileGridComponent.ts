@@ -171,7 +171,11 @@ export class TileGridComponent extends GameComponent {
 		const instanceCount = this.gridWidth * this.gridHeight;
 
 		// Create tile geometry (XZ plane, facing up)
-		const geometry = new PlaneGeometry(this.tileSize, this.tileSize);
+		// Add tiny overlap to prevent gaps from floating-point precision
+		// More overlap on X axis (width) to handle isometric view angle
+		const overlapX = 1.02;
+		const overlapZ = 1.01;
+		const geometry = new PlaneGeometry(this.tileSize * overlapX, this.tileSize * overlapZ);
 		geometry.rotateX(-Math.PI / 2); // Rotate to lie flat on XZ plane
 
 		// Create custom shader material for per-instance UVs
