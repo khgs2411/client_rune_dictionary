@@ -48,8 +48,7 @@ export function useCharacterMovement(): CharacterMovement {
 				e.preventDefault();
 				e.stopPropagation();
 				isMoving.value = e.type === "keydown";
-			} 
-			
+			}
 		},
 	});
 

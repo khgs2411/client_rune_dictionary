@@ -7,6 +7,8 @@
 			<WebSocketManager v-if="auth.isAuthenticated" :auto-connect="autoConnect" />
 			<!-- Grimoire Overlay -->
 			<GrimoireOverlay />
+			<!-- Admin Panel (dev tools for CRUD) -->
+			<AdminPanel v-model:open="settings.debug.showAdminPanel" />
 		</template>
 		<!-- Scene Component (only shows when connected) -->
 		<Scene v-if="websocketManager.isConnected" />
@@ -19,14 +21,17 @@ import DebugConsole from "@/components/DebugConsole.vue";
 import WebSocketManager from "@/components/WebSocketManager.vue";
 import CombatOverlay from "@/components/match/CombatOverlay.vue";
 import GrimoireOverlay from "@/components/grimoire/GrimoireOverlay.vue";
+import { AdminPanel } from "@/components/admin";
 import { useAuthStore } from "@/stores/auth.store";
 import { useWebSocketStore } from "@/stores/websocket.store";
+import { useSettingsStore } from "@/stores/settings.store";
 import { watch } from "vue";
 import { useRouter } from "vue-router";
 import Scene from "./Scene.vue";
 
 const auth = useAuthStore();
 const websocketManager = useWebSocketStore();
+const settings = useSettingsStore();
 const autoConnect = true || import.meta.env.DEV;
 const router = useRouter();
 

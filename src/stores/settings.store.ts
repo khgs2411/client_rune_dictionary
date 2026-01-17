@@ -17,6 +17,7 @@ export interface I_DebugSettings {
 	showWebSocketDebugger: boolean; // Show/hide WebSocket event debugger
 	showPhysicsDebug: boolean; // Show/hide physics collider wireframes
 	showGrimoire: boolean; // Show/hide Grimoire overlay
+	showAdminPanel: boolean; // Show/hide Admin panel for CRUD operations
 }
 
 export const useSettingsStore = defineStore(
@@ -43,6 +44,7 @@ export const useSettingsStore = defineStore(
 			showWebSocketDebugger: true, // Default: enabled
 			showPhysicsDebug: false, // Default: disabled
 			showGrimoire: false, // Default: disabled
+			showAdminPanel: false, // Default: disabled
 		});
 
 		// Toggle dark/light mode

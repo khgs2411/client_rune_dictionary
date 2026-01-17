@@ -9,13 +9,13 @@
 					<!-- Header with Tabs -->
 					<div class="flex items-center justify-between border-b border-border px-4 py-2 shrink-0">
 						<TabsList class="bg-muted/50">
-							<TabsTrigger value="runes" class="gap-2">
-								<Icon icon="game-icons:fire-gem" class="h-4 w-4" />
-								Runes
-							</TabsTrigger>
-							<TabsTrigger value="aspects" class="gap-2">
+							<TabsTrigger value="skills" class="gap-2">
 								<Icon icon="game-icons:magic-swirl" class="h-4 w-4" />
-								Aspects
+								Skill Forge
+							</TabsTrigger>
+							<TabsTrigger value="loadout" class="gap-2">
+								<Icon icon="game-icons:shoulder-armor" class="h-4 w-4" />
+								Loadout
 							</TabsTrigger>
 						</TabsList>
 						<Button variant="ghost" size="icon" @click="close">
@@ -25,11 +25,11 @@
 
 					<!-- Content Area -->
 					<div class="flex-1 overflow-hidden p-6 relative">
-						<TabsContent value="runes" class="mt-0 h-full">
-							<GrimoireRunesPage />
+						<TabsContent value="skills" class="mt-0 h-full">
+							<GrimoireSkillsPage />
 						</TabsContent>
-						<TabsContent value="aspects" class="mt-0 h-full">
-							<GrimoireAspectsPage />
+						<TabsContent value="loadout" class="mt-0 h-full">
+							<GrimoireLoadoutPage />
 						</TabsContent>
 					</div>
 				</Tabs>
@@ -44,11 +44,11 @@ import { Icon } from "@iconify/vue";
 import { useSettingsStore } from "@/stores/settings.store";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import GrimoireRunesPage from "./GrimoireRunesPage.vue";
-import GrimoireAspectsPage from "./GrimoireAspectsPage.vue";
+import GrimoireSkillsPage from "./GrimoireSkillsPage.vue";
+import GrimoireLoadoutPage from "./GrimoireLoadoutPage.vue";
 
 const settings = useSettingsStore();
-const activeTab = ref<"runes" | "aspects">("runes");
+const activeTab = ref<"skills" | "loadout">("skills");
 
 function close() {
 	settings.debug.showGrimoire = false;

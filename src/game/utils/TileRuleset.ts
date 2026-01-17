@@ -1,14 +1,4 @@
-import type {
-	FillFunction,
-	I_RelativeTilePosition,
-	I_TileRule,
-	I_TileRulesetConfig,
-	I_TilesetBounds,
-	NeighborInfo,
-	TileSelection,
-	TileSelectorContext,
-	TileSelectorFn,
-} from "@/game/common/tile.types";
+import type { FillFunction, I_RelativeTilePosition, I_TileRule, I_TileRulesetConfig, I_TilesetBounds, NeighborInfo, TileSelection, TileSelectorContext, TileSelectorFn } from "@/game/common/tile.types";
 
 /**
  * TileRuleset - Rule-based auto-tiling system
@@ -66,8 +56,7 @@ export class TileRuleset {
 	createSelector(fillFn?: FillFunction): TileSelectorFn {
 		return (x: number, y: number, context: TileSelectorContext): TileSelection | null => {
 			// Default fill function: entire grid is filled
-			const fill: FillFunction =
-				fillFn ?? ((px, py) => px >= 0 && px < context.gridWidth && py >= 0 && py < context.gridHeight);
+			const fill: FillFunction = fillFn ?? ((px, py) => px >= 0 && px < context.gridWidth && py >= 0 && py < context.gridHeight);
 
 			// Check if current cell is filled
 			if (!fill(x, y)) {
@@ -125,7 +114,7 @@ export class TileRuleset {
 			{ neighbors: { north: true, south: true, east: false, west: true }, tiles: [{ row: 3, column: 4 }] }, // right edge (no E)
 
 			// Center (all 4 neighbors)
-			{ neighbors: { north: true, south: true, east: true, west: true }, tiles: [/* { row: 2, column: 2 }, { row: 2, column: 3 },  */{ row: 3, column: 2 }, /* { row: 3, column: 3 } */] },
+			{ neighbors: { north: true, south: true, east: true, west: true }, tiles: [/* { row: 2, column: 2 }, { row: 2, column: 3 },  */ { row: 3, column: 2 } /* { row: 3, column: 3 } */] },
 
 			// Isolated (no neighbors) - use center as fallback
 			{ neighbors: { north: false, south: false, east: false, west: false }, tiles: [{ row: 2, column: 2 }] },

@@ -7,16 +7,7 @@ import { TRAIT } from "@/game/GameComponent";
 import type { GameObject } from "@/game/GameObject";
 import SceneSystem from "@/game/systems/SceneSystem";
 import { DataStore } from "@/stores/DataStore";
-import {
-	BufferGeometry,
-	Float32BufferAttribute,
-	Frustum,
-	LineBasicMaterial,
-	LineLoop,
-	Matrix4,
-	PerspectiveCamera,
-	Vector3,
-} from "three";
+import { BufferGeometry, Float32BufferAttribute, Frustum, LineBasicMaterial, LineLoop, Matrix4, PerspectiveCamera, Vector3 } from "three";
 import { watch, type WatchStopHandle } from "vue";
 
 /**

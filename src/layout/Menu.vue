@@ -38,6 +38,18 @@
 						</p>
 					</TooltipContent>
 				</Tooltip>
+				<Tooltip>
+					<TooltipTrigger as-child>
+						<Button variant="ghost" size="icon" class="h-8 w-8" @click="toggleAdminPanel">
+							<Icon icon="radix-icons:database" class="h-4 w-4" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent>
+						<p>
+							{{ settings.debug.showAdminPanel ? "Close Admin Panel" : "Open Admin Panel" }}
+						</p>
+					</TooltipContent>
+				</Tooltip>
 			</TooltipProvider>
 			<GameSettings />
 		</template>
@@ -68,5 +80,9 @@ function toggleEditor() {
 
 function toggleGrimoire() {
 	settings.debug.showGrimoire = !settings.debug.showGrimoire;
+}
+
+function toggleAdminPanel() {
+	settings.debug.showAdminPanel = !settings.debug.showAdminPanel;
 }
 </script>

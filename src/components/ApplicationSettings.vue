@@ -146,6 +146,23 @@
 							</TooltipContent>
 						</Tooltip>
 					</TooltipProvider>
+
+					<TooltipProvider :delay-duration="0">
+						<Tooltip>
+							<TooltipTrigger as-child>
+								<div class="flex items-center justify-between py-1">
+									<div class="flex flex-col">
+										<span class="text-sm font-medium">Admin Panel</span>
+										<span class="text-xs text-muted-foreground">CRUD for Runes & Aspects</span>
+									</div>
+									<Switch v-model="settings.debug.showAdminPanel" />
+								</div>
+							</TooltipTrigger>
+							<TooltipContent side="left">
+								<p>Open the Admin Panel to manage game data</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
 				</div>
 
 				<!-- Logout Button -->

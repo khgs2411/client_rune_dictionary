@@ -7,7 +7,7 @@ export class RunesAPI extends BaseAPI {
 	}
 
 	public async findAll(): Promise<RuneModel[]> {
-		const response = await this.get<{ status: boolean; data: RuneModel[] }>("");
+		const response = await this.get<{ status: boolean; data: RuneModel[] }>("get");
 		BaseAPI.Status(response);
 		return response.data.data;
 	}
@@ -19,7 +19,7 @@ export class RunesAPI extends BaseAPI {
 	}
 
 	public async create(data: RuneCreationData): Promise<RuneModel> {
-		const response = await this.post<{ status: boolean; data: RuneModel }>("", data);
+		const response = await this.post<{ status: boolean; data: RuneModel }>("create", data);
 		BaseAPI.Status(response);
 		return response.data.data;
 	}

@@ -1,13 +1,4 @@
-import {
-	InstancedMesh,
-	PlaneGeometry,
-	ShaderMaterial,
-	InstancedBufferAttribute,
-	Matrix4,
-	TextureLoader,
-	NearestFilter,
-	type Texture,
-} from "three";
+import { InstancedMesh, PlaneGeometry, ShaderMaterial, InstancedBufferAttribute, Matrix4, TextureLoader, NearestFilter, type Texture } from "three";
 import { ComponentPriority, GameComponent } from "../../GameComponent";
 import type { I_SceneContext } from "../../common/scenes.types";
 import type { I_TileGridConfig, TileSelection, TileSelectorContext } from "../../common/tile.types";
