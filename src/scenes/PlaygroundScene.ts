@@ -29,6 +29,7 @@ import { Rocks } from "@/game/prefabs/environment/Rock";
 import { TrainingDummy } from "@/game/prefabs/npc/TrainingDummy";
 import { SpriteGameObject } from "@/game/prefabs/SpriteGameObject";
 import { DataStore } from "@/stores/DataStore";
+import { Exception } from "sass";
 
 /**
  * Module Registry for PlaygroundScene
@@ -479,9 +480,9 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 			console.log("🎮 [PlaygroundScene] Triggering match creation via MatchComponent...");
 
 			// Call the private method using type assertion (hacky but works for debug feature)
-			// @ts-ignore - Accessing private method for debug purposes
-			await matchComponent.handleMatchCreation(this.getSceneContext());
+			// await matchComponent.handleMatchCreation(this.getSceneContext());
 
+			throw new Error("matchComponent.handleMatchCreation(this.getSceneContext()) not implemented");
 			console.log("🎮 [PlaygroundScene] Auto-match triggered successfully");
 		}, 1000);
 	}
