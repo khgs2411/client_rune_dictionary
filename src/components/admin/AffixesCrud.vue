@@ -2,10 +2,10 @@
 	<div class="space-y-4">
 		<!-- Header with Create button -->
 		<div class="flex items-center justify-between">
-			<h3 class="text-sm font-medium text-muted-foreground">{{ aspects.length }} aspects</h3>
-			<Button @click="showCreateForm = true" size="sm" :disabled="showCreateForm || runesLoading">
+			<h3 class="text-sm font-medium text-muted-foreground">{{ affixes.length }} affixes</h3>
+			<Button @click="showCreateForm = true" size="sm" :disabled="showCreateForm || attributesLoading">
 				<Plus class="h-4 w-4 mr-1" />
-				New Aspect
+				New Affix
 			</Button>
 		</div>
 
@@ -15,9 +15,9 @@
 		</div>
 
 		<!-- Create/Edit Form (inline collapsible) -->
-		<div v-if="showCreateForm || editingAspect" class="border rounded-lg p-4 space-y-4 bg-muted/30">
+		<div v-if="showCreateForm || editingAffix" class="border rounded-lg p-4 space-y-4 bg-muted/30">
 			<div class="flex items-center justify-between">
-				<h4 class="font-medium">{{ editingAspect ? "Edit Aspect" : "Create Aspect" }}</h4>
+				<h4 class="font-medium">{{ editingAffix ? "Edit Affix" : "Create Affix" }}</h4>
 				<Button variant="ghost" size="icon" class="h-6 w-6" @click="closeForm">
 					<X class="h-4 w-4" />
 				</Button>
@@ -26,13 +26,13 @@
 			<div class="grid gap-3">
 				<!-- Hash -->
 				<div class="space-y-1.5">
-					<Label for="aspect-hash">Hash (identifier)</Label>
-					<Input id="aspect-hash" v-model="formData.hash" placeholder="e.g., fire_damage_instant" />
+					<Label for="affix-hash">Hash (identifier)</Label>
+					<Input id="affix-hash" v-model="formData.hash" placeholder="e.g., fire_damage_instant" />
 				</div>
 
 				<!-- Tier -->
 				<div class="space-y-1.5">
-					<Label for="aspect-tier">Tier</Label>
+					<Label for="affix-tier">Tier</Label>
 					<Select v-model="formData.tier">
 						<SelectTrigger>
 							<SelectValue placeholder="Select tier" />
@@ -49,24 +49,24 @@
 				<!-- Weight & Potency -->
 				<div class="grid grid-cols-2 gap-3">
 					<div class="space-y-1.5">
-						<Label for="aspect-weight">Weight</Label>
-						<Input id="aspect-weight" v-model.number="formData.weight" type="number" placeholder="100" />
+						<Label for="affix-weight">Weight</Label>
+						<Input id="affix-weight" v-model.number="formData.weight" type="number" placeholder="100" />
 					</div>
 					<div class="space-y-1.5">
-						<Label for="aspect-potency">Potency</Label>
-						<Input id="aspect-potency" v-model.number="formData.potency" type="number" placeholder="1" />
+						<Label for="affix-potency">Potency</Label>
+						<Input id="affix-potency" v-model.number="formData.potency" type="number" placeholder="1" />
 					</div>
 				</div>
 
-				<!-- Rune IDs (multi-select with checkboxes) -->
+				<!-- Attribute IDs (multi-select with checkboxes) -->
 				<div class="space-y-1.5">
-					<Label>Associated Runes</Label>
-					<div v-if="runesLoading" class="text-sm text-muted-foreground">Loading runes...</div>
+					<Label>Associated Attributes</Label>
+					<div v-if="attributesLoading" class="text-sm text-muted-foreground">Loading attributes...</div>
 					<div v-else class="border rounded p-2 max-h-32 overflow-y-auto space-y-1">
-						<label v-for="rune in availableRunes" :key="rune._id" class="flex items-center gap-2 text-sm cursor-pointer hover:bg-muted/50 p-1 rounded">
-							<input type="checkbox" :value="rune.rune_id" v-model="formData.rune_ids" class="rounded border-input" />
-							{{ rune.name }}
-							<span class="text-xs text-muted-foreground">({{ rune.rune_id }})</span>
+						<label v-for="attribute in availableAttributes" :key="attribute._id" class="flex items-center gap-2 text-sm cursor-pointer hover:bg-muted/50 p-1 rounded">
+							<input type="checkbox" :value="attribute.attribute_id" v-model="formData.attribute_ids" class="rounded border-input" />
+							{{ attribute.name }}
+							<span class="text-xs text-muted-foreground">({{ attribute.attribute_id }})</span>
 						</label>
 					</div>
 				</div>
@@ -88,46 +88,46 @@
 
 			<div class="flex gap-2 pt-2">
 				<Button @click="handleSubmit" :disabled="saving" size="sm">
-					{{ saving ? "Saving..." : editingAspect ? "Update" : "Create" }}
+					{{ saving ? "Saving..." : editingAffix ? "Update" : "Create" }}
 				</Button>
 				<Button variant="outline" @click="closeForm" size="sm">Cancel</Button>
 			</div>
 		</div>
 
 		<!-- Loading state -->
-		<div v-if="loading" class="text-center py-8 text-muted-foreground">Loading aspects...</div>
+		<div v-if="loading" class="text-center py-8 text-muted-foreground">Loading affixes...</div>
 
-		<!-- Aspects Table -->
-		<Table v-else-if="aspects.length > 0">
+		<!-- Affixes Table -->
+		<Table v-else-if="affixes.length > 0">
 			<TableHeader>
 				<TableRow>
 					<TableHead class="w-16">ID</TableHead>
 					<TableHead>Hash</TableHead>
 					<TableHead class="w-16">Tier</TableHead>
 					<TableHead class="w-20">Weight</TableHead>
-					<TableHead>Runes</TableHead>
+					<TableHead>Attributes</TableHead>
 					<TableHead class="w-24 text-right">Actions</TableHead>
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				<TableRow v-for="aspect in aspects" :key="aspect._id">
-					<TableCell class="font-mono text-xs">{{ aspect.aspect_id }}</TableCell>
-					<TableCell class="font-mono text-xs">{{ aspect.hash }}</TableCell>
-					<TableCell>{{ aspect.tier }}</TableCell>
-					<TableCell>{{ aspect.weight }}</TableCell>
+				<TableRow v-for="affix in affixes" :key="affix._id">
+					<TableCell class="font-mono text-xs">{{ affix.affix_id }}</TableCell>
+					<TableCell class="font-mono text-xs">{{ affix.hash }}</TableCell>
+					<TableCell>{{ affix.tier }}</TableCell>
+					<TableCell>{{ affix.weight }}</TableCell>
 					<TableCell>
 						<div class="flex flex-wrap gap-1">
-							<span v-for="runeId in aspect.rune_ids" :key="runeId" class="text-xs bg-muted px-1.5 py-0.5 rounded">
-								{{ getRuneName(runeId) }}
+							<span v-for="attributeId in affix.attribute_ids" :key="attributeId" class="text-xs bg-muted px-1.5 py-0.5 rounded">
+								{{ getAttributeName(attributeId) }}
 							</span>
 						</div>
 					</TableCell>
 					<TableCell class="text-right">
 						<div class="flex gap-1 justify-end">
-							<Button variant="ghost" size="icon" class="h-7 w-7" @click="startEdit(aspect)">
+							<Button variant="ghost" size="icon" class="h-7 w-7" @click="startEdit(affix)">
 								<Pencil class="h-3.5 w-3.5" />
 							</Button>
-							<Button variant="ghost" size="icon" class="h-7 w-7 text-destructive" @click="handleDelete(aspect)">
+							<Button variant="ghost" size="icon" class="h-7 w-7 text-destructive" @click="handleDelete(affix)">
 								<Trash2 class="h-3.5 w-3.5" />
 							</Button>
 						</div>
@@ -137,7 +137,7 @@
 		</Table>
 
 		<!-- Empty state -->
-		<div v-else class="text-center py-8 text-muted-foreground">No aspects found. Create one to get started.</div>
+		<div v-else class="text-center py-8 text-muted-foreground">No affixes found. Create one to get started.</div>
 	</div>
 </template>
 
@@ -149,25 +149,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Button from "@/components/ui/button/Button.vue";
 import Input from "@/components/ui/input/Input.vue";
 import Label from "@/components/ui/label/Label.vue";
-import { AspectsAPI } from "@/api/aspects.api";
-import { RunesAPI } from "@/api/runes.api";
-import type { AspectModel, IAspectProperties } from "@/common/aspect.types";
-import type { RuneModel } from "@/common/rune.types";
+import { AffixesAPI } from "@/api/affixes.api";
+import { AttributesAPI } from "@/api/attributes.api";
+import type { AffixModel, IAffixProperties } from "@/common/affix.types";
+import type { AttributeModel } from "@/common/attribute.types";
 
-const aspectsApi = new AspectsAPI();
-const runesApi = new RunesAPI();
+const affixesApi = new AffixesAPI();
+const attributesApi = new AttributesAPI();
 
-const aspects = ref<AspectModel[]>([]);
-const availableRunes = ref<RuneModel[]>([]);
+const affixes = ref<AffixModel[]>([]);
+const availableAttributes = ref<AttributeModel[]>([]);
 const loading = ref(true);
-const runesLoading = ref(true);
+const attributesLoading = ref(true);
 const saving = ref(false);
 const error = ref<string | null>(null);
 const showCreateForm = ref(false);
 const showProperties = ref(false);
-const editingAspect = ref<AspectModel | null>(null);
+const editingAffix = ref<AffixModel | null>(null);
 
-const propertyOptions: { key: keyof IAspectProperties; label: string }[] = [
+const propertyOptions: { key: keyof IAffixProperties; label: string }[] = [
 	{ key: "is_damage", label: "Damage" },
 	{ key: "is_heal", label: "Heal" },
 	{ key: "is_typed", label: "Typed" },
@@ -192,7 +192,7 @@ const formData = reactive({
 	tier: "1",
 	weight: 100,
 	potency: 1,
-	rune_ids: [] as number[],
+	attribute_ids: [] as number[],
 	properties: {
 		is_damage: 0,
 		is_typed: 0,
@@ -214,36 +214,36 @@ const formData = reactive({
 		is_charm: 0,
 		is_heal: 0,
 		is_frenzy: 0,
-	} as IAspectProperties,
+	} as IAffixProperties,
 });
 
 async function refresh() {
 	try {
-		aspects.value = await aspectsApi.findAll();
+		affixes.value = await affixesApi.findAll();
 		error.value = null;
 	} catch (e) {
-		error.value = e instanceof Error ? e.message : "Failed to load aspects";
+		error.value = e instanceof Error ? e.message : "Failed to load affixes";
 	}
 }
 
-async function loadRunes() {
+async function loadAttributes() {
 	try {
-		availableRunes.value = await runesApi.findAll();
+		availableAttributes.value = await attributesApi.findAll();
 	} catch (e) {
-		console.error("Failed to load runes:", e);
+		console.error("Failed to load attributes:", e);
 	} finally {
-		runesLoading.value = false;
+		attributesLoading.value = false;
 	}
 }
 
 onMounted(async () => {
-	await Promise.all([refresh(), loadRunes()]);
+	await Promise.all([refresh(), loadAttributes()]);
 	loading.value = false;
 });
 
-function getRuneName(runeId: number): string {
-	const rune = availableRunes.value.find((r) => r.rune_id === runeId);
-	return rune?.name ?? String(runeId);
+function getAttributeName(attributeId: number): string {
+	const attribute = availableAttributes.value.find((a) => a.attribute_id === attributeId);
+	return attribute?.name ?? String(attributeId);
 }
 
 function resetForm() {
@@ -251,7 +251,7 @@ function resetForm() {
 	formData.tier = "1";
 	formData.weight = 100;
 	formData.potency = 1;
-	formData.rune_ids = [];
+	formData.attribute_ids = [];
 	Object.keys(formData.properties).forEach((key) => {
 		(formData.properties as Record<string, number>)[key] = 0;
 	});
@@ -259,20 +259,20 @@ function resetForm() {
 
 function closeForm() {
 	showCreateForm.value = false;
-	editingAspect.value = null;
+	editingAffix.value = null;
 	showProperties.value = false;
 	resetForm();
 }
 
-function startEdit(aspect: AspectModel) {
-	editingAspect.value = aspect;
+function startEdit(affix: AffixModel) {
+	editingAffix.value = affix;
 	showCreateForm.value = false;
-	formData.hash = aspect.hash;
-	formData.tier = String(aspect.tier);
-	formData.weight = aspect.weight;
-	formData.potency = aspect.potency;
-	formData.rune_ids = [...aspect.rune_ids];
-	Object.assign(formData.properties, aspect.properties);
+	formData.hash = affix.hash;
+	formData.tier = String(affix.tier);
+	formData.weight = affix.weight;
+	formData.potency = affix.potency;
+	formData.attribute_ids = [...affix.attribute_ids];
+	Object.assign(formData.properties, affix.properties);
 }
 
 async function handleSubmit() {
@@ -280,8 +280,8 @@ async function handleSubmit() {
 		error.value = "Hash is required";
 		return;
 	}
-	if (formData.rune_ids.length === 0) {
-		error.value = "At least one rune must be selected";
+	if (formData.attribute_ids.length === 0) {
+		error.value = "At least one attribute must be selected";
 		return;
 	}
 
@@ -289,47 +289,47 @@ async function handleSubmit() {
 	error.value = null;
 
 	try {
-		if (editingAspect.value) {
-			await aspectsApi.update({
-				id: editingAspect.value._id,
+		if (editingAffix.value) {
+			await affixesApi.update({
+				id: editingAffix.value._id,
 				hash: formData.hash,
 				tier: Number(formData.tier) as 1 | 2 | 3 | 4,
 				weight: formData.weight,
 				potency: formData.potency,
-				rune_ids: formData.rune_ids,
-				required_rune_ids: [],
-				blocked_aspect_ids: [],
+				attribute_ids: formData.attribute_ids,
+				required_attribute_ids: [],
+				blocked_affix_ids: [],
 				properties: formData.properties,
 			});
 		} else {
-			await aspectsApi.create({
+			await affixesApi.create({
 				hash: formData.hash,
 				tier: Number(formData.tier) as 1 | 2 | 3 | 4,
 				weight: formData.weight,
 				potency: formData.potency,
-				rune_ids: formData.rune_ids,
-				required_rune_ids: [],
-				blocked_aspect_ids: [],
+				attribute_ids: formData.attribute_ids,
+				required_attribute_ids: [],
+				blocked_affix_ids: [],
 				properties: formData.properties,
 			});
 		}
 		await refresh();
 		closeForm();
 	} catch (e) {
-		error.value = e instanceof Error ? e.message : "Failed to save aspect";
+		error.value = e instanceof Error ? e.message : "Failed to save affix";
 	} finally {
 		saving.value = false;
 	}
 }
 
-async function handleDelete(aspect: AspectModel) {
-	if (!confirm(`Delete aspect "${aspect.hash}"?`)) return;
+async function handleDelete(affix: AffixModel) {
+	if (!confirm(`Delete affix "${affix.hash}"?`)) return;
 
 	try {
-		await aspectsApi.delete(aspect._id);
+		await affixesApi.delete(affix._id);
 		await refresh();
 	} catch (e) {
-		error.value = e instanceof Error ? e.message : "Failed to delete aspect";
+		error.value = e instanceof Error ? e.message : "Failed to delete affix";
 	}
 }
 </script>

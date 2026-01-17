@@ -2,10 +2,10 @@
 	<div class="space-y-4">
 		<!-- Header with Create button -->
 		<div class="flex items-center justify-between">
-			<h3 class="text-sm font-medium text-muted-foreground">{{ runes.length }} runes</h3>
+			<h3 class="text-sm font-medium text-muted-foreground">{{ attributes.length }} attributes</h3>
 			<Button @click="showCreateForm = true" size="sm" :disabled="showCreateForm">
 				<Plus class="h-4 w-4 mr-1" />
-				New Rune
+				New Attribute
 			</Button>
 		</div>
 
@@ -15,9 +15,9 @@
 		</div>
 
 		<!-- Create/Edit Form (inline collapsible) -->
-		<div v-if="showCreateForm || editingRune" class="border rounded-lg p-4 space-y-4 bg-muted/30">
+		<div v-if="showCreateForm || editingAttribute" class="border rounded-lg p-4 space-y-4 bg-muted/30">
 			<div class="flex items-center justify-between">
-				<h4 class="font-medium">{{ editingRune ? "Edit Rune" : "Create Rune" }}</h4>
+				<h4 class="font-medium">{{ editingAttribute ? "Edit Attribute" : "Create Attribute" }}</h4>
 				<Button variant="ghost" size="icon" class="h-6 w-6" @click="closeForm">
 					<X class="h-4 w-4" />
 				</Button>
@@ -25,30 +25,30 @@
 
 			<div class="grid gap-3">
 				<div class="space-y-1.5">
-					<Label for="rune-name">Name</Label>
-					<Input id="rune-name" v-model="formData.name" placeholder="e.g. Fire, Physical, Melee" />
+					<Label for="attribute-name">Name</Label>
+					<Input id="attribute-name" v-model="formData.name" placeholder="e.g. Fire, Physical, Melee" />
 				</div>
 
 				<div class="space-y-1.5">
-					<Label for="rune-weight">Weight</Label>
-					<Input id="rune-weight" v-model.number="formData.weight" type="number" step="0.1" placeholder="1.0" />
+					<Label for="attribute-weight">Weight</Label>
+					<Input id="attribute-weight" v-model.number="formData.weight" type="number" step="0.1" placeholder="1.0" />
 					<p class="text-xs text-muted-foreground">Higher = more common in generation (0.1 - 1.0)</p>
 				</div>
 			</div>
 
 			<div class="flex gap-2 pt-2">
 				<Button @click="handleSubmit" :disabled="saving" size="sm">
-					{{ saving ? "Saving..." : editingRune ? "Update" : "Create" }}
+					{{ saving ? "Saving..." : editingAttribute ? "Update" : "Create" }}
 				</Button>
 				<Button variant="outline" @click="closeForm" size="sm">Cancel</Button>
 			</div>
 		</div>
 
 		<!-- Loading state -->
-		<div v-if="loading" class="text-center py-8 text-muted-foreground">Loading runes...</div>
+		<div v-if="loading" class="text-center py-8 text-muted-foreground">Loading attributes...</div>
 
-		<!-- Runes Table -->
-		<Table v-else-if="runes.length > 0">
+		<!-- Attributes Table -->
+		<Table v-else-if="attributes.length > 0">
 			<TableHeader>
 				<TableRow>
 					<TableHead class="w-16">ID</TableHead>
@@ -58,16 +58,16 @@
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				<TableRow v-for="rune in runes" :key="rune._id">
-					<TableCell class="font-mono text-xs">{{ rune.rune_id }}</TableCell>
-					<TableCell>{{ rune.name }}</TableCell>
-					<TableCell>{{ rune.weight }}</TableCell>
+				<TableRow v-for="attribute in attributes" :key="attribute._id">
+					<TableCell class="font-mono text-xs">{{ attribute.attribute_id }}</TableCell>
+					<TableCell>{{ attribute.name }}</TableCell>
+					<TableCell>{{ attribute.weight }}</TableCell>
 					<TableCell class="text-right">
 						<div class="flex gap-1 justify-end">
-							<Button variant="ghost" size="icon" class="h-7 w-7" @click="startEdit(rune)">
+							<Button variant="ghost" size="icon" class="h-7 w-7" @click="startEdit(attribute)">
 								<Pencil class="h-3.5 w-3.5" />
 							</Button>
-							<Button variant="ghost" size="icon" class="h-7 w-7 text-destructive" @click="handleDelete(rune)">
+							<Button variant="ghost" size="icon" class="h-7 w-7 text-destructive" @click="handleDelete(attribute)">
 								<Trash2 class="h-3.5 w-3.5" />
 							</Button>
 						</div>
@@ -77,7 +77,7 @@
 		</Table>
 
 		<!-- Empty state -->
-		<div v-else class="text-center py-8 text-muted-foreground">No runes found. Create one to get started.</div>
+		<div v-else class="text-center py-8 text-muted-foreground">No attributes found. Create one to get started.</div>
 	</div>
 </template>
 
@@ -88,17 +88,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import Button from "@/components/ui/button/Button.vue";
 import Input from "@/components/ui/input/Input.vue";
 import Label from "@/components/ui/label/Label.vue";
-import { RunesAPI } from "@/api/runes.api";
-import type { RuneModel } from "@/common/rune.types";
+import { AttributesAPI } from "@/api/attributes.api";
+import type { AttributeModel } from "@/common/attribute.types";
 
-const runesApi = new RunesAPI();
+const attributesApi = new AttributesAPI();
 
-const runes = ref<RuneModel[]>([]);
+const attributes = ref<AttributeModel[]>([]);
 const loading = ref(true);
 const saving = ref(false);
 const error = ref<string | null>(null);
 const showCreateForm = ref(false);
-const editingRune = ref<RuneModel | null>(null);
+const editingAttribute = ref<AttributeModel | null>(null);
 
 const formData = reactive({
 	name: "",
@@ -107,10 +107,10 @@ const formData = reactive({
 
 async function refresh() {
 	try {
-		runes.value = await runesApi.findAll();
+		attributes.value = await attributesApi.findAll();
 		error.value = null;
 	} catch (e) {
-		error.value = e instanceof Error ? e.message : "Failed to load runes";
+		error.value = e instanceof Error ? e.message : "Failed to load attributes";
 	}
 }
 
@@ -126,15 +126,15 @@ function resetForm() {
 
 function closeForm() {
 	showCreateForm.value = false;
-	editingRune.value = null;
+	editingAttribute.value = null;
 	resetForm();
 }
 
-function startEdit(rune: RuneModel) {
-	editingRune.value = rune;
+function startEdit(attribute: AttributeModel) {
+	editingAttribute.value = attribute;
 	showCreateForm.value = false;
-	formData.name = rune.name;
-	formData.weight = rune.weight;
+	formData.name = attribute.name;
+	formData.weight = attribute.weight;
 }
 
 async function handleSubmit() {
@@ -147,14 +147,14 @@ async function handleSubmit() {
 	error.value = null;
 
 	try {
-		if (editingRune.value) {
-			await runesApi.update({
-				id: editingRune.value._id,
+		if (editingAttribute.value) {
+			await attributesApi.update({
+				id: editingAttribute.value._id,
 				name: formData.name,
 				weight: formData.weight,
 			});
 		} else {
-			await runesApi.create({
+			await attributesApi.create({
 				name: formData.name,
 				weight: formData.weight,
 			});
@@ -162,20 +162,20 @@ async function handleSubmit() {
 		await refresh();
 		closeForm();
 	} catch (e) {
-		error.value = e instanceof Error ? e.message : "Failed to save rune";
+		error.value = e instanceof Error ? e.message : "Failed to save attribute";
 	} finally {
 		saving.value = false;
 	}
 }
 
-async function handleDelete(rune: RuneModel) {
-	if (!confirm(`Delete rune "${rune.name}"?`)) return;
+async function handleDelete(attribute: AttributeModel) {
+	if (!confirm(`Delete attribute "${attribute.name}"?`)) return;
 
 	try {
-		await runesApi.delete(rune._id);
+		await attributesApi.delete(attribute._id);
 		await refresh();
 	} catch (e) {
-		error.value = e instanceof Error ? e.message : "Failed to delete rune";
+		error.value = e instanceof Error ? e.message : "Failed to delete attribute";
 	}
 }
 </script>

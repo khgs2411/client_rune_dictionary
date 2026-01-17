@@ -1,4 +1,4 @@
-export interface IAspectProperties {
+export interface IAffixProperties {
 	is_damage: number;
 	is_typed: number;
 	is_convert: number;
@@ -21,38 +21,38 @@ export interface IAspectProperties {
 	is_frenzy: number;
 }
 
-export interface AspectModel {
+export interface AffixModel {
 	_id: string;
-	aspect_id: number;
+	affix_id: number;
 	hash: string;
 	tier: number;
 	weight: number;
 	potency: number;
-	rune_ids: number[];
-	required_rune_ids: number[];
-	blocked_aspect_ids: number[];
-	properties: IAspectProperties;
+	attribute_ids: number[];
+	required_attribute_ids: number[];
+	blocked_affix_ids: number[];
+	properties: IAffixProperties;
 }
 
-export interface AspectCreationData {
+export interface AffixCreationData {
 	hash: string;
 	tier: 1 | 2 | 3 | 4;
 	weight: number;
 	potency: number;
-	rune_ids: number[];
-	required_rune_ids: number[];
-	blocked_aspect_ids: number[];
-	properties: Partial<IAspectProperties>;
+	attribute_ids: number[];
+	required_attribute_ids: number[];
+	blocked_affix_ids: number[];
+	properties: Partial<IAffixProperties>;
 }
 
-export interface AspectUpdateData {
+export interface AffixUpdateData {
 	id: string;
 	hash?: string;
 	tier?: number;
 	weight?: number;
 	potency?: number;
-	rune_ids?: number[];
-	required_rune_ids?: number[];
-	blocked_aspect_ids?: number[];
-	properties?: Partial<IAspectProperties>;
+	attribute_ids?: number[];
+	required_attribute_ids?: number[];
+	blocked_affix_ids?: number[];
+	properties?: Partial<IAffixProperties>;
 }

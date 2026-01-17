@@ -27,13 +27,13 @@
 					<div v-else-if="runes.length === 0" class="text-sm text-muted-foreground">No attributes available. Seed the database first.</div>
 					<div v-else class="grid grid-cols-2 gap-2">
 						<label
-							v-for="rune in runes"
-							:key="rune._id"
+							v-for="attr in runes"
+							:key="attr._id"
 							class="flex items-center gap-2 p-2 rounded border cursor-pointer hover:bg-muted/50 transition-colors"
-							:class="{ 'bg-primary/10 border-primary': selectedAttributes.includes(rune.rune_id) }">
-							<input type="checkbox" :value="rune.rune_id" v-model="selectedAttributes" class="rounded" />
-							<span class="flex-1 text-sm">{{ rune.name }}</span>
-							<span class="text-xs text-muted-foreground">{{ rune.weight }}</span>
+							:class="{ 'bg-primary/10 border-primary': selectedAttributes.includes(attr.attribute_id) }">
+							<input type="checkbox" :value="attr.attribute_id" v-model="selectedAttributes" class="rounded" />
+							<span class="flex-1 text-sm">{{ attr.name }}</span>
+							<span class="text-xs text-muted-foreground">{{ attr.weight }}</span>
 						</label>
 					</div>
 				</div>
@@ -110,18 +110,18 @@
 import { ref, onMounted } from "vue";
 import { Icon } from "@iconify/vue";
 import { Button } from "@/components/ui/button";
-import { RunesAPI } from "@/api/runes.api";
+import { AttributesAPI } from "@/api/attributes.api";
 import { SkillsAPI } from "@/api/skills.api";
 import { useAuthStore } from "@/stores/auth.store";
-import type { RuneModel } from "@/common/rune.types";
+import type { AttributeModel } from "@/common/attribute.types";
 import type { AbilityModel } from "@/common/ability.types";
 
-const runesApi = new RunesAPI();
+const attributesApi = new AttributesAPI();
 const skillsApi = new SkillsAPI();
 const authStore = useAuthStore();
 
 // Data
-const runes = ref<RuneModel[]>([]);
+const runes = ref<AttributeModel[]>([]);
 const skills = ref<AbilityModel[]>([]);
 const runesLoading = ref(true);
 const skillsLoading = ref(true);
@@ -134,7 +134,7 @@ const selectedSkill = ref<AbilityModel | null>(null);
 
 async function loadRunes() {
 	try {
-		runes.value = await runesApi.findAll();
+		runes.value = await attributesApi.findAll();
 	} catch (e) {
 		error.value = e instanceof Error ? e.message : "Failed to load attributes";
 	} finally {

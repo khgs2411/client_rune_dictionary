@@ -6,20 +6,20 @@
 					<Database class="h-5 w-5" />
 					Admin Panel
 				</SheetTitle>
-				<SheetDescription>Manage game data: Runes and Aspects</SheetDescription>
+				<SheetDescription>Manage game data: Attributes and Affixes</SheetDescription>
 			</SheetHeader>
 
 			<div class="py-4">
 				<Tabs v-model="activeTab" class="w-full">
 					<TabsList class="grid w-full grid-cols-2">
-						<TabsTrigger value="runes">Runes</TabsTrigger>
-						<TabsTrigger value="aspects">Aspects</TabsTrigger>
+						<TabsTrigger value="attributes">Attributes</TabsTrigger>
+						<TabsTrigger value="affixes">Affixes</TabsTrigger>
 					</TabsList>
-					<TabsContent value="runes" class="mt-4">
-						<RunesCrud />
+					<TabsContent value="attributes" class="mt-4">
+						<AttributesCrud />
 					</TabsContent>
-					<TabsContent value="aspects" class="mt-4">
-						<AspectsCrud />
+					<TabsContent value="affixes" class="mt-4">
+						<AffixesCrud />
 					</TabsContent>
 				</Tabs>
 			</div>
@@ -32,9 +32,9 @@ import { ref } from "vue";
 import { Database } from "lucide-vue-next";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import RunesCrud from "./RunesCrud.vue";
-import AspectsCrud from "./AspectsCrud.vue";
+import AttributesCrud from "./AttributesCrud.vue";
+import AffixesCrud from "./AffixesCrud.vue";
 
 const modelValue = defineModel<boolean>("open", { default: false });
-const activeTab = ref("runes");
+const activeTab = ref("attributes");
 </script>
