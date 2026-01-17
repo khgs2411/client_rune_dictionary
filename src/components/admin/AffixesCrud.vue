@@ -71,19 +71,6 @@
 					</div>
 				</div>
 
-				<!-- Properties section (collapsible) -->
-				<div class="space-y-1.5">
-					<div class="flex items-center gap-2 cursor-pointer" @click="showProperties = !showProperties">
-						<ChevronDown class="h-4 w-4 transition-transform" :class="{ 'rotate-180': !showProperties }" />
-						<Label class="cursor-pointer">Properties</Label>
-					</div>
-					<div v-if="showProperties" class="border rounded p-2 grid grid-cols-2 gap-2">
-						<label v-for="prop in propertyOptions" :key="prop.key" class="flex items-center gap-2 text-sm cursor-pointer">
-							<input type="checkbox" v-model="formData.properties[prop.key]" :true-value="1" :false-value="0" class="rounded border-input" />
-							{{ prop.label }}
-						</label>
-					</div>
-				</div>
 			</div>
 
 			<div class="flex gap-2 pt-2">
@@ -143,7 +130,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive } from "vue";
-import { Plus, Pencil, Trash2, X, ChevronDown } from "lucide-vue-next";
+import { Plus, Pencil, Trash2, X } from "lucide-vue-next";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Button from "@/components/ui/button/Button.vue";
@@ -151,7 +138,7 @@ import Input from "@/components/ui/input/Input.vue";
 import Label from "@/components/ui/label/Label.vue";
 import { AffixesAPI } from "@/api/affixes.api";
 import { AttributesAPI } from "@/api/attributes.api";
-import type { AffixModel, IAffixProperties } from "@/common/affix.types";
+import type { AffixModel } from "@/common/affix.types";
 import type { AttributeModel } from "@/common/attribute.types";
 
 const affixesApi = new AffixesAPI();
@@ -164,28 +151,7 @@ const attributesLoading = ref(true);
 const saving = ref(false);
 const error = ref<string | null>(null);
 const showCreateForm = ref(false);
-const showProperties = ref(false);
 const editingAffix = ref<AffixModel | null>(null);
-
-const propertyOptions: { key: keyof IAffixProperties; label: string }[] = [
-	{ key: "is_damage", label: "Damage" },
-	{ key: "is_heal", label: "Heal" },
-	{ key: "is_typed", label: "Typed" },
-	{ key: "is_convert", label: "Convert" },
-	{ key: "is_percent", label: "Percent" },
-	{ key: "is_duration", label: "Duration" },
-	{ key: "is_range", label: "Range" },
-	{ key: "is_stun", label: "Stun" },
-	{ key: "is_slow", label: "Slow" },
-	{ key: "is_silence", label: "Silence" },
-	{ key: "is_sleep", label: "Sleep" },
-	{ key: "is_taunt", label: "Taunt" },
-	{ key: "is_fear", label: "Fear" },
-	{ key: "is_confuse", label: "Confuse" },
-	{ key: "is_charm", label: "Charm" },
-	{ key: "is_frenzy", label: "Frenzy" },
-	{ key: "is_retaliate", label: "Retaliate" },
-];
 
 const formData = reactive({
 	hash: "",
@@ -193,28 +159,6 @@ const formData = reactive({
 	weight: 100,
 	potency: 1,
 	attribute_ids: [] as number[],
-	properties: {
-		is_damage: 0,
-		is_typed: 0,
-		is_convert: 0,
-		is_percent: 0,
-		is_duration: 0,
-		is_range: 0,
-		hit_count: 0,
-		cooldown: 0,
-		wait_turns: 0,
-		is_stun: 0,
-		is_slow: 0,
-		is_retaliate: 0,
-		is_silence: 0,
-		is_sleep: 0,
-		is_taunt: 0,
-		is_fear: 0,
-		is_confuse: 0,
-		is_charm: 0,
-		is_heal: 0,
-		is_frenzy: 0,
-	} as IAffixProperties,
 });
 
 async function refresh() {
@@ -252,15 +196,11 @@ function resetForm() {
 	formData.weight = 100;
 	formData.potency = 1;
 	formData.attribute_ids = [];
-	Object.keys(formData.properties).forEach((key) => {
-		(formData.properties as Record<string, number>)[key] = 0;
-	});
 }
 
 function closeForm() {
 	showCreateForm.value = false;
 	editingAffix.value = null;
-	showProperties.value = false;
 	resetForm();
 }
 
@@ -272,7 +212,6 @@ function startEdit(affix: AffixModel) {
 	formData.weight = affix.weight;
 	formData.potency = affix.potency;
 	formData.attribute_ids = [...affix.attribute_ids];
-	Object.assign(formData.properties, affix.properties);
 }
 
 async function handleSubmit() {
@@ -299,7 +238,6 @@ async function handleSubmit() {
 				attribute_ids: formData.attribute_ids,
 				required_attribute_ids: [],
 				blocked_affix_ids: [],
-				properties: formData.properties,
 			});
 		} else {
 			await affixesApi.create({
@@ -310,7 +248,6 @@ async function handleSubmit() {
 				attribute_ids: formData.attribute_ids,
 				required_attribute_ids: [],
 				blocked_affix_ids: [],
-				properties: formData.properties,
 			});
 		}
 		await refresh();
