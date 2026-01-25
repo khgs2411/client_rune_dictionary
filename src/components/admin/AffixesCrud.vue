@@ -70,7 +70,6 @@
 						</label>
 					</div>
 				</div>
-
 			</div>
 
 			<div class="flex gap-2 pt-2">

@@ -85,9 +85,7 @@
 								<span class="font-medium">{{ skill.name }}</span>
 								<div class="flex items-center gap-2">
 									<span class="text-xs px-2 py-0.5 bg-primary/20 rounded">Tier {{ skill.tier }}</span>
-									<Button v-if="!isEquipped(skill.ability_id) && equippedSkills.length < maxSlots" variant="outline" size="sm" @click.stop="equipSkill(skill)">
-										Equip
-									</Button>
+									<Button v-if="!isEquipped(skill.ability_id) && equippedSkills.length < maxSlots" variant="outline" size="sm" @click.stop="equipSkill(skill)"> Equip </Button>
 									<span v-else-if="isEquipped(skill.ability_id)" class="text-xs text-muted-foreground">Equipped</span>
 								</div>
 							</div>
