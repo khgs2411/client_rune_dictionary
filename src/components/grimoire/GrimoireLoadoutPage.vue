@@ -9,6 +9,11 @@
 				<h3 class="text-lg font-semibold">Combat Loadout</h3>
 				<p class="text-xs text-muted-foreground">Equip skills for your next battle</p>
 			</div>
+			<!-- Sync indicator -->
+			<div v-if="loadoutStore.isSyncing" class="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+				<Icon icon="radix-icons:update" class="h-3 w-3 animate-spin" />
+				<span>Saving...</span>
+			</div>
 		</div>
 
 		<div class="grid grid-cols-2 gap-6 flex-1 overflow-hidden">
@@ -19,7 +24,7 @@
 						<Icon icon="game-icons:crystal-bars" class="h-4 w-4 text-primary" />
 						<h4 class="font-medium">Equipped</h4>
 					</div>
-					<span class="text-xs text-muted-foreground">{{ equippedSkills.length }}/{{ maxSlots }} slots</span>
+					<span class="text-xs text-muted-foreground">{{ loadoutStore.equippedCount }}/{{ maxSlots }} slots</span>
 				</div>
 
 				<div class="grid grid-cols-2 gap-3">
@@ -28,32 +33,32 @@
 						:key="slot"
 						class="aspect-square rounded-xl border-2 transition-all duration-200 relative overflow-hidden group"
 						:class="
-							equippedSkills[slot - 1]
+							loadoutStore.equippedSlots[slot - 1]
 								? 'border-primary bg-primary/5 hover:bg-primary/10'
 								: 'border-dashed border-muted-foreground/30 hover:border-muted-foreground/50'
 						">
 						<!-- Filled Slot -->
-						<template v-if="equippedSkills[slot - 1]">
-							<div class="absolute inset-0 flex flex-col items-center justify-center p-3 cursor-pointer" @click="unequipSkill(slot - 1)">
+						<template v-if="loadoutStore.equippedSlots[slot - 1]">
+							<div class="absolute inset-0 flex flex-col items-center justify-center p-3 cursor-pointer" @click="loadoutStore.unequipSkill(slot - 1)">
 								<!-- Skill Icon -->
 								<div
 									class="w-14 h-14 rounded-xl flex items-center justify-center mb-2"
-									:style="{ backgroundColor: getSkillColor(equippedSkills[slot - 1]) + '20' }">
+									:style="{ backgroundColor: getSkillColor(loadoutStore.equippedSlots[slot - 1]!) + '20' }">
 									<Icon
-										:icon="getSkillIcon(equippedSkills[slot - 1])"
+										:icon="getSkillIcon(loadoutStore.equippedSlots[slot - 1]!)"
 										class="h-7 w-7"
-										:style="{ color: getSkillColor(equippedSkills[slot - 1]) }" />
+										:style="{ color: getSkillColor(loadoutStore.equippedSlots[slot - 1]!) }" />
 								</div>
 								<p class="text-sm font-medium text-center truncate w-full">
-									{{ equippedSkills[slot - 1].name }}
+									{{ loadoutStore.equippedSlots[slot - 1]!.name }}
 								</p>
 								<span
 									class="text-xs px-2 py-0.5 rounded-full mt-1"
 									:style="{
-										backgroundColor: getTierColor(equippedSkills[slot - 1].tier) + '20',
-										color: getTierColor(equippedSkills[slot - 1].tier),
+										backgroundColor: getTierColor(loadoutStore.equippedSlots[slot - 1]!.tier) + '20',
+										color: getTierColor(loadoutStore.equippedSlots[slot - 1]!.tier),
 									}">
-									Tier {{ equippedSkills[slot - 1].tier }}
+									Tier {{ loadoutStore.equippedSlots[slot - 1]!.tier }}
 								</span>
 							</div>
 							<!-- Unequip Button -->
@@ -61,7 +66,7 @@
 								variant="ghost"
 								size="icon"
 								class="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-destructive/20 hover:text-destructive"
-								@click.stop="unequipSkill(slot - 1)">
+								@click.stop="loadoutStore.unequipSkill(slot - 1)">
 								<Icon icon="radix-icons:cross-2" class="h-3 w-3" />
 							</Button>
 						</template>
@@ -87,11 +92,11 @@
 					</div>
 					<div class="grid grid-cols-2 gap-3">
 						<div class="p-3 rounded-lg bg-background/50 text-center">
-							<p class="text-2xl font-bold text-primary">{{ equippedSkills.length }}</p>
+							<p class="text-2xl font-bold text-primary">{{ loadoutStore.equippedCount }}</p>
 							<p class="text-xs text-muted-foreground">Equipped</p>
 						</div>
 						<div class="p-3 rounded-lg bg-background/50 text-center">
-							<p class="text-2xl font-bold text-muted-foreground">{{ maxSlots - equippedSkills.length }}</p>
+							<p class="text-2xl font-bold text-muted-foreground">{{ maxSlots - loadoutStore.equippedCount }}</p>
 							<p class="text-xs text-muted-foreground">Available</p>
 						</div>
 					</div>
@@ -107,7 +112,7 @@
 				</div>
 
 				<div class="flex-1 overflow-y-auto border rounded-xl bg-muted/20">
-					<div v-if="loading" class="p-8 text-center text-muted-foreground">
+					<div v-if="loading || loadoutStore.isLoading" class="p-8 text-center text-muted-foreground">
 						<Icon icon="radix-icons:update" class="h-8 w-8 animate-spin mx-auto mb-2" />
 						<p>Loading skills...</p>
 					</div>
@@ -124,11 +129,11 @@
 							:key="skill.ability_id"
 							class="p-3 rounded-lg border transition-all duration-200"
 							:class="
-								isEquipped(skill.ability_id)
+								loadoutStore.isEquipped(skill.ability_id)
 									? 'border-primary/30 bg-primary/5 opacity-60'
 									: 'border-transparent bg-background/50 hover:border-border hover:bg-background cursor-pointer'
 							"
-							@click="!isEquipped(skill.ability_id) && equipSkill(skill)">
+							@click="!loadoutStore.isEquipped(skill.ability_id) && equipToNextSlot(skill)">
 							<div class="flex items-center gap-3">
 								<!-- Skill Icon -->
 								<div
@@ -154,11 +159,11 @@
 								</div>
 								<!-- Action -->
 								<div class="shrink-0">
-									<template v-if="isEquipped(skill.ability_id)">
+									<template v-if="loadoutStore.isEquipped(skill.ability_id)">
 										<span class="text-xs text-primary font-medium">Equipped</span>
 									</template>
-									<template v-else-if="equippedSkills.length < maxSlots">
-										<Button variant="outline" size="sm" class="h-7 text-xs" @click.stop="equipSkill(skill)">
+									<template v-else-if="loadoutStore.equippedCount < maxSlots">
+										<Button variant="outline" size="sm" class="h-7 text-xs" @click.stop="equipToNextSlot(skill)">
 											<Icon icon="radix-icons:plus" class="h-3 w-3 mr-1" />
 											Equip
 										</Button>
@@ -175,10 +180,10 @@
 		</div>
 
 		<!-- Error display -->
-		<div v-if="error" class="mt-4 p-3 bg-destructive/10 text-destructive text-sm rounded border border-destructive/30">
+		<div v-if="error || loadoutStore.error" class="mt-4 p-3 bg-destructive/10 text-destructive text-sm rounded border border-destructive/30">
 			<div class="flex items-center gap-2">
 				<Icon icon="radix-icons:exclamation-triangle" class="h-4 w-4" />
-				<span>{{ error }}</span>
+				<span>{{ error || loadoutStore.error }}</span>
 			</div>
 		</div>
 	</div>
@@ -188,23 +193,24 @@
 import { ref, onMounted } from "vue";
 import { Icon } from "@iconify/vue";
 import { Button } from "@/components/ui/button";
-import { SkillsAPI } from "@/api/skills.api";
+import { CharactersAPI } from "@/api/characters.api";
 import { useAuthStore } from "@/stores/auth.store";
+import { useLoadoutStore } from "@/stores/loadout.store";
 import type { AbilityModel } from "@/common/ability.types";
 
-const skillsApi = new SkillsAPI();
+const charactersApi = new CharactersAPI();
 const authStore = useAuthStore();
+const loadoutStore = useLoadoutStore();
 
 const maxSlots = 4;
 
 const availableSkills = ref<AbilityModel[]>([]);
-const equippedSkills = ref<AbilityModel[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
 
 async function loadSkills() {
 	try {
-		availableSkills.value = await skillsApi.findByUser(authStore.username);
+		availableSkills.value = await charactersApi.getAbilities(authStore.username);
 	} catch (e) {
 		error.value = e instanceof Error ? e.message : "Failed to load skills";
 	} finally {
@@ -212,18 +218,11 @@ async function loadSkills() {
 	}
 }
 
-function isEquipped(abilityId: number): boolean {
-	return equippedSkills.value.some((s) => s.ability_id === abilityId);
-}
-
-function equipSkill(skill: AbilityModel) {
-	if (equippedSkills.value.length >= maxSlots) return;
-	if (isEquipped(skill.ability_id)) return;
-	equippedSkills.value.push(skill);
-}
-
-function unequipSkill(index: number) {
-	equippedSkills.value.splice(index, 1);
+function equipToNextSlot(skill: AbilityModel) {
+	const nextSlot = loadoutStore.getNextAvailableSlot();
+	if (nextSlot !== -1) {
+		loadoutStore.equipSkill(skill, nextSlot);
+	}
 }
 
 function getSkillPreview(skill: AbilityModel): string {
@@ -273,5 +272,7 @@ function getTierColor(tier: number): string {
 	return colors[tier] || "#6b7280";
 }
 
-onMounted(loadSkills);
+onMounted(async () => {
+	await Promise.all([loadSkills(), loadoutStore.loadLoadout()]);
+});
 </script>

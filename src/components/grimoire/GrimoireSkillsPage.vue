@@ -175,12 +175,12 @@
 import { ref, onMounted, watch } from "vue";
 import { Icon } from "@iconify/vue";
 import { Button } from "@/components/ui/button";
-import { SkillsAPI } from "@/api/skills.api";
+import { CharactersAPI } from "@/api/characters.api";
 import { useAuthStore } from "@/stores/auth.store";
 import { useForgeStore } from "@/stores/forge.store";
 import type { AbilityModel } from "@/common/ability.types";
 
-const skillsApi = new SkillsAPI();
+const charactersApi = new CharactersAPI();
 const authStore = useAuthStore();
 const forgeStore = useForgeStore();
 
@@ -194,7 +194,7 @@ const selectedSkill = ref<AbilityModel | null>(null);
 
 async function loadSkills() {
 	try {
-		skills.value = await skillsApi.findByUser(authStore.username);
+		skills.value = await charactersApi.getAbilities(authStore.username);
 	} catch (e) {
 		error.value = e instanceof Error ? e.message : "Failed to load skills";
 	} finally {
