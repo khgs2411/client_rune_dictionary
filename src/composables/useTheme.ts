@@ -1,7 +1,7 @@
 import { RGBColor } from "@/common/types";
 import { convert, OKLCH, sRGB } from "@texel/color";
 import { useColorMode } from "@vueuse/core";
-import { computed, ref } from "vue";
+import { computed } from "vue";
 
 /**
  * Theme colors interface
@@ -18,20 +18,6 @@ export interface I_ThemeColors {
 	card: number;
 	border: number;
 }
-export type ColorTheme = "neutral" | "dark" | "rose" | "blue" | "purple" | "green" | "yellow";
-
-/**
- * Available theme options with preview colors
- */
-export const THEME_OPTIONS = [
-	{ label: "Neutral", value: "neutral" as const, color: "#e5e5e5" },
-	{ label: "Dark", value: "dark" as const, color: "#1f2937" },
-	{ label: "Rose", value: "rose" as const, color: "#fda4af" },
-	{ label: "Blue", value: "blue" as const, color: "#93c5fd" },
-	{ label: "Purple", value: "purple" as const, color: "#d8b4fe" },
-	{ label: "Green", value: "green" as const, color: "#86efac" },
-	{ label: "Yellow", value: "yellow" as const, color: "#fde047" },
-] as const;
 
 /**
  * Converts OKLCH CSS variable to Three.js RGB color array
@@ -193,112 +179,76 @@ export function rgb255ToHexString(r: number, g: number, b: number): string {
 	return hexNumberToString(rgb255ToHex(r, g, b));
 }
 
-const THEME_STORAGE_KEY = "color-theme";
-
 /**
  * Self-contained theme composable
- * Manages current theme, localStorage persistence, and provides reactive hex colors for Three.js
+ * Manages dark/light mode and provides reactive hex colors for Three.js
  */
 export function useTheme() {
 	const colorMode = useColorMode();
-	const currentTheme = ref<ColorTheme>("neutral");
 
-	// Reactive hex colors (re-compute when currentTheme changes)
+	// Reactive hex colors (re-compute when colorMode changes)
 	const primary = computed(() => {
-		currentTheme.value; // Track dependency
 		colorMode.value;
 		return rgbToHex(parseOklchColor("--primary"));
 	});
 
 	const primaryForeground = computed(() => {
-		currentTheme.value;
 		colorMode.value;
 		return rgbToHex(parseOklchColor("--primary-foreground"));
 	});
 
 	const accent = computed(() => {
-		currentTheme.value;
 		colorMode.value;
 		return rgbToHex(parseOklchColor("--accent"));
 	});
 
 	const accentForeground = computed(() => {
-		currentTheme.value;
 		colorMode.value;
 		return rgbToHex(parseOklchColor("--accent-foreground"));
 	});
 
 	const background = computed(() => {
-		currentTheme.value;
 		colorMode.value;
 		return rgbToHex(parseOklchColor("--background"));
 	});
 
 	const foreground = computed(() => {
-		currentTheme.value;
 		colorMode.value;
 		return rgbToHex(parseOklchColor("--foreground"));
 	});
 
 	const muted = computed(() => {
-		currentTheme.value;
 		colorMode.value;
 		return rgbToHex(parseOklchColor("--muted"));
 	});
 
 	const card = computed(() => {
-		currentTheme.value;
 		colorMode.value;
 		return rgbToHex(parseOklchColor("--card"));
 	});
 
 	const border = computed(() => {
-		currentTheme.value;
 		colorMode.value;
 		return rgbToHex(parseOklchColor("--border"));
 	});
 
-	function setTheme(theme: ColorTheme) {
-		currentTheme.value = theme;
-		document.documentElement.setAttribute("data-theme", theme);
-
-		// Persist to localStorage
-		if (typeof localStorage !== "undefined") {
-			localStorage.setItem(THEME_STORAGE_KEY, theme);
-		}
-	}
-
 	/**
-	 * Hydrate theme from localStorage
-	 * Call this on app initialization
+	 * Hydrate theme on app initialization
+	 * Clears legacy color theme data from localStorage
 	 */
 	function hydrate() {
-		if (typeof localStorage === "undefined") return;
-
-		const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as ColorTheme | null;
-		if (savedTheme && THEME_OPTIONS.some((opt) => opt.value === savedTheme)) {
-			setTheme(savedTheme);
+		// Clear legacy theme selection from localStorage
+		if (typeof localStorage !== "undefined") {
+			localStorage.removeItem("color-theme");
+		}
+		// Remove legacy data-theme attribute
+		if (typeof document !== "undefined") {
+			document.documentElement.removeAttribute("data-theme");
 		}
 	}
-
-	// Palette: all available theme preview colors as a record for easy lookup
-	const palette = computed(() => {
-		const record: Record<ColorTheme, { label: string; color: string; hex: number }> = {} as any;
-
-		THEME_OPTIONS.forEach((option) => {
-			record[option.value] = {
-				label: option.label,
-				color: option.color,
-				hex: parseInt(option.color.replace("#", ""), 16), // Convert to Three.js hex number
-			};
-		});
-
-		return record;
-	});
 
 	return {
 		colorMode,
-		currentTheme,
 		primary,
 		primaryForeground,
 		accent,
@@ -308,8 +258,6 @@ export function useTheme() {
 		muted,
 		card,
 		border,
-		palette,
-		setTheme,
 		hydrate,
 	};
 }

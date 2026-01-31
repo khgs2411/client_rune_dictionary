@@ -36,26 +36,6 @@
 							{{ settings.theme.colorMode === "dark" ? "Dark Mode" : "Light Mode" }}
 						</Button>
 					</div>
-
-					<!-- Theme Color Picker -->
-					<div class="space-y-2">
-						<label class="text-xs text-muted-foreground">Color Theme</label>
-						<div class="flex gap-3 flex-wrap">
-							<Button
-								v-for="theme in THEME_OPTIONS"
-								:key="theme.value"
-								@click="settings.theme.setTheme(theme.value)"
-								variant="ghost"
-								:class="[
-									'w-10 h-10 p-0 rounded-full border-2 transition-all shrink-0 overflow-hidden',
-									settings.theme.currentTheme === theme.value ? 'border-foreground ring-2 ring-ring scale-110' : 'border-transparent hover:scale-105',
-								]"
-								:style="{ background: theme.color }"
-								:title="theme.label"
-								:aria-label="theme.label">
-							</Button>
-						</div>
-					</div>
 				</div>
 
 				<!-- Debug Settings Section -->
@@ -186,7 +166,6 @@ import Button from "@/components/ui/button/Button.vue";
 import Switch from "@/components/ui/switch/Switch.vue";
 import { useSettingsStore } from "@/stores/settings.store";
 import { useAuthStore } from "@/stores/auth.store";
-import { THEME_OPTIONS } from "@/composables/useTheme";
 import { computed, ref } from "vue";
 
 const settings = useSettingsStore();

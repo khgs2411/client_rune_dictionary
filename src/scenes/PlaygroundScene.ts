@@ -420,17 +420,7 @@ export class PlaygroundScene extends GameScene<PlaygroundModuleRegistry> {
 	}
 
 	private setWatchers(): void {
-		// Watch for theme changes (color theme: neutral, rose, blue, etc.)
-		this.cleanupRegistry.registerWatcher(
-			watch(
-				() => this.settings.theme.currentTheme,
-				() => {
-					console.log("🎨 [PlaygroundScene] Theme changed, updating colors...");
-					this.updateMaterialColors();
-				},
-			),
-		);
-
+		// Watch for dark/light mode changes
 		this.cleanupRegistry.registerWatcher(
 			watch(
 				() => this.settings.theme.colorMode,
