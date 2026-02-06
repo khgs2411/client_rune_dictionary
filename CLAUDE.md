@@ -47,8 +47,6 @@ Is it...
     └── GameComponent
 ```
 
-### Pattern Summary
-
 | Pattern         | Cardinality             | Examples                                 | Location               |
 | --------------- | ----------------------- | ---------------------------------------- | ---------------------- |
 | `SceneModule`   | One per scene           | LightingModule, MatchModule, DebugModule | `src/game/modules/`    |
@@ -62,69 +60,79 @@ Is it...
 
 ```
 src/
-├── game/                    # Three.js game engine
-│   ├── Engine.ts            # Scene, Renderer, Clock
-│   ├── GameScene.ts         # Abstract scene base
-│   ├── GameObject.ts        # Entity base class
-│   ├── GameComponent.ts     # Component base class
+├── game/                    # Three.js game engine (NO Vue here)
+│   ├── Engine.ts            # WebGL Renderer, Clock, LoadingManager
+│   ├── GameScene.ts         # Abstract scene base (template method)
+│   ├── GameObject.ts        # Entity container (composition pattern)
+│   ├── GameComponent.ts     # Behavior base class (trait system)
 │   ├── CleanupRegistry.ts   # Memory management (CRITICAL)
-│   ├── ModuleRegistry.ts    # Module lifecycle
-│   ├── SpriteSheetRegistry.ts # Sprite sheet management
-│   ├── common/              # Game-specific types
-│   ├── components/          # Reusable components
-│   │   ├── core/            # EventEmitterComponent
-│   │   ├── debug/           # DebugLabelComponent
-│   │   ├── rendering/       # Mesh, Material, Sprite, Billboard
+│   ├── components/          # Reusable components by category
+│   │   ├── rendering/       # Geometry, Material, Mesh, Sprite, Billboard
 │   │   ├── interactions/    # Hover, Click, Drag, Hotkey
 │   │   ├── physics/         # Collision, Kinematic movement
 │   │   ├── entities/        # Transform, Spawn, Trajectory
-│   │   ├── match/           # MatchComponent
-│   │   └── multiplayer/     # RemotePlayer, SyncMovement
+│   │   └── match/           # MatchComponent (combat trigger)
 │   ├── prefabs/             # GameObject implementations
 │   │   ├── character/       # LocalPlayer, RemotePlayer
-│   │   ├── environment/     # Rock, House, Path
+│   │   ├── environment/     # Rock, House, Path, Ground
 │   │   └── npc/             # TrainingDummy
 │   ├── modules/             # SceneModule implementations
 │   │   ├── scene/           # Lighting, Match, Debug
 │   │   └── networking/      # MultiplayerModule
-│   ├── systems/             # Global systems
-│   │   ├── PhysicsSystem.ts # Rapier3D facade
-│   │   ├── VFXSystem.ts     # Emissive, particles
-│   │   ├── InteractionSystem.ts # Raycasting
-│   │   ├── NetworkingSystem.ts
-│   │   ├── SceneSystem.ts
-│   │   ├── SceneState.ts
-│   │   ├── GameObjectsManager.ts
-│   │   ├── Spawner.ts
-│   │   └── physics/         # Physics subsystems
-│   └── utils/               # Game utilities
-│       ├── CollisionShapeFactory.ts
-│       ├── Mouse.ts
-│       ├── ObjectPool.ts
-│       ├── Raycast.ts
-│       └── TextureCache.ts
+│   ├── systems/             # Singleton services per scene
+│   │   ├── PhysicsSystem.ts # Rapier3D facade (60Hz fixed timestep)
+│   │   ├── VFXSystem.ts     # Emissive, particles, camera shake
+│   │   ├── InteractionSystem.ts # Raycasting, input events
+│   │   ├── SceneState.ts    # State machine (OVERWORLD/MATCH_REQUEST/PVE_MATCH)
+│   │   ├── Spawner.ts       # Object pooling + factory pattern
+│   │   └── GameObjectsManager.ts
+│   └── utils/               # CollisionShapeFactory, Mouse, ObjectPool, Raycast
 ├── scenes/                  # Scene implementations (PlaygroundScene)
-├── composables/             # Vue composables
-│   ├── camera/              # Camera controller subsystem
-│   ├── character/           # Character controller subsystem
+├── composables/             # Vue composables (Entity vs Controller pattern)
+│   ├── camera/              # useCameraController (pure logic, no Three.js)
+│   ├── character/           # useCharacterController (pure logic)
+│   ├── useCamera.ts         # Camera entity (owns Three.js PerspectiveCamera)
+│   ├── useCharacter.ts      # Character entity (wraps controller)
 │   ├── useMatchState.ts     # Match state management
-│   ├── useMatchActions.ts   # Match action handlers
-│   ├── useATBPrediction.ts  # ATB timing prediction
-│   └── ...
-├── stores/                  # Pinia stores
+│   └── useATBPrediction.ts  # Client-side ATB prediction
+├── stores/                  # Pinia stores (see table below)
 ├── components/              # Vue UI components
 │   ├── ui/                  # Reka UI primitives
 │   ├── match/               # Combat UI (ActionBar, StatusPanel, ATB)
 │   └── grimoire/            # Inventory/ability UI
+├── common/                  # Shared types and mirrored server enums
 ├── views/                   # Route views (Game, Login, Scene)
-├── layout/                  # Layout components (Menu, VirtualJoystick)
-├── router/                  # Vue Router setup
-├── common/                  # Shared types and enums
 ├── api/                     # HTTP API clients
 └── lib/                     # Generic utilities
 
 src_deprecated/              # Old PrimeVue app - NEVER MODIFY
 ```
+
+---
+
+## Key Concepts
+
+### Component Priority Order
+Components initialize in priority order - lower first:
+```
+DEFAULT=1 → RENDERING=100 → PHYSICS=200 → INTERACTION=300
+```
+Physics depends on mesh existing. Interaction depends on physics collider.
+
+### Trait System (Interface-Based Discovery)
+Components register traits via Symbols for decoupled lookup:
+```typescript
+// Provider registers:   this.registerTrait(TRAIT.MESH_PROVIDER)
+// Consumer finds:       this.requireByTrait<I_MeshProvider>(TRAIT.MESH_PROVIDER)
+```
+
+### Entity vs Controller Composables
+- **Entity** composables (`useCamera`, `useCharacter`) own Three.js objects
+- **Controller** composables (`useCameraController`, `useCharacterController`) are pure reactive state
+- Why: Testability without Three.js, reusability, SSR safety
+
+### Scene Context (`I_SceneContext`)
+Passed to all modules/components. Provides: `engine`, `scene`, `cleanupRegistry`, `getService<K>()`, `clientData`, `camera?`, `character?`
 
 ---
 
@@ -137,16 +145,11 @@ src_deprecated/              # Old PrimeVue app - NEVER MODIFY
 export class MyObject extends GameObject {
 	constructor(config: { id: string; position?: [number, number, number] }) {
 		super({ id: config.id });
-
-		this.addComponent(
-			new TransformComponent({
-				position: config.position || [0, 0, 0],
-			}),
-		)
+		this.addComponent(new TransformComponent({ position: config.position || [0, 0, 0] }))
 			.addComponent(new GeometryComponent({ type: "box", params: [1, 1, 1] }))
 			.addComponent(new MaterialComponent({ color: 0xff1493 }))
 			.addComponent(new MeshComponent())
-			.addComponent(new HoverComponent()); // Optional interactivity
+			.addComponent(new HoverComponent());
 	}
 }
 
@@ -164,24 +167,20 @@ export class MyModule extends SceneModule {
 	private mesh?: Mesh;
 
 	async init(context: I_ModuleContext): Promise<void> {
-		await super.init(context); // ⚠️ REQUIRED first!
-
+		await super.init(context); // REQUIRED first!
 		const geometry = new BoxGeometry(1, 1, 1);
 		const material = new MeshStandardMaterial({ color: 0x00ff00 });
 		this.mesh = new Mesh(geometry, material);
-
 		context.scene.add(this.mesh);
 
-		// ⚠️ CRITICAL: Register for cleanup
+		// CRITICAL: Register for cleanup
 		context.cleanupRegistry.registerObject(this.mesh);
 		context.cleanupRegistry.registerDisposable(geometry);
 		context.cleanupRegistry.registerDisposable(material);
 	}
 
 	update(delta: number): void {
-		if (this.mesh) {
-			this.mesh.rotation.y += delta;
-		}
+		if (this.mesh) this.mesh.rotation.y += delta;
 	}
 }
 ```
@@ -189,10 +188,8 @@ export class MyModule extends SceneModule {
 ### GameComponent
 
 ```typescript
-// src/game/components/MyComponent.ts
 export class RotateComponent extends GameComponent {
 	public readonly priority = ComponentPriority.DEFAULT;
-
 	private speed: number;
 
 	constructor(config: { speed?: number } = {}) {
@@ -202,9 +199,7 @@ export class RotateComponent extends GameComponent {
 
 	update(delta: number): void {
 		const mesh = this.getComponent(MeshComponent);
-		if (mesh?.mesh) {
-			mesh.mesh.rotation.y += delta * this.speed;
-		}
+		if (mesh?.mesh) mesh.mesh.rotation.y += delta * this.speed;
 	}
 }
 ```
@@ -212,8 +207,6 @@ export class RotateComponent extends GameComponent {
 ### Using Systems
 
 ```typescript
-// In any module or component with access to context:
-
 // Physics
 const physics = context.getService("physics");
 physics.registerStaticFromMesh(this.gameObject.id, mesh, { showDebug: true });
@@ -222,8 +215,9 @@ physics.registerStaticFromMesh(this.gameObject.id, mesh, { showDebug: true });
 const vfx = context.getService("vfx");
 vfx.applyEmissive(mesh, 0xff0000, 0.5);
 
-// Interaction (handled automatically if using InteractionComponent/HoverComponent)
-const interaction = context.getService("interaction");
+// Spawner (object pooling)
+const spawner = context.getService("spawner");
+spawner.registerFactory('fireball', factory, { poolSize: 10, maxActivePerOwner: 5 });
 ```
 
 ---
@@ -233,24 +227,13 @@ const interaction = context.getService("interaction");
 Three.js objects MUST be registered for cleanup to prevent memory leaks:
 
 ```typescript
-// For Three.js objects (Mesh, Light, Group, etc.)
-context.cleanupRegistry.registerObject(mesh);
-
-// For disposable resources (Geometry, Material, Texture)
-context.cleanupRegistry.registerDisposable(geometry);
-context.cleanupRegistry.registerDisposable(material);
-
-// For subscriptions and callbacks
-const unsubscribe = someObservable.subscribe(() => {});
-context.cleanupRegistry.registerDisposable({ dispose: unsubscribe });
+context.cleanupRegistry.registerObject(mesh);           // Mesh, Light, Group
+context.cleanupRegistry.registerDisposable(geometry);    // Geometry, Material, Texture
+context.cleanupRegistry.registerWatcher(stopHandle);     // Vue watchers
+context.cleanupRegistry.registerDisposable({ dispose: unsubscribe }); // Subscriptions
 ```
 
-**Common Memory Leak Sources:**
-
-- Unregistered meshes
-- Geometries/materials not disposed
-- Event listeners not removed
-- RxJS subscriptions not unsubscribed
+**Common Leak Sources:** Unregistered meshes, undisposed geometries/materials, dangling event listeners, unsubscribed watchers.
 
 ---
 
@@ -264,107 +247,45 @@ context.cleanupRegistry.registerDisposable({ dispose: unsubscribe });
 | `config.store.ts`    | Debug flags, feature toggles | No        |
 | `scene.store.ts`     | Current scene state          | No        |
 | `match.store.ts`     | Active match data            | No        |
-| `DataStore.ts`       | Generic data store utility   | -         |
 
 ---
 
-## WebSocket Communication
-
-Client connects to server using topsyde-utils WebSocket:
+## WebSocket & Match Events
 
 ```typescript
-// Connection format (in sec-websocket-protocol header):
-// "clientId-username"
+// Connection: sec-websocket-protocol header = "clientId-username"
 const ws = new WebSocket("wss://server:443", "123-PlayerName");
-```
 
-**Match Events Flow:**
-
-```
-Server broadcasts → websocket.store receives → match.store updates → Vue/Three.js reacts
-```
-
----
-
-## Common Patterns
-
-### Accessing Three.js from Vue
-
-```typescript
-// In Vue component - use composables
-const { camera, controls } = useCamera();
-
-// For game logic - use the game context, not Vue
-// Game systems should be independent of Vue reactivity
-```
-
-### Adding Interactivity to a GameObject
-
-```typescript
-// Method 1: HoverComponent (simple hover effect)
-this.addComponent(new HoverComponent());
-
-// Method 2: InteractionComponent (full click handling)
-this.addComponent(
-	new InteractionComponent({
-		onClick: () => console.log("Clicked!"),
-		onHover: () => console.log("Hovered!"),
-	}),
-);
-
-// Method 3: MouseClickComponent + custom handling
-this.addComponent(
-	new MouseClickComponent({
-		onClick: (event) => this.handleClick(event),
-	}),
-);
-```
-
-### Responding to Match Events
-
-```typescript
-// In a Vue composable or store:
+// Listening to match events:
 websocketStore.on(E_MatchEventType.DAMAGE, (data) => {
-	// Update UI
 	matchStore.applyDamage(data);
 });
-
-// In a Three.js component (if needed):
-// Subscribe in init(), unsubscribe in cleanup
 ```
+
+**Flow:** `Server broadcasts → websocket.store → match.store → Vue/Three.js reacts`
+
+Client enums in `src/common/match.enums.ts` mirror server enum string values.
 
 ---
 
-## Anti-Patterns to Avoid
+## Anti-Patterns
 
-| ❌ Don't                        | ✅ Do Instead                      |
+| Don't                           | Do Instead                         |
 | ------------------------------- | ---------------------------------- |
 | Use raw Rapier API              | Use `PhysicsSystem` facade         |
 | Create custom utilities         | Check VueUse first                 |
 | Forget cleanup registration     | Always register Three.js objects   |
 | Modify `src_deprecated/`        | It's reference only                |
-| Mix Vue reactivity in game code | Keep game logic in game/ directory |
+| Mix Vue reactivity in game code | Keep game logic in `game/` directory |
 | Create new geometry per frame   | Pool or reuse geometries           |
 
 ---
 
 ## Debugging
 
-### Three.js Inspector
-
-Enable in `config.store.ts` or use browser extension.
-
-### Physics Debug Wireframes
-
-```typescript
-physics.registerStaticFromMesh(id, mesh, { showDebug: true });
-```
-
-### Check Memory Leaks
-
-1. Open Chrome DevTools → Memory
-2. Take heap snapshot before/after scene change
-3. Compare for retained Three.js objects
+- **Three.js Inspector**: Enable in `config.store.ts` or use browser extension
+- **Physics wireframes**: `physics.registerStaticFromMesh(id, mesh, { showDebug: true })`
+- **Memory leaks**: Chrome DevTools → Memory → heap snapshot before/after scene change
 
 ---
 
