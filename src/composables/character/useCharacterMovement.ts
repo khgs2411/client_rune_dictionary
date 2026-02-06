@@ -1,4 +1,5 @@
 import { useGameConfigStore } from "@/stores/config.store";
+import { useSettingsStore } from "@/stores/settings.store";
 import { ref, computed, type Ref } from "vue";
 import { useMagicKeys } from "@vueuse/core";
 
@@ -21,6 +22,7 @@ export interface CharacterMovement {
  */
 export function useCharacterMovement(): CharacterMovement {
 	const config = useGameConfigStore();
+	const settings = useSettingsStore();
 
 	const isMoving = ref(false);
 	// Position and rotation
@@ -43,6 +45,13 @@ export function useCharacterMovement(): CharacterMovement {
 	const { w, a, s, d } = useMagicKeys({
 		passive: false,
 		onEventFired(e) {
+			// Don't capture keys when game controls are disabled or typing in input fields
+			if (settings.gameControlsDisabled) return;
+			const target = e.target as HTMLElement;
+			if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+				return;
+			}
+
 			// Prevent default for WASD keys
 			if (e.key === "w" || e.key === "a" || e.key === "s" || e.key === "d" || e.key === "W" || e.key === "A" || e.key === "S" || e.key === "D") {
 				e.preventDefault();
@@ -63,11 +72,14 @@ export function useCharacterMovement(): CharacterMovement {
 		let inputX = 0;
 		let inputZ = 0;
 
-		// Keyboard input (desktop)
-		if (w.value) inputZ -= 1;
-		if (s.value) inputZ += 1;
-		if (a.value) inputX -= 1;
-		if (d.value) inputX += 1;
+		// Skip keyboard input when game controls are disabled
+		if (!settings.gameControlsDisabled) {
+			// Keyboard input (desktop)
+			if (w.value) inputZ -= 1;
+			if (s.value) inputZ += 1;
+			if (a.value) inputX -= 1;
+			if (d.value) inputX += 1;
+		}
 
 		// Joystick input (mobile) - overrides keyboard if active
 		if (joystickInputX !== 0 || joystickInputZ !== 0) {

@@ -1,4 +1,5 @@
 import { useGameConfigStore } from "@/stores/config.store";
+import { useSettingsStore } from "@/stores/settings.store";
 import { ref, type Ref } from "vue";
 import { useMagicKeys, whenever } from "@vueuse/core";
 
@@ -15,6 +16,7 @@ export interface CharacterJump {
  */
 export function useCharacterJump(): CharacterJump {
 	const config = useGameConfigStore();
+	const settings = useSettingsStore();
 
 	const isJumping = ref(false);
 	const verticalVelocity = ref(0);
@@ -23,6 +25,13 @@ export function useCharacterJump(): CharacterJump {
 	const { space } = useMagicKeys({
 		passive: false,
 		onEventFired(e) {
+			// Don't capture keys when game controls are disabled or typing in input fields
+			if (settings.gameControlsDisabled) return;
+			const target = e.target as HTMLElement;
+			if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+				return;
+			}
+
 			// Prevent default for Space key
 			if (e.key === " " || e.code === "Space") {
 				e.preventDefault();
@@ -32,6 +41,9 @@ export function useCharacterJump(): CharacterJump {
 	});
 
 	whenever(space, () => {
+		// Skip jump when controls are disabled
+		if (settings.gameControlsDisabled) return;
+
 		if (!isJumping.value) {
 			isJumping.value = true;
 			verticalVelocity.value = config.character.jumpInitialVelocity;

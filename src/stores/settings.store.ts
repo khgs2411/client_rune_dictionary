@@ -28,6 +28,9 @@ export const useSettingsStore = defineStore(
 		// Theme composable (self-contained, manages its own state + localStorage)
 		const theme = useTheme();
 
+		// Game controls disabled (when typing in panels, etc.)
+		const gameControlsDisabled = ref(false);
+
 		// Debug Console settings
 		const debugConsole = ref<I_DebugConsoleSettings>({
 			x: window.innerWidth - 400 - 16,
@@ -65,6 +68,7 @@ export const useSettingsStore = defineStore(
 			theme,
 			debugConsole,
 			debug,
+			gameControlsDisabled,
 
 			// Actions
 			toggleColorMode,

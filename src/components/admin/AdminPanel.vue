@@ -55,8 +55,8 @@
 							</div>
 						</TabsContent>
 
-						<TabsContent value="affixes" class="mt-0 h-full overflow-y-auto">
-							<AffixesCrud />
+						<TabsContent value="affixes" class="mt-0 h-full">
+							<AffixDesigner />
 						</TabsContent>
 					</div>
 				</Tabs>
@@ -87,27 +87,36 @@ import { Icon } from "@iconify/vue";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AttributeList, AttributeEditor } from "./attributes";
-import AffixesCrud from "./AffixesCrud.vue";
+import { AffixDesigner } from "./affixes";
 import { useAttributesStore } from "@/stores/attributes.store";
+import { useAffixesStore } from "@/stores/affixes.store";
+import { useSettingsStore } from "@/stores/settings.store";
 
 const modelValue = defineModel<boolean>("open", { default: false });
+const settingsStore = useSettingsStore();
 const activeTab = ref("attributes");
 const showUnsavedWarning = ref(false);
 const attributesStore = useAttributesStore();
+const affixesStore = useAffixesStore();
 
-// Load attributes when panel opens
+// Load data when panel opens
 watch(modelValue, async (isOpen) => {
+	// Disable game controls while panel is open
+	settingsStore.gameControlsDisabled = isOpen;
+
 	if (isOpen) {
 		await attributesStore.loadAttributes();
 	} else {
 		// Clean up when closing
 		attributesStore.discardChanges();
 		attributesStore.forceSelectAttribute(null);
+		affixesStore.discardChanges();
+		affixesStore.forceSelectAffix(null);
 	}
 });
 
 function handleClose() {
-	if (attributesStore.hasUnsavedChanges) {
+	if (attributesStore.hasUnsavedChanges || affixesStore.hasUnsavedChanges) {
 		showUnsavedWarning.value = true;
 		return;
 	}
@@ -116,6 +125,7 @@ function handleClose() {
 
 function discardAndClose() {
 	attributesStore.discardChanges();
+	affixesStore.discardChanges();
 	showUnsavedWarning.value = false;
 	modelValue.value = false;
 }

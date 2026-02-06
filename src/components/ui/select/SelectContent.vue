@@ -30,9 +30,10 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 					position === 'popper' && 'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
 					props.class,
 				)
-			">
+			"
+			@wheel.stop>
 			<SelectScrollUpButton />
-			<SelectViewport :class="cn('p-1', position === 'popper' && 'h-[--reka-select-trigger-height] w-full min-w-[--reka-select-trigger-width]')">
+			<SelectViewport :class="cn('p-1 overscroll-contain', position === 'popper' && 'h-[--reka-select-trigger-height] w-full min-w-[--reka-select-trigger-width]')">
 				<slot />
 			</SelectViewport>
 			<SelectScrollDownButton />
