@@ -1,31 +1,51 @@
 <template>
-	<!-- Turn Timer - Top-center shared element -->
-	<div v-if="isVisible" class="bg-card/90 backdrop-blur-sm rounded-lg border border-border shadow-lg px-6 py-3 min-w-[280px] sm:min-w-[320px]">
-		<!-- Turn indicator -->
-		<div class="text-center mb-2">
-			<span :class="['text-sm font-semibold', isPlayerTurn ? 'text-primary' : 'text-destructive']">
-				{{ isPlayerTurn ? "Your Turn" : "Enemy Turn" }}
-			</span>
-		</div>
+	<div v-if="isVisible" class="turn-timer-wrapper relative rounded-xl overflow-hidden">
+		<!-- Background -->
+		<div class="absolute inset-0 timer-panel-bg" />
+		<div class="absolute inset-0 timer-panel-border" />
 
-		<!-- Timer bar -->
-		<div class="relative w-full h-3 sm:h-4 bg-muted rounded-full overflow-hidden">
-			<!-- Fill progress -->
-			<div
-				:class="['absolute left-0 top-0 h-full transition-all duration-500 ease-linear will-change-[width]', isPlayerTurn ? 'bg-primary' : 'bg-destructive', isWarningState && 'animate-pulse']"
-				:style="{ width: `${timePercentage}%` }"></div>
-
-			<!-- Time remaining text (centered) -->
-			<div class="absolute inset-0 flex items-center justify-center">
-				<span class="text-xs sm:text-sm font-mono font-bold text-foreground drop-shadow-md">
-					{{ formattedTimeRemaining }}
+		<div class="relative z-10 px-6 py-3 min-w-[280px] sm:min-w-[320px]">
+			<!-- Turn indicator -->
+			<div class="text-center mb-2">
+				<span
+					:class="[
+						'text-xs font-bold tracking-[0.2em] uppercase',
+						isPlayerTurn ? 'text-cyan-400' : 'text-red-400',
+					]">
+					{{ isPlayerTurn ? "Your Turn" : "Enemy Turn" }}
 				</span>
 			</div>
-		</div>
 
-		<!-- Warning message (< 3 seconds) -->
-		<div v-if="isWarningState" class="text-center mt-2">
-			<span class="text-xs text-destructive font-medium animate-pulse"> Time running out! </span>
+			<!-- Timer bar -->
+			<div class="timer-bar-container h-3 sm:h-4">
+				<!-- Fill progress -->
+				<div
+					:class="[
+						'timer-fill will-change-[width]',
+						isPlayerTurn ? 'timer-fill-player' : 'timer-fill-enemy',
+						isWarningState && 'timer-warning',
+					]"
+					:style="{ width: `${timePercentage}%` }">
+					<div class="timer-shine" />
+				</div>
+
+				<!-- Time remaining text (centered) -->
+				<div class="absolute inset-0 flex items-center justify-center">
+					<span
+						:class="[
+							'text-xs sm:text-sm font-mono font-black',
+							isWarningState ? 'text-red-200' : 'text-white/90',
+						]"
+						style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8)">
+						{{ formattedTimeRemaining }}
+					</span>
+				</div>
+			</div>
+
+			<!-- Warning message -->
+			<div v-if="isWarningState" class="text-center mt-2">
+				<span class="text-[10px] text-red-400 font-bold tracking-widest uppercase warning-flash"> Hurry! </span>
+			</div>
 		</div>
 	</div>
 </template>
@@ -35,37 +55,27 @@ import { useMatchStore } from "@/stores/match.store";
 import { useRafFn } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 
-// ========================================
-// Match State Integration
-// ========================================
-
 const matchStore = useMatchStore();
 
-// UI controls from composable (granular controls)
 const isVisible = computed(() => matchStore.match.turnTimer.visible);
 const isRunning = computed(() => matchStore.match.turnTimer.running);
 const isPlayerTurn = computed(() => matchStore.match.turn.isPlayerTurn);
 
-// Local countdown prediction
-const localCountdown = ref(0); // in milliseconds
+const localCountdown = ref(0);
 
-const maxTurnTime = computed(() => matchStore.match.timer.duration ?? 10000); // in ms
+const maxTurnTime = computed(() => matchStore.match.timer.duration ?? 10000);
 
-// Start countdown when turn timer becomes visible
 watch(
 	() => matchStore.match.turnTimer.visible,
 	(visible) => {
 		if (visible) {
-			// Turn started - initialize local countdown
 			localCountdown.value = maxTurnTime.value;
 		} else {
-			// Turn ended - reset countdown
 			localCountdown.value = 0;
 		}
 	},
 );
 
-// Sync local countdown with server updates (drift correction)
 watch(
 	() => matchStore.match.timer.remaining,
 	(serverRemaining) => {
@@ -73,31 +83,23 @@ watch(
 			const diff = Math.abs(localCountdown.value - serverRemaining);
 
 			if (diff >= 1000) {
-				// Large drift (≥1s) - snap to server value
 				localCountdown.value = serverRemaining;
 			} else if (diff > 100) {
-				// Small drift (100ms-1s) - blend smoothly
 				localCountdown.value = localCountdown.value * 0.7 + serverRemaining * 0.3;
 			}
-			// If diff < 100ms, ignore (trust local countdown)
 		}
 	},
 );
 
-// 60fps countdown loop - only runs when isRunning is true
 const { pause, resume } = useRafFn(({ delta }) => {
 	if (isRunning.value && localCountdown.value > 0) {
-		// Decrement countdown based on delta time
 		localCountdown.value -= delta;
-
-		// Clamp to 0
 		if (localCountdown.value < 0) {
 			localCountdown.value = 0;
 		}
 	}
 });
 
-// Watch running state to pause/resume RAF loop
 watch(
 	isRunning,
 	(running) => {
@@ -110,7 +112,6 @@ watch(
 	{ immediate: true },
 );
 
-// Computed values using local countdown
 const timeRemainingSeconds = computed(() => Math.ceil(localCountdown.value / 1000));
 
 const timePercentage = computed(() => {
@@ -126,12 +127,82 @@ const formattedTimeRemaining = computed(() => {
 const isWarningState = computed(() => {
 	return timeRemainingSeconds.value < 3;
 });
-
-// Timer bar color using composable (optional - currently using player/enemy color)
-// Uncomment to use gradient color based on time remaining:
-// const { colorClass: timerColorClass } = useProgressBarColor(
-//   () => localCountdown.value,
-//   () => maxTurnTime.value,
-//   'timer',
-// );
 </script>
+
+<style scoped>
+.timer-panel-bg {
+	background: linear-gradient(180deg, rgba(10, 15, 30, 0.94) 0%, rgba(12, 18, 35, 0.92) 100%);
+	backdrop-filter: blur(12px);
+}
+
+.timer-panel-border {
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.timer-bar-container {
+	position: relative;
+	background: rgba(0, 0, 0, 0.5);
+	border-radius: 6px;
+	overflow: hidden;
+	border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.timer-fill {
+	position: absolute;
+	left: 0;
+	top: 0;
+	height: 100%;
+	border-radius: 5px;
+	transition: width 0.5s linear;
+}
+
+.timer-fill-player {
+	background: linear-gradient(90deg, #0891b2, #22d3ee);
+	box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+}
+
+.timer-fill-enemy {
+	background: linear-gradient(90deg, #dc2626, #f87171);
+	box-shadow: 0 0 10px rgba(248, 113, 113, 0.3);
+}
+
+.timer-warning {
+	animation: warningPulse 0.6s ease-in-out infinite;
+}
+
+.timer-shine {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 40%;
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+	border-radius: 5px 5px 0 0;
+}
+
+.warning-flash {
+	animation: warningFlash 0.5s ease-in-out infinite;
+	text-shadow: 0 0 8px rgba(255, 60, 60, 0.5);
+}
+
+@keyframes warningPulse {
+	0%,
+	100% {
+		box-shadow: 0 0 10px rgba(248, 113, 113, 0.3);
+	}
+	50% {
+		box-shadow: 0 0 20px rgba(248, 113, 113, 0.6);
+	}
+}
+
+@keyframes warningFlash {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.5;
+	}
+}
+</style>

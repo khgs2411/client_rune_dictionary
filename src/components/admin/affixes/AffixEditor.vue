@@ -61,7 +61,7 @@
 							:max="200"
 							:step="1"
 							class="w-full"
-							@update:model-value="(v) => store.updateDraft({ weight: v[0] })" />
+							@update:model-value="(v) => store.updateDraft({ weight: v?.[0] })" />
 					</div>
 
 					<!-- Potency -->
@@ -76,7 +76,7 @@
 							:max="2"
 							:step="0.1"
 							class="w-full"
-							@update:model-value="(v) => store.updateDraft({ potency: v[0] })" />
+							@update:model-value="(v) => store.updateDraft({ potency: v?.[0] })" />
 					</div>
 				</div>
 			</section>
