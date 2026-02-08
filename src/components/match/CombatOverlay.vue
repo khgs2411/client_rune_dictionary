@@ -14,16 +14,36 @@
 				<!-- Top Right: Enemy Status Panel -->
 				<div class="absolute top-14 right-4 sm:right-[8%] pointer-events-auto combat-slide-right">
 					<PartyStatusPanel :party-members="enemyMembers" variant="enemy" />
+					<ActiveEffectsDisplay v-if="npcActiveEffects.length > 0" :effects="npcActiveEffects" class="mt-1.5" />
 				</div>
 
 				<!-- Center: Battle Stage -->
 				<div class="absolute inset-0 flex items-center justify-center pointer-events-none combat-fade-in">
 					<BattleStage class="w-full max-w-5xl mx-4" :party-members="partyMembersWithSprites" :enemies="enemiesWithSprites" />
+
+					<!-- Floating numbers - Player side (left) -->
+					<div class="absolute left-[20%] top-[35%] flex flex-col items-center gap-1 pointer-events-none z-20">
+						<FloatingNumber
+							v-for="num in playerFloatingNumbers"
+							:key="num.id"
+							:value="num.value"
+							:type="num.type" />
+					</div>
+
+					<!-- Floating numbers - Enemy side (right) -->
+					<div class="absolute right-[20%] top-[35%] flex flex-col items-center gap-1 pointer-events-none z-20">
+						<FloatingNumber
+							v-for="num in enemyFloatingNumbers"
+							:key="num.id"
+							:value="num.value"
+							:type="num.type" />
+					</div>
 				</div>
 
 				<!-- Bottom Left: Player Status Panel -->
 				<div class="absolute bottom-20 left-4 sm:left-[8%] pointer-events-auto combat-slide-left">
 					<PartyStatusPanel :party-members="partyMembers" />
+					<ActiveEffectsDisplay v-if="playerActiveEffects.length > 0" :effects="playerActiveEffects" class="mt-1.5" />
 				</div>
 
 				<!-- Bottom Right: Action Bar -->
@@ -61,6 +81,8 @@ import TurnTimerText from "./TurnTimerText.vue";
 import BattleStage from "./BattleStage.vue";
 import PartyStatusPanel from "./PartyStatusPanel.vue";
 import ActionBar from "./ActionBar.vue";
+import FloatingNumber from "./FloatingNumber.vue";
+import ActiveEffectsDisplay from "./ActiveEffectsDisplay.vue";
 
 type SpriteState = "idle" | "attack" | "hurt" | "victory" | "defeat";
 
@@ -178,8 +200,32 @@ const enemyMembers = computed(() => [
 	},
 ]);
 
+// Floating damage/heal numbers from choreographer
+// Note: Pinia's reactive() deeply unwraps refs, so no .value needed
+const floatingNumbers = computed(() => matchStore.match.choreographer.floatingNumbers);
+
+const playerFloatingNumbers = computed(() =>
+	(floatingNumbers.value ?? []).filter(n => matchStore.match.player && n.targetId === matchStore.match.player.entityId),
+);
+const enemyFloatingNumbers = computed(() =>
+	(floatingNumbers.value ?? []).filter(n => matchStore.match.npc && n.targetId === matchStore.match.npc.entityId),
+);
+
+// Active effects per entity
+const playerActiveEffects = computed(() => {
+	const playerId = matchStore.match.player?.entityId;
+	if (!playerId) return [];
+	return matchStore.match.activeEffects[playerId] ?? [];
+});
+
+const npcActiveEffects = computed(() => {
+	const npcId = matchStore.match.npc?.entityId;
+	if (!npcId) return [];
+	return matchStore.match.activeEffects[npcId] ?? [];
+});
+
 // Turn state
-const isPlayerTurn = computed(() => matchStore.match.turn.isPlayerTurn);
+const isPlayerTurn = computed(() => matchStore.match.turn.isPlayerTurn && !matchStore.match.choreographer.isAnimating);
 const isTurnActive = computed(() => matchStore.match.turnTimer.visible);
 const turnTimeRemaining = computed(() => Math.ceil((matchStore.match.timer.remaining ?? 0) / 1000));
 

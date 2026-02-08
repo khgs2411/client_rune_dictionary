@@ -25,7 +25,7 @@
 					<h4 class="font-medium">Skill Collection</h4>
 				</div>
 
-				<div class="flex-1 overflow-y-auto border rounded-lg bg-muted/20">
+				<div class="flex-1 overflow-y-auto border rounded-lg bg-muted/20 overscroll-contain" @wheel.stop>
 					<div v-if="skillsLoading" class="p-8 text-center text-muted-foreground">
 						<Icon icon="radix-icons:update" class="h-8 w-8 animate-spin mx-auto mb-2" />
 						<p>Loading skills...</p>
@@ -121,7 +121,7 @@
 							</div>
 
 							<!-- Skill Effects -->
-							<div class="flex-1 overflow-y-auto p-4 space-y-3">
+							<div class="flex-1 overflow-y-auto p-4 space-y-3 overscroll-contain" @wheel.stop>
 								<div
 									v-for="(slot, index) in Object.entries(selectedSkill.slots)"
 									:key="index"

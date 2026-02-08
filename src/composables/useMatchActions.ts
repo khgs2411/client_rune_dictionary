@@ -1,4 +1,4 @@
-import { E_MatchActionType } from "@/common/match.enums";
+import { E_MatchActionType, E_MatchEventType } from "@/common/match.enums";
 import { useMatchStore } from "@/stores/match.store";
 import { useWebSocketStore } from "@/stores/websocket.store";
 import { WebsocketStructuredMessage } from "topsyde-utils";
@@ -65,6 +65,26 @@ export function useMatchActions() {
 	}
 
 	/**
+	 * Send combat sequence ACK directly (NOT via sendAction — different message type)
+	 */
+	function sendSequenceAck(matchId: string, token: string) {
+		if (!websocketStore.clientData) {
+			console.error("[useMatchActions] Cannot send ACK: No client data");
+			return;
+		}
+
+		const ws = websocketStore.getWebSocketInstance<true>();
+		const message: WebsocketStructuredMessage = {
+			type: E_MatchEventType.COMBAT_SEQUENCE_ACK,
+			content: { matchId, token },
+			channel: matchId,
+			client: websocketStore.clientData,
+		};
+
+		ws.send(JSON.stringify(message));
+	}
+
+	/**
 	 * Run from match (if applicable)
 	 * Note: "Run" might be an action OR a state change request depending on game logic.
 	 * Assuming it's an action type 'run' based on HUD logic.
@@ -83,5 +103,6 @@ export function useMatchActions() {
 		pass,
 		useAbility,
 		run,
+		sendSequenceAck,
 	};
 }

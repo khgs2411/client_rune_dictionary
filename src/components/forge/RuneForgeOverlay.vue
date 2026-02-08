@@ -81,11 +81,15 @@
 						</div>
 
 						<!-- Right Column: Result -->
-						<div class="flex flex-col items-center justify-center border-l border-border pl-6">
+						<div class="flex flex-col items-center justify-center border-l border-border pl-6 overflow-hidden">
 							<!-- Result Card -->
 							<Transition name="card-appear" mode="out-in">
-								<div v-if="forgeStore.forgedAbility" class="text-center">
-									<p class="text-sm text-muted-foreground mb-4">Ability Forged!</p>
+								<div v-if="forgeStore.forgedAbility" class="w-full flex flex-col items-center">
+									<div class="flex items-center gap-2 mb-4">
+										<Icon icon="game-icons:sparkles" class="h-4 w-4 text-amber-400" />
+										<p class="text-sm font-semibold text-amber-400/80 uppercase tracking-widest">Ability Forged</p>
+										<Icon icon="game-icons:sparkles" class="h-4 w-4 text-amber-400" />
+									</div>
 									<AbilityCard :ability="forgeStore.forgedAbility" />
 								</div>
 								<div v-else class="text-center text-muted-foreground">

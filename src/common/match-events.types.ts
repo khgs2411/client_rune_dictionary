@@ -128,6 +128,42 @@ export type MatchEndEvent = WebsocketStructuredMessage<{
 }>;
 
 /**
+ * Event: match.combat_sequence
+ * Emitted with batched combat effects and handshake token
+ */
+export type CombatSequenceEvent = WebsocketStructuredMessage<{
+	matchId: string;
+	actorId: string;
+	actionType: string;
+	token: string;
+	effects: {
+		index: number;
+		type: string;
+		action: string;
+		value: number;
+		targetId: string;
+		sourceId: string;
+		label: string;
+		healthBefore?: number;
+		healthAfter?: number;
+		deferred?: boolean;
+	}[];
+	matchEnded: boolean;
+	winnerId?: string;
+	loserId?: string;
+	message: string;
+}>;
+
+/**
+ * Event: match.active_effects_snapshot
+ * Emitted after combat actions with current active effects state
+ */
+export type ActiveEffectsSnapshotEvent = WebsocketStructuredMessage<{
+	matchId: string;
+	effects: Record<string, { id: string; name: string; type: string; remainingTurns: number }[]>;
+}>;
+
+/**
  * Discriminated union of all match event types for type-safe routing
  */
 export type MatchEvent =
@@ -140,4 +176,6 @@ export type MatchEvent =
 	| MatchDamageDealtEvent
 	| MatchHealthUpdateEvent
 	| MatchVictoryEvent
-	| MatchEndEvent;
+	| MatchEndEvent
+	| CombatSequenceEvent
+	| ActiveEffectsSnapshotEvent;

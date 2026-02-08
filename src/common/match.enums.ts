@@ -36,4 +36,7 @@ export enum E_MatchEventType {
 	VICTORY = "match.victory",
 	END = "match.end",
 	ACTION = "match.action",
+	COMBAT_SEQUENCE = "match.combat_sequence",
+	COMBAT_SEQUENCE_ACK = "match.combat_sequence_ack",
+	ACTIVE_EFFECTS_SNAPSHOT = "match.active_effects_snapshot",
 }

@@ -9,6 +9,8 @@ import type {
 	MatchTurnEndEvent,
 	MatchTurnStartEvent,
 	MatchVictoryEvent,
+	CombatSequenceEvent,
+	ActiveEffectsSnapshotEvent,
 } from "@/common/match-events.types";
 import { E_MatchEventType } from "@/common/match.enums";
 import { I_GameState, I_MatchResult, MatchState } from "@/common/match.types";
@@ -173,6 +175,14 @@ export const useMatchStore = defineStore("match", () => {
 
 					case E_MatchEventType.END:
 						match.handleMatchEnd(message as MatchEndEvent);
+						break;
+
+					case E_MatchEventType.COMBAT_SEQUENCE:
+						match.handleCombatSequence(message as CombatSequenceEvent);
+						break;
+
+					case E_MatchEventType.ACTIVE_EFFECTS_SNAPSHOT:
+						match.handleActiveEffectsSnapshot(message as ActiveEffectsSnapshotEvent);
 						break;
 
 					default:

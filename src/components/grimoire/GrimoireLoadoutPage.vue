@@ -111,7 +111,7 @@
 					<span class="text-xs text-muted-foreground">({{ availableSkills.length }})</span>
 				</div>
 
-				<div class="flex-1 overflow-y-auto border rounded-xl bg-muted/20">
+				<div class="flex-1 overflow-y-auto border rounded-xl bg-muted/20 overscroll-contain" @wheel.stop>
 					<div v-if="loading || loadoutStore.isLoading" class="p-8 text-center text-muted-foreground">
 						<Icon icon="radix-icons:update" class="h-8 w-8 animate-spin mx-auto mb-2" />
 						<p>Loading skills...</p>

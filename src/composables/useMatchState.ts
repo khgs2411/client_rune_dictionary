@@ -9,8 +9,12 @@ import type {
 	MatchTurnEndEvent,
 	MatchTurnStartEvent,
 	MatchVictoryEvent,
+	CombatSequenceEvent,
+	ActiveEffectsSnapshotEvent,
 } from "@/common/match-events.types";
 import type { I_ATBState, I_EquippedAbility, I_NPCParticipant, I_PlayerParticipant, I_TimerConfig, I_TurnState } from "@/common/match.types";
+import { useCombatChoreographer } from "@/composables/useCombatChoreographer";
+import { useMatchActions } from "@/composables/useMatchActions";
 import { ref } from "vue";
 
 /**
@@ -31,6 +35,12 @@ export function useMatchState() {
 
 	// Player equipped abilities (loaded from initial match state)
 	const playerAbilities = ref<I_EquippedAbility[]>([]);
+
+	// Combat choreographer
+	const choreographer = useCombatChoreographer();
+
+	// Active effects per entity
+	const activeEffects = ref<Record<string, { id: string; name: string; type: string; remainingTurns: number }[]>>({});
 
 	// Turn state
 	const turn = ref<I_TurnState>({
@@ -214,6 +224,40 @@ export function useMatchState() {
 	}
 
 	/**
+	 * Handle match.combat_sequence event
+	 * Delegates to choreographer for sequential effect playback + ACK
+	 */
+	function handleCombatSequence(event: CombatSequenceEvent): void {
+		const actions = useMatchActions();
+		const sequence = event.content;
+
+		choreographer.processSequence(
+			sequence,
+			player.value,
+			npc.value,
+			(entityId, health) => {
+				if (player.value && entityId === player.value.entityId) {
+					player.value.health = health;
+				} else if (npc.value && entityId === npc.value.entityId) {
+					npc.value.health = health;
+				}
+			},
+			actions.sendSequenceAck,
+			(winnerId, loserId) => {
+				console.log(`[useMatchState] Match ended via sequence: winner=${winnerId}, loser=${loserId}`);
+			},
+		);
+	}
+
+	/**
+	 * Handle match.active_effects_snapshot event
+	 * Updates active effects display data
+	 */
+	function handleActiveEffectsSnapshot(event: ActiveEffectsSnapshotEvent): void {
+		activeEffects.value = event.content.effects;
+	}
+
+	/**
 	 * Initialize match state with player/NPC data
 	 * Called from store after HTTP match creation response
 	 */
@@ -306,6 +350,10 @@ export function useMatchState() {
 		atb,
 		timer,
 		turnTimer,
+		activeEffects,
+
+		// Choreographer
+		choreographer,
 
 		// Event handlers
 		handleMatchCreated,
@@ -318,6 +366,8 @@ export function useMatchState() {
 		handleDamageDealt,
 		handleMatchVictory,
 		handleMatchEnd,
+		handleCombatSequence,
+		handleActiveEffectsSnapshot,
 
 		// Lifecycle methods
 		initializeMatchState,
