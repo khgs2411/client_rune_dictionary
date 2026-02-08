@@ -67,9 +67,9 @@
 						</div>
 						<Slider
 							:model-value="[store.draft.potency]"
-							:min="0.1"
-							:max="2"
-							:step="0.1"
+							:min="0"
+							:max="100"
+							:step="1"
 							class="w-full"
 							@update:model-value="(v) => store.updateDraft({ potency: v?.[0] })" />
 					</div>
