@@ -84,15 +84,19 @@
 					label="Associated Attributes"
 					:model-value="store.draft.attribute_ids"
 					:items="attributeItems"
+					:is-active="activePickerField === 'attribute_ids'"
 					empty-text="No attributes selected"
-					@update:model-value="(v) => store.updateDraft({ attribute_ids: v })" />
+					@update:model-value="(v) => store.updateDraft({ attribute_ids: v })"
+					@open-picker="emit('open-picker', { field: 'attribute_ids', label: 'Associated Attributes', items: attributeItems })" />
 
 				<RelationshipEditor
 					label="Required Attributes"
 					:model-value="store.draft.required_attribute_ids"
 					:items="attributeItems"
+					:is-active="activePickerField === 'required_attribute_ids'"
 					empty-text="No required attributes"
-					@update:model-value="(v) => store.updateDraft({ required_attribute_ids: v })" />
+					@update:model-value="(v) => store.updateDraft({ required_attribute_ids: v })"
+					@open-picker="emit('open-picker', { field: 'required_attribute_ids', label: 'Required Attributes', items: attributeItems })" />
 			</section>
 
 			<!-- Affix Relationships Section -->
@@ -103,15 +107,19 @@
 					label="Blocked Affixes"
 					:model-value="store.draft.blocked_affix_ids"
 					:items="affixItems"
+					:is-active="activePickerField === 'blocked_affix_ids'"
 					empty-text="No blocked affixes"
-					@update:model-value="(v) => store.updateDraft({ blocked_affix_ids: v })" />
+					@update:model-value="(v) => store.updateDraft({ blocked_affix_ids: v })"
+					@open-picker="emit('open-picker', { field: 'blocked_affix_ids', label: 'Blocked Affixes', items: affixItems })" />
 
 				<RelationshipEditor
 					label="Required Affixes"
 					:model-value="store.draft.require_affix_ids"
 					:items="affixItems"
+					:is-active="activePickerField === 'require_affix_ids'"
 					empty-text="No required affixes"
-					@update:model-value="(v) => store.updateDraft({ require_affix_ids: v })" />
+					@update:model-value="(v) => store.updateDraft({ require_affix_ids: v })"
+					@open-picker="emit('open-picker', { field: 'require_affix_ids', label: 'Required Affixes', items: affixItems })" />
 			</section>
 
 			<!-- Definition Section -->
@@ -158,6 +166,14 @@ import { useAffixesStore } from "@/stores/affixes.store";
 import TierTabControl from "../attributes/TierTabControl.vue";
 import RelationshipEditor from "./RelationshipEditor.vue";
 import DefinitionEditor from "./DefinitionEditor.vue";
+
+defineProps<{
+	activePickerField?: string | null;
+}>();
+
+const emit = defineEmits<{
+	"open-picker": [payload: { field: string; label: string; items: { id: number; name: string }[] }];
+}>();
 
 const store = useAffixesStore();
 

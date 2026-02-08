@@ -165,8 +165,8 @@ function discardAndClose() {
 .admin-frame {
 	position: relative;
 	z-index: 10;
-	width: 1100px;
-	height: 85vh;
+	width: min(1400px, 95vw);
+	height: 88vh;
 	border-radius: 12px;
 	overflow: hidden;
 	border: 1px solid var(--admin-40);

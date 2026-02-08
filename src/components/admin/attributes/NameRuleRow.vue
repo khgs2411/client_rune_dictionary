@@ -6,7 +6,7 @@
 				<Input
 					v-model="localRule.name"
 					placeholder="e.g. Flaming"
-					class="h-8"
+					class="dark-input"
 					@update:model-value="emitUpdate" />
 			</div>
 
@@ -44,32 +44,37 @@
 
 		<!-- Restricted Attributes -->
 		<div class="space-y-1.5">
-			<Label class="rule-label">Restricted Attributes</Label>
-			<p class="rule-hint mb-1">Components that cannot be combined with this one</p>
-			<div class="flex flex-wrap gap-1">
-				<span
-					v-for="id in localRule.restrictedNameIds"
-					:key="id"
-					class="rule-tag">
-					{{ getAttributeName(id) }}
+			<div class="flex items-center justify-between">
+				<Label class="rule-label">Restricted Attributes</Label>
+				<button type="button" :class="['picker-toggle', pickerOpen && 'picker-toggle--active']" @click="pickerOpen = !pickerOpen">
+					<Icon :icon="pickerOpen ? 'radix-icons:cross-2' : 'radix-icons:plus'" class="h-3 w-3" />
+				</button>
+			</div>
+
+			<!-- Selected tags -->
+			<div v-if="localRule.restrictedNameIds.length > 0" class="flex flex-wrap gap-1">
+				<span v-for="id in localRule.restrictedNameIds" :key="id" class="rule-tag" :title="getAttributeName(id)">
+					<span class="tag-text">{{ getAttributeName(id) }}</span>
 					<Icon
 						icon="radix-icons:cross-2"
 						class="ml-1 h-3 w-3 cursor-pointer tag-remove"
-						@click="removeRestriction(id)" />
+						@click="toggleRestriction(id)" />
 				</span>
-				<Select @update:model-value="addRestriction">
-					<SelectTrigger class="h-6 w-24 text-xs">
-						<SelectValue placeholder="+ Add" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem
-							v-for="attr in availableRestrictedAttributes"
-							:key="attr.attribute_id"
-							:value="attr.attribute_id.toString()">
-							{{ attr.name }}
-						</SelectItem>
-					</SelectContent>
-				</Select>
+			</div>
+			<p v-else class="rule-hint">No restrictions</p>
+
+			<!-- Inline picker -->
+			<div v-if="pickerOpen" class="attr-picker">
+				<button
+					v-for="attr in availableAttributes"
+					:key="attr.attribute_id"
+					type="button"
+					:class="['pick-chip', isRestricted(attr.attribute_id) && 'pick-chip--on']"
+					@click="toggleRestriction(attr.attribute_id)">
+					<span class="pick-dot" />
+					{{ attr.name }}
+				</button>
+				<span v-if="availableAttributes.length === 0" class="rule-hint">No attributes available</span>
 			</div>
 		</div>
 	</div>
@@ -81,7 +86,6 @@ import { Icon } from "@iconify/vue";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { I_TieredNameComponent, AttributeModel } from "@/common/attribute.types";
 import { E_NamePosition } from "@/common/attribute.types";
 
@@ -95,10 +99,9 @@ const emit = defineEmits<{
 	delete: [];
 }>();
 
-// Local copy for editing
 const localRule = ref<I_TieredNameComponent>({ ...props.rule });
+const pickerOpen = ref(false);
 
-// Watch for external changes
 watch(
 	() => props.rule,
 	(newRule) => {
@@ -107,7 +110,6 @@ watch(
 	{ deep: true }
 );
 
-// Weight needs to be an array for Slider component
 const weightArray = computed({
 	get: () => [localRule.value.weight],
 	set: (val: number[]) => {
@@ -115,13 +117,13 @@ const weightArray = computed({
 	},
 });
 
-const availableRestrictedAttributes = computed(() => {
-	return props.availableAttributes.filter((attr) => !localRule.value.restrictedNameIds.includes(attr.attribute_id));
-});
-
 function getAttributeName(id: number): string {
 	const attr = props.availableAttributes.find((a) => a.attribute_id === id);
 	return attr?.name ?? `ID: ${id}`;
+}
+
+function isRestricted(id: number): boolean {
+	return localRule.value.restrictedNameIds.includes(id);
 }
 
 function setPosition(position: "PREFIX" | "SUFFIX") {
@@ -134,16 +136,12 @@ function onWeightChange(val: number[]) {
 	emitUpdate();
 }
 
-function addRestriction(value: string) {
-	const id = parseInt(value, 10);
-	if (!isNaN(id) && !localRule.value.restrictedNameIds.includes(id)) {
+function toggleRestriction(id: number) {
+	if (isRestricted(id)) {
+		localRule.value.restrictedNameIds = localRule.value.restrictedNameIds.filter((r) => r !== id);
+	} else {
 		localRule.value.restrictedNameIds = [...localRule.value.restrictedNameIds, id];
-		emitUpdate();
 	}
-}
-
-function removeRestriction(id: number) {
-	localRule.value.restrictedNameIds = localRule.value.restrictedNameIds.filter((r) => r !== id);
 	emitUpdate();
 }
 
@@ -161,24 +159,36 @@ function emitUpdate() {
 .rule-card {
 	padding: 12px;
 	border-radius: 8px;
-	border: 1px solid rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.08);
 	background: rgba(255, 255, 255, 0.03);
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
 }
 
+.dark-input {
+	background: rgba(255, 255, 255, 0.04);
+	border-color: rgba(255, 255, 255, 0.1);
+	color: rgba(255, 255, 255, 0.85);
+	height: 32px;
+	font-size: 0.82rem;
+}
+
+.dark-input::placeholder {
+	color: rgba(255, 255, 255, 0.2);
+}
+
 .pos-toggle {
 	display: flex;
 	border-radius: 6px;
 	overflow: hidden;
-	border: 1px solid rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .pos-btn {
 	padding: 4px 12px;
 	font-size: 0.72rem;
-	color: rgba(255, 255, 255, 0.4);
+	color: rgba(255, 255, 255, 0.45);
 	background: transparent;
 	border: none;
 	cursor: pointer;
@@ -204,43 +214,128 @@ function emitUpdate() {
 	border-radius: 6px;
 	border: none;
 	background: transparent;
-	color: #f87171;
+	color: rgba(248, 113, 113, 0.6);
 	cursor: pointer;
-	transition: background 0.15s ease;
+	transition: all 0.15s ease;
 }
 
 .rule-delete:hover {
 	background: rgba(248, 113, 113, 0.1);
+	color: #f87171;
 }
 
 .rule-label {
 	font-size: 0.72rem;
-	color: rgba(255, 255, 255, 0.4);
+	color: rgba(255, 255, 255, 0.5);
 }
 
 .rule-value {
 	font-size: 0.72rem;
-	color: rgba(255, 255, 255, 0.3);
+	color: rgba(255, 255, 255, 0.35);
 	font-family: monospace;
 }
 
 .rule-hint {
-	font-size: 0.72rem;
-	color: rgba(255, 255, 255, 0.2);
+	font-size: 0.68rem;
+	color: rgba(255, 255, 255, 0.25);
 }
 
+/* ── Tags ── */
 .rule-tag {
 	display: inline-flex;
 	align-items: center;
 	padding: 2px 8px;
-	border-radius: 99px;
-	font-size: 0.72rem;
-	background: rgba(155, 126, 216, 0.1);
-	color: rgba(255, 255, 255, 0.6);
-	border: 1px solid rgba(155, 126, 216, 0.2);
+	border-radius: 4px;
+	font-size: 0.7rem;
+	background: rgba(155, 126, 216, 0.12);
+	color: #9b7ed8;
+	max-width: 180px;
+}
+
+.tag-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	min-width: 0;
 }
 
 .tag-remove:hover {
 	color: #f87171;
+}
+
+/* ── Picker toggle ── */
+.picker-toggle {
+	width: 22px;
+	height: 22px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 5px;
+	border: 1px solid rgba(155, 126, 216, 0.2);
+	background: rgba(155, 126, 216, 0.06);
+	color: rgba(155, 126, 216, 0.6);
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+
+.picker-toggle:hover {
+	border-color: rgba(155, 126, 216, 0.3);
+	color: #9b7ed8;
+}
+
+.picker-toggle--active {
+	background: rgba(155, 126, 216, 0.15);
+	border-color: rgba(155, 126, 216, 0.35);
+	color: #9b7ed8;
+}
+
+/* ── Inline picker ── */
+.attr-picker {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	padding: 8px;
+	border-radius: 6px;
+	border: 1px solid rgba(155, 126, 216, 0.1);
+	background: rgba(0, 0, 0, 0.12);
+}
+
+.pick-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 3px 9px;
+	font-size: 0.65rem;
+	border-radius: 5px;
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	background: transparent;
+	color: rgba(255, 255, 255, 0.35);
+	cursor: pointer;
+	transition: all 0.12s ease;
+}
+
+.pick-chip:hover:not(.pick-chip--on) {
+	border-color: rgba(255, 255, 255, 0.12);
+	color: rgba(255, 255, 255, 0.5);
+}
+
+.pick-chip--on {
+	background: rgba(155, 126, 216, 0.15);
+	border-color: rgba(155, 126, 216, 0.3);
+	color: #b8a0e3;
+}
+
+.pick-dot {
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.1);
+	flex-shrink: 0;
+	transition: all 0.12s ease;
+}
+
+.pick-chip--on .pick-dot {
+	background: #9b7ed8;
+	box-shadow: 0 0 6px rgba(155, 126, 216, 0.5);
 }
 </style>

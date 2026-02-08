@@ -1,7 +1,11 @@
 <template>
-	<div class="h-full grid grid-cols-[280px_1fr] gap-6">
+	<div class="h-full designer-grid" :style="gridStyle">
 		<AffixList @unsaved-warning="showUnsavedWarning = true" />
-		<AffixEditor v-if="store.selectedId || store.draft" />
+
+		<AffixEditor
+			v-if="store.selectedId || store.draft"
+			:active-picker-field="pickerState?.field ?? null"
+			@open-picker="handleOpenPicker" />
 		<div v-else class="affix-empty">
 			<div class="text-center">
 				<Icon icon="game-icons:scroll-unfurled" class="h-12 w-12 mx-auto mb-3 opacity-20" />
@@ -9,6 +13,16 @@
 				<p class="text-xs mt-1 opacity-70">or create a new one</p>
 			</div>
 		</div>
+
+		<!-- 3rd panel: relationship picker -->
+		<RelationshipPicker
+			v-if="pickerState"
+			:key="pickerState.field"
+			:model-value="pickerValue"
+			:label="pickerState.label"
+			:items="pickerState.items"
+			@update:model-value="handlePickerUpdate"
+			@close="pickerState = null" />
 
 		<!-- Unsaved Changes Dialog -->
 		<div
@@ -29,14 +43,49 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { Icon } from "@iconify/vue";
 import { useAffixesStore } from "@/stores/affixes.store";
 import AffixList from "./AffixList.vue";
 import AffixEditor from "./AffixEditor.vue";
+import RelationshipPicker from "./RelationshipPicker.vue";
+
+interface PickerState {
+	field: string;
+	label: string;
+	items: { id: number; name: string }[];
+}
 
 const store = useAffixesStore();
 const showUnsavedWarning = ref(false);
+const pickerState = ref<PickerState | null>(null);
+
+const gridStyle = computed(() => ({
+	gridTemplateColumns: pickerState.value ? "280px 1fr 300px" : "280px 1fr",
+}));
+
+const pickerValue = computed(() => {
+	if (!store.draft || !pickerState.value) return [];
+	return (store.draft as Record<string, unknown>)[pickerState.value.field] as number[];
+});
+
+function handleOpenPicker(payload: PickerState) {
+	if (pickerState.value?.field === payload.field) {
+		pickerState.value = null;
+	} else {
+		pickerState.value = payload;
+	}
+}
+
+function handlePickerUpdate(value: number[]) {
+	if (!pickerState.value) return;
+	store.updateDraft({ [pickerState.value.field]: value });
+}
+
+// Close picker when switching affixes
+watch(() => store.selectedId, () => {
+	pickerState.value = null;
+});
 
 onMounted(async () => {
 	await Promise.all([store.loadAffixes(), store.loadContextTokens(), store.loadAttributes()]);
@@ -49,6 +98,11 @@ function handleDiscard() {
 </script>
 
 <style scoped>
+.designer-grid {
+	display: grid;
+	gap: 24px;
+}
+
 .affix-empty {
 	display: flex;
 	align-items: center;
