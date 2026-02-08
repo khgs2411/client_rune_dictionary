@@ -1,151 +1,142 @@
 <template>
-	<div class="h-full flex flex-col">
+	<div class="loadout-page">
 		<!-- Header -->
-		<div class="flex items-center gap-3 mb-6">
-			<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center">
-				<Icon icon="game-icons:shoulder-armor" class="h-5 w-5 text-white" />
-			</div>
-			<div>
-				<h3 class="text-lg font-semibold">Combat Loadout</h3>
-				<p class="text-xs text-muted-foreground">Equip skills for your next battle</p>
+		<div class="page-header">
+			<div class="header-left">
+				<Icon icon="game-icons:shoulder-armor" class="header-icon" />
+				<div>
+					<h3 class="header-title">Combat Loadout</h3>
+					<p class="header-sub">Equip skills for your next battle</p>
+				</div>
 			</div>
 			<!-- Sync indicator -->
-			<div v-if="loadoutStore.isSyncing" class="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+			<div v-if="loadoutStore.isSyncing" class="sync-indicator">
 				<Icon icon="radix-icons:update" class="h-3 w-3 animate-spin" />
 				<span>Saving...</span>
 			</div>
 		</div>
 
-		<div class="grid grid-cols-2 gap-6 flex-1 overflow-hidden">
+		<div class="columns">
 			<!-- Left: Equipped Skills -->
-			<div class="flex flex-col">
-				<div class="flex items-center justify-between mb-3">
-					<div class="flex items-center gap-2">
-						<Icon icon="game-icons:crystal-bars" class="h-4 w-4 text-primary" />
-						<h4 class="font-medium">Equipped</h4>
-					</div>
-					<span class="text-xs text-muted-foreground">{{ loadoutStore.equippedCount }}/{{ maxSlots }} slots</span>
+			<div class="column-left">
+				<div class="section-header">
+					<Icon icon="game-icons:crystal-bars" class="section-icon" />
+					<h4 class="section-title">Equipped</h4>
+					<span class="slot-count">{{ loadoutStore.equippedCount }}/{{ maxSlots }}</span>
 				</div>
 
-				<div class="grid grid-cols-2 gap-3">
+				<div class="slot-grid">
 					<div
 						v-for="slot in maxSlots"
 						:key="slot"
-						class="aspect-square rounded-xl border-2 transition-all duration-200 relative overflow-hidden group"
-						:class="
-							loadoutStore.equippedSlots[slot - 1]
-								? 'border-primary bg-primary/5 hover:bg-primary/10'
-								: 'border-dashed border-muted-foreground/30 hover:border-muted-foreground/50'
-						">
+						class="equip-slot"
+						:class="{ 'equip-slot--filled': loadoutStore.equippedSlots[slot - 1] }"
+						:style="loadoutStore.equippedSlots[slot - 1] ? {
+							'--el': getSkillColor(loadoutStore.equippedSlots[slot - 1]!),
+							borderColor: getSkillColor(loadoutStore.equippedSlots[slot - 1]!) + '40',
+							boxShadow: '0 0 20px ' + getSkillColor(loadoutStore.equippedSlots[slot - 1]!) + '12, inset 0 0 20px ' + getSkillColor(loadoutStore.equippedSlots[slot - 1]!) + '06',
+						} : {}">
 						<!-- Filled Slot -->
 						<template v-if="loadoutStore.equippedSlots[slot - 1]">
-							<div class="absolute inset-0 flex flex-col items-center justify-center p-3 cursor-pointer" @click="loadoutStore.unequipSkill(slot - 1)">
-								<!-- Skill Icon -->
+							<div class="slot-content" @click="loadoutStore.unequipSkill(slot - 1)">
 								<div
-									class="w-14 h-14 rounded-xl flex items-center justify-center mb-2"
-									:style="{ backgroundColor: getSkillColor(loadoutStore.equippedSlots[slot - 1]!) + '20' }">
+									class="slot-icon-box"
+									:style="{ backgroundColor: getSkillColor(loadoutStore.equippedSlots[slot - 1]!) + '15' }">
 									<Icon
 										:icon="getSkillIcon(loadoutStore.equippedSlots[slot - 1]!)"
-										class="h-7 w-7"
+										class="slot-skill-icon"
 										:style="{ color: getSkillColor(loadoutStore.equippedSlots[slot - 1]!) }" />
 								</div>
-								<p class="text-sm font-medium text-center truncate w-full">
-									{{ loadoutStore.equippedSlots[slot - 1]!.name }}
-								</p>
+								<p class="slot-skill-name">{{ loadoutStore.equippedSlots[slot - 1]!.name }}</p>
 								<span
-									class="text-xs px-2 py-0.5 rounded-full mt-1"
+									class="slot-tier"
 									:style="{
 										backgroundColor: getTierColor(loadoutStore.equippedSlots[slot - 1]!.tier) + '20',
 										color: getTierColor(loadoutStore.equippedSlots[slot - 1]!.tier),
 									}">
-									Tier {{ loadoutStore.equippedSlots[slot - 1]!.tier }}
+									{{ getTierLabel(loadoutStore.equippedSlots[slot - 1]!.tier) }}
 								</span>
 							</div>
 							<!-- Unequip Button -->
-							<Button
-								variant="ghost"
-								size="icon"
-								class="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-destructive/20 hover:text-destructive"
-								@click.stop="loadoutStore.unequipSkill(slot - 1)">
+							<button class="unequip-btn" @click.stop="loadoutStore.unequipSkill(slot - 1)">
 								<Icon icon="radix-icons:cross-2" class="h-3 w-3" />
-							</Button>
+							</button>
 						</template>
 
 						<!-- Empty Slot -->
 						<template v-else>
-							<div class="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
-								<div class="w-12 h-12 rounded-xl border-2 border-dashed border-current/30 flex items-center justify-center mb-2">
-									<Icon icon="radix-icons:plus" class="h-5 w-5 opacity-50" />
+							<div class="slot-empty">
+								<div class="slot-empty-ring">
+									<Icon icon="radix-icons:plus" class="slot-empty-icon" />
 								</div>
-								<p class="text-xs font-medium">Slot {{ slot }}</p>
-								<p class="text-xs opacity-50">Empty</p>
+								<p class="slot-empty-label">Slot {{ slot }}</p>
+								<p class="slot-empty-hint">Empty</p>
 							</div>
 						</template>
 					</div>
 				</div>
 
-				<!-- Loadout Stats -->
-				<div class="mt-4 p-4 border rounded-xl bg-muted/20">
-					<div class="flex items-center gap-2 mb-3">
-						<Icon icon="game-icons:chart" class="h-4 w-4 text-primary" />
-						<h5 class="text-sm font-medium">Loadout Summary</h5>
+				<!-- Loadout Summary -->
+				<div class="summary-card">
+					<div class="summary-divider">
+						<span class="summary-div-line" />
+						<span class="summary-div-label">Loadout Summary</span>
+						<span class="summary-div-line" />
 					</div>
-					<div class="grid grid-cols-2 gap-3">
-						<div class="p-3 rounded-lg bg-background/50 text-center">
-							<p class="text-2xl font-bold text-primary">{{ loadoutStore.equippedCount }}</p>
-							<p class="text-xs text-muted-foreground">Equipped</p>
+					<div class="summary-stats">
+						<div class="stat-box">
+							<p class="stat-value stat-value--accent">{{ loadoutStore.equippedCount }}</p>
+							<p class="stat-label">Equipped</p>
 						</div>
-						<div class="p-3 rounded-lg bg-background/50 text-center">
-							<p class="text-2xl font-bold text-muted-foreground">{{ maxSlots - loadoutStore.equippedCount }}</p>
-							<p class="text-xs text-muted-foreground">Available</p>
+						<div class="stat-box">
+							<p class="stat-value">{{ maxSlots - loadoutStore.equippedCount }}</p>
+							<p class="stat-label">Available</p>
 						</div>
 					</div>
 				</div>
 			</div>
 
 			<!-- Right: Available Skills -->
-			<div class="flex flex-col overflow-hidden">
-				<div class="flex items-center gap-2 mb-3">
-					<Icon icon="game-icons:scroll-unfurled" class="h-4 w-4 text-primary" />
-					<h4 class="font-medium">Available Skills</h4>
-					<span class="text-xs text-muted-foreground">({{ availableSkills.length }})</span>
+			<div class="column-right">
+				<div class="section-header">
+					<Icon icon="game-icons:scroll-unfurled" class="section-icon" />
+					<h4 class="section-title">Available Skills</h4>
+					<span class="section-count">({{ availableSkills.length }})</span>
 				</div>
 
-				<div class="flex-1 overflow-y-auto border rounded-xl bg-muted/20 overscroll-contain" @wheel.stop>
-					<div v-if="loading || loadoutStore.isLoading" class="p-8 text-center text-muted-foreground">
-						<Icon icon="radix-icons:update" class="h-8 w-8 animate-spin mx-auto mb-2" />
-						<p>Loading skills...</p>
+				<div class="avail-list-container" @wheel.stop>
+					<div v-if="loading || loadoutStore.isLoading" class="empty-state">
+						<Icon icon="radix-icons:update" class="empty-icon animate-spin" />
+						<p class="empty-text">Loading skills...</p>
 					</div>
 
-					<div v-else-if="availableSkills.length === 0" class="p-8 text-center text-muted-foreground">
-						<Icon icon="game-icons:empty-hourglass" class="h-12 w-12 mx-auto mb-2 opacity-50" />
-						<p class="font-medium">No skills available</p>
-						<p class="text-xs mt-1">Forge skills in the Skills tab</p>
+					<div v-else-if="availableSkills.length === 0" class="empty-state">
+						<Icon icon="game-icons:empty-hourglass" class="empty-icon-lg" />
+						<p class="empty-title">No skills available</p>
+						<p class="empty-hint">Forge skills in the Skills tab</p>
 					</div>
 
-					<div v-else class="p-3 space-y-2">
+					<div v-else class="avail-list">
 						<div
 							v-for="skill in availableSkills"
 							:key="skill.ability_id"
-							class="p-3 rounded-lg border transition-all duration-200"
-							:class="
-								loadoutStore.isEquipped(skill.ability_id)
-									? 'border-primary/30 bg-primary/5 opacity-60'
-									: 'border-transparent bg-background/50 hover:border-border hover:bg-background cursor-pointer'
-							"
+							class="avail-card"
+							:class="{ 'avail-card--equipped': loadoutStore.isEquipped(skill.ability_id) }"
+							:style="{
+								borderLeftColor: loadoutStore.isEquipped(skill.ability_id) ? 'transparent' : getSkillColor(skill) + '50',
+							}"
 							@click="!loadoutStore.isEquipped(skill.ability_id) && equipToNextSlot(skill)">
-							<div class="flex items-center gap-3">
-								<!-- Skill Icon -->
+							<div class="avail-card-inner">
 								<div
-									class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-									:style="{ backgroundColor: getSkillColor(skill) + '20' }">
-									<Icon :icon="getSkillIcon(skill)" class="h-5 w-5" :style="{ color: getSkillColor(skill) }" />
+									class="avail-icon-box"
+									:style="{ backgroundColor: getSkillColor(skill) + '15' }">
+									<Icon :icon="getSkillIcon(skill)" class="avail-icon" :style="{ color: getSkillColor(skill) }" />
 								</div>
-								<div class="flex-1 min-w-0">
-									<div class="flex items-center gap-2">
-										<p class="font-medium truncate">{{ skill.name }}</p>
+								<div class="avail-info">
+									<div class="avail-name-row">
+										<p class="avail-name">{{ skill.name }}</p>
 										<span
-											class="text-xs px-1.5 py-0.5 rounded shrink-0"
+											class="avail-tier"
 											:style="{
 												backgroundColor: getTierColor(skill.tier) + '20',
 												color: getTierColor(skill.tier),
@@ -153,23 +144,20 @@
 											T{{ skill.tier }}
 										</span>
 									</div>
-									<p class="text-xs text-muted-foreground truncate mt-0.5">
-										{{ getSkillPreview(skill) }}
-									</p>
+									<p class="avail-preview">{{ getSkillPreview(skill, 50) }}</p>
 								</div>
-								<!-- Action -->
-								<div class="shrink-0">
+								<div class="avail-action">
 									<template v-if="loadoutStore.isEquipped(skill.ability_id)">
-										<span class="text-xs text-primary font-medium">Equipped</span>
+										<span class="equipped-label">Equipped</span>
 									</template>
 									<template v-else-if="loadoutStore.equippedCount < maxSlots">
-										<Button variant="outline" size="sm" class="h-7 text-xs" @click.stop="equipToNextSlot(skill)">
-											<Icon icon="radix-icons:plus" class="h-3 w-3 mr-1" />
+										<button class="equip-btn" @click.stop="equipToNextSlot(skill)">
+											<Icon icon="radix-icons:plus" class="h-3 w-3" />
 											Equip
-										</Button>
+										</button>
 									</template>
 									<template v-else>
-										<span class="text-xs text-muted-foreground">Full</span>
+										<span class="full-label">Full</span>
 									</template>
 								</div>
 							</div>
@@ -180,11 +168,9 @@
 		</div>
 
 		<!-- Error display -->
-		<div v-if="error || loadoutStore.error" class="mt-4 p-3 bg-destructive/10 text-destructive text-sm rounded border border-destructive/30">
-			<div class="flex items-center gap-2">
-				<Icon icon="radix-icons:exclamation-triangle" class="h-4 w-4" />
-				<span>{{ error || loadoutStore.error }}</span>
-			</div>
+		<div v-if="error || loadoutStore.error" class="error-bar">
+			<Icon icon="radix-icons:exclamation-triangle" class="h-4 w-4" />
+			<span>{{ error || loadoutStore.error }}</span>
 		</div>
 	</div>
 </template>
@@ -192,10 +178,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { Icon } from "@iconify/vue";
-import { Button } from "@/components/ui/button";
 import { CharactersAPI } from "@/api/characters.api";
 import { useAuthStore } from "@/stores/auth.store";
 import { useLoadoutStore } from "@/stores/loadout.store";
+import { getSkillColor, getSkillIcon, getTierColor, getTierLabel, getSkillPreview } from "@/composables/useSkillDisplay";
 import type { AbilityModel } from "@/common/ability.types";
 
 const charactersApi = new CharactersAPI();
@@ -225,54 +211,527 @@ function equipToNextSlot(skill: AbilityModel) {
 	}
 }
 
-function getSkillPreview(skill: AbilityModel): string {
-	const slots = skill.slots;
-	if (!slots) return "No description";
-	const slotKeys = Object.keys(slots).sort();
-	if (slotKeys.length === 0) return "No description";
-	const text = slots[Number(slotKeys[0])]?.text ?? "No description";
-	return text.length > 50 ? text.substring(0, 50) + "..." : text;
-}
-
-function getSkillColor(skill: AbilityModel): string {
-	const name = skill.name.toLowerCase();
-	if (name.includes("fire") || name.includes("flame") || name.includes("burn")) return "#ef4444";
-	if (name.includes("frost") || name.includes("ice") || name.includes("freeze")) return "#3b82f6";
-	if (name.includes("water") || name.includes("aqua")) return "#0ea5e9";
-	if (name.includes("earth") || name.includes("rock") || name.includes("stone")) return "#a16207";
-	if (name.includes("wind") || name.includes("air") || name.includes("gust")) return "#22c55e";
-	if (name.includes("light") || name.includes("holy") || name.includes("radiant")) return "#fbbf24";
-	if (name.includes("shadow") || name.includes("dark") || name.includes("void")) return "#7c3aed";
-	if (name.includes("arcane") || name.includes("magic") || name.includes("mystic")) return "#a855f7";
-	if (name.includes("lightning") || name.includes("thunder") || name.includes("shock")) return "#facc15";
-	return "#6b7280";
-}
-
-function getSkillIcon(skill: AbilityModel): string {
-	const name = skill.name.toLowerCase();
-	if (name.includes("fire") || name.includes("flame")) return "game-icons:fire";
-	if (name.includes("frost") || name.includes("ice")) return "game-icons:snowflake-2";
-	if (name.includes("water") || name.includes("aqua")) return "game-icons:water-drop";
-	if (name.includes("earth") || name.includes("rock")) return "game-icons:stone-block";
-	if (name.includes("wind") || name.includes("air")) return "game-icons:wind-slap";
-	if (name.includes("light") || name.includes("holy")) return "game-icons:sun";
-	if (name.includes("shadow") || name.includes("dark")) return "game-icons:evil-moon";
-	if (name.includes("lightning") || name.includes("thunder")) return "game-icons:lightning-bolt";
-	return "game-icons:magic-swirl";
-}
-
-function getTierColor(tier: number): string {
-	const colors: Record<number, string> = {
-		1: "#6b7280",
-		2: "#22c55e",
-		3: "#3b82f6",
-		4: "#a855f7",
-		5: "#f59e0b",
-	};
-	return colors[tier] || "#6b7280";
-}
-
 onMounted(async () => {
 	await Promise.all([loadSkills(), loadoutStore.loadLoadout()]);
 });
 </script>
+
+<style scoped>
+/* ═══════════════════════════════════════════
+   PAGE LAYOUT
+   ═══════════════════════════════════════════ */
+
+.loadout-page {
+	--accent: #d9aa5a;
+	--accent-60: #d9aa5a99;
+	--accent-40: #d9aa5a66;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.columns {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 24px;
+	flex: 1;
+	overflow: hidden;
+}
+
+.column-left {
+	display: flex;
+	flex-direction: column;
+}
+
+.column-right {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════
+   PAGE HEADER
+   ═══════════════════════════════════════════ */
+
+.page-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 20px;
+}
+
+.header-left {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.header-icon {
+	width: 20px;
+	height: 20px;
+	color: var(--accent);
+	opacity: 0.8;
+}
+
+.header-title {
+	font-family: Georgia, "Times New Roman", serif;
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: rgba(255, 255, 255, 0.9);
+	letter-spacing: 0.02em;
+}
+
+.header-sub {
+	font-size: 0.7rem;
+	color: rgba(255, 255, 255, 0.3);
+	margin-top: 1px;
+}
+
+.sync-indicator {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 0.7rem;
+	color: var(--accent-60);
+}
+
+/* ═══════════════════════════════════════════
+   SECTION HEADERS
+   ═══════════════════════════════════════════ */
+
+.section-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 10px;
+}
+
+.section-icon {
+	width: 14px;
+	height: 14px;
+	color: var(--accent);
+	opacity: 0.6;
+}
+
+.section-title {
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.5);
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+}
+
+.slot-count {
+	margin-left: auto;
+	font-size: 0.7rem;
+	color: rgba(255, 255, 255, 0.25);
+}
+
+.section-count {
+	font-size: 0.7rem;
+	color: rgba(255, 255, 255, 0.25);
+}
+
+/* ═══════════════════════════════════════════
+   EQUIPPED SLOT GRID
+   ═══════════════════════════════════════════ */
+
+.slot-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+}
+
+.equip-slot {
+	aspect-ratio: 1;
+	border-radius: 10px;
+	border: 1px dashed rgba(255, 255, 255, 0.08);
+	position: relative;
+	overflow: hidden;
+	transition: all 0.25s ease;
+}
+
+.equip-slot--filled {
+	border-style: solid;
+	background: rgba(255, 255, 255, 0.02);
+}
+
+.equip-slot--filled:hover {
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.slot-content {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 12px;
+	cursor: pointer;
+}
+
+.slot-icon-box {
+	width: 48px;
+	height: 48px;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 8px;
+}
+
+.slot-skill-icon {
+	width: 26px;
+	height: 26px;
+}
+
+.slot-skill-name {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.9);
+	text-align: center;
+	width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.slot-tier {
+	font-size: 0.6rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	padding: 2px 8px;
+	border-radius: 20px;
+	margin-top: 6px;
+}
+
+.unequip-btn {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	width: 22px;
+	height: 22px;
+	border-radius: 4px;
+	border: none;
+	background: rgba(0, 0, 0, 0.5);
+	color: rgba(255, 255, 255, 0.3);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	opacity: 0;
+	transition: all 0.15s ease;
+}
+
+.equip-slot:hover .unequip-btn {
+	opacity: 1;
+}
+
+.unequip-btn:hover {
+	background: rgba(248, 113, 113, 0.2);
+	color: #f87171;
+}
+
+/* ═══════════════════════════════════════════
+   EMPTY SLOT
+   ═══════════════════════════════════════════ */
+
+.slot-empty {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.slot-empty-ring {
+	width: 40px;
+	height: 40px;
+	border-radius: 10px;
+	border: 1px dashed rgba(255, 255, 255, 0.08);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 8px;
+}
+
+.slot-empty-icon {
+	width: 18px;
+	height: 18px;
+	color: rgba(255, 255, 255, 0.1);
+}
+
+.slot-empty-label {
+	font-size: 0.7rem;
+	font-weight: 500;
+	color: rgba(255, 255, 255, 0.2);
+}
+
+.slot-empty-hint {
+	font-size: 0.65rem;
+	color: rgba(255, 255, 255, 0.1);
+	margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════
+   LOADOUT SUMMARY
+   ═══════════════════════════════════════════ */
+
+.summary-card {
+	margin-top: 14px;
+	padding: 14px 16px;
+	border-radius: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	background: rgba(255, 255, 255, 0.02);
+}
+
+.summary-divider {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 12px;
+}
+
+.summary-div-line {
+	flex: 1;
+	height: 1px;
+	background: linear-gradient(to right, transparent, var(--accent-40));
+}
+
+.summary-div-line:last-child {
+	background: linear-gradient(to left, transparent, var(--accent-40));
+}
+
+.summary-div-label {
+	font-size: 0.65rem;
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.35);
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	white-space: nowrap;
+}
+
+.summary-stats {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+}
+
+.stat-box {
+	padding: 10px;
+	border-radius: 8px;
+	background: rgba(255, 255, 255, 0.03);
+	text-align: center;
+}
+
+.stat-value {
+	font-size: 1.5rem;
+	font-weight: 700;
+	color: rgba(255, 255, 255, 0.2);
+	line-height: 1;
+}
+
+.stat-value--accent {
+	color: var(--accent);
+}
+
+.stat-label {
+	font-size: 0.65rem;
+	color: rgba(255, 255, 255, 0.25);
+	margin-top: 4px;
+}
+
+/* ═══════════════════════════════════════════
+   AVAILABLE SKILLS LIST
+   ═══════════════════════════════════════════ */
+
+.avail-list-container {
+	flex: 1;
+	overflow-y: auto;
+	border-radius: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	background: rgba(255, 255, 255, 0.02);
+	overscroll-behavior: contain;
+}
+
+.avail-list {
+	padding: 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.avail-card {
+	padding: 10px 12px;
+	border-radius: 8px;
+	border-left: 3px solid transparent;
+	background: rgba(255, 255, 255, 0.025);
+	transition: all 0.2s ease;
+	cursor: pointer;
+}
+
+.avail-card:hover:not(.avail-card--equipped) {
+	background: rgba(255, 255, 255, 0.05);
+	transform: translateX(2px);
+}
+
+.avail-card--equipped {
+	opacity: 0.45;
+	cursor: default;
+}
+
+.avail-card-inner {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.avail-icon-box {
+	width: 36px;
+	height: 36px;
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.avail-icon {
+	width: 18px;
+	height: 18px;
+}
+
+.avail-info {
+	flex: 1;
+	min-width: 0;
+}
+
+.avail-name-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.avail-name {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.9);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.avail-tier {
+	font-size: 0.6rem;
+	font-weight: 700;
+	padding: 1px 6px;
+	border-radius: 4px;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.avail-preview {
+	font-size: 0.68rem;
+	color: rgba(255, 255, 255, 0.25);
+	margin-top: 2px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.avail-action {
+	flex-shrink: 0;
+}
+
+.equipped-label {
+	font-size: 0.68rem;
+	font-weight: 600;
+	color: var(--accent-60);
+}
+
+.equip-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 10px;
+	font-size: 0.7rem;
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.5);
+	background: transparent;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 6px;
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+
+.equip-btn:hover {
+	color: rgba(255, 255, 255, 0.8);
+	border-color: rgba(255, 255, 255, 0.25);
+	background: rgba(255, 255, 255, 0.05);
+}
+
+.full-label {
+	font-size: 0.68rem;
+	color: rgba(255, 255, 255, 0.15);
+}
+
+/* ═══════════════════════════════════════════
+   EMPTY STATES
+   ═══════════════════════════════════════════ */
+
+.empty-state {
+	padding: 48px 24px;
+	text-align: center;
+}
+
+.empty-icon {
+	width: 32px;
+	height: 32px;
+	color: rgba(255, 255, 255, 0.15);
+	margin: 0 auto 8px;
+}
+
+.empty-icon-lg {
+	width: 48px;
+	height: 48px;
+	color: rgba(255, 255, 255, 0.1);
+	margin: 0 auto 8px;
+}
+
+.empty-text {
+	font-size: 0.8rem;
+	color: rgba(255, 255, 255, 0.3);
+}
+
+.empty-title {
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.3);
+}
+
+.empty-hint {
+	font-size: 0.7rem;
+	color: rgba(255, 255, 255, 0.2);
+	margin-top: 4px;
+}
+
+/* ═══════════════════════════════════════════
+   ERROR BAR
+   ═══════════════════════════════════════════ */
+
+.error-bar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 16px;
+	padding: 10px 14px;
+	background: rgba(239, 68, 68, 0.08);
+	color: #f87171;
+	font-size: 0.8rem;
+	border-radius: 8px;
+	border: 1px solid rgba(239, 68, 68, 0.2);
+}
+</style>

@@ -1,36 +1,36 @@
 <template>
 	<div class="space-y-1.5">
 		<div class="flex items-center justify-between">
-			<Label class="text-xs">{{ label }}</Label>
-			<span class="text-[10px] text-muted-foreground">{{ modelValue.length }} selected</span>
+			<Label class="rel-label">{{ label }}</Label>
+			<span class="rel-count">{{ modelValue.length }} selected</span>
 		</div>
 
 		<!-- Selected Items -->
-		<div class="flex flex-wrap gap-1 min-h-[28px] p-1.5 border rounded bg-background/50">
+		<div class="rel-container">
 			<template v-if="modelValue.length > 0">
 				<span
 					v-for="id in modelValue"
 					:key="id"
-					class="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] rounded bg-primary/10 text-primary">
+					class="rel-chip">
 					{{ getItemName(id) }}
-					<button type="button" class="hover:text-destructive" @click="removeItem(id)">
+					<button type="button" class="chip-remove" @click="removeItem(id)">
 						<Icon icon="radix-icons:cross-2" class="h-2.5 w-2.5" />
 					</button>
 				</span>
 			</template>
-			<span v-else class="text-[10px] text-muted-foreground">{{ emptyText }}</span>
+			<span v-else class="rel-empty">{{ emptyText }}</span>
 		</div>
 
 		<!-- Select to Add -->
 		<Select v-model="selectedItemToAdd" @update:model-value="handleSelectItem">
-			<SelectTrigger class="h-7 text-xs">
+			<SelectTrigger class="rel-trigger">
 				<SelectValue placeholder="Add..." />
 			</SelectTrigger>
 			<SelectContent>
 				<SelectItem v-for="item in availableItems" :key="item.id" :value="String(item.id)" class="text-xs">
 					{{ item.name }}
 				</SelectItem>
-				<div v-if="availableItems.length === 0" class="py-2 px-2 text-xs text-muted-foreground text-center">
+				<div v-if="availableItems.length === 0" class="rel-no-items">
 					No items available
 				</div>
 			</SelectContent>
@@ -86,3 +86,58 @@ function removeItem(id: number) {
 	);
 }
 </script>
+
+<style scoped>
+.rel-label {
+	font-size: 0.72rem;
+	color: rgba(255, 255, 255, 0.4);
+}
+
+.rel-count {
+	font-size: 0.6rem;
+	color: rgba(255, 255, 255, 0.2);
+}
+
+.rel-container {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	min-height: 28px;
+	padding: 6px;
+	border-radius: 6px;
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	background: rgba(255, 255, 255, 0.03);
+}
+
+.rel-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 6px;
+	font-size: 0.6rem;
+	border-radius: 4px;
+	background: rgba(155, 126, 216, 0.12);
+	color: #9b7ed8;
+}
+
+.chip-remove:hover {
+	color: #f87171;
+}
+
+.rel-empty {
+	font-size: 0.6rem;
+	color: rgba(255, 255, 255, 0.2);
+}
+
+.rel-trigger {
+	height: 28px;
+	font-size: 0.72rem;
+}
+
+.rel-no-items {
+	padding: 8px;
+	font-size: 0.72rem;
+	color: rgba(255, 255, 255, 0.3);
+	text-align: center;
+}
+</style>

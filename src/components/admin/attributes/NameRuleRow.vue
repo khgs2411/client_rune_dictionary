@@ -1,5 +1,5 @@
 <template>
-	<div class="p-3 border rounded-lg bg-background/50 space-y-3">
+	<div class="rule-card">
 		<div class="flex items-center gap-3">
 			<!-- Fragment Name -->
 			<div class="flex-1">
@@ -11,56 +11,50 @@
 			</div>
 
 			<!-- Position Toggle -->
-			<div class="flex rounded-lg border overflow-hidden">
+			<div class="pos-toggle">
 				<button
 					type="button"
-					:class="[
-						'px-3 py-1 text-xs transition-colors',
-						localRule.position === 'PREFIX' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
-					]"
+					:class="['pos-btn', localRule.position === 'PREFIX' && 'pos-btn--active']"
 					@click="setPosition('PREFIX')">
 					Prefix
 				</button>
 				<button
 					type="button"
-					:class="[
-						'px-3 py-1 text-xs transition-colors',
-						localRule.position === 'SUFFIX' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
-					]"
+					:class="['pos-btn', localRule.position === 'SUFFIX' && 'pos-btn--active']"
 					@click="setPosition('SUFFIX')">
 					Suffix
 				</button>
 			</div>
 
 			<!-- Delete Button -->
-			<Button variant="ghost" size="icon" class="h-8 w-8 shrink-0" @click="$emit('delete')">
-				<Icon icon="radix-icons:trash" class="h-4 w-4 text-destructive" />
-			</Button>
+			<button type="button" class="rule-delete" @click="$emit('delete')">
+				<Icon icon="radix-icons:trash" class="h-4 w-4" />
+			</button>
 		</div>
 
 		<!-- Weight Slider -->
 		<div class="space-y-1">
 			<div class="flex items-center justify-between">
-				<Label class="text-xs">Weight</Label>
-				<span class="text-xs text-muted-foreground">{{ localRule.weight.toFixed(2) }}</span>
+				<Label class="rule-label">Weight</Label>
+				<span class="rule-value">{{ localRule.weight.toFixed(2) }}</span>
 			</div>
 			<Slider v-model="weightArray" :min="0.1" :max="1" :step="0.05" class="w-full" @update:model-value="onWeightChange" />
-			<p class="text-xs text-muted-foreground">Lower = rarer (0.1 legendary, 1.0 common)</p>
+			<p class="rule-hint">Lower = rarer (0.1 legendary, 1.0 common)</p>
 		</div>
 
 		<!-- Restricted Attributes -->
 		<div class="space-y-1.5">
-			<Label class="text-xs">Restricted Attributes</Label>
-			<p class="text-xs text-muted-foreground mb-1">Components that cannot be combined with this one</p>
+			<Label class="rule-label">Restricted Attributes</Label>
+			<p class="rule-hint mb-1">Components that cannot be combined with this one</p>
 			<div class="flex flex-wrap gap-1">
 				<span
 					v-for="id in localRule.restrictedNameIds"
 					:key="id"
-					class="inline-flex items-center px-2 py-0.5 rounded-full text-xs border bg-muted/50">
+					class="rule-tag">
 					{{ getAttributeName(id) }}
 					<Icon
 						icon="radix-icons:cross-2"
-						class="ml-1 h-3 w-3 cursor-pointer hover:text-destructive"
+						class="ml-1 h-3 w-3 cursor-pointer tag-remove"
 						@click="removeRestriction(id)" />
 				</span>
 				<Select @update:model-value="addRestriction">
@@ -84,7 +78,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { Icon } from "@iconify/vue";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -163,3 +156,91 @@ function emitUpdate() {
 	});
 }
 </script>
+
+<style scoped>
+.rule-card {
+	padding: 12px;
+	border-radius: 8px;
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	background: rgba(255, 255, 255, 0.03);
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.pos-toggle {
+	display: flex;
+	border-radius: 6px;
+	overflow: hidden;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pos-btn {
+	padding: 4px 12px;
+	font-size: 0.72rem;
+	color: rgba(255, 255, 255, 0.4);
+	background: transparent;
+	border: none;
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+
+.pos-btn:hover:not(.pos-btn--active) {
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.pos-btn--active {
+	background: rgba(155, 126, 216, 0.25);
+	color: rgba(255, 255, 255, 0.9);
+}
+
+.rule-delete {
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	border-radius: 6px;
+	border: none;
+	background: transparent;
+	color: #f87171;
+	cursor: pointer;
+	transition: background 0.15s ease;
+}
+
+.rule-delete:hover {
+	background: rgba(248, 113, 113, 0.1);
+}
+
+.rule-label {
+	font-size: 0.72rem;
+	color: rgba(255, 255, 255, 0.4);
+}
+
+.rule-value {
+	font-size: 0.72rem;
+	color: rgba(255, 255, 255, 0.3);
+	font-family: monospace;
+}
+
+.rule-hint {
+	font-size: 0.72rem;
+	color: rgba(255, 255, 255, 0.2);
+}
+
+.rule-tag {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 8px;
+	border-radius: 99px;
+	font-size: 0.72rem;
+	background: rgba(155, 126, 216, 0.1);
+	color: rgba(255, 255, 255, 0.6);
+	border: 1px solid rgba(155, 126, 216, 0.2);
+}
+
+.tag-remove:hover {
+	color: #f87171;
+}
+</style>

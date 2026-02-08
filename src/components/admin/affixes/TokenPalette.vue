@@ -1,7 +1,7 @@
 <template>
-	<div class="border rounded p-2 bg-background/50 space-y-2 max-h-48 overflow-y-auto">
+	<div class="rounded-lg p-2 space-y-2 max-h-48 overflow-y-auto" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06)">
 		<div v-for="category in groupedTokens" :key="category.name" class="space-y-1">
-			<div class="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{{ category.name }}</div>
+			<div class="text-[10px] font-semibold uppercase tracking-wide" style="color: rgba(255, 255, 255, 0.3)">{{ category.name }}</div>
 			<div class="flex flex-wrap gap-1">
 				<button
 					v-for="token in category.tokens"
