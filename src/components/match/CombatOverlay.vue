@@ -2,24 +2,30 @@
 	<Teleport to="body">
 		<Transition name="combat-overlay">
 			<div v-if="isInCombat" class="fixed inset-0 z-40 pointer-events-none combat-screen">
-				<!-- Full-screen dark overlay behind everything -->
+				<!-- Full-screen dark overlay -->
 				<div class="absolute inset-0 bg-black/40 pointer-events-none combat-bg-fade" />
 
-				<!-- Top Section: ATB Bar + Turn Timer -->
-				<div class="absolute top-0 left-1/2 -translate-x-1/2 mt-3 pointer-events-auto combat-slide-down w-[90%] max-w-lg">
-					<UnifiedATBBar :players="players" :enemies="enemies" />
-					<TurnTimerText class="mt-1.5" :seconds="turnTimeRemaining" :is-visible="isTurnActive" />
+				<!-- Top: Turn Timer Bar (pushed below admin bar) -->
+				<div class="absolute top-8 left-0 right-0 px-4 pointer-events-auto combat-slide-down z-30">
+					<TurnTimerBar
+						:seconds="turnTimeRemaining"
+						:max-seconds="turnMaxSeconds"
+						:is-visible="isTurnActive"
+						:is-player-turn="isPlayerTurn" />
 				</div>
 
-				<!-- Top Right: Enemy Status Panel -->
-				<div class="absolute top-14 right-4 sm:right-[8%] pointer-events-auto combat-slide-right">
-					<PartyStatusPanel :party-members="enemyMembers" variant="enemy" />
-					<ActiveEffectsDisplay v-if="npcActiveEffects.length > 0" :effects="npcActiveEffects" class="mt-1.5" />
+				<!-- Top Right: Enemy Status Panel (with ATB + effects) -->
+				<div class="absolute top-14 right-3 sm:right-[5%] pointer-events-auto combat-slide-right z-20">
+					<PartyStatusPanel
+						:party-members="enemyMembers"
+						variant="enemy"
+						:atb-progress="enemies[0]?.readiness ?? 0"
+						:active-effects="npcActiveEffects" />
 				</div>
 
-				<!-- Center: Battle Stage -->
-				<div class="absolute inset-0 flex items-center justify-center pointer-events-none combat-fade-in">
-					<BattleStage class="w-full max-w-5xl mx-4" :party-members="partyMembersWithSprites" :enemies="enemiesWithSprites" />
+				<!-- Center: Battle Stage (constrained height) -->
+				<div class="absolute inset-x-0 top-12 bottom-28 flex items-center justify-center pointer-events-none combat-fade-in">
+					<BattleStage class="w-full h-full max-w-5xl mx-4" :party-members="partyMembersWithSprites" :enemies="enemiesWithSprites" />
 
 					<!-- Floating numbers - Player side (left) -->
 					<div class="absolute left-[20%] top-[35%] flex flex-col items-center gap-1 pointer-events-none z-20">
@@ -40,21 +46,23 @@
 					</div>
 				</div>
 
-				<!-- Bottom Left: Player Status Panel -->
-				<div class="absolute bottom-20 left-4 sm:left-[8%] pointer-events-auto combat-slide-left">
-					<PartyStatusPanel :party-members="partyMembers" />
-					<ActiveEffectsDisplay v-if="playerActiveEffects.length > 0" :effects="playerActiveEffects" class="mt-1.5" />
+				<!-- Bottom Left: Player Status Panel (with ATB + effects) -->
+				<div class="absolute bottom-[110px] left-3 sm:left-[5%] pointer-events-auto combat-slide-left z-20">
+					<PartyStatusPanel
+						:party-members="partyMembers"
+						:atb-progress="players[0]?.readiness ?? 0"
+						:active-effects="playerActiveEffects" />
 				</div>
 
-				<!-- Bottom Right: Action Bar -->
-				<div class="absolute bottom-3 right-4 sm:right-[5%] pointer-events-auto combat-slide-up">
+				<!-- Bottom Center: Action Bar -->
+				<div class="absolute bottom-2 left-1/2 -translate-x-1/2 pointer-events-auto combat-slide-up z-20 w-[90%] max-w-lg">
 					<ActionBar :is-player-turn="isPlayerTurn" :is-leaving="isLeaving" :abilities="matchStore.match.playerAbilities" @action="handleAction" @ability="handleAbility" @leave-match="handleLeaveMatch" />
 				</div>
 
 				<!-- Turn announcement flash -->
 				<Transition name="turn-announce">
 					<div v-if="showTurnAnnounce" class="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
-						<div :class="['turn-announce-text', isPlayerTurn ? 'text-cyan-400' : 'text-red-400']">
+						<div :class="['turn-announce-text', isPlayerTurn ? 'announce-player' : 'announce-enemy']">
 							{{ isPlayerTurn ? "YOUR TURN" : "ENEMY TURN" }}
 						</div>
 					</div>
@@ -76,13 +84,11 @@ import { useMatchStore } from "@/stores/match.store";
 import { useWebSocketStore } from "@/stores/websocket.store";
 import { useRxjs } from "topsyde-utils";
 
-import UnifiedATBBar from "./UnifiedATBBar.vue";
-import TurnTimerText from "./TurnTimerText.vue";
+import TurnTimerBar from "./TurnTimerBar.vue";
 import BattleStage from "./BattleStage.vue";
 import PartyStatusPanel from "./PartyStatusPanel.vue";
 import ActionBar from "./ActionBar.vue";
 import FloatingNumber from "./FloatingNumber.vue";
-import ActiveEffectsDisplay from "./ActiveEffectsDisplay.vue";
 
 type SpriteState = "idle" | "attack" | "hurt" | "victory" | "defeat";
 
@@ -228,6 +234,7 @@ const npcActiveEffects = computed(() => {
 const isPlayerTurn = computed(() => matchStore.match.turn.isPlayerTurn && !matchStore.match.choreographer.isAnimating);
 const isTurnActive = computed(() => matchStore.match.turnTimer.visible);
 const turnTimeRemaining = computed(() => Math.ceil((matchStore.match.timer.remaining ?? 0) / 1000));
+const turnMaxSeconds = computed(() => Math.ceil((matchStore.match.timer.duration ?? 30000) / 1000));
 
 // Watch health decreases -> trigger 'hurt' animation + damage flash
 watch(
@@ -364,11 +371,11 @@ watch(
 
 @keyframes slideDown {
 	from {
-		transform: translateX(-50%) translateY(-30px);
+		transform: translateY(-20px);
 		opacity: 0;
 	}
 	to {
-		transform: translateX(-50%) translateY(0);
+		transform: translateY(0);
 		opacity: 1;
 	}
 }
@@ -397,11 +404,11 @@ watch(
 
 @keyframes slideUp {
 	from {
-		transform: translateY(30px);
+		transform: translateX(-50%) translateY(30px);
 		opacity: 0;
 	}
 	to {
-		transform: translateY(0);
+		transform: translateX(-50%) translateY(0);
 		opacity: 1;
 	}
 }
@@ -426,16 +433,36 @@ watch(
 	opacity: 0;
 }
 
-/* Turn announcement */
+/* ═══════════════════════════════════════════
+   TURN ANNOUNCEMENT — grimoire serif style
+   ═══════════════════════════════════════════ */
+
 .turn-announce-text {
+	font-family: Georgia, "Times New Roman", serif;
 	font-size: 2.5rem;
 	font-weight: 900;
-	letter-spacing: 0.15em;
-	text-shadow:
-		0 0 20px currentColor,
-		0 0 40px currentColor,
-		0 2px 8px rgba(0, 0, 0, 0.8);
+	letter-spacing: 0.12em;
+	-webkit-text-stroke: 1px rgba(0, 0, 0, 0.5);
+	paint-order: stroke fill;
 	animation: announceIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.announce-player {
+	color: #22d3ee;
+	text-shadow:
+		0 0 20px rgba(34, 211, 238, 0.6),
+		0 0 40px rgba(34, 211, 238, 0.3),
+		0 0 80px rgba(217, 170, 90, 0.15),
+		0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.announce-enemy {
+	color: #f87171;
+	text-shadow:
+		0 0 20px rgba(248, 113, 113, 0.6),
+		0 0 40px rgba(248, 113, 113, 0.3),
+		0 0 80px rgba(217, 170, 90, 0.15),
+		0 2px 8px rgba(0, 0, 0, 0.8);
 }
 
 @keyframes announceIn {
