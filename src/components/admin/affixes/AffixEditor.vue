@@ -234,12 +234,12 @@ async function handleDelete() {
 
 .empty-title {
 	font-size: 0.82rem;
-	color: rgba(255, 255, 255, 0.3);
+	color: rgba(255, 255, 255, 0.6);
 }
 
 .empty-hint {
 	font-size: 0.72rem;
-	color: rgba(255, 255, 255, 0.15);
+	color: rgba(255, 255, 255, 0.4);
 	margin-top: 4px;
 }
 
@@ -301,7 +301,7 @@ async function handleDelete() {
 
 .editor-id {
 	font-size: 0.6rem;
-	color: rgba(255, 255, 255, 0.2);
+	color: rgba(255, 255, 255, 0.45);
 }
 
 .unsaved-indicator {
@@ -344,7 +344,7 @@ async function handleDelete() {
 .section-heading {
 	font-size: 0.65rem;
 	font-weight: 700;
-	color: rgba(255, 255, 255, 0.35);
+	color: rgba(255, 255, 255, 0.75);
 	text-transform: uppercase;
 	letter-spacing: 0.1em;
 	margin-bottom: 12px;
@@ -354,12 +354,12 @@ async function handleDelete() {
 
 .field-label {
 	font-size: 0.7rem;
-	color: rgba(255, 255, 255, 0.4);
+	color: rgba(255, 255, 255, 0.85);
 }
 
 .field-value {
 	font-size: 0.7rem;
-	color: rgba(255, 255, 255, 0.3);
+	color: rgba(255, 255, 255, 0.7);
 	font-family: monospace;
 }
 
@@ -385,7 +385,7 @@ async function handleDelete() {
 	padding: 5px 14px;
 	font-size: 0.75rem;
 	font-weight: 500;
-	color: rgba(255, 255, 255, 0.5);
+	color: rgba(255, 255, 255, 0.75);
 	background: transparent;
 	border: 1px solid rgba(255, 255, 255, 0.1);
 	border-radius: 6px;

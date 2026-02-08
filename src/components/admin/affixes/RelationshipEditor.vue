@@ -80,7 +80,7 @@ function removeItem(id: number) {
 .rel-label {
 	font-size: 0.72rem;
 	font-weight: 500;
-	color: rgba(255, 255, 255, 0.5);
+	color: rgba(255, 255, 255, 0.85);
 	white-space: nowrap;
 	flex-shrink: 0;
 }
@@ -131,7 +131,7 @@ function removeItem(id: number) {
 
 .rel-empty {
 	font-size: 0.6rem;
-	color: rgba(255, 255, 255, 0.25);
+	color: rgba(255, 255, 255, 0.55);
 	font-style: italic;
 }
 

@@ -99,7 +99,7 @@ function handleCreate() {
 
 .list-count {
 	font-size: 0.75rem;
-	color: rgba(255, 255, 255, 0.3);
+	color: rgba(255, 255, 255, 0.6);
 }
 
 .new-btn {
@@ -139,7 +139,7 @@ function handleCreate() {
 	transform: translateY(-50%);
 	width: 14px;
 	height: 14px;
-	color: rgba(255, 255, 255, 0.2);
+	color: rgba(255, 255, 255, 0.45);
 	pointer-events: none;
 }
 
@@ -147,12 +147,12 @@ function handleCreate() {
 	padding-left: 32px;
 	background: rgba(255, 255, 255, 0.04);
 	border-color: rgba(255, 255, 255, 0.08);
-	color: rgba(255, 255, 255, 0.8);
+	color: rgba(255, 255, 255, 0.9);
 	font-size: 0.8rem;
 }
 
 .search-input::placeholder {
-	color: rgba(255, 255, 255, 0.2);
+	color: rgba(255, 255, 255, 0.4);
 }
 
 .list-container {
@@ -168,7 +168,7 @@ function handleCreate() {
 	padding: 24px;
 	text-align: center;
 	font-size: 0.78rem;
-	color: rgba(255, 255, 255, 0.2);
+	color: rgba(255, 255, 255, 0.5);
 }
 
 .list-item {
@@ -237,7 +237,7 @@ function handleCreate() {
 }
 
 .badge--muted {
-	color: rgba(255, 255, 255, 0.25);
+	color: rgba(255, 255, 255, 0.5);
 }
 
 .badge--green {

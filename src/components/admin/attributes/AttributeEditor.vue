@@ -96,9 +96,12 @@
 							v-for="rule in currentTierRules"
 							:key="rule.id"
 							:rule="rule"
+							:tier="activeTier"
 							:available-attributes="store.attributes"
+							:is-picker-active="activePickerRule === `rule-${activeTier}-${rule.id}`"
 							@update="(updates) => store.updateNameRule(activeTier, rule.id, updates)"
-							@delete="store.deleteNameRule(activeTier, rule.id)" />
+							@delete="store.deleteNameRule(activeTier, rule.id)"
+							@open-picker="(payload) => emit('open-picker', payload)" />
 					</TransitionGroup>
 				</div>
 			</section>
@@ -141,6 +144,14 @@ import { Switch } from "@/components/ui/switch";
 import { useAttributesStore } from "@/stores/attributes.store";
 import TierTabControl from "./TierTabControl.vue";
 import NameRuleRow from "./NameRuleRow.vue";
+
+defineProps<{
+	activePickerRule?: string | null;
+}>();
+
+const emit = defineEmits<{
+	"open-picker": [payload: { ruleKey: string; label: string; items: { id: number; name: string }[]; tier: 1 | 2 | 3 | 4; ruleId: number }];
+}>();
 
 const store = useAttributesStore();
 const activeTier = ref<1 | 2 | 3 | 4>(1);
@@ -194,12 +205,12 @@ async function handleDelete() {
 
 .empty-title {
 	font-size: 0.82rem;
-	color: rgba(255, 255, 255, 0.3);
+	color: rgba(255, 255, 255, 0.6);
 }
 
 .empty-hint {
 	font-size: 0.72rem;
-	color: rgba(255, 255, 255, 0.15);
+	color: rgba(255, 255, 255, 0.4);
 	margin-top: 4px;
 }
 
@@ -254,7 +265,7 @@ async function handleDelete() {
 
 .editor-id {
 	font-size: 0.6rem;
-	color: rgba(255, 255, 255, 0.2);
+	color: rgba(255, 255, 255, 0.45);
 }
 
 .unsaved-indicator {
@@ -293,7 +304,7 @@ async function handleDelete() {
 .section-heading {
 	font-size: 0.65rem;
 	font-weight: 700;
-	color: rgba(255, 255, 255, 0.35);
+	color: rgba(255, 255, 255, 0.75);
 	text-transform: uppercase;
 	letter-spacing: 0.1em;
 	margin-bottom: 12px;
@@ -303,18 +314,18 @@ async function handleDelete() {
 
 .field-label {
 	font-size: 0.7rem;
-	color: rgba(255, 255, 255, 0.4);
+	color: rgba(255, 255, 255, 0.85);
 }
 
 .field-value {
 	font-size: 0.7rem;
-	color: rgba(255, 255, 255, 0.3);
+	color: rgba(255, 255, 255, 0.7);
 	font-family: monospace;
 }
 
 .toggle-label {
 	font-size: 0.75rem;
-	color: rgba(255, 255, 255, 0.6);
+	color: rgba(255, 255, 255, 0.85);
 }
 
 .dark-input {
@@ -326,7 +337,7 @@ async function handleDelete() {
 }
 
 .dark-input::placeholder {
-	color: rgba(255, 255, 255, 0.2);
+	color: rgba(255, 255, 255, 0.3);
 }
 
 .add-rule-btn {
@@ -336,7 +347,7 @@ async function handleDelete() {
 	padding: 4px 10px;
 	font-size: 0.68rem;
 	font-weight: 600;
-	color: rgba(255, 255, 255, 0.5);
+	color: rgba(255, 255, 255, 0.75);
 	background: transparent;
 	border: 1px solid rgba(255, 255, 255, 0.1);
 	border-radius: 5px;
@@ -353,7 +364,7 @@ async function handleDelete() {
 	padding: 16px;
 	text-align: center;
 	font-size: 0.75rem;
-	color: rgba(255, 255, 255, 0.2);
+	color: rgba(255, 255, 255, 0.5);
 	border: 1px solid rgba(255, 255, 255, 0.04);
 	border-radius: 6px;
 }
@@ -380,7 +391,7 @@ async function handleDelete() {
 	padding: 5px 14px;
 	font-size: 0.75rem;
 	font-weight: 500;
-	color: rgba(255, 255, 255, 0.5);
+	color: rgba(255, 255, 255, 0.75);
 	background: transparent;
 	border: 1px solid rgba(255, 255, 255, 0.1);
 	border-radius: 6px;

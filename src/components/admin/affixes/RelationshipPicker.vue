@@ -106,7 +106,7 @@ function toggle(id: number) {
 .picker-title {
 	font-size: 0.72rem;
 	font-weight: 600;
-	color: rgba(255, 255, 255, 0.6);
+	color: rgba(255, 255, 255, 0.75);
 }
 
 .picker-close {
@@ -142,7 +142,7 @@ function toggle(id: number) {
 	transform: translateY(-50%);
 	width: 12px;
 	height: 12px;
-	color: rgba(255, 255, 255, 0.15);
+	color: rgba(255, 255, 255, 0.4);
 	pointer-events: none;
 }
 
@@ -150,7 +150,7 @@ function toggle(id: number) {
 	width: 100%;
 	padding: 5px 8px 5px 26px;
 	font-size: 0.68rem;
-	color: rgba(255, 255, 255, 0.7);
+	color: rgba(255, 255, 255, 0.9);
 	background: rgba(255, 255, 255, 0.04);
 	border: 1px solid rgba(255, 255, 255, 0.06);
 	border-radius: 6px;
@@ -163,7 +163,7 @@ function toggle(id: number) {
 }
 
 .picker-search::placeholder {
-	color: rgba(255, 255, 255, 0.15);
+	color: rgba(255, 255, 255, 0.4);
 }
 
 /* Toggle list */
@@ -185,7 +185,7 @@ function toggle(id: number) {
 	border-radius: 5px;
 	border: none;
 	background: transparent;
-	color: rgba(255, 255, 255, 0.35);
+	color: rgba(255, 255, 255, 0.7);
 	cursor: pointer;
 	transition: all 0.12s ease;
 	text-align: left;
@@ -224,7 +224,7 @@ function toggle(id: number) {
 
 .picker-none {
 	font-size: 0.62rem;
-	color: rgba(255, 255, 255, 0.15);
+	color: rgba(255, 255, 255, 0.45);
 	text-align: center;
 	padding: 16px 0;
 }
@@ -238,6 +238,6 @@ function toggle(id: number) {
 
 .picker-summary {
 	font-size: 0.6rem;
-	color: rgba(255, 255, 255, 0.2);
+	color: rgba(255, 255, 255, 0.6);
 }
 </style>

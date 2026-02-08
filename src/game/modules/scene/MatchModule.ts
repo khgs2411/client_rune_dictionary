@@ -7,7 +7,7 @@ import { I_ArenaConfig, MatchComponent } from "@/game/components/match/MatchComp
 import SceneModule from "@/game/modules/SceneModule";
 import { MatchAreaWalls } from "@/game/prefabs/MatchAreaWalls";
 import { MatchCameraAnchor } from "@/game/prefabs/MatchCameraAnchor";
-import { MatchGrid } from "@/game/prefabs/MatchGrid";
+
 import { E_SceneState, type StateChangeCallback } from "@/game/systems/SceneState";
 import { DataStore } from "@/stores/DataStore";
 import { Vector3 } from "three";
@@ -37,7 +37,7 @@ import { Vector3 } from "three";
 export class MatchModule extends SceneModule implements I_SceneModule {
 	// Arena objects
 	private walls: MatchAreaWalls | null = null;
-	private grid: MatchGrid | null = null;
+
 	private cameraAnchor: MatchCameraAnchor | null = null;
 
 	// Services and state
@@ -208,13 +208,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
 			showDebug: this.settings.debug.showPhysicsDebug,
 		});
 
-		this.grid = new MatchGrid({
-			id: "match-grid",
-			center: { x: center.x, y: 0, z: center.z },
-			diameter: config.width,
-			cellSize: 1,
-		});
-
 		const cameraPos = this.calculateCameraPosition(center);
 		this.cameraAnchor = new MatchCameraAnchor({
 			id: "match-camera-anchor",
@@ -222,7 +215,6 @@ export class MatchModule extends SceneModule implements I_SceneModule {
 		});
 
 		gameObjects.register(this.walls);
-		gameObjects.register(this.grid);
 		gameObjects.register(this.cameraAnchor);
 	}
 
@@ -234,11 +226,11 @@ export class MatchModule extends SceneModule implements I_SceneModule {
 		if (!gameObjects) return;
 
 		if (this.walls) gameObjects.unregister(this.walls.id);
-		if (this.grid) gameObjects.unregister(this.grid.id);
+
 		if (this.cameraAnchor) gameObjects.unregister(this.cameraAnchor.id);
 
 		this.walls = null;
-		this.grid = null;
+
 		this.cameraAnchor = null;
 	}
 

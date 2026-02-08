@@ -103,7 +103,7 @@ function handleCreate() {
 
 .list-count {
 	font-size: 0.75rem;
-	color: rgba(255, 255, 255, 0.3);
+	color: rgba(255, 255, 255, 0.6);
 }
 
 .new-btn {
@@ -143,7 +143,7 @@ function handleCreate() {
 	transform: translateY(-50%);
 	width: 14px;
 	height: 14px;
-	color: rgba(255, 255, 255, 0.2);
+	color: rgba(255, 255, 255, 0.45);
 	pointer-events: none;
 }
 
@@ -156,7 +156,7 @@ function handleCreate() {
 }
 
 .search-input::placeholder {
-	color: rgba(255, 255, 255, 0.2);
+	color: rgba(255, 255, 255, 0.4);
 }
 
 .list-container {
@@ -172,7 +172,7 @@ function handleCreate() {
 	padding: 24px;
 	text-align: center;
 	font-size: 0.78rem;
-	color: rgba(255, 255, 255, 0.2);
+	color: rgba(255, 255, 255, 0.5);
 }
 
 .list-item {
@@ -214,7 +214,7 @@ function handleCreate() {
 
 .item-weight {
 	font-size: 0.7rem;
-	color: rgba(255, 255, 255, 0.25);
+	color: rgba(255, 255, 255, 0.5);
 	font-variant-numeric: tabular-nums;
 }
 

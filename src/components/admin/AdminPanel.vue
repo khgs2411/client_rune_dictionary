@@ -49,13 +49,23 @@
 						<!-- Content Area -->
 						<div class="admin-content">
 							<TabsContent value="attributes" class="mt-0 h-full">
-								<div class="h-full grid grid-cols-[280px_1fr] gap-6">
+								<div class="h-full grid gap-6" :style="attrGridStyle">
 									<div class="h-full overflow-hidden flex flex-col">
 										<AttributeList @unsaved-warning="showUnsavedWarning = true" />
 									</div>
 									<div class="h-full overflow-hidden">
-										<AttributeEditor />
+										<AttributeEditor
+											:active-picker-rule="attrPickerState?.ruleKey ?? null"
+											@open-picker="handleAttrOpenPicker" />
 									</div>
+									<RelationshipPicker
+										v-if="attrPickerState"
+										:key="attrPickerState.ruleKey"
+										:model-value="attrPickerValue"
+										:label="attrPickerState.label"
+										:items="attrPickerState.items"
+										@update:model-value="handleAttrPickerUpdate"
+										@close="attrPickerState = null" />
 								</div>
 							</TabsContent>
 
@@ -86,16 +96,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, computed, watch } from "vue";
 import { Database, X } from "lucide-vue-next";
 import { Icon } from "@iconify/vue";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AttributeList, AttributeEditor } from "./attributes";
 import { AffixDesigner } from "./affixes";
+import RelationshipPicker from "./affixes/RelationshipPicker.vue";
 import { useAttributesStore } from "@/stores/attributes.store";
 import { useAffixesStore } from "@/stores/affixes.store";
 import { useSettingsStore } from "@/stores/settings.store";
+
+interface AttrPickerState {
+	ruleKey: string;
+	label: string;
+	items: { id: number; name: string }[];
+	tier: 1 | 2 | 3 | 4;
+	ruleId: number;
+}
 
 const modelValue = defineModel<boolean>("open", { default: false });
 const settingsStore = useSettingsStore();
@@ -103,6 +122,37 @@ const activeTab = ref("attributes");
 const showUnsavedWarning = ref(false);
 const attributesStore = useAttributesStore();
 const affixesStore = useAffixesStore();
+
+// ── Attribute picker state (3rd panel) ──
+const attrPickerState = ref<AttrPickerState | null>(null);
+
+const attrGridStyle = computed(() => ({
+	gridTemplateColumns: attrPickerState.value ? "280px 1fr 300px" : "280px 1fr",
+}));
+
+const attrPickerValue = computed(() => {
+	if (!attributesStore.draft || !attrPickerState.value) return [];
+	const tier = attrPickerState.value.tier;
+	const ruleId = attrPickerState.value.ruleId;
+	const rules = attributesStore.draft.name_components?.tiers?.[tier] ?? [];
+	const rule = rules.find((r) => r.id === ruleId);
+	return rule?.restrictedNameIds ?? [];
+});
+
+function handleAttrOpenPicker(payload: AttrPickerState) {
+	if (attrPickerState.value?.ruleKey === payload.ruleKey) {
+		attrPickerState.value = null;
+	} else {
+		attrPickerState.value = payload;
+	}
+}
+
+function handleAttrPickerUpdate(value: number[]) {
+	if (!attrPickerState.value) return;
+	attributesStore.updateNameRule(attrPickerState.value.tier, attrPickerState.value.ruleId, {
+		restrictedNameIds: value,
+	});
+}
 
 watch(modelValue, async (isOpen) => {
 	settingsStore.gameControlsDisabled = isOpen;
@@ -114,8 +164,13 @@ watch(modelValue, async (isOpen) => {
 		attributesStore.forceSelectAttribute(null);
 		affixesStore.discardChanges();
 		affixesStore.forceSelectAffix(null);
+		attrPickerState.value = null;
 	}
 });
+
+// Close picker when switching tabs or attributes
+watch(activeTab, () => { attrPickerState.value = null; });
+watch(() => attributesStore.selectedId, () => { attrPickerState.value = null; });
 
 function handleClose() {
 	if (attributesStore.hasUnsavedChanges || affixesStore.hasUnsavedChanges) {
@@ -145,6 +200,21 @@ function discardAndClose() {
 	--admin-25: #9b7ed840;
 	--admin-15: #9b7ed826;
 	--admin-08: #9b7ed814;
+
+	/* Force dark-mode Tailwind variables for Reka UI components (Slider, Switch, etc.)
+	   The app doesn't apply .dark class, so :root has light-mode values that are invisible
+	   on the admin panel's #0b0b13 background */
+	--primary: #9b7ed8;
+	--primary-foreground: #0b0b13;
+	--background: #1a1a2e;
+	--foreground: rgba(255, 255, 255, 0.9);
+	--input: rgba(255, 255, 255, 0.2);
+	--border: rgba(255, 255, 255, 0.12);
+	--ring: rgba(155, 126, 216, 0.5);
+	--muted: rgba(255, 255, 255, 0.08);
+	--muted-foreground: rgba(255, 255, 255, 0.55);
+	--accent: rgba(155, 126, 216, 0.15);
+	--accent-foreground: rgba(255, 255, 255, 0.9);
 }
 
 /* ═══════════════════════════════════════════
@@ -251,7 +321,7 @@ function discardAndClose() {
 
 .admin-subtitle {
 	font-size: 0.7rem;
-	color: rgba(255, 255, 255, 0.3);
+	color: rgba(255, 255, 255, 0.55);
 	margin-top: 2px;
 }
 
@@ -273,7 +343,7 @@ function discardAndClose() {
 	padding: 6px 14px;
 	font-size: 0.8rem;
 	font-weight: 500;
-	color: rgba(255, 255, 255, 0.4);
+	color: rgba(255, 255, 255, 0.6);
 	border-radius: 6px;
 	transition: all 0.2s ease;
 }
@@ -345,7 +415,7 @@ function discardAndClose() {
 
 .unsaved-text {
 	font-size: 0.8rem;
-	color: rgba(255, 255, 255, 0.4);
+	color: rgba(255, 255, 255, 0.7);
 	margin-bottom: 20px;
 	line-height: 1.5;
 }
