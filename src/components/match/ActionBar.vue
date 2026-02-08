@@ -4,45 +4,74 @@
 		<div class="absolute inset-0 rounded-xl action-panel-bg" />
 		<div class="absolute inset-0 rounded-xl action-panel-border" />
 
-		<div class="relative z-10 p-3 space-y-2.5">
-			<!-- 8-Slot Action Bar -->
+		<div class="relative z-10 p-3 space-y-2">
+			<!-- 8-Slot Ability Bar -->
 			<div class="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
-				<TooltipProvider>
-					<Tooltip v-for="slot in actionSlots" :key="slot.id">
+				<TooltipProvider v-for="index in 8" :key="index" :delay-duration="0" :skip-delay-duration="0">
+					<Tooltip>
 						<TooltipTrigger as-child>
+							<span v-if="getSlot(index)" class="inline-block">
+								<button
+									@click="handleAbilityClick(getSlot(index)!)"
+									:disabled="!isPlayerTurn"
+									:class="[
+										'ability-slot relative rounded-lg flex items-center justify-center p-1 min-h-[44px] transition-all duration-150',
+										isPlayerTurn ? 'ability-slot-active' : 'ability-slot-disabled',
+									]">
+									<!-- Tier accent line -->
+									<div class="absolute top-0 left-1 right-1 h-[2px] rounded-full" :style="{ background: tierColor(getSlot(index)!.tier) }" />
+									<!-- Ability icon -->
+									<Icon icon="game-icons:spell-book" class="w-6 h-6 relative z-10" />
+									<!-- Keybind -->
+									<span class="absolute bottom-0.5 right-1 text-[9px] text-white/25 font-mono font-bold">{{ index }}</span>
+									<!-- Active glow underline -->
+									<div v-if="isPlayerTurn" class="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-cyan-400/30" />
+								</button>
+							</span>
+							<!-- Empty slot -->
 							<button
-								@click="handleActionClick(slot)"
-								:disabled="!isPlayerTurn"
-								:class="[
-									'action-slot relative aspect-square rounded-lg flex items-center justify-center p-1 min-h-[44px] transition-all duration-150',
-									isPlayerTurn ? 'action-slot-active' : 'action-slot-disabled',
-									slot.isActive && 'ring-2 ring-cyan-400',
-								]">
-								<Icon :icon="slot.icon" class="w-6 h-6 relative z-10" />
-								<!-- Keybind indicator -->
-								<span class="absolute bottom-0.5 right-1 text-[9px] text-white/30 font-mono font-bold">
-									{{ slot.keybind }}
-								</span>
-								<!-- Active glow underline -->
-								<div v-if="isPlayerTurn" class="absolute bottom-0 left-1 right-1 h-0.5 rounded-full bg-cyan-400/30" />
+								v-else
+								disabled
+								class="empty-slot relative rounded-lg flex items-center justify-center p-1 min-h-[44px]">
+								<Icon icon="game-icons:padlock" class="w-4 h-4 text-white/10" />
+								<span class="text-[9px] text-white/15 font-mono font-bold absolute bottom-0.5 right-1">{{ index }}</span>
 							</button>
 						</TooltipTrigger>
-						<TooltipContent side="top" class="action-tooltip">
-							<p class="font-bold text-white">{{ slot.name }}</p>
-							<p class="text-xs text-white/60">{{ slot.description }}</p>
-							<p class="text-[10px] text-cyan-400/80 mt-1 font-mono">Key: {{ slot.keybind }}</p>
+						<TooltipContent v-if="getSlot(index)" side="top" :side-offset="8" class="max-w-[220px] bg-[rgba(10,15,30,0.96)] text-white border-[rgba(0,200,255,0.15)] backdrop-blur-sm px-3 py-2.5">
+							<div class="flex items-center gap-2 mb-1.5">
+								<span class="font-bold text-white text-sm">{{ getSlot(index)!.name }}</span>
+								<span
+									class="text-[10px] font-bold px-1.5 py-0.5 rounded-sm"
+									:style="{ background: `${tierColor(getSlot(index)!.tier)}25`, color: tierColor(getSlot(index)!.tier) }">
+									T{{ getSlot(index)!.tier }}
+								</span>
+							</div>
+							<div v-for="(slot, slotIdx) in getSlot(index)!.slots" :key="slotIdx" class="text-xs text-white/60 leading-relaxed">
+								{{ slot.text }}
+							</div>
+							<p class="text-[10px] text-cyan-400/60 mt-1.5 font-mono">Key: {{ index }}</p>
 						</TooltipContent>
 					</Tooltip>
 				</TooltipProvider>
 			</div>
 
-			<!-- Utility Buttons (Run / Pass) -->
-			<div class="flex gap-2">
+			<!-- Utility Buttons (Attack / Pass / Run) -->
+			<div class="flex gap-1.5">
+				<button
+					@click="handleAttack"
+					:disabled="!isPlayerTurn"
+					:class="[
+						'flex-[2] px-3 py-2 rounded-lg font-semibold text-sm transition-all duration-150 min-h-[38px] flex items-center justify-center gap-1.5',
+						isPlayerTurn ? 'utility-btn-attack' : 'utility-btn-disabled',
+					]">
+					<Icon icon="game-icons:sword-clash" class="w-4 h-4" />
+					Attack
+				</button>
 				<button
 					@click="handlePass"
 					:disabled="!isPlayerTurn"
 					:class="[
-						'flex-1 px-3 py-2 rounded-lg font-semibold text-sm transition-all duration-150 min-h-[40px] flex items-center justify-center gap-1.5',
+						'flex-1 px-3 py-2 rounded-lg font-semibold text-sm transition-all duration-150 min-h-[38px] flex items-center justify-center gap-1.5',
 						isPlayerTurn ? 'utility-btn-pass' : 'utility-btn-disabled',
 					]">
 					<Icon icon="lucide:skip-forward" class="w-4 h-4" />
@@ -51,9 +80,9 @@
 				<button
 					@click="emitLeaveMatch"
 					:disabled="isLeaving"
-					class="flex-1 px-3 py-2 rounded-lg font-semibold text-sm transition-all duration-150 min-h-[40px] flex items-center justify-center gap-1.5 utility-btn-run">
+					class="flex-1 px-3 py-2 rounded-lg font-semibold text-sm transition-all duration-150 min-h-[38px] flex items-center justify-center gap-1.5 utility-btn-run">
 					<Icon icon="lucide:log-out" class="w-4 h-4" />
-					{{ isLeaving ? "Leaving..." : "Run" }}
+					{{ isLeaving ? "..." : "Run" }}
 				</button>
 			</div>
 		</div>
@@ -61,41 +90,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect } from "vue";
+import { computed, watchEffect } from "vue";
 import { useMagicKeys } from "@vueuse/core";
 import { Icon } from "@iconify/vue";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
-
-interface ActionSlot {
-	id: number;
-	name: string;
-	description: string;
-	icon: string;
-	keybind: string;
-	isActive: boolean;
-	actionType: string;
-}
+import type { I_EquippedAbility } from "@/common/match.types";
 
 const props = defineProps<{
 	isLeaving: boolean;
 	isPlayerTurn: boolean;
+	abilities: I_EquippedAbility[];
 }>();
 
 const emit = defineEmits<{
 	leaveMatch: [];
 	action: [string];
+	ability: [string];
 }>();
 
-const actionSlots = ref<ActionSlot[]>([
-	{ id: 1, name: "Attack", description: "Basic physical attack", icon: "game-icons:sword-clash", keybind: "1", isActive: false, actionType: "attack" },
-	{ id: 2, name: "Defend", description: "Reduce incoming damage", icon: "game-icons:shield", keybind: "2", isActive: false, actionType: "defend" },
-	{ id: 3, name: "Fire", description: "Deal fire damage", icon: "game-icons:flame", keybind: "3", isActive: false, actionType: "fire" },
-	{ id: 4, name: "Ice", description: "Deal ice damage", icon: "game-icons:frozen-orb", keybind: "4", isActive: false, actionType: "ice" },
-	{ id: 5, name: "Heal", description: "Restore HP", icon: "game-icons:healing", keybind: "5", isActive: false, actionType: "heal" },
-	{ id: 6, name: "Buff", description: "Increase stats", icon: "game-icons:biceps", keybind: "6", isActive: false, actionType: "buff" },
-	{ id: 7, name: "Item", description: "Use an item", icon: "game-icons:potion-ball", keybind: "7", isActive: false, actionType: "item" },
-	{ id: 8, name: "Special", description: "Ultimate ability", icon: "game-icons:star-swirl", keybind: "8", isActive: false, actionType: "special" },
-]);
+const TIER_COLORS: Record<number, string> = {
+	1: "rgba(160, 170, 190, 0.9)",
+	2: "rgba(74, 222, 128, 0.9)",
+	3: "rgba(96, 165, 250, 0.9)",
+	4: "rgba(192, 132, 252, 0.9)",
+};
+
+function tierColor(tier: number): string {
+	return TIER_COLORS[tier] ?? TIER_COLORS[1];
+}
+
+function getSlot(index: number): I_EquippedAbility | undefined {
+	return props.abilities[index - 1];
+}
 
 const keys = useMagicKeys();
 
@@ -105,17 +131,22 @@ watchEffect(() => {
 	for (let i = 1; i <= 8; i++) {
 		const keyRef = keys[i.toString()];
 		if (keyRef?.value) {
-			const slot = actionSlots.value[i - 1];
-			if (slot) {
-				handleActionClick(slot);
+			const ability = getSlot(i);
+			if (ability) {
+				handleAbilityClick(ability);
 			}
 		}
 	}
 });
 
-function handleActionClick(slot: ActionSlot) {
+function handleAbilityClick(ability: I_EquippedAbility) {
 	if (!props.isPlayerTurn) return;
-	emit("action", slot.actionType);
+	emit("ability", ability.id);
+}
+
+function handleAttack() {
+	if (!props.isPlayerTurn) return;
+	emit("action", "attack");
 }
 
 function handlePass() {
@@ -142,43 +173,65 @@ function emitLeaveMatch() {
 		0 -4px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* Action slots */
-.action-slot {
+/* Ability slots (equipped) */
+.ability-slot {
 	background: linear-gradient(180deg, rgba(30, 40, 60, 0.8) 0%, rgba(20, 28, 45, 0.9) 100%);
-	border: 1px solid rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.action-slot-active {
+.ability-slot-active {
 	color: rgba(255, 255, 255, 0.9);
 	cursor: pointer;
 }
 
-.action-slot-active:hover {
-	background: linear-gradient(180deg, rgba(0, 180, 230, 0.2) 0%, rgba(0, 140, 200, 0.15) 100%);
+.ability-slot-active:hover {
+	background: linear-gradient(180deg, rgba(0, 180, 230, 0.15) 0%, rgba(0, 140, 200, 0.1) 100%);
 	border-color: rgba(0, 200, 255, 0.3);
-	box-shadow: 0 0 12px rgba(0, 200, 255, 0.15);
-	transform: translateY(-1px);
+	box-shadow: 0 0 14px rgba(0, 200, 255, 0.12);
+	transform: translateY(-2px);
 }
 
-.action-slot-active:active {
+.ability-slot-active:active {
 	transform: translateY(1px) scale(0.96);
-	box-shadow: 0 0 6px rgba(0, 200, 255, 0.1);
+	box-shadow: 0 0 6px rgba(0, 200, 255, 0.08);
 }
 
-.action-slot-disabled {
-	color: rgba(255, 255, 255, 0.2);
+.ability-slot-disabled {
+	color: rgba(255, 255, 255, 0.25);
 	cursor: not-allowed;
 	opacity: 0.5;
 }
 
-/* Tooltip styling */
-.action-tooltip {
-	background: rgba(10, 15, 30, 0.95) !important;
-	border: 1px solid rgba(0, 200, 255, 0.15) !important;
-	backdrop-filter: blur(8px);
+/* Empty / locked slots */
+.empty-slot {
+	background: rgba(12, 16, 28, 0.6);
+	border: 1px dashed rgba(255, 255, 255, 0.06);
+	cursor: not-allowed;
 }
 
-/* Utility buttons */
+/* Utility buttons - Attack (primary) */
+.utility-btn-attack {
+	background: linear-gradient(180deg, rgba(0, 100, 140, 0.5) 0%, rgba(0, 70, 110, 0.6) 100%);
+	border: 1px solid rgba(0, 200, 255, 0.2);
+	color: rgba(200, 240, 255, 0.95);
+}
+
+.utility-btn-attack:hover {
+	background: linear-gradient(180deg, rgba(0, 130, 180, 0.6) 0%, rgba(0, 100, 150, 0.65) 100%);
+	border-color: rgba(0, 200, 255, 0.4);
+	box-shadow: 0 0 12px rgba(0, 200, 255, 0.15);
+}
+
+.utility-btn-attack:active {
+	transform: scale(0.97);
+}
+
+.utility-btn-attack:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+/* Utility buttons - Pass */
 .utility-btn-pass {
 	background: linear-gradient(180deg, rgba(40, 50, 70, 0.8) 0%, rgba(30, 38, 55, 0.9) 100%);
 	border: 1px solid rgba(255, 255, 255, 0.08);
@@ -195,6 +248,7 @@ function emitLeaveMatch() {
 	cursor: not-allowed;
 }
 
+/* Utility buttons - Run */
 .utility-btn-run {
 	background: linear-gradient(180deg, rgba(120, 30, 30, 0.7) 0%, rgba(90, 20, 20, 0.8) 100%);
 	border: 1px solid rgba(255, 60, 60, 0.2);
@@ -212,6 +266,7 @@ function emitLeaveMatch() {
 	cursor: not-allowed;
 }
 
+/* Disabled utility fallback */
 .utility-btn-disabled {
 	background: rgba(20, 25, 40, 0.6);
 	border: 1px solid rgba(255, 255, 255, 0.04);

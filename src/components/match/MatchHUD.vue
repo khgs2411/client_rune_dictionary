@@ -26,7 +26,7 @@
 		</div>
 
 		<!-- Action bar (8 slots + Run/Pass) - Draggable, positioned by component -->
-		<ActionBar @leave-match="handleLeaveMatch" @action="handleAction" :is-leaving="isLeaving" :is-player-turn="isPlayerTurn" />
+		<ActionBar @leave-match="handleLeaveMatch" @action="handleAction" @ability="handleAbility" :is-leaving="isLeaving" :is-player-turn="isPlayerTurn" :abilities="matchStore.match.playerAbilities" />
 	</div>
 </template>
 
@@ -102,6 +102,10 @@ async function handleAction(action: number | string) {
 			// Fallback for numeric IDs or other actions
 			actions.sendAction(action.toString());
 	}
+}
+
+function handleAbility(abilityId: string) {
+	actions.useAbility(abilityId);
 }
 
 /**

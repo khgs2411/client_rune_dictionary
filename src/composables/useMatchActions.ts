@@ -58,6 +58,13 @@ export function useMatchActions() {
 	}
 
 	/**
+	 * Use an equipped ability by ID
+	 */
+	function useAbility(abilityId: string) {
+		sendAction(E_MatchActionType.ABILITY, { skillId: abilityId });
+	}
+
+	/**
 	 * Run from match (if applicable)
 	 * Note: "Run" might be an action OR a state change request depending on game logic.
 	 * Assuming it's an action type 'run' based on HUD logic.
@@ -74,6 +81,7 @@ export function useMatchActions() {
 		sendAction,
 		attack,
 		pass,
+		useAbility,
 		run,
 	};
 }

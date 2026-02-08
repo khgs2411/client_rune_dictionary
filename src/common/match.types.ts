@@ -40,6 +40,16 @@ export interface I_ParticipantStats {
 }
 
 /**
+ * Equipped ability data received from server initial state
+ */
+export interface I_EquippedAbility {
+	id: string;
+	name: string;
+	tier: number;
+	slots: Record<number, { text: string; effects: any[] }>;
+}
+
+/**
  * Player participant data structure
  */
 export interface I_PlayerParticipant {
@@ -49,6 +59,7 @@ export interface I_PlayerParticipant {
 	maxHealth: number;
 	stats: I_ParticipantStats;
 	readiness: number; // ATB readiness (0-100)
+	abilities?: I_EquippedAbility[];
 }
 
 /**

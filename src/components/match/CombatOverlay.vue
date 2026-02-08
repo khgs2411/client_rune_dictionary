@@ -28,7 +28,7 @@
 
 				<!-- Bottom Right: Action Bar -->
 				<div class="absolute bottom-3 right-4 sm:right-[5%] pointer-events-auto combat-slide-up">
-					<ActionBar :is-player-turn="isPlayerTurn" :is-leaving="isLeaving" @action="handleAction" @leave-match="handleLeaveMatch" />
+					<ActionBar :is-player-turn="isPlayerTurn" :is-leaving="isLeaving" :abilities="matchStore.match.playerAbilities" @action="handleAction" @ability="handleAbility" @leave-match="handleLeaveMatch" />
 				</div>
 
 				<!-- Turn announcement flash -->
@@ -237,6 +237,12 @@ async function handleAction(action: number | string) {
 		default:
 			actions.sendAction(action.toString());
 	}
+}
+
+function handleAbility(abilityId: string) {
+	playerAnimationState.value = "attack";
+	setTimeout(() => (playerAnimationState.value = "idle"), 350);
+	actions.useAbility(abilityId);
 }
 
 async function handleLeaveMatch() {

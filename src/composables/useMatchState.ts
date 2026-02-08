@@ -10,7 +10,7 @@ import type {
 	MatchTurnStartEvent,
 	MatchVictoryEvent,
 } from "@/common/match-events.types";
-import type { I_ATBState, I_NPCParticipant, I_PlayerParticipant, I_TimerConfig, I_TurnState } from "@/common/match.types";
+import type { I_ATBState, I_EquippedAbility, I_NPCParticipant, I_PlayerParticipant, I_TimerConfig, I_TurnState } from "@/common/match.types";
 import { ref } from "vue";
 
 /**
@@ -28,6 +28,9 @@ export function useMatchState() {
 	// Participant state
 	const player = ref<I_PlayerParticipant | undefined>();
 	const npc = ref<I_NPCParticipant | undefined>();
+
+	// Player equipped abilities (loaded from initial match state)
+	const playerAbilities = ref<I_EquippedAbility[]>([]);
 
 	// Turn state
 	const turn = ref<I_TurnState>({
@@ -218,6 +221,9 @@ export function useMatchState() {
 		player.value = { ...playerData, readiness: 0 };
 		npc.value = { ...npcData, readiness: 0 };
 
+		// Store equipped abilities from initial state
+		playerAbilities.value = playerData.abilities ?? [];
+
 		// Reset other state
 		turn.value = {
 			number: 0,
@@ -259,6 +265,7 @@ export function useMatchState() {
 	function resetState(): void {
 		player.value = undefined;
 		npc.value = undefined;
+		playerAbilities.value = [];
 
 		turn.value = {
 			number: 0,
@@ -294,6 +301,7 @@ export function useMatchState() {
 		// State refs
 		player,
 		npc,
+		playerAbilities,
 		turn,
 		atb,
 		timer,
