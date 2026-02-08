@@ -1,5 +1,5 @@
 <template>
-	<div v-if="isVisible" class="turn-timer-bar">
+	<div class="turn-timer-bar" :class="{ 'timer-hidden': !isVisible }">
 		<div class="timer-track">
 			<div
 				class="timer-fill"
@@ -42,6 +42,12 @@ const isUrgent = computed(() => props.seconds < 5);
 	display: flex;
 	align-items: center;
 	gap: 8px;
+	transition: opacity 0.2s ease;
+}
+
+.timer-hidden {
+	opacity: 0;
+	pointer-events: none;
 }
 
 .timer-track {

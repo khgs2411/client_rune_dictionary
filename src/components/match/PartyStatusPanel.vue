@@ -1,21 +1,11 @@
 <template>
-	<div class="flex flex-col gap-2.5">
+	<div class="flex flex-col gap-2.5 h-full">
 		<div
 			v-for="member in partyMembers"
 			:key="member.id"
-			:class="['grimoire-panel', variant === 'enemy' ? 'enemy-panel' : 'player-panel']">
-			<!-- Corner ornaments -->
-			<div class="corner-ornament tl" />
-			<div class="corner-ornament tr" />
-			<div class="corner-ornament bl" />
-			<div class="corner-ornament br" />
-
-			<!-- Atmospheric layers -->
-			<div class="panel-glow" />
-			<div class="panel-shimmer" />
-
+			:class="['status-card flex-1', variant === 'enemy' ? 'enemy-card' : 'player-card']">
 			<!-- Content -->
-			<div class="panel-body">
+			<div class="panel-body h-full flex flex-col">
 				<!-- Name row -->
 				<div class="flex items-center gap-1.5 mb-1.5">
 					<Icon
@@ -67,9 +57,9 @@
 					</div>
 				</div>
 
-				<!-- Active Effects Row -->
-				<div v-if="activeEffects && activeEffects.length > 0" class="effects-row">
-					<ActiveEffectsDisplay :effects="activeEffects" />
+				<!-- Active Effects Row (always rendered, pushed to bottom) -->
+				<div class="effects-row mt-auto" :class="{ 'effects-hidden': !activeEffects || activeEffects.length === 0 }">
+					<ActiveEffectsDisplay :effects="activeEffects ?? []" />
 				</div>
 			</div>
 		</div>
@@ -124,142 +114,28 @@ function mpPercent(member: PartyMember): number {
    GRIMOIRE PANEL — the enchanted status frame
    ═══════════════════════════════════════════ */
 
-.grimoire-panel {
+.status-card {
 	--accent: #d9aa5a;
-	--accent-60: rgba(217, 170, 90, 0.6);
 	--accent-40: rgba(217, 170, 90, 0.4);
 	--accent-25: rgba(217, 170, 90, 0.25);
-	--accent-15: rgba(217, 170, 90, 0.15);
-	--accent-08: rgba(217, 170, 90, 0.08);
 
 	position: relative;
-	min-width: 200px;
-	border-radius: 8px;
+	border-radius: 6px;
 	overflow: hidden;
-	background: #0b0b13;
-	border: 1px solid var(--accent-40);
-	box-shadow:
-		0 0 30px var(--accent-08),
-		0 4px 20px rgba(0, 0, 0, 0.6);
+	background: rgba(255, 255, 255, 0.03);
+	border: 1px solid rgba(217, 170, 90, 0.12);
 }
 
-.player-panel {
+.player-card {
 	--side-accent: #22d3ee;
 	--side-accent-glow: rgba(34, 211, 238, 0.15);
-	border-color: rgba(34, 211, 238, 0.2);
-	box-shadow:
-		0 0 30px rgba(34, 211, 238, 0.06),
-		0 4px 20px rgba(0, 0, 0, 0.6);
+	border-color: rgba(34, 211, 238, 0.15);
 }
 
-.enemy-panel {
+.enemy-card {
 	--side-accent: #f87171;
 	--side-accent-glow: rgba(248, 113, 113, 0.15);
-	border-color: rgba(248, 113, 113, 0.2);
-	box-shadow:
-		0 0 30px rgba(248, 113, 113, 0.06),
-		0 4px 20px rgba(0, 0, 0, 0.6);
-}
-
-/* ═══════════════════════════════════════════
-   CORNER ORNAMENTS
-   ═══════════════════════════════════════════ */
-
-.corner-ornament {
-	position: absolute;
-	width: 14px;
-	height: 14px;
-	pointer-events: none;
-	z-index: 4;
-	opacity: 0.6;
-}
-
-.corner-ornament.tl {
-	top: 6px;
-	left: 6px;
-	border-top: 1.5px solid var(--accent-60);
-	border-left: 1.5px solid var(--accent-60);
-}
-
-.corner-ornament.tr {
-	top: 6px;
-	right: 6px;
-	border-top: 1.5px solid var(--accent-60);
-	border-right: 1.5px solid var(--accent-60);
-}
-
-.corner-ornament.bl {
-	bottom: 6px;
-	left: 6px;
-	border-bottom: 1.5px solid var(--accent-60);
-	border-left: 1.5px solid var(--accent-60);
-}
-
-.corner-ornament.br {
-	bottom: 6px;
-	right: 6px;
-	border-bottom: 1.5px solid var(--accent-60);
-	border-right: 1.5px solid var(--accent-60);
-}
-
-/* ═══════════════════════════════════════════
-   ATMOSPHERIC LAYERS
-   ═══════════════════════════════════════════ */
-
-.panel-glow {
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
-	z-index: 1;
-	background: radial-gradient(ellipse at 50% 0%, var(--side-accent-glow), transparent 60%);
-	animation: panelBreath 3.5s ease-in-out infinite;
-}
-
-@keyframes panelBreath {
-	0%,
-	100% {
-		opacity: 0.6;
-	}
-	50% {
-		opacity: 1;
-	}
-}
-
-.panel-shimmer {
-	position: absolute;
-	inset: 0;
-	overflow: hidden;
-	pointer-events: none;
-	z-index: 2;
-	border-radius: 10px;
-}
-
-.panel-shimmer::after {
-	content: "";
-	position: absolute;
-	top: -100%;
-	left: -100%;
-	width: 300%;
-	height: 300%;
-	background: linear-gradient(
-		50deg,
-		transparent 35%,
-		rgba(255, 255, 255, 0.012) 42%,
-		rgba(255, 255, 255, 0.03) 50%,
-		rgba(255, 255, 255, 0.012) 58%,
-		transparent 65%
-	);
-	animation: shimmerSweep 6s ease-in-out infinite;
-}
-
-@keyframes shimmerSweep {
-	0%,
-	100% {
-		transform: translateX(-40%) translateY(-40%);
-	}
-	50% {
-		transform: translateX(20%) translateY(20%);
-	}
+	border-color: rgba(248, 113, 113, 0.15);
 }
 
 /* ═══════════════════════════════════════════
@@ -270,6 +146,7 @@ function mpPercent(member: PartyMember): number {
 	position: relative;
 	z-index: 3;
 	padding: 10px 12px;
+	min-height: 0;
 }
 
 .name-text {
@@ -389,8 +266,13 @@ function mpPercent(member: PartyMember): number {
    ═══════════════════════════════════════════ */
 
 .effects-row {
-	margin-top: 6px;
 	padding-top: 6px;
 	border-top: 1px solid rgba(217, 170, 90, 0.1);
+	transition: opacity 0.2s ease;
+}
+
+.effects-hidden {
+	opacity: 0;
+	pointer-events: none;
 }
 </style>

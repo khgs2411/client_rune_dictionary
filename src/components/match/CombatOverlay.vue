@@ -1,75 +1,117 @@
 <template>
 	<Teleport to="body">
 		<Transition name="combat-overlay">
-			<div v-if="isInCombat" class="fixed inset-0 z-40 pointer-events-none combat-screen">
-				<!-- Full-screen dark overlay -->
-				<div class="absolute inset-0 bg-black/40 pointer-events-none combat-bg-fade" />
+			<div v-if="isInCombat" class="fixed inset-0 z-40 flex items-center justify-center">
+				<!-- Backdrop -->
+				<div class="combat-backdrop" />
 
-				<!-- Top: Turn Timer Bar (pushed below admin bar) -->
-				<div class="absolute top-8 left-0 right-0 px-4 pointer-events-auto combat-slide-down z-30">
-					<TurnTimerBar
-						:seconds="turnTimeRemaining"
-						:max-seconds="turnMaxSeconds"
-						:is-visible="isTurnActive"
-						:is-player-turn="isPlayerTurn" />
-				</div>
+				<!-- Grimoire Battle Frame -->
+				<div class="battle-frame">
+					<!-- Shimmer sweep -->
+					<div class="frame-shimmer" />
 
-				<!-- Top Right: Enemy Status Panel (with ATB + effects) -->
-				<div class="absolute top-14 right-3 sm:right-[5%] pointer-events-auto combat-slide-right z-20">
-					<PartyStatusPanel
-						:party-members="enemyMembers"
-						variant="enemy"
-						:atb-progress="enemies[0]?.readiness ?? 0"
-						:active-effects="npcActiveEffects" />
-				</div>
+					<!-- Corner ornaments -->
+					<div class="corner-ornament tl" />
+					<div class="corner-ornament tr" />
+					<div class="corner-ornament bl" />
+					<div class="corner-ornament br" />
 
-				<!-- Center: Battle Stage (constrained height) -->
-				<div class="absolute inset-x-0 top-12 bottom-28 flex items-center justify-center pointer-events-none combat-fade-in">
-					<BattleStage class="w-full h-full max-w-5xl mx-4" :party-members="partyMembersWithSprites" :enemies="enemiesWithSprites" />
+					<!-- Atmospheric layers -->
+					<div class="frame-glow" />
+					<div class="frame-vignette" />
 
-					<!-- Floating numbers - Player side (left) -->
-					<div class="absolute left-[20%] top-[35%] flex flex-col items-center gap-1 pointer-events-none z-20">
-						<FloatingNumber
-							v-for="num in playerFloatingNumbers"
-							:key="num.id"
-							:value="num.value"
-							:type="num.type" />
-					</div>
+					<!-- Content wrapper (above atmosphere) -->
+					<div class="frame-body">
+						<!-- Turn Timer Bar (top) -->
+						<div class="frame-timer">
+							<TurnTimerBar
+								:seconds="turnTimeRemaining"
+								:max-seconds="turnMaxSeconds"
+								:is-visible="isTurnActive"
+								:is-player-turn="isPlayerTurn" />
+						</div>
 
-					<!-- Floating numbers - Enemy side (right) -->
-					<div class="absolute right-[20%] top-[35%] flex flex-col items-center gap-1 pointer-events-none z-20">
-						<FloatingNumber
-							v-for="num in enemyFloatingNumbers"
-							:key="num.id"
-							:value="num.value"
-							:type="num.type" />
-					</div>
-				</div>
+						<!-- Ornate divider below timer -->
+						<div class="frame-divider">
+							<span class="divider-line" />
+							<span class="divider-diamond" />
+							<span class="divider-line" />
+						</div>
 
-				<!-- Bottom Left: Player Status Panel (with ATB + effects) -->
-				<div class="absolute bottom-[110px] left-3 sm:left-[5%] pointer-events-auto combat-slide-left z-20">
-					<PartyStatusPanel
-						:party-members="partyMembers"
-						:atb-progress="players[0]?.readiness ?? 0"
-						:active-effects="playerActiveEffects" />
-				</div>
+						<!-- Main battle content: Status | Stage | Status -->
+						<div class="battle-content">
+							<!-- Left: Player Status -->
+							<div class="status-column">
+								<PartyStatusPanel
+									:party-members="partyMembers"
+									:atb-progress="players[0]?.readiness ?? 0"
+									:active-effects="playerActiveEffects" />
+							</div>
 
-				<!-- Bottom Center: Action Bar -->
-				<div class="absolute bottom-2 left-1/2 -translate-x-1/2 pointer-events-auto combat-slide-up z-20 w-[90%] max-w-lg">
-					<ActionBar :is-player-turn="isPlayerTurn" :is-leaving="isLeaving" :abilities="matchStore.match.playerAbilities" @action="handleAction" @ability="handleAbility" @leave-match="handleLeaveMatch" />
-				</div>
+							<!-- Center: Battle Stage + Floating Numbers -->
+							<div class="stage-column">
+								<BattleStage :party-members="partyMembersWithSprites" :enemies="enemiesWithSprites" />
 
-				<!-- Turn announcement flash -->
-				<Transition name="turn-announce">
-					<div v-if="showTurnAnnounce" class="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
-						<div :class="['turn-announce-text', isPlayerTurn ? 'announce-player' : 'announce-enemy']">
-							{{ isPlayerTurn ? "YOUR TURN" : "ENEMY TURN" }}
+								<!-- Floating numbers - Player side -->
+								<div class="float-nums float-nums-left">
+									<FloatingNumber
+										v-for="num in playerFloatingNumbers"
+										:key="num.id"
+										:value="num.value"
+										:type="num.type" />
+								</div>
+
+								<!-- Floating numbers - Enemy side -->
+								<div class="float-nums float-nums-right">
+									<FloatingNumber
+										v-for="num in enemyFloatingNumbers"
+										:key="num.id"
+										:value="num.value"
+										:type="num.type" />
+								</div>
+
+								<!-- Turn announcement flash -->
+								<Transition name="turn-announce">
+									<div v-if="showTurnAnnounce" class="turn-announce-overlay">
+										<div :class="['turn-announce-text', isPlayerTurn ? 'announce-player' : 'announce-enemy']">
+											{{ isPlayerTurn ? "YOUR TURN" : "ENEMY TURN" }}
+										</div>
+									</div>
+								</Transition>
+
+								<!-- Damage flash -->
+								<div v-if="showDamageFlash" class="damage-flash" />
+							</div>
+
+							<!-- Right: Enemy Status -->
+							<div class="status-column">
+								<PartyStatusPanel
+									:party-members="enemyMembers"
+									variant="enemy"
+									:atb-progress="enemies[0]?.readiness ?? 0"
+									:active-effects="npcActiveEffects" />
+							</div>
+						</div>
+
+						<!-- Ornate divider above action bar -->
+						<div class="frame-divider">
+							<span class="divider-line" />
+							<span class="divider-diamond" />
+							<span class="divider-line" />
+						</div>
+
+						<!-- Action Bar (bottom) -->
+						<div class="frame-actions">
+							<ActionBar
+								:is-player-turn="isPlayerTurn"
+								:is-leaving="isLeaving"
+								:abilities="matchStore.match.playerAbilities"
+								@action="handleAction"
+								@ability="handleAbility"
+								@leave-match="handleLeaveMatch" />
 						</div>
 					</div>
-				</Transition>
-
-				<!-- Damage flash overlay -->
-				<div v-if="showDamageFlash" class="absolute inset-0 pointer-events-none damage-flash" />
+				</div>
 			</div>
 		</Transition>
 	</Teleport>
@@ -92,13 +134,10 @@ import FloatingNumber from "./FloatingNumber.vue";
 
 type SpriteState = "idle" | "attack" | "hurt" | "victory" | "defeat";
 
-// Map NPC names to sprite sheet IDs (registered in SpriteSheetRegistry)
-// Falls back to static image for NPCs without a registered sheet
 const NPC_SHEET_MAP: Record<string, string> = {
 	slime: "slime",
 };
 
-// Static sprite fallback for NPCs not in the sheet registry
 const NPC_STATIC_SPRITE_MAP: Record<string, string> = {
 	skeleton: "/sprites/enemies/skeleton.png",
 	goblin: "/sprites/goblin_00.png",
@@ -109,15 +148,12 @@ const matchStore = useMatchStore();
 const websocketStore = useWebSocketStore();
 const actions = useMatchActions();
 
-// Visibility
 const isInCombat = computed(() => matchStore.currentMatchId !== null);
 const isLeaving = ref(false);
 
-// Turn announcement
 const showTurnAnnounce = ref(false);
 const showDamageFlash = ref(false);
 
-// ATB Bar data
 const players = computed(() => [
 	{
 		id: "player",
@@ -134,29 +170,23 @@ const enemies = computed(() => [
 	},
 ]);
 
-// Animation states for sprites
 const playerAnimationState = ref<SpriteState>("idle");
 const enemyAnimationState = ref<SpriteState>("idle");
 
-// Resolve NPC to either a spriteSheetId or static spriteUrl
 function getNpcSpriteData(): { spriteSheetId?: string; spriteUrl?: string } {
 	const npcName = matchStore.match.npc?.name?.toLowerCase() ?? "";
 
-	// Check sprite sheet registry first (animated sheets)
 	for (const [key, sheetId] of Object.entries(NPC_SHEET_MAP)) {
 		if (npcName.includes(key)) return { spriteSheetId: sheetId };
 	}
 
-	// Check static sprites
 	for (const [key, path] of Object.entries(NPC_STATIC_SPRITE_MAP)) {
 		if (npcName.includes(key)) return { spriteUrl: path };
 	}
 
-	// Default: slime sprite sheet
 	return { spriteSheetId: "slime" };
 }
 
-// Battle Stage sprite data
 const partyMembersWithSprites = computed(() => [
 	{
 		id: "player",
@@ -180,7 +210,6 @@ const enemiesWithSprites = computed(() => {
 	];
 });
 
-// Party Status data
 const partyMembers = computed(() => [
 	{
 		id: "player",
@@ -193,7 +222,6 @@ const partyMembers = computed(() => [
 	},
 ]);
 
-// Enemy Status data
 const enemyMembers = computed(() => [
 	{
 		id: "enemy",
@@ -206,8 +234,6 @@ const enemyMembers = computed(() => [
 	},
 ]);
 
-// Floating damage/heal numbers from choreographer
-// Note: Pinia's reactive() deeply unwraps refs, so no .value needed
 const floatingNumbers = computed(() => matchStore.match.choreographer.floatingNumbers);
 
 const playerFloatingNumbers = computed(() =>
@@ -217,7 +243,6 @@ const enemyFloatingNumbers = computed(() =>
 	(floatingNumbers.value ?? []).filter(n => matchStore.match.npc && n.targetId === matchStore.match.npc.entityId),
 );
 
-// Active effects per entity
 const playerActiveEffects = computed(() => {
 	const playerId = matchStore.match.player?.entityId;
 	if (!playerId) return [];
@@ -230,13 +255,11 @@ const npcActiveEffects = computed(() => {
 	return matchStore.match.activeEffects[npcId] ?? [];
 });
 
-// Turn state
 const isPlayerTurn = computed(() => matchStore.match.turn.isPlayerTurn && !matchStore.match.choreographer.isAnimating);
 const isTurnActive = computed(() => matchStore.match.turnTimer.visible);
 const turnTimeRemaining = computed(() => Math.ceil((matchStore.match.timer.remaining ?? 0) / 1000));
 const turnMaxSeconds = computed(() => Math.ceil((matchStore.match.timer.duration ?? 30000) / 1000));
 
-// Watch health decreases -> trigger 'hurt' animation + damage flash
 watch(
 	() => matchStore.match.player?.health,
 	(newHp, oldHp) => {
@@ -259,7 +282,6 @@ watch(
 	},
 );
 
-// Turn start announcement
 watch(
 	() => matchStore.match.turnTimer.visible,
 	(visible) => {
@@ -270,7 +292,6 @@ watch(
 	},
 );
 
-// Action handlers
 async function handleAction(action: number | string) {
 	if (action === "attack") {
 		playerAnimationState.value = "attack";
@@ -319,7 +340,6 @@ async function handleLeaveMatch() {
 	}
 }
 
-// Auto-leave on match finish
 watch(
 	() => matchStore.matchState,
 	async (state) => {
@@ -335,85 +355,55 @@ watch(
 </script>
 
 <style scoped>
-/* Entry animations - staggered, cinematic */
-.combat-bg-fade {
+/* ═══════════════════════════════════════════
+   CSS CUSTOM PROPERTIES — grimoire gold palette
+   ═══════════════════════════════════════════ */
+
+.battle-frame {
+	--accent: #d9aa5a;
+	--accent-60: rgba(217, 170, 90, 0.6);
+	--accent-40: rgba(217, 170, 90, 0.4);
+	--accent-25: rgba(217, 170, 90, 0.25);
+	--accent-15: rgba(217, 170, 90, 0.15);
+	--accent-08: rgba(217, 170, 90, 0.08);
+}
+
+/* ═══════════════════════════════════════════
+   BACKDROP
+   ═══════════════════════════════════════════ */
+
+.combat-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.75);
+	backdrop-filter: blur(4px);
 	animation: bgFadeIn 300ms ease-out;
 }
 
-.combat-slide-down {
-	animation: slideDown 250ms cubic-bezier(0.16, 1, 0.3, 1);
+/* ═══════════════════════════════════════════
+   BATTLE FRAME — the grimoire container
+   ═══════════════════════════════════════════ */
+
+.battle-frame {
+	position: relative;
+	z-index: 10;
+	width: 95%;
+	max-width: 1000px;
+	max-height: 96vh;
+	border-radius: 12px;
+	overflow: hidden;
+	border: 1px solid var(--accent-40);
+	background: #0b0b13;
+	box-shadow:
+		0 0 60px var(--accent-08),
+		0 0 120px rgba(0, 0, 0, 0.5),
+		0 8px 40px rgba(0, 0, 0, 0.7);
+	display: flex;
+	flex-direction: column;
+	animation: frameIn 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.combat-slide-left {
-	animation: slideLeft 250ms cubic-bezier(0.16, 1, 0.3, 1) 50ms backwards;
-}
-
-.combat-slide-right {
-	animation: slideRight 250ms cubic-bezier(0.16, 1, 0.3, 1) 50ms backwards;
-}
-
-.combat-slide-up {
-	animation: slideUp 250ms cubic-bezier(0.16, 1, 0.3, 1) 100ms backwards;
-}
-
-.combat-fade-in {
-	animation: fadeIn 300ms ease-out 75ms backwards;
-}
-
-@keyframes bgFadeIn {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
-}
-
-@keyframes slideDown {
-	from {
-		transform: translateY(-20px);
-		opacity: 0;
-	}
-	to {
-		transform: translateY(0);
-		opacity: 1;
-	}
-}
-
-@keyframes slideLeft {
-	from {
-		transform: translateX(-30px);
-		opacity: 0;
-	}
-	to {
-		transform: translateX(0);
-		opacity: 1;
-	}
-}
-
-@keyframes slideRight {
-	from {
-		transform: translateX(30px);
-		opacity: 0;
-	}
-	to {
-		transform: translateX(0);
-		opacity: 1;
-	}
-}
-
-@keyframes slideUp {
-	from {
-		transform: translateX(-50%) translateY(30px);
-		opacity: 0;
-	}
-	to {
-		transform: translateX(-50%) translateY(0);
-		opacity: 1;
-	}
-}
-
-@keyframes fadeIn {
+@keyframes frameIn {
 	from {
 		opacity: 0;
 		transform: scale(0.95);
@@ -424,13 +414,230 @@ watch(
 	}
 }
 
-/* Exit animation */
-.combat-overlay-leave-active {
-	transition: opacity 200ms ease-in;
+/* ═══════════════════════════════════════════
+   SHIMMER
+   ═══════════════════════════════════════════ */
+
+.frame-shimmer {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	pointer-events: none;
+	z-index: 5;
+	border-radius: 12px;
 }
 
-.combat-overlay-leave-to {
-	opacity: 0;
+.frame-shimmer::after {
+	content: "";
+	position: absolute;
+	top: -100%;
+	left: -100%;
+	width: 300%;
+	height: 300%;
+	background: linear-gradient(
+		50deg,
+		transparent 35%,
+		rgba(255, 255, 255, 0.012) 42%,
+		rgba(255, 255, 255, 0.03) 50%,
+		rgba(255, 255, 255, 0.012) 58%,
+		transparent 65%
+	);
+	animation: shimmerSweep 6s ease-in-out infinite;
+}
+
+@keyframes shimmerSweep {
+	0%,
+	100% {
+		transform: translateX(-40%) translateY(-40%);
+	}
+	50% {
+		transform: translateX(20%) translateY(20%);
+	}
+}
+
+/* ═══════════════════════════════════════════
+   CORNER ORNAMENTS
+   ═══════════════════════════════════════════ */
+
+.corner-ornament {
+	position: absolute;
+	width: 18px;
+	height: 18px;
+	pointer-events: none;
+	z-index: 6;
+	opacity: 0.6;
+}
+
+.corner-ornament.tl {
+	top: 8px;
+	left: 8px;
+	border-top: 1.5px solid var(--accent-60);
+	border-left: 1.5px solid var(--accent-60);
+}
+
+.corner-ornament.tr {
+	top: 8px;
+	right: 8px;
+	border-top: 1.5px solid var(--accent-60);
+	border-right: 1.5px solid var(--accent-60);
+}
+
+.corner-ornament.bl {
+	bottom: 8px;
+	left: 8px;
+	border-bottom: 1.5px solid var(--accent-60);
+	border-left: 1.5px solid var(--accent-60);
+}
+
+.corner-ornament.br {
+	bottom: 8px;
+	right: 8px;
+	border-bottom: 1.5px solid var(--accent-60);
+	border-right: 1.5px solid var(--accent-60);
+}
+
+/* ═══════════════════════════════════════════
+   ATMOSPHERIC LAYERS
+   ═══════════════════════════════════════════ */
+
+.frame-glow {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 1;
+	background: radial-gradient(ellipse at 50% 0%, var(--accent-15), transparent 55%);
+}
+
+.frame-vignette {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 2;
+	background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.4) 100%);
+}
+
+/* ═══════════════════════════════════════════
+   FRAME BODY
+   ═══════════════════════════════════════════ */
+
+.frame-body {
+	position: relative;
+	z-index: 3;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	overflow: hidden;
+}
+
+/* Turn timer section */
+.frame-timer {
+	padding: 10px 16px 4px;
+	flex-shrink: 0;
+}
+
+/* Ornate dividers */
+.frame-divider {
+	display: flex;
+	align-items: center;
+	gap: 0;
+	padding: 4px 16px;
+	flex-shrink: 0;
+}
+
+.divider-line {
+	flex: 1;
+	height: 1px;
+	background: linear-gradient(to right, transparent, var(--accent-25));
+}
+
+.divider-line:last-child {
+	background: linear-gradient(to left, transparent, var(--accent-25));
+}
+
+.divider-diamond {
+	width: 6px;
+	height: 6px;
+	transform: rotate(45deg);
+	border: 1px solid var(--accent-40);
+	background: var(--accent-08);
+	flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════
+   MAIN BATTLE CONTENT — 3-column layout
+   ═══════════════════════════════════════════ */
+
+.battle-content {
+	flex: 1;
+	display: flex;
+	gap: 0;
+	overflow: hidden;
+	min-height: 0;
+}
+
+/* Side status columns */
+.status-column {
+	width: 180px;
+	flex-shrink: 0;
+	padding: 8px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+/* Center stage */
+.stage-column {
+	flex: 1;
+	position: relative;
+	min-width: 0;
+	overflow: hidden;
+}
+
+/* Floating numbers overlaid on stage */
+.float-nums {
+	position: absolute;
+	top: 30%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	pointer-events: none;
+	z-index: 20;
+}
+
+.float-nums-left {
+	left: 15%;
+}
+
+.float-nums-right {
+	right: 15%;
+}
+
+/* Turn announcement overlay (inside stage) */
+.turn-announce-overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+	z-index: 30;
+}
+
+/* Damage flash (inside stage) */
+.damage-flash {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background: radial-gradient(ellipse at center, rgba(255, 30, 30, 0.15) 0%, transparent 70%);
+	animation: damageFlash 0.2s ease-out forwards;
+	z-index: 25;
+}
+
+/* Action bar section */
+.frame-actions {
+	padding: 4px 8px 8px;
+	flex-shrink: 0;
 }
 
 /* ═══════════════════════════════════════════
@@ -439,7 +646,7 @@ watch(
 
 .turn-announce-text {
 	font-family: Georgia, "Times New Roman", serif;
-	font-size: 2.5rem;
+	font-size: 2rem;
 	font-weight: 900;
 	letter-spacing: 0.12em;
 	-webkit-text-stroke: 1px rgba(0, 0, 0, 0.5);
@@ -452,7 +659,6 @@ watch(
 	text-shadow:
 		0 0 20px rgba(34, 211, 238, 0.6),
 		0 0 40px rgba(34, 211, 238, 0.3),
-		0 0 80px rgba(217, 170, 90, 0.15),
 		0 2px 8px rgba(0, 0, 0, 0.8);
 }
 
@@ -461,7 +667,6 @@ watch(
 	text-shadow:
 		0 0 20px rgba(248, 113, 113, 0.6),
 		0 0 40px rgba(248, 113, 113, 0.3),
-		0 0 80px rgba(217, 170, 90, 0.15),
 		0 2px 8px rgba(0, 0, 0, 0.8);
 }
 
@@ -494,10 +699,17 @@ watch(
 	opacity: 0;
 }
 
-/* Damage flash */
-.damage-flash {
-	background: radial-gradient(ellipse at center, rgba(255, 30, 30, 0.15) 0%, transparent 70%);
-	animation: damageFlash 0.2s ease-out forwards;
+/* ═══════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════ */
+
+@keyframes bgFadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
 }
 
 @keyframes damageFlash {
@@ -509,6 +721,36 @@ watch(
 	}
 	100% {
 		opacity: 0;
+	}
+}
+
+/* Exit */
+.combat-overlay-leave-active {
+	transition: opacity 200ms ease-in;
+}
+
+.combat-overlay-leave-to {
+	opacity: 0;
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — stack on small screens
+   ═══════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+	.battle-content {
+		flex-direction: column;
+	}
+
+	.status-column {
+		width: 100%;
+		flex-direction: row;
+		justify-content: center;
+		padding: 4px 8px;
+	}
+
+	.stage-column {
+		min-height: 200px;
 	}
 }
 </style>

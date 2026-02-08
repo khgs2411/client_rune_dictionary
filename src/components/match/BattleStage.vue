@@ -43,7 +43,7 @@
 		</div>
 
 		<!-- Combatants Container -->
-		<div class="relative z-10 flex justify-between items-end px-[12%] h-full pb-16">
+		<div class="relative z-10 flex justify-between items-end px-[12%] h-full pb-4">
 			<!-- Player Zone (Left) -->
 			<div class="combatant-zone flex flex-col items-center gap-4">
 				<BattleSprite

@@ -1,61 +1,59 @@
 <template>
-	<div class="action-bar-grimoire">
-		<!-- Corner ornaments -->
-		<div class="corner-ornament tl" />
-		<div class="corner-ornament tr" />
-		<div class="corner-ornament bl" />
-		<div class="corner-ornament br" />
-
-		<!-- Atmospheric layers -->
-		<div class="bar-glow" />
-		<div class="bar-shimmer" />
-
+	<div class="action-bar-inner">
 		<div class="bar-body">
 			<!-- 8-Slot Ability Bar -->
 			<div class="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
 				<TooltipProvider v-for="index in 8" :key="index" :delay-duration="0" :skip-delay-duration="0">
 					<Tooltip>
 						<TooltipTrigger as-child>
-							<span v-if="getSlot(index)" class="inline-block">
-								<button
-									@click="handleAbilityClick(getSlot(index)!)"
-									:disabled="!isPlayerTurn"
-									:class="[
-										'ability-slot',
-										isPlayerTurn ? 'ability-slot-active' : 'ability-slot-disabled',
-									]">
-									<!-- Tier accent line -->
-									<div class="slot-tier-accent" :style="{ background: tierColor(getSlot(index)!.tier) }" />
-									<!-- Ability icon -->
-									<Icon icon="game-icons:spell-book" class="w-6 h-6 relative z-10" />
-									<!-- Keybind -->
-									<span class="slot-keybind">{{ index }}</span>
-									<!-- Active glow underline -->
-									<div v-if="isPlayerTurn" class="slot-active-glow" />
-								</button>
-							</span>
+							<button
+								v-if="getSlot(index)"
+								@click="handleAbilityClick(getSlot(index)!)"
+								:disabled="!isPlayerTurn"
+								:class="[
+									'ability-slot w-full',
+									isPlayerTurn ? 'ability-slot-active' : 'ability-slot-disabled',
+								]">
+								<!-- Tier accent line (top) -->
+								<div class="slot-tier-accent" :style="{ background: tierColor(getSlot(index)!.tier) }" />
+								<!-- Ability icon -->
+								<Icon icon="game-icons:spell-book" class="w-5 h-5 relative z-10 text-white/50" />
+								<!-- Keybind -->
+								<span class="slot-keybind">{{ index }}</span>
+							</button>
 							<!-- Empty slot -->
 							<button
 								v-else
 								disabled
-								class="empty-slot">
+								class="ability-slot empty-slot w-full">
 								<Icon icon="game-icons:padlock" class="w-4 h-4 text-white/10" />
 								<span class="slot-keybind dimmed">{{ index }}</span>
 							</button>
 						</TooltipTrigger>
-						<TooltipContent v-if="getSlot(index)" side="top" :side-offset="8" class="tooltip-grimoire">
-							<div class="flex items-center gap-2 mb-1.5">
-								<span class="font-bold text-white text-sm">{{ getSlot(index)!.name }}</span>
+						<TooltipContent
+							v-if="getSlot(index)"
+							side="top"
+							:side-offset="8"
+							class="!bg-[#0b0b13]/[.97] !text-white !border !border-[rgba(217,170,90,0.25)] backdrop-blur-md !rounded-lg !px-3.5 !py-3 max-w-[240px] z-[100] shadow-[0_0_20px_rgba(217,170,90,0.08)]">
+							<!-- Ability name + tier -->
+							<div class="flex items-center gap-2 mb-2">
+								<span class="font-bold text-[13px] text-white/95" style="font-family: Georgia, 'Times New Roman', serif">
+									{{ getSlot(index)!.name }}
+								</span>
 								<span
-									class="tier-badge"
-									:style="{ background: `${tierColor(getSlot(index)!.tier)}25`, color: tierColor(getSlot(index)!.tier) }">
+									class="text-[10px] font-bold px-1.5 py-0.5 rounded-sm"
+									:style="{ background: `${tierColor(getSlot(index)!.tier)}20`, color: tierColor(getSlot(index)!.tier), border: `1px solid ${tierColor(getSlot(index)!.tier)}30` }">
 									T{{ getSlot(index)!.tier }}
 								</span>
 							</div>
-							<div v-for="(slot, slotIdx) in getSlot(index)!.slots" :key="slotIdx" class="text-xs text-white/60 leading-relaxed">
+							<!-- Slot descriptions -->
+							<div v-for="(slot, slotIdx) in getSlot(index)!.slots" :key="slotIdx" class="text-[11px] text-white/55 leading-relaxed italic">
 								{{ slot.text }}
 							</div>
-							<p class="text-[10px] text-amber-400/60 mt-1.5 font-mono">Key: {{ index }}</p>
+							<!-- Keybind hint -->
+							<div class="flex items-center gap-1 mt-2 pt-2" style="border-top: 1px solid rgba(217,170,90,0.1)">
+								<span class="text-[10px] text-[#d9aa5a]/50 font-mono">Key: {{ index }}</span>
+							</div>
 						</TooltipContent>
 					</Tooltip>
 				</TooltipProvider>
@@ -177,120 +175,17 @@ function emitLeaveMatch() {
 
 <style scoped>
 /* ═══════════════════════════════════════════
-   GRIMOIRE ACTION BAR
+   GRIMOIRE ACTION BAR (embedded)
    ═══════════════════════════════════════════ */
 
-.action-bar-grimoire {
+.action-bar-inner {
 	--accent: #d9aa5a;
 	--accent-60: rgba(217, 170, 90, 0.6);
 	--accent-40: rgba(217, 170, 90, 0.4);
 	--accent-25: rgba(217, 170, 90, 0.25);
 	--accent-15: rgba(217, 170, 90, 0.15);
 	--accent-08: rgba(217, 170, 90, 0.08);
-
-	position: relative;
-	border-radius: 12px;
-	overflow: hidden;
-	background: #0b0b13;
-	border: 1px solid var(--accent-40);
-	box-shadow:
-		0 0 40px var(--accent-08),
-		0 -4px 24px rgba(0, 0, 0, 0.5);
 }
-
-/* ═══════════════════════════════════════════
-   CORNER ORNAMENTS
-   ═══════════════════════════════════════════ */
-
-.corner-ornament {
-	position: absolute;
-	width: 14px;
-	height: 14px;
-	pointer-events: none;
-	z-index: 6;
-	opacity: 0.5;
-}
-
-.corner-ornament.tl {
-	top: 6px;
-	left: 6px;
-	border-top: 1.5px solid var(--accent-60);
-	border-left: 1.5px solid var(--accent-60);
-}
-
-.corner-ornament.tr {
-	top: 6px;
-	right: 6px;
-	border-top: 1.5px solid var(--accent-60);
-	border-right: 1.5px solid var(--accent-60);
-}
-
-.corner-ornament.bl {
-	bottom: 6px;
-	left: 6px;
-	border-bottom: 1.5px solid var(--accent-60);
-	border-left: 1.5px solid var(--accent-60);
-}
-
-.corner-ornament.br {
-	bottom: 6px;
-	right: 6px;
-	border-bottom: 1.5px solid var(--accent-60);
-	border-right: 1.5px solid var(--accent-60);
-}
-
-/* ═══════════════════════════════════════════
-   ATMOSPHERIC LAYERS
-   ═══════════════════════════════════════════ */
-
-.bar-glow {
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
-	z-index: 1;
-	background: radial-gradient(ellipse at 50% 100%, var(--accent-15), transparent 60%);
-}
-
-.bar-shimmer {
-	position: absolute;
-	inset: 0;
-	overflow: hidden;
-	pointer-events: none;
-	z-index: 2;
-	border-radius: 12px;
-}
-
-.bar-shimmer::after {
-	content: "";
-	position: absolute;
-	top: -100%;
-	left: -100%;
-	width: 300%;
-	height: 300%;
-	background: linear-gradient(
-		50deg,
-		transparent 35%,
-		rgba(255, 255, 255, 0.01) 42%,
-		rgba(255, 255, 255, 0.025) 50%,
-		rgba(255, 255, 255, 0.01) 58%,
-		transparent 65%
-	);
-	animation: shimmerSweep 6s ease-in-out infinite;
-}
-
-@keyframes shimmerSweep {
-	0%,
-	100% {
-		transform: translateX(-40%) translateY(-40%);
-	}
-	50% {
-		transform: translateX(20%) translateY(20%);
-	}
-}
-
-/* ═══════════════════════════════════════════
-   BAR BODY
-   ═══════════════════════════════════════════ */
 
 .bar-body {
 	position: relative;
@@ -302,7 +197,7 @@ function emitLeaveMatch() {
 }
 
 /* ═══════════════════════════════════════════
-   ABILITY SLOTS
+   UNIFIED ABILITY SLOTS — equipped & empty share base
    ═══════════════════════════════════════════ */
 
 .ability-slot {
@@ -312,12 +207,44 @@ function emitLeaveMatch() {
 	align-items: center;
 	justify-content: center;
 	padding: 4px;
-	min-height: 44px;
+	min-height: 48px;
 	transition: all 150ms ease;
-	background: linear-gradient(180deg, rgba(30, 30, 45, 0.8) 0%, rgba(18, 18, 30, 0.9) 100%);
-	border: 1px solid var(--accent-25);
+	background: rgba(11, 11, 19, 0.6);
+	border: 1px dashed rgba(217, 170, 90, 0.12);
 }
 
+/* Equipped slot overrides — subtle tier accent, slightly brighter */
+.ability-slot-active {
+	border-style: solid;
+	border-color: var(--accent-25);
+	background: rgba(20, 20, 35, 0.7);
+	color: rgba(255, 255, 255, 0.85);
+	cursor: pointer;
+}
+
+.ability-slot-active:hover {
+	background: rgba(217, 170, 90, 0.08);
+	border-color: var(--accent-40);
+	box-shadow: 0 0 14px var(--accent-08);
+	transform: translateY(-2px);
+}
+
+.ability-slot-active:active {
+	transform: translateY(1px) scale(0.96);
+}
+
+.ability-slot-disabled {
+	color: rgba(255, 255, 255, 0.25);
+	cursor: not-allowed;
+	opacity: 0.5;
+}
+
+/* Empty/locked slots */
+.empty-slot {
+	cursor: not-allowed;
+}
+
+/* Tier accent line at top of equipped slots */
 .slot-tier-accent {
 	position: absolute;
 	top: 0;
@@ -327,65 +254,19 @@ function emitLeaveMatch() {
 	border-radius: 999px;
 }
 
+/* Keybind number */
 .slot-keybind {
 	position: absolute;
 	bottom: 2px;
 	right: 5px;
 	font-size: 9px;
-	color: rgba(217, 170, 90, 0.3);
+	color: rgba(217, 170, 90, 0.25);
 	font-family: ui-monospace, monospace;
 	font-weight: 700;
 }
 
 .slot-keybind.dimmed {
 	color: rgba(255, 255, 255, 0.1);
-}
-
-.slot-active-glow {
-	position: absolute;
-	bottom: 0;
-	left: 6px;
-	right: 6px;
-	height: 2px;
-	border-radius: 999px;
-	background: rgba(217, 170, 90, 0.3);
-}
-
-.ability-slot-active {
-	color: rgba(255, 255, 255, 0.9);
-	cursor: pointer;
-}
-
-.ability-slot-active:hover {
-	background: linear-gradient(180deg, rgba(217, 170, 90, 0.12) 0%, rgba(217, 170, 90, 0.06) 100%);
-	border-color: var(--accent-60);
-	box-shadow: 0 0 16px var(--accent-15);
-	transform: translateY(-2px);
-}
-
-.ability-slot-active:active {
-	transform: translateY(1px) scale(0.96);
-	box-shadow: 0 0 6px var(--accent-08);
-}
-
-.ability-slot-disabled {
-	color: rgba(255, 255, 255, 0.25);
-	cursor: not-allowed;
-	opacity: 0.5;
-}
-
-/* Empty / locked slots */
-.empty-slot {
-	position: relative;
-	border-radius: 8px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 4px;
-	min-height: 44px;
-	background: rgba(11, 11, 19, 0.6);
-	border: 1px dashed rgba(217, 170, 90, 0.1);
-	cursor: not-allowed;
 }
 
 /* ═══════════════════════════════════════════
@@ -436,7 +317,6 @@ function emitLeaveMatch() {
 	border: 1px solid;
 }
 
-/* Attack (primary - cyan with grimoire accent) */
 .utility-btn-attack {
 	background: linear-gradient(180deg, rgba(0, 100, 140, 0.5) 0%, rgba(0, 70, 110, 0.6) 100%);
 	border-color: rgba(34, 211, 238, 0.25);
@@ -453,7 +333,6 @@ function emitLeaveMatch() {
 	transform: scale(0.97);
 }
 
-/* Pass */
 .utility-btn-pass {
 	background: linear-gradient(180deg, rgba(40, 40, 55, 0.8) 0%, rgba(25, 25, 40, 0.9) 100%);
 	border-color: var(--accent-25);
@@ -465,7 +344,6 @@ function emitLeaveMatch() {
 	border-color: var(--accent-40);
 }
 
-/* Run */
 .utility-btn-run {
 	background: linear-gradient(180deg, rgba(120, 30, 30, 0.7) 0%, rgba(90, 20, 20, 0.8) 100%);
 	border-color: rgba(255, 60, 60, 0.2);
@@ -478,31 +356,9 @@ function emitLeaveMatch() {
 	box-shadow: 0 0 10px rgba(255, 60, 60, 0.15);
 }
 
-/* Disabled state */
 .utility-btn-disabled,
 .utility-btn:disabled {
 	opacity: 0.4;
 	cursor: not-allowed;
-}
-
-/* ═══════════════════════════════════════════
-   TOOLTIP
-   ═══════════════════════════════════════════ */
-
-.tooltip-grimoire {
-	max-width: 220px;
-	background: rgba(11, 11, 19, 0.96);
-	color: white;
-	border: 1px solid rgba(217, 170, 90, 0.2);
-	backdrop-filter: blur(8px);
-	padding: 10px 12px;
-	border-radius: 8px;
-}
-
-.tier-badge {
-	font-size: 10px;
-	font-weight: 700;
-	padding: 2px 6px;
-	border-radius: 3px;
 }
 </style>
