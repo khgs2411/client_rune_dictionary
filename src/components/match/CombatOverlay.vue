@@ -389,7 +389,7 @@ watch(
 	z-index: 10;
 	width: 95%;
 	max-width: 1000px;
-	max-height: 96vh;
+	height: 400px;
 	border-radius: 12px;
 	overflow: hidden;
 	border: 1px solid var(--accent-40);
